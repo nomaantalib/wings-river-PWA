@@ -1,503 +1,481 @@
 'use client';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useRef, useState, useCallback } from 'react';
 
-// ─── Scene frames for the animated intro ───────────────────────────────────
-const SCENES = [
-  {
-    id: 'jetski',
-    duration: 1100,
-    label: 'Lucknow Water Sports',
-    sublabel: 'Feel the Thrill',
-    bg: 'from-[#0a1628] via-[#0d3258] to-[#061525]',
-  },
-  {
-    id: 'food',
-    duration: 1100,
-    label: 'Wings River Café',
-    sublabel: 'Gourmet Multicuisine',
-    bg: 'from-[#1a0a05] via-[#3b1a08] to-[#1a0a05]',
-  },
-  {
-    id: 'river',
-    duration: 900,
-    label: 'Gomti Riverfront',
-    sublabel: 'Scenic & Serene',
-    bg: 'from-[#061525] via-[#0a2840] to-[#051020]',
-  },
-  {
-    id: 'outro',
-    duration: 600,
-    label: 'Wings River Café',
-    sublabel: 'Welcome',
-    bg: 'from-[#0a0a0a] via-[#141414] to-[#0a0a0a]',
-  },
-];
-
-const TOTAL_DURATION = SCENES.reduce((acc, s) => acc + s.duration, 0); // ~3700ms
-
-// ─── SVG Scene Animations ────────────────────────────────────────────────
-function JetSkiScene({ active }: { active: boolean }) {
-  return (
-    <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${active ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-      {/* Water */}
-      <svg viewBox="0 0 800 400" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <linearGradient id="waterGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#1a6b9e" stopOpacity="0.9" />
-            <stop offset="100%" stopColor="#0d3a5c" stopOpacity="1" />
-          </linearGradient>
-          <linearGradient id="skyGrad" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0a1628" />
-            <stop offset="100%" stopColor="#1a4a7a" />
-          </linearGradient>
-        </defs>
-        {/* Sky */}
-        <rect x="0" y="0" width="800" height="220" fill="url(#skyGrad)" />
-        {/* Sun */}
-        <circle cx="650" cy="80" r="50" fill="#ff6b1a" opacity="0.85">
-          <animate attributeName="r" values="48;54;48" dur="3s" repeatCount="indefinite" />
-          <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite" />
-        </circle>
-        {/* Sun glow */}
-        <circle cx="650" cy="80" r="70" fill="#ff6b1a" opacity="0.2">
-          <animate attributeName="r" values="68;80;68" dur="3s" repeatCount="indefinite" />
-        </circle>
-        {/* Water */}
-        <rect x="0" y="200" width="800" height="200" fill="url(#waterGrad)" />
-        {/* Waves */}
-        <g opacity="0.6">
-          <path d="M0,220 Q100,210 200,220 Q300,230 400,220 Q500,210 600,220 Q700,230 800,220" fill="none" stroke="#4fc3e8" strokeWidth="2">
-            <animate attributeName="d" values="M0,220 Q100,210 200,220 Q300,230 400,220 Q500,210 600,220 Q700,230 800,220;M0,225 Q100,215 200,225 Q300,215 400,225 Q500,215 600,225 Q700,215 800,225;M0,220 Q100,210 200,220 Q300,230 400,220 Q500,210 600,220 Q700,230 800,220" dur="2s" repeatCount="indefinite" />
-          </path>
-          <path d="M0,240 Q100,230 200,240 Q300,250 400,240 Q500,230 600,240 Q700,250 800,240" fill="none" stroke="#4fc3e8" strokeWidth="1.5" opacity="0.5">
-            <animate attributeName="d" values="M0,240 Q100,230 200,240 Q300,250 400,240 Q500,230 600,240 Q700,250 800,240;M0,245 Q100,255 200,245 Q300,235 400,245 Q500,255 600,245 Q700,235 800,245;M0,240 Q100,230 200,240 Q300,250 400,240 Q500,230 600,240 Q700,250 800,240" dur="2.5s" repeatCount="indefinite" />
-          </path>
-        </g>
-        {/* Jet Ski body */}
-        <g>
-          <animateTransform attributeName="transform" type="translate" values="-180,0;20,0;20,-6;20,0" keyTimes="0;0.5;0.7;1" dur="1.2s" begin="0.2s" fill="freeze" />
-          <ellipse cx="200" cy="255" rx="90" ry="18" fill="#ffd700" />
-          <ellipse cx="200" cy="250" rx="70" ry="14" fill="#ff8c00" />
-          <rect x="155" y="232" width="60" height="18" rx="6" fill="#ffcc00" />
-          {/* Rider */}
-          <circle cx="205" cy="225" r="10" fill="#f5cba7" />
-          <rect x="195" y="235" width="20" height="16" rx="3" fill="#e74c3c" />
-          {/* Helmet */}
-          <ellipse cx="205" cy="222" rx="11" ry="10" fill="#2c3e50" />
-          <ellipse cx="205" cy="222" rx="8" ry="6" fill="#3498db" opacity="0.7" />
-          {/* Life jacket arm */}
-          <line x1="195" y1="238" x2="185" y2="248" stroke="#e74c3c" strokeWidth="4" strokeLinecap="round" />
-          <line x1="215" y1="238" x2="228" y2="246" stroke="#e74c3c" strokeWidth="4" strokeLinecap="round" />
-        </g>
-        {/* Water splash */}
-        <g opacity="0">
-          <animate attributeName="opacity" values="0;0;0.9;0.6;0" keyTimes="0;0.4;0.6;0.8;1" dur="1.2s" begin="0.6s" repeatCount="indefinite" />
-          <path d="M90,255 Q110,235 130,255 Q150,275 170,255" fill="none" stroke="#a8e4f0" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="100" cy="250" r="4" fill="#a8e4f0" opacity="0.8" />
-          <circle cx="120" cy="245" r="3" fill="#a8e4f0" opacity="0.7" />
-          <circle cx="140" cy="252" r="5" fill="#a8e4f0" opacity="0.9" />
-          <circle cx="160" cy="248" r="3" fill="#a8e4f0" opacity="0.6" />
-        </g>
-        {/* Spray line */}
-        <path d="M110,258 L50,252" stroke="#a8e4f0" strokeWidth="2" opacity="0" strokeLinecap="round">
-          <animate attributeName="opacity" values="0;0;0.7;0" keyTimes="0;0.5;0.7;1" dur="1.1s" begin="0.6s" repeatCount="indefinite" />
-        </path>
-      </svg>
-
-      {/* Text overlay */}
-      <div className="relative z-10 text-center">
-        <div className={`transition-all duration-500 ${active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '300ms' }}>
-          <p className="text-blue-300 text-xs font-bold uppercase tracking-[6px] mb-2">🌊 Adventure Awaits</p>
-          <h1 className="font-serif text-4xl sm:text-6xl font-extrabold text-white drop-shadow-2xl">Lucknow<br />Water Sports</h1>
-          <p className="text-yellow-400 font-bold mt-2 text-sm tracking-widest">Feel the Thrill · Splash · Make Memories</p>
-        </div>
-      </div>
-    </div>
-  );
+// ── Water ripple particle type ────────────────────────────────────────────────
+interface Ripple {
+  x: number; y: number;
+  r: number; maxR: number;
+  alpha: number; speed: number;
+  color: string;
+}
+interface Drop {
+  x: number; y: number;
+  vy: number; vx: number;
+  r: number; alpha: number;
+  splashed: boolean;
+  trail: { x: number; y: number; r: number; alpha: number }[];
 }
 
-function FoodScene({ active }: { active: boolean }) {
-  return (
-    <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${active ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-      <svg viewBox="0 0 800 400" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <radialGradient id="tableGrad" cx="50%" cy="80%" r="60%">
-            <stop offset="0%" stopColor="#8B4513" />
-            <stop offset="100%" stopColor="#3d1f07" />
-          </radialGradient>
-          <radialGradient id="candleGlow" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#ff8c00" stopOpacity="0.6" />
-            <stop offset="100%" stopColor="#ff8c00" stopOpacity="0" />
-          </radialGradient>
-        </defs>
-        {/* Background */}
-        <rect width="800" height="400" fill="#1a0a05" />
-        {/* Ambient warm glow */}
-        <ellipse cx="400" cy="200" rx="350" ry="200" fill="#8B4513" opacity="0.12" />
+const WATER_COLORS = ['rgba(56,189,248,', 'rgba(125,211,252,', 'rgba(14,165,233,', 'rgba(186,230,253,', 'rgba(255,255,255,'];
 
-        {/* Table */}
-        <ellipse cx="400" cy="310" rx="280" ry="40" fill="#5a2e0a" />
-        <ellipse cx="400" cy="305" rx="280" ry="38" fill="url(#tableGrad)" />
-
-        {/* Main dish — biryani bowl */}
-        <ellipse cx="310" cy="285" rx="65" ry="20" fill="#c9902e" />
-        <ellipse cx="310" cy="278" rx="60" ry="17" fill="#e8a83e" />
-        {/* Rice grains */}
-        <g fill="#f5e6a0" opacity="0.9">
-          {[0,1,2,3,4,5,6,7,8].map(i => (
-            <ellipse key={i} cx={295 + (i % 3) * 15} cy={274 + Math.floor(i / 3) * 6} rx="4" ry="2" />
-          ))}
-        </g>
-        {/* Saffron color top */}
-        <ellipse cx="310" cy="274" rx="30" ry="10" fill="#e05c00" opacity="0.6" />
-
-        {/* Burger */}
-        <g>
-          <ellipse cx="490" cy="288" rx="50" ry="14" fill="#c9902e" />
-          <rect x="445" y="275" width="100" height="18" rx="6" fill="#f4c57a" />
-          <rect x="448" y="270" width="96" height="8" rx="3" fill="#e74c3c" opacity="0.8" />
-          <rect x="448" y="268" width="96" height="5" rx="2" fill="#27ae60" opacity="0.9" />
-          <ellipse cx="490" cy="267" rx="50" ry="14" fill="#d4a04a" />
-          {/* Sesame seeds */}
-          <g fill="#f5e6a0" opacity="0.6">
-            <ellipse cx="478" cy="264" rx="3" ry="1.5" />
-            <ellipse cx="492" cy="261" rx="3" ry="1.5" />
-            <ellipse cx="505" cy="265" rx="3" ry="1.5" />
-          </g>
-        </g>
-
-        {/* Pizza slice */}
-        <g transform="translate(400, 280)">
-          <path d="M0,-30 L-25,10 L25,10 Z" fill="#e8a83e" />
-          <path d="M0,-28 L-22,8 L22,8 Z" fill="#e74c3c" opacity="0.8" />
-          {/* Cheese dots */}
-          <circle cx="-5" cy="-5" r="5" fill="#f5e6a0" opacity="0.9" />
-          <circle cx="8" cy="2" r="4" fill="#f5e6a0" opacity="0.9" />
-          {/* Crust */}
-          <path d="M-25,10 L25,10" stroke="#c9902e" strokeWidth="8" strokeLinecap="round" />
-        </g>
-
-        {/* Drink glass */}
-        <g>
-          <rect x="540" y="265" width="35" height="45" rx="4" fill="#a8e4f0" opacity="0.5" />
-          <rect x="542" y="267" width="31" height="41" rx="3" fill="#4fc3e8" opacity="0.3" />
-          {/* Straw */}
-          <rect x="562" y="255" width="4" height="30" rx="2" fill="#ff6b9d" />
-          {/* Mint leaf */}
-          <ellipse cx="566" cy="255" rx="6" ry="4" fill="#27ae60" />
-          {/* Ice cubes */}
-          <rect x="545" y="280" width="10" height="10" rx="2" fill="white" opacity="0.5" />
-          <rect x="558" y="285" width="10" height="10" rx="2" fill="white" opacity="0.4" />
-        </g>
-
-        {/* Candle - center */}
-        <g>
-          <rect x="393" y="258" width="14" height="30" rx="2" fill="#f5f0e0" />
-          {/* Flame */}
-          <ellipse cx="400" cy="254" rx="5" ry="8" fill="#ff8c00">
-            <animate attributeName="rx" values="5;4;6;5" dur="0.8s" repeatCount="indefinite" />
-            <animate attributeName="ry" values="8;10;7;8" dur="0.8s" repeatCount="indefinite" />
-            <animate attributeName="cy" values="254;252;256;254" dur="0.8s" repeatCount="indefinite" />
-          </ellipse>
-          <ellipse cx="400" cy="257" rx="3" ry="5" fill="#ffdd00" opacity="0.8">
-            <animate attributeName="rx" values="3;2;4;3" dur="0.8s" repeatCount="indefinite" />
-          </ellipse>
-          {/* Candle glow */}
-          <ellipse cx="400" cy="255" rx="40" ry="30" fill="url(#candleGlow)">
-            <animate attributeName="rx" values="40;50;40" dur="1.2s" repeatCount="indefinite" />
-            <animate attributeName="ry" values="30;38;30" dur="1.2s" repeatCount="indefinite" />
-          </ellipse>
-        </g>
-
-        {/* Cutlery - fork */}
-        <g transform="translate(220, 290)" stroke="#c0c0c0" strokeWidth="2.5" fill="none">
-          <line x1="0" y1="-20" x2="0" y2="20" />
-          <line x1="-5" y1="-20" x2="-5" y2="-5" />
-          <line x1="5" y1="-20" x2="5" y2="-5" />
-          <path d="M-5,-5 Q0,0 5,-5" />
-        </g>
-        {/* Knife */}
-        <g transform="translate(580, 290)">
-          <line x1="0" y1="-20" x2="0" y2="20" stroke="#c0c0c0" strokeWidth="3" />
-          <path d="M0,-20 L4,-10 L0,10" fill="#c0c0c0" opacity="0.8" />
-        </g>
-
-        {/* Stars / fairy lights */}
-        {[50,150,250,600,680,720].map((x, i) => (
-          <circle key={i} cx={x} cy={30 + i * 15} r="2" fill="#ffd700" opacity="0.7">
-            <animate attributeName="opacity" values="0.7;0.2;0.7" dur={`${1 + i * 0.3}s`} repeatCount="indefinite" />
-          </circle>
-        ))}
-        {/* String lights */}
-        <path d="M0,50 Q200,30 400,50 Q600,70 800,50" stroke="#ffd700" strokeWidth="1" fill="none" opacity="0.4" />
-      </svg>
-
-      <div className="relative z-10 text-center">
-        <div className={`transition-all duration-500 ${active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '300ms' }}>
-          <p className="text-amber-400 text-xs font-bold uppercase tracking-[6px] mb-2">🍽️ Gourmet Delights</p>
-          <h1 className="font-serif text-4xl sm:text-6xl font-extrabold text-white drop-shadow-2xl">Wings River<br />Café</h1>
-          <p className="text-gold-400 font-bold mt-2 text-sm tracking-widest" style={{ color: '#FFD700' }}>Multicuisine · Riverside Dining</p>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function RiverScene({ active }: { active: boolean }) {
-  return (
-    <div className={`absolute inset-0 flex items-center justify-center transition-all duration-700 ${active ? 'opacity-100 scale-100' : 'opacity-0 scale-95'}`}>
-      <svg viewBox="0 0 800 400" className="absolute inset-0 w-full h-full" preserveAspectRatio="xMidYMid slice">
-        <defs>
-          <linearGradient id="nightSky" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#020b18" />
-            <stop offset="50%" stopColor="#061525" />
-            <stop offset="100%" stopColor="#0a2840" />
-          </linearGradient>
-          <linearGradient id="riverNight" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stopColor="#0d3a5c" />
-            <stop offset="100%" stopColor="#071e2e" />
-          </linearGradient>
-        </defs>
-        <rect width="800" height="400" fill="url(#nightSky)" />
-        {/* Stars */}
-        {[
-          [60,30],[180,55],[320,20],[420,45],[560,25],[680,40],[740,15],
-          [100,80],[260,65],[500,70],[640,60],[760,75],[40,110],[200,100]
-        ].map(([x, y], i) => (
-          <circle key={i} cx={x} cy={y} r="1.5" fill="white" opacity="0.6">
-            <animate attributeName="opacity" values="0.6;0.2;0.6" dur={`${1.5 + i * 0.2}s`} repeatCount="indefinite" />
-          </circle>
-        ))}
-        {/* Moon */}
-        <circle cx="680" cy="60" r="28" fill="#f8f0d0">
-          <animate attributeName="opacity" values="0.9;1;0.9" dur="4s" repeatCount="indefinite" />
-        </circle>
-        <circle cx="690" cy="52" r="22" fill="#0a1628" />
-
-        {/* Silhouette skyline */}
-        <rect x="0" y="170" width="800" height="20" fill="#020b18" />
-        {/* Trees */}
-        <g fill="#020b18">
-          {[20,60,90,130].map((x, i) => (
-            <polygon key={i} points={`${x},170 ${x + 15},200 ${x + 30},170`} />
-          ))}
-          {[650,700,740,770].map((x, i) => (
-            <polygon key={i} points={`${x},170 ${x + 15},200 ${x + 30},170`} />
-          ))}
-        </g>
-        {/* Buildings */}
-        <rect x="200" y="140" width="40" height="60" fill="#041020" />
-        <rect x="250" y="155" width="30" height="45" fill="#041020" />
-        <rect x="530" y="130" width="50" height="70" fill="#041020" />
-        <rect x="590" y="150" width="35" height="50" fill="#041020" />
-        {/* Building lights */}
-        {[210,225,240,540,555,570].map((x, i) => (
-          <rect key={i} x={x} y={145 + (i % 3) * 12} width="6" height="5" rx="1" fill="#ffd700" opacity="0.6">
-            <animate attributeName="opacity" values="0.6;0.1;0.6" dur={`${2 + i * 0.5}s`} repeatCount="indefinite" />
-          </rect>
-        ))}
-
-        {/* River */}
-        <rect x="0" y="200" width="800" height="200" fill="url(#riverNight)" />
-        {/* Moon reflection on water */}
-        <path d="M660,210 Q680,240 700,210" stroke="#f8f0d0" strokeWidth="2" fill="none" opacity="0.3">
-          <animate attributeName="d" values="M660,210 Q680,240 700,210;M655,215 Q680,245 705,215;M660,210 Q680,240 700,210" dur="3s" repeatCount="indefinite" />
-        </path>
-        {/* River shimmer */}
-        {[100,250,400,550,700].map((x, i) => (
-          <line key={i} x1={x} y1={220 + i * 8} x2={x + 40} y2={222 + i * 8} stroke="#4fc3e8" strokeWidth="1" opacity="0.3">
-            <animate attributeName="opacity" values="0.3;0.6;0.3" dur={`${2 + i * 0.4}s`} repeatCount="indefinite" />
-          </line>
-        ))}
-        {/* Café fairy lights reflection */}
-        {[300,340,380,420,460].map((x, i) => (
-          <ellipse key={i} cx={x} cy={215 + i * 3} rx="8" ry="4" fill="#ffd700" opacity="0.15">
-            <animate attributeName="opacity" values="0.1;0.3;0.1" dur={`${1.5 + i * 0.3}s`} repeatCount="indefinite" />
-          </ellipse>
-        ))}
-        {/* Café terrace with string lights */}
-        <rect x="280" y="168" width="240" height="32" fill="#0a1e10" />
-        <path d="M280,168 Q400,155 520,168" fill="#0d2a14" />
-        {/* String lights */}
-        {[295,320,345,370,395,420,445,470,495].map((x, i) => (
-          <circle key={i} cx={x} cy={163 + Math.sin(i * 0.7) * 4} r="3" fill="#ffd700" opacity="0.8">
-            <animate attributeName="opacity" values="0.8;0.3;0.8" dur={`${1 + i * 0.15}s`} repeatCount="indefinite" />
-          </circle>
-        ))}
-      </svg>
-
-      <div className="relative z-10 text-center">
-        <div className={`transition-all duration-500 ${active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '250ms' }}>
-          <p className="text-mint-300 text-xs font-bold uppercase tracking-[6px] mb-2" style={{ color: '#8FD3C7' }}>🌙 Gomti Riverfront</p>
-          <h1 className="font-serif text-4xl sm:text-6xl font-extrabold text-white drop-shadow-2xl">Lucknow's<br />Most Scenic Café</h1>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function OutroScene({ active }: { active: boolean }) {
-  return (
-    <div className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-600 ${active ? 'opacity-100' : 'opacity-0'}`}>
-      <div className="absolute inset-0 bg-dark-950" />
-      {/* Radial burst */}
-      <div className="absolute inset-0 flex items-center justify-center">
-        <div className={`w-96 h-96 rounded-full border border-mint-400/20 transition-all duration-700 ${active ? 'scale-150 opacity-0' : 'scale-0 opacity-100'}`}
-          style={{ transition: 'all 0.8s ease-out' }} />
-      </div>
-      <div className="relative z-10 flex flex-col items-center space-y-4">
-        <img
-          src="/logo.png"
-          alt="Wings River Café"
-          className={`w-28 h-28 rounded-2xl object-cover shadow-2xl border-2 border-gold-400/40 transition-all duration-500 ${active ? 'scale-110 opacity-100' : 'scale-50 opacity-0'}`}
-          style={{ transitionDelay: '100ms' }}
-        />
-        <div className={`text-center transition-all duration-500 ${active ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`} style={{ transitionDelay: '250ms' }}>
-          <h2 className="font-serif text-3xl font-extrabold text-white">Wings River Café</h2>
-          <p className="text-xs text-mint-300 tracking-widest font-semibold mt-1" style={{ color: '#8FD3C7' }}>LUCKNOW WATER SPORTS · LAXMAN MELA GROUND</p>
-        </div>
-        {/* Loading dots */}
-        <div className={`flex space-x-2 mt-2 transition-all duration-300 ${active ? 'opacity-100' : 'opacity-0'}`} style={{ transitionDelay: '400ms' }}>
-          {[0, 150, 300].map((delay) => (
-            <div
-              key={delay}
-              className="w-2.5 h-2.5 rounded-full animate-bounce"
-              style={{
-                background: 'linear-gradient(135deg, #8FD3C7, #FFD700)',
-                animationDelay: `${delay}ms`,
-              }}
-            />
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-}
-
-// ─── Main Component ───────────────────────────────────────────────────────
+// ── Canvas Water Splash Loading Screen ───────────────────────────────────────
 export default function LoadingScreen() {
-  const [sceneIndex, setSceneIndex] = useState(0);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const bgAudioRef = useRef<HTMLAudioElement | null>(null);
+  const splashAudioCtxRef = useRef<AudioContext | null>(null);
+  const animFrameRef = useRef<number>(0);
+  const startTimeRef = useRef<number>(0);
+  const ripplesRef = useRef<Ripple[]>([]);
+  const dropsRef = useRef<Drop[]>([]);
+  const phaseRef = useRef<'drops' | 'flood' | 'reveal' | 'done'>('drops');
+
   const [visible, setVisible] = useState(true);
-  const [fadeOut, setFadeOut] = useState(false);
-  const audioCtxRef = useRef<AudioContext | null>(null);
+  const [fading, setFading] = useState(false);
+  const [logoScale, setLogoScale] = useState(0);
+  const [logoOpacity, setLogoOpacity] = useState(0);
+  const [textVisible, setTextVisible] = useState(false);
+  const [floodLevel, setFloodLevel] = useState(0); // 0→100 percent from bottom
+  const [showProgress, setShowProgress] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [musicStarted, setMusicStarted] = useState(false);
 
-  // Play ambient water sound via Web Audio API
-  const playWaterSound = () => {
+  // ── Web Audio: water splash burst sound ────────────────────────────────────
+  const playSplashSound = useCallback((intensity: number = 1) => {
     try {
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (!AudioCtx) return;
-      const ctx = new AudioCtx();
-      audioCtxRef.current = ctx;
+      if (!splashAudioCtxRef.current) {
+        splashAudioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
+      }
+      const ctx = splashAudioCtxRef.current;
+      const bufSize = ctx.sampleRate * 0.18;
+      const buf = ctx.createBuffer(1, bufSize, ctx.sampleRate);
+      const data = buf.getChannelData(0);
+      for (let i = 0; i < bufSize; i++) {
+        // White noise decaying exponentially → realistic water splash
+        data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufSize * 0.12)) * intensity;
+      }
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      // Bandpass filter → warm water splash frequency
+      const bp = ctx.createBiquadFilter();
+      bp.type = 'bandpass';
+      bp.frequency.value = 800 + Math.random() * 600;
+      bp.Q.value = 0.8;
+      // Low shelf for body
+      const ls = ctx.createBiquadFilter();
+      ls.type = 'lowshelf';
+      ls.frequency.value = 300;
+      ls.gain.value = 6;
+      const gain = ctx.createGain();
+      gain.gain.setValueAtTime(0.55 * intensity, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+      src.connect(bp); bp.connect(ls); ls.connect(gain); gain.connect(ctx.destination);
+      src.start(ctx.currentTime);
+    } catch {}
+  }, []);
 
-      // White noise for water
-      const bufferSize = ctx.sampleRate * 2;
-      const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-      const data = buffer.getChannelData(0);
-      for (let i = 0; i < bufferSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * 0.08;
+  // ── Start background music ──────────────────────────────────────────────────
+  const startBackgroundMusic = useCallback(() => {
+    if (musicStarted) return;
+    try {
+      const audio = new Audio('/audio/background.mp3');
+      audio.loop = true;
+      audio.volume = 0;
+      audio.play().then(() => {
+        setMusicStarted(true);
+        bgAudioRef.current = audio;
+        // Fade in slowly over 3 seconds
+        let vol = 0;
+        const fadeIn = setInterval(() => {
+          vol = Math.min(vol + 0.02, 0.32);
+          audio.volume = vol;
+          if (vol >= 0.32) clearInterval(fadeIn);
+        }, 100);
+      }).catch(() => {});
+    } catch {}
+  }, [musicStarted]);
+
+  // ── Canvas animation loop ──────────────────────────────────────────────────
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx2d = canvas.getContext('2d')!;
+    startTimeRef.current = performance.now();
+
+    const resize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Spawn drops at random intervals during first 1.8s
+    let dropInterval: any;
+    let dropCount = 0;
+    const spawnDrop = () => {
+      const W = canvas.width, H = canvas.height;
+      const x = W * 0.1 + Math.random() * W * 0.8;
+      dropsRef.current.push({
+        x, y: -20,
+        vx: (Math.random() - 0.5) * 2,
+        vy: 6 + Math.random() * 8,
+        r: 4 + Math.random() * 8,
+        alpha: 0.9 + Math.random() * 0.1,
+        splashed: false,
+        trail: []
+      });
+      dropCount++;
+      if (dropCount > 28) { clearInterval(dropInterval); }
+    };
+    dropInterval = setInterval(spawnDrop, 80);
+    // First immediate drops
+    for (let i = 0; i < 5; i++) setTimeout(() => spawnDrop(), i * 30);
+
+    // ── Main render loop ──────────────────────────────────────────────────────
+    let floodH = 0; // pixels of flood from bottom
+    let revealProgress = 0;
+
+    const render = () => {
+      const W = canvas.width, H = canvas.height;
+      const elapsed = performance.now() - startTimeRef.current;
+
+      // ── Phase logic ────────────────────────────────────────────────────────
+      if (elapsed < 1900) {
+        phaseRef.current = 'drops';
+        setProgress(Math.min((elapsed / 1900) * 40, 40));
+      } else if (elapsed < 3200) {
+        if (phaseRef.current !== 'flood') {
+          phaseRef.current = 'flood';
+          clearInterval(dropInterval);
+        }
+        const p = (elapsed - 1900) / 1300;
+        floodH = H * easeInOut(p);
+        setFloodLevel(Math.round(easeInOut(p) * 100));
+        setProgress(40 + p * 40);
+      } else if (elapsed < 4200) {
+        if (phaseRef.current !== 'reveal') {
+          phaseRef.current = 'reveal';
+          setShowProgress(true);
+          playSplashSound(1.5);
+        }
+        revealProgress = (elapsed - 3200) / 1000;
+        setProgress(80 + revealProgress * 18);
+        setLogoScale(0.5 + easeOutBack(revealProgress) * 0.5);
+        setLogoOpacity(Math.min(revealProgress * 3, 1));
+        if (revealProgress > 0.5) setTextVisible(true);
+      } else if (elapsed < 5000) {
+        if (phaseRef.current !== 'done') {
+          phaseRef.current = 'done';
+          setProgress(100);
+        }
+      } else {
+        // Fade out
+        setFading(true);
+        setTimeout(() => setVisible(false), 800);
+        cancelAnimationFrame(animFrameRef.current);
+        return;
       }
 
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
+      // ── Clear ──────────────────────────────────────────────────────────────
+      ctx2d.clearRect(0, 0, W, H);
 
-      // Bandpass filter to make it sound like water
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.value = 800;
-      filter.Q.value = 0.5;
+      // ── Sky / background ───────────────────────────────────────────────────
+      const skyGrad = ctx2d.createLinearGradient(0, 0, 0, H);
+      skyGrad.addColorStop(0, '#020b18');
+      skyGrad.addColorStop(0.4, '#051a2e');
+      skyGrad.addColorStop(1, '#030d1a');
+      ctx2d.fillStyle = skyGrad;
+      ctx2d.fillRect(0, 0, W, H);
 
-      const gainNode = ctx.createGain();
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.5);
-      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + TOTAL_DURATION / 1000 - 0.3);
+      // ── Stars ──────────────────────────────────────────────────────────────
+      if (phaseRef.current === 'drops' || phaseRef.current === 'flood') {
+        for (let i = 0; i < 120; i++) {
+          const sx = ((i * 137.5) % W);
+          const sy = ((i * 97.3) % (H * 0.6));
+          const alpha = 0.3 + 0.5 * Math.abs(Math.sin(elapsed * 0.0005 + i));
+          ctx2d.beginPath();
+          ctx2d.arc(sx, sy, 0.8 + (i % 3) * 0.4, 0, Math.PI * 2);
+          ctx2d.fillStyle = `rgba(200,220,255,${alpha})`;
+          ctx2d.fill();
+        }
+      }
 
-      source.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      source.start();
-    } catch {
-      // silently ignore if audio not supported
-    }
-  };
+      // ── Flood water ───────────────────────────────────────────────────────
+      if (phaseRef.current === 'flood' || phaseRef.current === 'reveal' || phaseRef.current === 'done') {
+        const fH = phaseRef.current === 'flood' ? floodH : H;
+        if (fH > 0) {
+          const wGrad = ctx2d.createLinearGradient(0, H - fH, 0, H);
+          wGrad.addColorStop(0, 'rgba(14,100,180,0.92)');
+          wGrad.addColorStop(0.5, 'rgba(10,70,140,0.97)');
+          wGrad.addColorStop(1, 'rgba(5,40,90,1)');
+          ctx2d.fillStyle = wGrad;
 
-  useEffect(() => {
-    // Play ambient sound
-    playWaterSound();
+          // Wavy water surface
+          ctx2d.beginPath();
+          ctx2d.moveTo(0, H - fH);
+          const waveAmp = fH > 10 ? 12 + Math.sin(elapsed * 0.002) * 4 : 0;
+          const waveFreq = 0.008;
+          for (let wx = 0; wx <= W; wx += 4) {
+            const wy = H - fH + Math.sin(wx * waveFreq + elapsed * 0.003) * waveAmp
+              + Math.sin(wx * waveFreq * 2.3 + elapsed * 0.005) * (waveAmp * 0.4);
+            ctx2d.lineTo(wx, wy);
+          }
+          ctx2d.lineTo(W, H); ctx2d.lineTo(0, H); ctx2d.closePath();
+          ctx2d.fill();
 
-    // Scene progression
-    let elapsed = 0;
-    const timers: ReturnType<typeof setTimeout>[] = [];
+          // Water shimmer / caustic light
+          for (let c = 0; c < 8; c++) {
+            const cx2 = (W * 0.1 + c * W * 0.115 + Math.sin(elapsed * 0.001 + c) * 40);
+            const cy2 = H - fH * 0.3 - Math.cos(elapsed * 0.002 + c) * (fH * 0.15);
+            if (cy2 > H - fH) {
+              const rGrad = ctx2d.createRadialGradient(cx2, cy2, 0, cx2, cy2, 80 + c * 15);
+              rGrad.addColorStop(0, `rgba(125,211,252,${0.12 + Math.sin(elapsed * 0.003 + c) * 0.06})`);
+              rGrad.addColorStop(1, 'rgba(125,211,252,0)');
+              ctx2d.fillStyle = rGrad;
+              ctx2d.beginPath();
+              ctx2d.ellipse(cx2, cy2, 80 + c * 10, 30 + c * 5, 0, 0, Math.PI * 2);
+              ctx2d.fill();
+            }
+          }
+        }
+      }
 
-    SCENES.forEach((scene, index) => {
-      const t = setTimeout(() => {
-        setSceneIndex(index);
-      }, elapsed);
-      timers.push(t);
-      elapsed += scene.duration;
-    });
+      // ── Rain drops (falling water) ─────────────────────────────────────────
+      const drops = dropsRef.current;
+      const ripples = ripplesRef.current;
+      const aliveDrops: Drop[] = [];
 
-    // Fade out and unmount
-    const fadeTimer = setTimeout(() => setFadeOut(true), TOTAL_DURATION);
-    const unmountTimer = setTimeout(() => setVisible(false), TOTAL_DURATION + 700);
-    timers.push(fadeTimer, unmountTimer);
+      for (const drop of drops) {
+        // Physics
+        drop.vy += 0.6; // gravity
+        drop.x += drop.vx;
+        drop.y += drop.vy;
 
-    return () => {
-      timers.forEach(clearTimeout);
-      audioCtxRef.current?.close();
+        // Trail
+        drop.trail.push({ x: drop.x, y: drop.y, r: drop.r * 0.5, alpha: drop.alpha * 0.3 });
+        if (drop.trail.length > 8) drop.trail.shift();
+
+        // Draw trail
+        for (let t = 0; t < drop.trail.length; t++) {
+          const tr = drop.trail[t];
+          const a = (t / drop.trail.length) * tr.alpha * 0.5;
+          ctx2d.beginPath();
+          ctx2d.ellipse(tr.x, tr.y, tr.r * 0.4, tr.r * 1.6, 0, 0, Math.PI * 2);
+          ctx2d.fillStyle = `rgba(125,211,252,${a})`;
+          ctx2d.fill();
+        }
+
+        // Draw drop body
+        const dGrad = ctx2d.createRadialGradient(drop.x - drop.r * 0.3, drop.y - drop.r * 0.3, 0, drop.x, drop.y, drop.r);
+        dGrad.addColorStop(0, `rgba(220,240,255,${drop.alpha})`);
+        dGrad.addColorStop(0.5, `rgba(56,189,248,${drop.alpha * 0.8})`);
+        dGrad.addColorStop(1, `rgba(14,100,180,${drop.alpha * 0.4})`);
+        ctx2d.beginPath();
+        ctx2d.arc(drop.x, drop.y, drop.r, 0, Math.PI * 2);
+        ctx2d.fillStyle = dGrad;
+        ctx2d.fill();
+        // Specular highlight
+        ctx2d.beginPath();
+        ctx2d.arc(drop.x - drop.r * 0.3, drop.y - drop.r * 0.3, drop.r * 0.25, 0, Math.PI * 2);
+        ctx2d.fillStyle = `rgba(255,255,255,${drop.alpha * 0.7})`;
+        ctx2d.fill();
+
+        // Hit ground or screen bottom
+        const groundY = H - (phaseRef.current === 'flood' ? floodH : 0);
+        if (drop.y + drop.r >= (phaseRef.current === 'flood' ? H - floodH : H * 0.98)) {
+          if (!drop.splashed) {
+            drop.splashed = true;
+            playSplashSound(0.3 + Math.random() * 0.5);
+            // Spawn ripple
+            for (let ri = 0; ri < 3; ri++) {
+              ripples.push({
+                x: drop.x + (Math.random() - 0.5) * 20,
+                y: phaseRef.current === 'flood' ? H - floodH : H * 0.97,
+                r: 0,
+                maxR: 40 + drop.r * 8 + ri * 20,
+                alpha: 0.7 - ri * 0.15,
+                speed: 1.5 + ri * 0.8,
+                color: WATER_COLORS[Math.floor(Math.random() * WATER_COLORS.length)]
+              });
+            }
+            // Splash particles — upward droplets
+            for (let sp = 0; sp < 8; sp++) {
+              const angle = -Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI * 1.2;
+              const speed = 2 + Math.random() * 6;
+              dropsRef.current.push({
+                x: drop.x + (Math.random() - 0.5) * 20,
+                y: drop.y,
+                vx: Math.cos(angle) * speed,
+                vy: Math.sin(angle) * speed - 3,
+                r: 1.5 + Math.random() * 3,
+                alpha: 0.8,
+                splashed: false,
+                trail: []
+              });
+            }
+          }
+        } else {
+          aliveDrops.push(drop);
+        }
+      }
+      dropsRef.current = aliveDrops.filter(d => d.y < H + 50 && d.alpha > 0.05);
+
+      // ── Ripples ────────────────────────────────────────────────────────────
+      const aliveRipples: Ripple[] = [];
+      for (const rip of ripples) {
+        rip.r += rip.speed;
+        rip.alpha *= 0.94;
+        if (rip.r < rip.maxR && rip.alpha > 0.01) {
+          ctx2d.beginPath();
+          ctx2d.ellipse(rip.x, rip.y, rip.r, rip.r * 0.3, 0, 0, Math.PI * 2);
+          ctx2d.strokeStyle = `${rip.color}${rip.alpha})`;
+          ctx2d.lineWidth = 1.5;
+          ctx2d.stroke();
+          // Inner ripple
+          if (rip.r > 10) {
+            ctx2d.beginPath();
+            ctx2d.ellipse(rip.x, rip.y, rip.r * 0.6, rip.r * 0.18, 0, 0, Math.PI * 2);
+            ctx2d.strokeStyle = `${rip.color}${rip.alpha * 0.5})`;
+            ctx2d.lineWidth = 0.8;
+            ctx2d.stroke();
+          }
+          aliveRipples.push(rip);
+        }
+      }
+      ripplesRef.current = aliveRipples;
+
+      // ── Screen-wide water splash burst at flood start ─────────────────────
+      if (phaseRef.current === 'reveal') {
+        // Water surface distortion / caustic overlay
+        const distAlpha = Math.max(0, 1 - revealProgress * 1.5);
+        if (distAlpha > 0) {
+          for (let wave = 0; wave < 6; wave++) {
+            ctx2d.beginPath();
+            ctx2d.moveTo(0, H * (0.1 + wave * 0.15));
+            for (let wx = 0; wx <= W; wx += 6) {
+              const wy = H * (0.1 + wave * 0.15) +
+                Math.sin(wx * 0.02 + elapsed * 0.01 + wave) * (30 + wave * 10) +
+                Math.cos(wx * 0.008 + elapsed * 0.007) * 20;
+              ctx2d.lineTo(wx, wy);
+            }
+            ctx2d.strokeStyle = `rgba(56,189,248,${distAlpha * 0.12})`;
+            ctx2d.lineWidth = 1.5;
+            ctx2d.stroke();
+          }
+        }
+      }
+
+      animFrameRef.current = requestAnimationFrame(render);
     };
-  }, []);
+
+    animFrameRef.current = requestAnimationFrame(render);
+    return () => {
+      cancelAnimationFrame(animFrameRef.current);
+      clearInterval(dropInterval);
+      window.removeEventListener('resize', resize);
+    };
+  }, [playSplashSound]);
+
+  // Start music on first user interaction or after 2s
+  useEffect(() => {
+    const onInteract = () => {
+      startBackgroundMusic();
+      window.removeEventListener('click', onInteract);
+      window.removeEventListener('touchstart', onInteract);
+      window.removeEventListener('keydown', onInteract);
+    };
+    window.addEventListener('click', onInteract);
+    window.addEventListener('touchstart', onInteract);
+    window.addEventListener('keydown', onInteract);
+    // Also try auto after 2s
+    const t = setTimeout(startBackgroundMusic, 2000);
+    return () => { clearTimeout(t); window.removeEventListener('click', onInteract); window.removeEventListener('touchstart', onInteract); window.removeEventListener('keydown', onInteract); };
+  }, [startBackgroundMusic]);
 
   if (!visible) return null;
 
   return (
-    <div
-      className={`fixed inset-0 z-[300] transition-opacity duration-700 ${fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
-      style={{ background: '#000' }}
-    >
-      {/* Scene 0: Jet Ski */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${SCENES[0].bg} transition-opacity duration-500 ${sceneIndex === 0 ? 'opacity-100' : 'opacity-0'}`}>
-        <JetSkiScene active={sceneIndex === 0} />
+    <div className={`fixed inset-0 z-[500] overflow-hidden transition-all duration-700 ${fading ? 'opacity-0' : 'opacity-100'}`}>
+      {/* Canvas — realistic water animation */}
+      <canvas ref={canvasRef} className="absolute inset-0 w-full h-full" style={{ display: 'block' }} />
+
+      {/* Logo + text (reveal phase) */}
+      <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none"
+        style={{ opacity: logoOpacity, transform: `scale(${logoScale})`, transition: 'none' }}>
+        {/* Glow ring */}
+        <div className="relative">
+          <div className="absolute -inset-8 rounded-full animate-ping"
+            style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.25) 0%, transparent 70%)', animationDuration: '1.5s' }} />
+          <div className="absolute -inset-4 rounded-full"
+            style={{ background: 'radial-gradient(circle, rgba(56,189,248,0.15) 0%, transparent 70%)', animation: 'pulse 2s infinite' }} />
+          {/* Logo */}
+          <div className="relative w-28 h-28 rounded-[28px] overflow-hidden border-2 shadow-2xl"
+            style={{
+              borderColor: 'rgba(125,211,252,0.6)',
+              boxShadow: '0 0 60px rgba(56,189,248,0.5), 0 0 120px rgba(14,100,180,0.3), inset 0 0 20px rgba(125,211,252,0.1)',
+              backdropFilter: 'blur(12px)',
+            }}>
+            <img src="/logo.png" alt="Wings River Café" className="w-full h-full object-cover" />
+            {/* Water refraction overlay */}
+            <div className="absolute inset-0 pointer-events-none"
+              style={{ background: 'linear-gradient(135deg, rgba(125,211,252,0.15) 0%, transparent 50%, rgba(14,100,180,0.1) 100%)' }} />
+          </div>
+        </div>
+
+        {/* Text */}
+        <div className={`mt-6 text-center transition-all duration-700 ${textVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'}`}>
+          <h1 className="font-serif font-black text-white text-3xl sm:text-4xl tracking-tight"
+            style={{ textShadow: '0 0 40px rgba(56,189,248,0.7), 0 2px 20px rgba(0,0,0,0.8)' }}>
+            Wings River Café
+          </h1>
+          <p className="text-sky-300 text-sm font-semibold tracking-[0.3em] uppercase mt-1.5"
+            style={{ textShadow: '0 0 20px rgba(56,189,248,0.5)' }}>
+            Taste · Eat · Rides
+          </p>
+          {/* Water drop separator */}
+          <div className="flex items-center justify-center space-x-2 mt-3">
+            {[0, 0.15, 0.3].map((delay, i) => (
+              <div key={i} className="w-1.5 h-1.5 rounded-full bg-sky-400"
+                style={{ animation: `bounce 1s ${delay}s infinite`, boxShadow: '0 0 8px rgba(56,189,248,0.8)' }} />
+            ))}
+          </div>
+        </div>
       </div>
 
-      {/* Scene 1: Food */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${SCENES[1].bg} transition-opacity duration-500 ${sceneIndex === 1 ? 'opacity-100' : 'opacity-0'}`}>
-        <FoodScene active={sceneIndex === 1} />
-      </div>
+      {/* Progress bar */}
+      {showProgress && (
+        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 w-48">
+          <div className="h-0.5 bg-white/10 rounded-full overflow-hidden">
+            <div className="h-full rounded-full transition-all duration-300"
+              style={{ width: `${progress}%`, background: 'linear-gradient(90deg, rgba(56,189,248,0.8), rgba(125,211,252,1))' }} />
+          </div>
+          <p className="text-center text-[9px] text-sky-400/60 mt-2 tracking-widest uppercase font-semibold">Loading experience…</p>
+        </div>
+      )}
 
-      {/* Scene 2: River Night */}
-      <div className={`absolute inset-0 bg-gradient-to-br ${SCENES[2].bg} transition-opacity duration-500 ${sceneIndex === 2 ? 'opacity-100' : 'opacity-0'}`}>
-        <RiverScene active={sceneIndex === 2} />
-      </div>
+      {/* Music indicator dot */}
+      {musicStarted && (
+        <div className="absolute top-4 right-4 flex items-center space-x-1.5">
+          {[0, 0.2, 0.4].map((d, i) => (
+            <div key={i} className="w-0.5 bg-sky-400/60 rounded-full"
+              style={{ height: `${8 + i * 4}px`, animation: `scaleY 1s ${d}s infinite alternate`, transformOrigin: 'bottom' }} />
+          ))}
+        </div>
+      )}
 
-      {/* Scene 3: Outro / Logo */}
-      <div className={`absolute inset-0 transition-opacity duration-500 ${sceneIndex === 3 ? 'opacity-100' : 'opacity-0'}`}>
-        <OutroScene active={sceneIndex === 3} />
-      </div>
-
-      {/* Progress bar at top */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/10 z-50">
-        <div
-          className="h-full bg-gradient-to-r from-mint-400 via-gold-400 to-mint-300 transition-all"
-          style={{
-            width: `${((sceneIndex + 1) / SCENES.length) * 100}%`,
-            transition: 'width 1s ease-out',
-          }}
-        />
-      </div>
-
-      {/* Scene dots indicator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-50">
-        {SCENES.map((_, i) => (
-          <div
-            key={i}
-            className={`rounded-full transition-all duration-500 ${
-              i === sceneIndex ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30'
-            }`}
-          />
-        ))}
-      </div>
+      <style jsx>{`
+        @keyframes scaleY { from { transform: scaleY(0.3); } to { transform: scaleY(1.2); } }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+      `}</style>
     </div>
   );
+}
+
+// Easing helpers
+function easeInOut(t: number): number {
+  return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+}
+function easeOutBack(t: number): number {
+  const c1 = 1.70158, c3 = c1 + 1;
+  return 1 + c3 * Math.pow(t - 1, 3) + c1 * Math.pow(t - 1, 2);
 }
