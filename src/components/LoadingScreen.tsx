@@ -553,7 +553,9 @@ export default function LoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[300] transition-opacity duration-700 ${fadeOut ? 'opacity-0 pointer-events-none' : 'opacity-100'}`}
+      className={`fixed inset-0 z-[300] transition-all duration-900 ease-in-out backdrop-blur-3xl ${
+        fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
+      }`}
       style={{ background: '#000' }}
     >
       {/* Scene 0: Jet Ski */}

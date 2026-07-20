@@ -38,6 +38,7 @@ CREATE TABLE IF NOT EXISTS blogs (
   content TEXT NOT NULL,
   category TEXT NOT NULL DEFAULT 'Food & Dining', -- 'Events', 'Recipes', 'Riverside Stories', 'Offers', 'Water Sports'
   cover_image TEXT,
+  images TEXT, -- JSON array of image URLs
   author TEXT DEFAULT 'Wings River Team',
   read_time TEXT DEFAULT '4 min read',
   is_published INTEGER NOT NULL DEFAULT 1,

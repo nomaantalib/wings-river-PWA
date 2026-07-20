@@ -25,7 +25,7 @@ export default function GallerySection() {
   const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
-    setItems(getStoredGalleryItems());
+    getStoredGalleryItems().then(setItems);
   }, []);
 
   const filteredItems = items.filter(

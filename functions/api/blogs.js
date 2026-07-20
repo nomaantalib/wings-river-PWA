@@ -8,7 +8,17 @@ export async function onRequestGet(context) {
   }
   try {
     const { results } = await db.prepare("SELECT * FROM blogs ORDER BY created_at DESC").all();
-    return new Response(JSON.stringify({ success: true, data: results }), {
+    const formatted = results.map(row => {
+      let imagesArr = [];
+      if (row.images) {
+        try { imagesArr = JSON.parse(row.images); } catch { }
+      }
+      return {
+        ...row,
+        images: Array.isArray(imagesArr) && imagesArr.length > 0 ? imagesArr : (row.cover_image ? [row.cover_image] : [])
+      };
+    });
+    return new Response(JSON.stringify({ success: true, data: formatted }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (err) {
@@ -28,10 +38,11 @@ export async function onRequestPost(context) {
     const slug = data.slug || id;
     const isPublished = data.is_published !== undefined ? (data.is_published ? 1 : 0) : 1;
     const createdAt = data.created_at || new Date().toISOString();
+    const imagesStr = Array.isArray(data.images) ? JSON.stringify(data.images) : null;
 
     await db.prepare(`
-      INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, author, read_time, is_published, created_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, images, author, read_time, is_published, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).bind(
       id,
       data.title,
@@ -40,6 +51,7 @@ export async function onRequestPost(context) {
       data.content,
       data.category || 'Food & Dining',
       data.cover_image || null,
+      imagesStr,
       data.author || 'Wings River Team',
       data.read_time || '4 min read',
       isPublished,

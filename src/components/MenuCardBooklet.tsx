@@ -21,8 +21,10 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   useEffect(() => {
-    setMenuPages(getStoredMenuPages());
-    setMenuItems(getStoredMenuItems());
+    Promise.all([getStoredMenuPages(), getStoredMenuItems()]).then(([pages, items]) => {
+      setMenuPages(pages);
+      setMenuItems(items);
+    });
   }, []);
 
   // Auto flip effect
@@ -46,12 +48,14 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
   const currentPage = menuPages[currentPageIndex] || menuPages[0];
 
-  const nextPage = () => {
+  const nextPage = (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     setFlipDirection('next');
     setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
   };
 
-  const prevPage = () => {
+  const prevPage = (e?: React.SyntheticEvent) => {
+    if (e) e.preventDefault();
     setFlipDirection('prev');
     setCurrentPageIndex((prev) => (prev - 1 + menuPages.length) % menuPages.length);
   };
@@ -206,7 +210,9 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     style={{
                       transformOrigin: flipDirection === 'next' ? 'left center' : 'right center',
                       perspective: 1500,
-                      backfaceVisibility: 'hidden'
+                      backfaceVisibility: 'hidden',
+                      touchAction: 'pan-y',
+                      userSelect: 'none'
                     }}
                     className="w-full h-full relative overflow-hidden flex items-center justify-center p-2 bg-[#fbf5eb]"
                   >

@@ -13,7 +13,7 @@ export default function ReviewsSection() {
   const [commentInput, setCommentInput] = useState('');
 
   useEffect(() => {
-    setReviews(getStoredReviews());
+    getStoredReviews().then(setReviews);
   }, []);
 
   const handleAddReview = (e: React.FormEvent) => {

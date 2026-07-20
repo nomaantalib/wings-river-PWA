@@ -13,6 +13,9 @@ export { INITIAL_REVIEWS } from '@/models/ReviewModel';
 export type { EventBanner } from '@/controllers/StorageController';
 export type { RideTicket } from '@/models/WaterSportsModel';
 
+export type { HeroSlide, HeroSettings } from '@/models/HeroModel';
+export { DEFAULT_HERO_SETTINGS, DEFAULT_HERO_SLIDES } from '@/models/HeroModel';
+
 export {
   // Reservations
   getStoredReservations,
@@ -58,4 +61,7 @@ export {
   saveMenuPage,
   updateMenuPage,
   deleteMenuPage,
+  // Hero Settings
+  getStoredHeroSettings,
+  saveHeroSettings,
 } from '@/controllers/StorageController';

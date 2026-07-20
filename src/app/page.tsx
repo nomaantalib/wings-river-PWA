@@ -19,6 +19,7 @@ import Footer from '@/components/Footer';
 import FloatingActions from '@/components/FloatingActions';
 import BookingModal from '@/components/BookingModal';
 import InstallPWAView from '@/views/InstallPWAView';
+import PWAInstallBanner from '@/components/PWAInstallBanner';
 
 export default function Home() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -52,12 +53,13 @@ export default function Home() {
       
       <GallerySection key={`gallery-${syncKey}`} />
       <ReviewsSection key={`reviews-${syncKey}`} />
-      <BlogSection key={`blog-${syncKey}`} />
+      <BlogSection key={`blog-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       <LocationSection />
       <ContactSection />
       
       <Footer />
       <FloatingActions />
+      <PWAInstallBanner />
       <InstallPWAView />
       <BackgroundMusic />
 
