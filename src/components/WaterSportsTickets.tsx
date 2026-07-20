@@ -20,7 +20,10 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
   const [rides, setRides] = useState<RideTicket[]>([]);
 
   useEffect(() => {
-    getStoredWaterSports().then(setRides);
+    const refreshData = () => { getStoredWaterSports().then(setRides); };
+    refreshData();
+    window.addEventListener('wings_db_sync', refreshData);
+    return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
   const filteredRides = rides.filter(

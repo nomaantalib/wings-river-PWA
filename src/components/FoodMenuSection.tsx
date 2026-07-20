@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { ZoomIn, ZoomOut, Maximize2, X, Download, ChevronDown } from 'lucide-react';
 
 interface FoodMenuSectionProps {
@@ -21,7 +21,27 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
   const zoomOut = () => { setZoomLevel(z => Math.max(z - ZOOM_STEP, MIN_ZOOM)); if (zoomLevel <= MIN_ZOOM + ZOOM_STEP) setPan({ x: 0, y: 0 }); };
   const resetZoom = () => { setZoomLevel(1); setPan({ x: 0, y: 0 }); };
 
-  const handleWheel = (e: React.WheelEvent) => { e.preventDefault(); setZoomLevel(z => Math.min(Math.max(z + (e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP), MIN_ZOOM), MAX_ZOOM)); };
+  const viewerRef = useRef<HTMLDivElement | null>(null);
+  const modalViewerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      setZoomLevel(z => Math.min(Math.max(z + (e.deltaY > 0 ? -ZOOM_STEP : ZOOM_STEP), MIN_ZOOM), MAX_ZOOM));
+    };
+
+    const el = viewerRef.current;
+    if (el) el.addEventListener('wheel', onWheel, { passive: false });
+
+    const modalEl = modalViewerRef.current;
+    if (modalEl) modalEl.addEventListener('wheel', onWheel, { passive: false });
+
+    return () => {
+      if (el) el.removeEventListener('wheel', onWheel);
+      if (modalEl) modalEl.removeEventListener('wheel', onWheel);
+    };
+  }, [isFullscreen]);
+
   const handleMouseDown = (e: React.MouseEvent) => { if (zoomLevel <= 1) return; setIsDragging(true); setDragStart({ x: e.clientX - pan.x, y: e.clientY - pan.y }); };
   const handleMouseMove = (e: React.MouseEvent) => { if (!isDragging) return; setPan({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y }); };
   const handleMouseUp = () => setIsDragging(false);
@@ -96,8 +116,8 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
             </div>
 
             {/* Image viewer */}
-            <div className="w-full overflow-hidden bg-[#fdf6ee]" style={{ minHeight: '340px', maxHeight: '82vh', cursor: zoomLevel > 1 ? 'grab' : 'zoom-in' }}
-              onWheel={handleWheel} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
+            <div ref={viewerRef} className="w-full overflow-hidden bg-[#fdf6ee]" style={{ minHeight: '340px', maxHeight: '82vh', cursor: zoomLevel > 1 ? 'grab' : 'zoom-in' }}
+              onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
               onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd}>
               <img
                 src="/images/food_menu_collage.jpg"
@@ -152,8 +172,8 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
               <button onClick={closeFullscreen} className="p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white transition-all"><X className="w-4 h-4" /></button>
             </div>
           </div>
-          <div className={`relative flex items-center justify-center overflow-auto w-full max-w-5xl flex-1 rounded-2xl ${zoomLevel > 1 ? 'cursor-grab' : 'cursor-zoom-in'} ${isDragging ? 'cursor-grabbing' : ''}`}
-            onWheel={handleWheel} onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
+          <div ref={modalViewerRef} className={`relative flex items-center justify-center overflow-auto w-full max-w-5xl flex-1 rounded-2xl ${zoomLevel > 1 ? 'cursor-grab' : 'cursor-zoom-in'} ${isDragging ? 'cursor-grabbing' : ''}`}
+            onMouseDown={handleMouseDown} onMouseMove={handleMouseMove} onMouseUp={handleMouseUp} onMouseLeave={handleMouseUp}
             onTouchMove={handleTouchMove} onTouchEnd={handleTouchEnd} style={{ userSelect: 'none' }}>
             <img src="/images/food_menu_collage.jpg" alt="Wings River Café Full Food Menu" className="max-h-[82vh] max-w-full object-contain select-none rounded-2xl shadow-2xl"
               style={{ transform: `scale(${zoomLevel}) translate(${pan.x / zoomLevel}px, ${pan.y / zoomLevel}px)`, transformOrigin: 'center center', transition: isDragging ? 'none' : 'transform 0.18s ease-out', willChange: 'transform' }}

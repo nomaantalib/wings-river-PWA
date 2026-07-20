@@ -13,7 +13,10 @@ export default function ReviewsSection() {
   const [commentInput, setCommentInput] = useState('');
 
   useEffect(() => {
-    getStoredReviews().then(setReviews);
+    const refreshData = () => { getStoredReviews().then(setReviews); };
+    refreshData();
+    window.addEventListener('wings_db_sync', refreshData);
+    return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
   const handleAddReview = (e: React.FormEvent) => {

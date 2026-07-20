@@ -21,10 +21,15 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   useEffect(() => {
-    Promise.all([getStoredMenuPages(), getStoredMenuItems()]).then(([pages, items]) => {
-      setMenuPages(pages);
-      setMenuItems(items);
-    });
+    const refreshData = () => {
+      Promise.all([getStoredMenuPages(), getStoredMenuItems()]).then(([pages, items]) => {
+        setMenuPages(pages);
+        setMenuItems(items);
+      });
+    };
+    refreshData();
+    window.addEventListener('wings_db_sync', refreshData);
+    return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
   // Auto flip effect
@@ -184,14 +189,21 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
             {/* Menu Booklet Page Container with Page Flip Slide Animation */}
             <div className="relative group">
               <div className="relative bg-dark-900 rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl transition-all duration-700 aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center">
-                {/* 3D Page Turning Image Transition */}
+                {/* 3D Page Turning Image Transition with Touch Swipe Support */}
                 <AnimatePresence initial={false} mode="wait">
                   <motion.div
                     key={currentPageIndex}
+                    drag="x"
+                    dragConstraints={{ left: 0, right: 0 }}
+                    dragElastic={0.2}
+                    onDragEnd={(_, info) => {
+                      if (info.offset.x < -40) nextPage();
+                      else if (info.offset.x > 40) prevPage();
+                    }}
                     initial={{
-                      rotateY: flipDirection === 'next' ? 95 : -95,
-                      opacity: 0.3,
-                      scale: 0.95
+                      rotateY: flipDirection === 'next' ? 85 : -85,
+                      opacity: 0.2,
+                      scale: 0.96
                     }}
                     animate={{
                       rotateY: 0,
@@ -199,27 +211,30 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                       scale: 1
                     }}
                     exit={{
-                      rotateY: flipDirection === 'next' ? -95 : 95,
-                      opacity: 0.3,
-                      scale: 0.95
+                      rotateY: flipDirection === 'next' ? -85 : 85,
+                      opacity: 0.2,
+                      scale: 0.96
                     }}
                     transition={{
-                      duration: 0.45,
-                      ease: [0.25, 1, 0.5, 1] // Custom smooth easeOut cubic
+                      type: 'spring',
+                      stiffness: 260,
+                      damping: 26,
+                      mass: 0.8
                     }}
                     style={{
                       transformOrigin: flipDirection === 'next' ? 'left center' : 'right center',
                       perspective: 1500,
                       backfaceVisibility: 'hidden',
                       touchAction: 'pan-y',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      cursor: 'grab'
                     }}
                     className="w-full h-full relative overflow-hidden flex items-center justify-center p-2 bg-[#fbf5eb]"
                   >
                     <img
                       src={currentPage.image}
                       alt={currentPage.title}
-                      className="w-full h-full object-contain filter drop-shadow-2xl rounded-xl"
+                      className="w-full h-full object-contain filter drop-shadow-2xl rounded-xl pointer-events-none"
                     />
 
                     {/* Left/Right Spine Shadow Overlay */}

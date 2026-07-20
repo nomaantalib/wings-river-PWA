@@ -25,7 +25,10 @@ export default function GallerySection() {
   const [isPlaying, setIsPlaying] = useState(true);
 
   useEffect(() => {
-    getStoredGalleryItems().then(setItems);
+    const refreshData = () => { getStoredGalleryItems().then(setItems); };
+    refreshData();
+    window.addEventListener('wings_db_sync', refreshData);
+    return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
   const filteredItems = items.filter(

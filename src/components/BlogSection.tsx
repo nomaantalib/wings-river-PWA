@@ -16,7 +16,10 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
   useEffect(() => {
-    getStoredBlogs().then(setBlogs);
+    const refreshData = () => { getStoredBlogs().then(setBlogs); };
+    refreshData();
+    window.addEventListener('wings_db_sync', refreshData);
+    return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
   const categories = ['All', ...Array.from(new Set(blogs.map(b => b.category)))];

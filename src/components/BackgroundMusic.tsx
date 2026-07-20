@@ -109,10 +109,7 @@ export default function BackgroundMusic() {
       ['click', 'touchstart', 'keydown', 'scroll'].forEach(e => window.removeEventListener(e, onInteract));
     };
     ['click', 'touchstart', 'keydown', 'scroll'].forEach(e => window.addEventListener(e, onInteract, { once: true }));
-    // Auto-try after 3s
-    const t = setTimeout(initAudio, 3000);
     return () => {
-      clearTimeout(t);
       ['click', 'touchstart', 'keydown', 'scroll'].forEach(e => window.removeEventListener(e, onInteract));
     };
   }, []);

@@ -8,6 +8,7 @@ import { onRequestGet as getSettings,   onRequestPost as postSettings,   onReque
 import { onRequestGet as getBanners,    onRequestPost as postBanners,    onRequestDelete as deleteBanners    } from './functions/api/banners.js';
 import { onRequestGet as getWaterSports,onRequestPost as postWaterSports,onRequestDelete as deleteWaterSports} from './functions/api/watersports.js';
 import { onRequestGet as getMenuPages,  onRequestPost as postMenuPages,  onRequestDelete as deleteMenuPages  } from './functions/api/menupages.js';
+import { onRequestGet as getHero,       onRequestPost as postHero,       onRequestDelete as deleteHero       } from './functions/api/hero.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -94,6 +95,13 @@ export default {
         if (request.method === 'GET')    return injectCors(await getMenuPages(context),   corsHeaders);
         if (request.method === 'POST')   return injectCors(await postMenuPages(context),  corsHeaders);
         if (request.method === 'DELETE') return injectCors(await deleteMenuPages(context),corsHeaders);
+      }
+
+      // ── HERO SETTINGS ──
+      if (url.pathname === '/api/hero') {
+        if (request.method === 'GET')    return injectCors(await getHero(context),   corsHeaders);
+        if (request.method === 'POST')   return injectCors(await postHero(context),  corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteHero(context),corsHeaders);
       }
 
     } catch (err) {

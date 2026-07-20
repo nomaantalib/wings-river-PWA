@@ -7,6 +7,14 @@ import { BlogPost, INITIAL_BLOGS }                 from '@/models/BlogModel';
 import { GalleryItem, INITIAL_GALLERY }            from '@/models/GalleryModel';
 import { Review, ContactMessage, INITIAL_REVIEWS } from '@/models/ReviewModel';
 import { RideTicket, WATER_SPORTS_RIDES }          from '@/models/WaterSportsModel';
+import { HeroSettings, DEFAULT_HERO_SETTINGS }     from '@/models/HeroModel';
+
+// ── Event dispatch helper to notify all open UI components instantly ─────────
+function notifySync() {
+  if (typeof window !== 'undefined') {
+    window.dispatchEvent(new Event('wings_db_sync'));
+  }
+}
 
 // ── Core D1 API fetch helpers ──────────────────────────────────────────────────
 async function apiFetch(url: string): Promise<any> {
@@ -46,22 +54,27 @@ export async function getStoredReservations(): Promise<Reservation[]> {
 }
 
 export async function saveReservation(reservation: Reservation): Promise<void> {
-  try { await apiPost('/api/bookings', reservation); }
-  catch (e) { console.error('[D1] saveReservation:', e); }
+  try {
+    await apiPost('/api/bookings', reservation);
+    notifySync();
+  } catch (e) { console.error('[D1] saveReservation:', e); }
 }
 
 export async function updateReservationStatus(id: string, newStatus: string): Promise<Reservation[]> {
   try {
-    // Fetch current record, patch status, re-POST
     const all = await getStoredReservations();
     const matched = all.find(r => r.id === id);
     if (matched) await apiPost('/api/bookings', { ...matched, status: newStatus });
+    notifySync();
     return await getStoredReservations();
   } catch (e) { console.error('[D1] updateReservationStatus:', e); return []; }
 }
 
 export async function deleteReservation(id: string): Promise<Reservation[]> {
-  try { await apiDelete(`/api/bookings?id=${id}`); } catch (e) { console.error('[D1] deleteReservation:', e); }
+  try {
+    await apiDelete(`/api/bookings?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteReservation:', e); }
   return getStoredReservations();
 }
 
@@ -73,7 +86,6 @@ export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
     const res = await apiFetch('/api/gallery');
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
-        // Seed defaults on first deploy
         await Promise.all(INITIAL_GALLERY.map(item => apiPost('/api/gallery', item).catch(() => {})));
         return INITIAL_GALLERY;
       }
@@ -84,17 +96,26 @@ export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
-  try { await apiPost('/api/gallery', item); } catch (e) { console.error('[D1] saveGalleryItem:', e); }
+  try {
+    await apiPost('/api/gallery', item);
+    notifySync();
+  } catch (e) { console.error('[D1] saveGalleryItem:', e); }
   return getStoredGalleryItems();
 }
 
 export async function updateGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
-  try { await apiPost('/api/gallery', item); } catch (e) { console.error('[D1] updateGalleryItem:', e); }
+  try {
+    await apiPost('/api/gallery', item);
+    notifySync();
+  } catch (e) { console.error('[D1] updateGalleryItem:', e); }
   return getStoredGalleryItems();
 }
 
 export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
-  try { await apiDelete(`/api/gallery?id=${id}`); } catch (e) { console.error('[D1] deleteGalleryItem:', e); }
+  try {
+    await apiDelete(`/api/gallery?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteGalleryItem:', e); }
   return getStoredGalleryItems();
 }
 
@@ -116,17 +137,26 @@ export async function getStoredMenuItems(): Promise<MenuItem[]> {
 }
 
 export async function saveMenuItem(item: MenuItem): Promise<MenuItem[]> {
-  try { await apiPost('/api/menu', item); } catch (e) { console.error('[D1] saveMenuItem:', e); }
+  try {
+    await apiPost('/api/menu', item);
+    notifySync();
+  } catch (e) { console.error('[D1] saveMenuItem:', e); }
   return getStoredMenuItems();
 }
 
 export async function updateMenuItem(item: MenuItem): Promise<MenuItem[]> {
-  try { await apiPost('/api/menu', item); } catch (e) { console.error('[D1] updateMenuItem:', e); }
+  try {
+    await apiPost('/api/menu', item);
+    notifySync();
+  } catch (e) { console.error('[D1] updateMenuItem:', e); }
   return getStoredMenuItems();
 }
 
 export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
-  try { await apiDelete(`/api/menu?id=${id}`); } catch (e) { console.error('[D1] deleteMenuItem:', e); }
+  try {
+    await apiDelete(`/api/menu?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteMenuItem:', e); }
   return getStoredMenuItems();
 }
 
@@ -148,17 +178,26 @@ export async function getStoredBlogs(): Promise<BlogPost[]> {
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
-  try { await apiPost('/api/blogs', blog); } catch (e) { console.error('[D1] saveBlog:', e); }
+  try {
+    await apiPost('/api/blogs', blog);
+    notifySync();
+  } catch (e) { console.error('[D1] saveBlog:', e); }
   return getStoredBlogs();
 }
 
 export async function updateBlog(blog: BlogPost): Promise<BlogPost[]> {
-  try { await apiPost('/api/blogs', blog); } catch (e) { console.error('[D1] updateBlog:', e); }
+  try {
+    await apiPost('/api/blogs', blog);
+    notifySync();
+  } catch (e) { console.error('[D1] updateBlog:', e); }
   return getStoredBlogs();
 }
 
 export async function deleteBlog(id: string): Promise<BlogPost[]> {
-  try { await apiDelete(`/api/blogs?id=${id}`); } catch (e) { console.error('[D1] deleteBlog:', e); }
+  try {
+    await apiDelete(`/api/blogs?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteBlog:', e); }
   return getStoredBlogs();
 }
 
@@ -180,11 +219,17 @@ export async function getStoredReviews(): Promise<Review[]> {
 }
 
 export async function saveReview(rev: Review): Promise<void> {
-  try { await apiPost('/api/reviews', rev); } catch (e) { console.error('[D1] saveReview:', e); }
+  try {
+    await apiPost('/api/reviews', rev);
+    notifySync();
+  } catch (e) { console.error('[D1] saveReview:', e); }
 }
 
 export async function deleteReview(id: string): Promise<Review[]> {
-  try { await apiDelete(`/api/reviews?id=${id}`); } catch (e) { console.error('[D1] deleteReview:', e); }
+  try {
+    await apiDelete(`/api/reviews?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteReview:', e); }
   return getStoredReviews();
 }
 
@@ -200,11 +245,17 @@ export async function getStoredContactMessages(): Promise<ContactMessage[]> {
 }
 
 export async function saveContactMessage(msg: ContactMessage): Promise<void> {
-  try { await apiPost('/api/contact', msg); } catch (e) { console.error('[D1] saveContactMessage:', e); }
+  try {
+    await apiPost('/api/contact', msg);
+    notifySync();
+  } catch (e) { console.error('[D1] saveContactMessage:', e); }
 }
 
 export async function deleteContactMessage(id: string): Promise<ContactMessage[]> {
-  try { await apiDelete(`/api/contact?id=${id}`); } catch (e) { console.error('[D1] deleteContactMessage:', e); }
+  try {
+    await apiDelete(`/api/contact?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteContactMessage:', e); }
   return getStoredContactMessages();
 }
 
@@ -250,17 +301,26 @@ export async function getStoredEventBanners(): Promise<EventBanner[]> {
 }
 
 export async function saveEventBanner(banner: EventBanner): Promise<EventBanner[]> {
-  try { await apiPost('/api/banners', banner); } catch (e) { console.error('[D1] saveEventBanner:', e); }
+  try {
+    await apiPost('/api/banners', banner);
+    notifySync();
+  } catch (e) { console.error('[D1] saveEventBanner:', e); }
   return getStoredEventBanners();
 }
 
 export async function updateEventBanner(banner: EventBanner): Promise<EventBanner[]> {
-  try { await apiPost('/api/banners', banner); } catch (e) { console.error('[D1] updateEventBanner:', e); }
+  try {
+    await apiPost('/api/banners', banner);
+    notifySync();
+  } catch (e) { console.error('[D1] updateEventBanner:', e); }
   return getStoredEventBanners();
 }
 
 export async function deleteEventBanner(id: string): Promise<EventBanner[]> {
-  try { await apiDelete(`/api/banners?id=${id}`); } catch (e) { console.error('[D1] deleteEventBanner:', e); }
+  try {
+    await apiDelete(`/api/banners?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteEventBanner:', e); }
   return getStoredEventBanners();
 }
 
@@ -269,6 +329,7 @@ export async function toggleEventBanner(id: string): Promise<EventBanner[]> {
     const all = await getStoredEventBanners();
     const target = all.find(b => b.id === id);
     if (target) await apiPost('/api/banners', { ...target, is_active: !target.is_active });
+    notifySync();
   } catch (e) { console.error('[D1] toggleEventBanner:', e); }
   return getStoredEventBanners();
 }
@@ -291,17 +352,26 @@ export async function getStoredWaterSports(): Promise<RideTicket[]> {
 }
 
 export async function saveWaterSports(ride: RideTicket): Promise<RideTicket[]> {
-  try { await apiPost('/api/watersports', ride); } catch (e) { console.error('[D1] saveWaterSports:', e); }
+  try {
+    await apiPost('/api/watersports', ride);
+    notifySync();
+  } catch (e) { console.error('[D1] saveWaterSports:', e); }
   return getStoredWaterSports();
 }
 
 export async function updateWaterSports(ride: RideTicket): Promise<RideTicket[]> {
-  try { await apiPost('/api/watersports', ride); } catch (e) { console.error('[D1] updateWaterSports:', e); }
+  try {
+    await apiPost('/api/watersports', ride);
+    notifySync();
+  } catch (e) { console.error('[D1] updateWaterSports:', e); }
   return getStoredWaterSports();
 }
 
 export async function deleteWaterSports(id: string): Promise<RideTicket[]> {
-  try { await apiDelete(`/api/watersports?id=${id}`); } catch (e) { console.error('[D1] deleteWaterSports:', e); }
+  try {
+    await apiDelete(`/api/watersports?id=${id}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteWaterSports:', e); }
   return getStoredWaterSports();
 }
 
@@ -313,7 +383,6 @@ export async function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
     const res = await apiFetch('/api/menupages');
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
-        // Bulk seed all default pages in one POST
         await apiPost('/api/menupages', MENU_BOOKLET_PAGES).catch(() => {});
         return MENU_BOOKLET_PAGES;
       }
@@ -324,51 +393,51 @@ export async function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
 }
 
 export async function saveMenuPage(page: MenuPageDefinition): Promise<MenuPageDefinition[]> {
-  try { await apiPost('/api/menupages', page); } catch (e) { console.error('[D1] saveMenuPage:', e); }
+  try {
+    await apiPost('/api/menupages', page);
+    notifySync();
+  } catch (e) { console.error('[D1] saveMenuPage:', e); }
   return getStoredMenuPages();
 }
 
 export async function updateMenuPage(page: MenuPageDefinition): Promise<MenuPageDefinition[]> {
-  try { await apiPost('/api/menupages', page); } catch (e) { console.error('[D1] updateMenuPage:', e); }
+  try {
+    await apiPost('/api/menupages', page);
+    notifySync();
+  } catch (e) { console.error('[D1] updateMenuPage:', e); }
   return getStoredMenuPages();
 }
 
 export async function deleteMenuPage(pageNumber: number): Promise<MenuPageDefinition[]> {
-  try { await apiDelete(`/api/menupages?page_number=${pageNumber}`); } catch (e) { console.error('[D1] deleteMenuPage:', e); }
+  try {
+    await apiDelete(`/api/menupages?page_number=${pageNumber}`);
+    notifySync();
+  } catch (e) { console.error('[D1] deleteMenuPage:', e); }
   return getStoredMenuPages();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  HERO SECTION SETTINGS  — /api/settings (D1 key-value pair)
+//  HERO SECTION SETTINGS  — /api/hero (dedicated D1 endpoint)
 // ═══════════════════════════════════════════════════════════════════════════════
-import { HeroSettings, DEFAULT_HERO_SETTINGS } from '@/models/HeroModel';
-
 export async function getStoredHeroSettings(): Promise<HeroSettings> {
   try {
-    const res = await apiFetch('/api/settings');
-    if (res.success && res.data && res.data.wings_hero_settings) {
-      const parsed = typeof res.data.wings_hero_settings === 'string'
-        ? JSON.parse(res.data.wings_hero_settings)
-        : res.data.wings_hero_settings;
-      return parsed;
-    }
+    const res = await apiFetch('/api/hero');
+    if (res.success && res.data) return res.data as HeroSettings;
   } catch (e) { console.error('[D1] getStoredHeroSettings:', e); }
   return DEFAULT_HERO_SETTINGS;
 }
 
 export async function saveHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
   try {
-    await apiPost('/api/settings', { key: 'wings_hero_settings', value: JSON.stringify(settings) });
+    await apiPost('/api/hero', settings);
+    notifySync();
   } catch (e) { console.error('[D1] saveHeroSettings:', e); }
   return settings;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  SYNC  — warms all data on page load (no-op here, just fires all fetches)
+//  SYNC  — trigger refresh across browser tabs/components
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function syncDatabase(): Promise<void> {
-  // No localStorage to sync. All data is always live from D1.
-  if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('wings_db_sync'));
-  }
+  notifySync();
 }
