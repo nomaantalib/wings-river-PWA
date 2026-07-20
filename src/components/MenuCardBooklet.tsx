@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem } from '@/lib/db';
 import { ChevronLeft, ChevronRight, BookOpen, Grid, Maximize2, Download, Calendar, ZoomIn, X, Play, Pause } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 
 interface MenuCardBookletProps {
   onOpenBooking: () => void;
@@ -13,6 +14,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [viewMode, setViewMode] = useState<'booklet' | 'grid' | 'scroll'>('booklet');
   const [activeZoomImage, setActiveZoomImage] = useState<string | null>(null);
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
+  const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
 
   // Database client-side states to prevent hydration mismatch
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>([]);
@@ -45,10 +47,12 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const currentPage = menuPages[currentPageIndex] || menuPages[0];
 
   const nextPage = () => {
+    setFlipDirection('next');
     setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
   };
 
   const prevPage = () => {
+    setFlipDirection('prev');
     setCurrentPageIndex((prev) => (prev - 1 + menuPages.length) % menuPages.length);
   };
 
@@ -176,20 +180,48 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
             {/* Menu Booklet Page Container with Page Flip Slide Animation */}
             <div className="relative group">
               <div className="relative bg-dark-900 rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl transition-all duration-700 aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center">
-                {/* 3D Page Sliding Image */}
-                <div
-                  key={currentPageIndex}
-                  className="w-full h-full relative overflow-hidden animate-fade-in flex items-center justify-center p-2 bg-[#fbf5eb]"
-                >
-                  <img
-                    src={currentPage.image}
-                    alt={currentPage.title}
-                    className="w-full h-full object-contain filter drop-shadow-xl rounded-xl"
-                  />
+                {/* 3D Page Turning Image Transition */}
+                <AnimatePresence initial={false} mode="wait">
+                  <motion.div
+                    key={currentPageIndex}
+                    initial={{
+                      rotateY: flipDirection === 'next' ? 95 : -95,
+                      opacity: 0.3,
+                      scale: 0.95
+                    }}
+                    animate={{
+                      rotateY: 0,
+                      opacity: 1,
+                      scale: 1
+                    }}
+                    exit={{
+                      rotateY: flipDirection === 'next' ? -95 : 95,
+                      opacity: 0.3,
+                      scale: 0.95
+                    }}
+                    transition={{
+                      duration: 0.45,
+                      ease: [0.25, 1, 0.5, 1] // Custom smooth easeOut cubic
+                    }}
+                    style={{
+                      transformOrigin: flipDirection === 'next' ? 'left center' : 'right center',
+                      perspective: 1500,
+                      backfaceVisibility: 'hidden'
+                    }}
+                    className="w-full h-full relative overflow-hidden flex items-center justify-center p-2 bg-[#fbf5eb]"
+                  >
+                    <img
+                      src={currentPage.image}
+                      alt={currentPage.title}
+                      className="w-full h-full object-contain filter drop-shadow-2xl rounded-xl"
+                    />
 
-                  {/* Corner Page Curl Ribbon */}
-                  <div className="absolute top-0 right-0 w-16 h-16 bg-gradient-to-bl from-gold-500/40 via-transparent to-transparent pointer-events-none" />
-                </div>
+                    {/* Left/Right Spine Shadow Overlay */}
+                    <div className={`absolute inset-y-0 w-16 bg-gradient-to-r from-black/10 to-transparent pointer-events-none ${
+                      flipDirection === 'next' ? 'left-0' : 'right-0'
+                    }`} />
+                  </motion.div>
+                </AnimatePresence>
 
                 {/* Left Navigation Arrow */}
                 <button
