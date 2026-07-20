@@ -115,9 +115,15 @@ export default function AdminDashboard() {
   >(null);
 
   // ── Auth ──────────────────────────────────────────────────────────────────
+  // ── Auth & Active Tab Persistence ─────────────────────────────────────────
   useEffect(() => {
     setMounted(true);
-    if (localStorage.getItem('wings_admin_auth') === 'true') { setIsAuthenticated(true); loadAll(); }
+    if (localStorage.getItem('wings_admin_auth') === 'true') {
+      setIsAuthenticated(true);
+      loadAll();
+      const savedTab = localStorage.getItem('wings_admin_tab') as TabKey;
+      if (savedTab) setActiveTab(savedTab);
+    }
 
     const handleSync = () => {
       if (localStorage.getItem('wings_admin_auth') === 'true') { loadAll(); }
@@ -149,6 +155,7 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('wings_admin_auth');
+    localStorage.removeItem('wings_admin_tab');
     if (typeof window !== 'undefined') {
       window.location.href = '/';
     }
@@ -284,7 +291,7 @@ export default function AdminDashboard() {
         style={{ background: 'rgba(15,10,6,0.8)' }}>
         <div className="flex items-center px-4 sm:px-6 space-x-1 py-2">
           {TABS.map(tab => (
-            <button key={tab.id} onClick={() => setActiveTab(tab.id)}
+            <button key={tab.id} onClick={() => { setActiveTab(tab.id); localStorage.setItem('wings_admin_tab', tab.id); }}
               className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-amber-500 text-dark-950 shadow-md shadow-amber-500/20'
