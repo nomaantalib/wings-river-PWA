@@ -15,8 +15,38 @@ export async function onRequestGet(context) {
   if (!db) return new Response(JSON.stringify({ success: true, data: [] }), { headers: { 'Content-Type': 'application/json' } });
   try {
     await db.prepare(CREATE_TABLE).run();
-    const query = await db.prepare("SELECT * FROM event_banners ORDER BY created_at DESC").all();
-    const results = query?.results || [];
+    let query = await db.prepare("SELECT * FROM event_banners ORDER BY created_at DESC").all();
+    let results = query?.results || [];
+
+    if (results.length === 0) {
+      const initialBanners = [
+        {
+          id: 'eb-1',
+          title: '🎉 Weekend Riverside Fiesta!',
+          subtitle: 'Live music, gourmet BBQ & unlimited mocktails every Saturday & Sunday evening.',
+          image_url: '/images/Screenshot_20260720-180609_Maps.png',
+          cta_text: 'Reserve Your Spot',
+          cta_link: '#booking'
+        }
+      ];
+      for (const b of initialBanners) {
+        await db.prepare(`
+          INSERT INTO event_banners (id, title, subtitle, image_url, cta_text, cta_link, is_active, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+        `).bind(
+          b.id,
+          b.title,
+          b.subtitle,
+          b.image_url,
+          b.cta_text,
+          b.cta_link,
+          new Date().toISOString()
+        ).run();
+      }
+      query = await db.prepare("SELECT * FROM event_banners ORDER BY created_at DESC").all();
+      results = query?.results || [];
+    }
+
     const data = results.map(r => ({ ...r, is_active: r.is_active === 1 || r.is_active === true }));
     return new Response(JSON.stringify({ success: true, data }), { headers: { 'Content-Type': 'application/json' } });
   } catch (err) {

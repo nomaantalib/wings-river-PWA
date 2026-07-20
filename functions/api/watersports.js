@@ -17,8 +17,39 @@ export async function onRequestGet(context) {
   if (!db) return new Response(JSON.stringify({ success: true, data: [] }), { headers: { 'Content-Type': 'application/json' } });
   try {
     await db.prepare(CREATE_TABLE).run();
-    const query = await db.prepare("SELECT * FROM water_sports ORDER BY category ASC, name ASC").all();
-    const results = query?.results || [];
+    let query = await db.prepare("SELECT * FROM water_sports ORDER BY category ASC, name ASC").all();
+    let results = query?.results || [];
+
+    if (results.length === 0) {
+      const initialRides = [
+        { id: 'ride-1', name: 'Jetski Thrill Ride', emoji: '🏄', category: 'Water Sports', price: 350, unit: 'Per Person 1 Round', description: 'High speed jet ski adventure on Gomti river with certified instructor & life jacket.', badge: 'Most Popular', image: '/images/Screenshot_20260720-180544_Maps.png' },
+        { id: 'ride-2', name: 'Speed Boat Ride', emoji: '⚡', category: 'Water Sports', price: 250, unit: 'Per Person 1 Round', description: 'Exhilarating twin-engine speedboat ride offering panoramic riverfront views.', badge: 'Family Favorite', image: '/images/Screenshot_20260720-180745_Maps.png' },
+        { id: 'ride-3', name: 'Motor Boat Cruise', emoji: '🚤', category: 'Water Sports', price: 200, unit: 'Per Person 1 Round', description: 'Smooth & comfortable motor boat cruise around Laxman Jhula park riverfront.', badge: 'Scenic Cruise', image: '/images/Screenshot_20260720-180555_Maps.png' },
+        { id: 'ride-4', name: 'Panda Train', emoji: '🐼', category: 'Other Activities', price: 50, unit: 'Per Person 1 Round', description: 'Fun musical track train ride for toddlers, kids & families near the river park.', badge: 'Kids Zone', image: '/images/Screenshot_20260720-180737_Maps.png' },
+        { id: 'ride-5', name: 'Electric Kids Car', emoji: '🚗', category: 'Other Activities', price: 50, unit: 'Per Person 1 Round', description: 'Illuminated battery-powered electric drive cars for young adventurers.', badge: 'Kids Fun', image: '/images/Screenshot_20260720-180621_Maps.png' },
+        { id: 'ride-6', name: 'Trampoline Jump', emoji: '🤸', category: 'Other Activities', price: 50, unit: 'Per Person 1 Round', description: 'Enclosed safety netting high-bounce jumping trampoline enclosure.', badge: 'Active Play', image: '/images/Screenshot_20260720-180724_Maps.png' }
+      ];
+      for (const r of initialRides) {
+        await db.prepare(`
+          INSERT INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(
+          r.id,
+          r.name,
+          r.category,
+          r.price,
+          r.unit,
+          r.description,
+          r.badge,
+          r.image,
+          r.emoji,
+          new Date().toISOString()
+        ).run();
+      }
+      query = await db.prepare("SELECT * FROM water_sports ORDER BY category ASC, name ASC").all();
+      results = query?.results || [];
+    }
+
     return new Response(JSON.stringify({ success: true, data: results }), { headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
     return new Response(JSON.stringify({ success: true, data: [], error: err.message }), { status: 200, headers: { 'Content-Type': 'application/json' } });

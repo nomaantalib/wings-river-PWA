@@ -14,8 +14,37 @@ export async function onRequestGet(context) {
   if (!db) return new Response(JSON.stringify({ success: true, data: [] }), { headers: { 'Content-Type': 'application/json' } });
   try {
     await db.prepare(CREATE_TABLE).run();
-    const query = await db.prepare("SELECT * FROM menu_pages ORDER BY page_number ASC").all();
-    const results = query?.results || [];
+    let query = await db.prepare("SELECT * FROM menu_pages ORDER BY page_number ASC").all();
+    let results = query?.results || [];
+
+    if (results.length === 0) {
+      const initialPages = [
+        { pageNumber: 1, title: 'Wings River & Water Sports Menu', subtitle: 'Delicious Moments, Unforgettable Memories', image: '/menu card food/page1.png', categories: JSON.stringify(['Cover']) },
+        { pageNumber: 2, title: 'Beverages, Breakfast & Chaat', subtitle: 'Chai, Chola Bhatura, Pav Bhaji & Agra Bhalla', image: '/menu card food/page2.png', categories: JSON.stringify(['Beverages', 'Breakfast', 'Chaat']) },
+        { pageNumber: 3, title: 'Coolers & Mocktails', subtitle: 'Virgin Mojito, Blue Lagoon, Iced Teas & Lassi', image: '/menu card food/page 3.png', categories: JSON.stringify(['Coolers & Mocktails']) },
+        { pageNumber: 4, title: 'Shakes & Gourmet Soups', subtitle: 'Oreo Shake, Cold Coffee, Manchow & Sweet Corn', image: '/menu card food/page4 .png', categories: JSON.stringify(['Shakes', 'Soup']) },
+        { pageNumber: 5, title: 'Indian Main Course & South Indian', subtitle: 'Butter Chicken, Dal Makhani, Paneer Lababdar & Thalis', image: '/menu card food/page 5.png', categories: JSON.stringify(['Indian', 'South Indian']) },
+        { pageNumber: 6, title: 'Pizza, Burger & Sandwiches', subtitle: 'Loaded Wings Pizza, Paneer Burger & Garlic Breads', image: '/menu card food/page6 .png', categories: JSON.stringify(['Pizza', 'Burger', 'Sandwiches']) },
+        { pageNumber: 7, title: 'Chinese Woks & Sizzlers', subtitle: 'Hakka Noodles, Chilli Paneer, Manchurian & Sizzlers', image: '/menu card food/page 7.png', categories: JSON.stringify(['Chinese', 'Sizzlers']) },
+        { pageNumber: 8, title: 'Indo-Continental Bites & Desserts', subtitle: 'Pastas, Paneer Tikka, Gulab Jamun & Shahi Tukda', image: '/menu card food/page 8.png', categories: JSON.stringify(['Indo-Continental', 'Dessert']) }
+      ];
+      for (const p of initialPages) {
+        await db.prepare(`
+          INSERT INTO menu_pages (page_number, title, subtitle, image, categories, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).bind(
+          p.pageNumber,
+          p.title,
+          p.subtitle,
+          p.image,
+          p.categories,
+          new Date().toISOString()
+        ).run();
+      }
+      query = await db.prepare("SELECT * FROM menu_pages ORDER BY page_number ASC").all();
+      results = query?.results || [];
+    }
+
     const data = results.map(r => ({
       pageNumber: r.page_number,
       title: r.title || '',

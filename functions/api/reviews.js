@@ -19,8 +19,46 @@ export async function onRequestGet(context) {
   }
   try {
     await db.prepare(CREATE_TABLE).run();
-    const query = await db.prepare("SELECT * FROM reviews ORDER BY created_at DESC").all();
-    const results = query?.results || [];
+    let query = await db.prepare("SELECT * FROM reviews ORDER BY created_at DESC").all();
+    let results = query?.results || [];
+
+    if (results.length === 0) {
+      const initialReviews = [
+        {
+          id: 'r1',
+          author_name: 'Ananya Sharma',
+          rating: 5,
+          review_text: 'Amazing riverside view with great food! The paneer tikka and cold coffee were fantastic. Riding the speedboat before dinner was the highlight of our weekend!',
+          date_str: '2 days ago',
+          avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
+        },
+        {
+          id: 'r2',
+          author_name: 'Rahul Verma',
+          rating: 5,
+          review_text: 'Celebrated my sister’s 25th birthday here. The fairy light decoration near the river was magical. Staff were very courteous and the food was delicious!',
+          date_str: '1 week ago',
+          avatar_url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80'
+        }
+      ];
+      for (const r of initialReviews) {
+        await db.prepare(`
+          INSERT INTO reviews (id, author_name, rating, review_text, date_str, avatar_url, is_approved, created_at)
+          VALUES (?, ?, ?, ?, ?, ?, 1, ?)
+        `).bind(
+          r.id,
+          r.author_name,
+          r.rating,
+          r.review_text,
+          r.date_str,
+          r.avatar_url,
+          new Date().toISOString()
+        ).run();
+      }
+      query = await db.prepare("SELECT * FROM reviews ORDER BY created_at DESC").all();
+      results = query?.results || [];
+    }
+
     return new Response(JSON.stringify({ success: true, data: results }), {
       headers: { 'Content-Type': 'application/json' }
     });
