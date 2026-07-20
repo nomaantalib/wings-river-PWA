@@ -214,9 +214,23 @@ export function deleteWaterSports(id: string): RideTicket[] {
   return updated;
 }
 
-// ── MENU BOOKLET PAGES ────────────────────────────────────────────────────────
 export function getStoredMenuPages(): MenuPageDefinition[] {
-  return getLocal<MenuPageDefinition[]>('wings_menu_pages', MENU_BOOKLET_PAGES);
+  const list = getLocal<MenuPageDefinition[]>('wings_menu_pages', MENU_BOOKLET_PAGES);
+  // Auto-migrate old /images/ menu page paths to high-res /menu card food/ paths
+  let changed = false;
+  const migrated = list.map(item => {
+    if (item.image.includes('/images/menu_page_')) {
+      changed = true;
+      const def = MENU_BOOKLET_PAGES.find(p => p.pageNumber === item.pageNumber);
+      if (def) return { ...item, image: def.image };
+    }
+    return item;
+  });
+  if (changed) {
+    setLocal('wings_menu_pages', migrated);
+    return migrated;
+  }
+  return list;
 }
 export function saveMenuPage(page: MenuPageDefinition): MenuPageDefinition[] {
   const current = getStoredMenuPages();

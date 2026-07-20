@@ -24,56 +24,56 @@ export const MENU_BOOKLET_PAGES: MenuPageDefinition[] = [
     pageNumber: 1,
     title: 'Wings River & Water Sports Menu',
     subtitle: 'Delicious Moments, Unforgettable Memories',
-    image: '/images/menu_page_cover.png',
+    image: '/menu card food/page1.png',
     categories: ['Cover']
   },
   {
     pageNumber: 2,
     title: 'Beverages, Breakfast & Chaat',
     subtitle: 'Chai, Chola Bhatura, Pav Bhaji & Agra Bhalla',
-    image: '/images/menu_page_1.png',
+    image: '/menu card food/page2.png',
     categories: ['Beverages', 'Breakfast', 'Chaat']
   },
   {
     pageNumber: 3,
     title: 'Coolers & Mocktails',
     subtitle: 'Virgin Mojito, Blue Lagoon, Iced Teas & Lassi',
-    image: '/images/menu_page_2.png',
+    image: '/menu card food/page 3.png',
     categories: ['Coolers & Mocktails']
   },
   {
     pageNumber: 4,
     title: 'Shakes & Gourmet Soups',
     subtitle: 'Oreo Shake, Cold Coffee, Manchow & Sweet Corn',
-    image: '/images/menu_page_3.png',
+    image: '/menu card food/page4 .png',
     categories: ['Shakes', 'Soup']
   },
   {
     pageNumber: 5,
     title: 'Indian Main Course & South Indian',
     subtitle: 'Butter Chicken, Dal Makhani, Paneer Lababdar & Thalis',
-    image: '/images/menu_page_4.png',
+    image: '/menu card food/page 5.png',
     categories: ['Indian', 'South Indian']
   },
   {
     pageNumber: 6,
     title: 'Pizza, Burger & Sandwiches',
     subtitle: 'Loaded Wings Pizza, Paneer Burger & Garlic Breads',
-    image: '/images/menu_page_5.png',
+    image: '/menu card food/page6 .png',
     categories: ['Pizza', 'Burger', 'Sandwiches']
   },
   {
     pageNumber: 7,
     title: 'Chinese Woks & Sizzlers',
     subtitle: 'Hakka Noodles, Chilli Paneer, Manchurian & Sizzlers',
-    image: '/images/menu_page_6.png',
+    image: '/menu card food/page 7.png',
     categories: ['Chinese', 'Sizzlers']
   },
   {
     pageNumber: 8,
     title: 'Indo-Continental Bites & Desserts',
     subtitle: 'Pastas, Paneer Tikka, Gulab Jamun & Shahi Tukda',
-    image: '/images/menu_page_7.png',
+    image: '/menu card food/page 8.png',
     categories: ['Indo-Continental', 'Dessert']
   }
 ];
