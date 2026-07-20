@@ -93,6 +93,15 @@ export async function deleteReservation(id: string): Promise<Reservation[]> {
   return getStoredReservations();
 }
 
+// In-memory optimistic caches
+let galleryCache: GalleryItem[] | null = null;
+let menuCache: MenuItem[] | null = null;
+let blogCache: BlogPost[] | null = null;
+let waterSportsCache: RideTicket[] | null = null;
+let bannersCache: EventBanner[] | null = null;
+let menuPagesCache: MenuPageDefinition[] | null = null;
+let heroCache: HeroSettings | null = null;
+
 // ═══════════════════════════════════════════════════════════════════════════════
 //  GALLERY
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -102,36 +111,37 @@ export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
         await Promise.all(INITIAL_GALLERY.map(item => apiPost('/api/gallery', item).catch(() => {})));
+        galleryCache = INITIAL_GALLERY;
         return INITIAL_GALLERY;
       }
+      galleryCache = res.data;
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredGalleryItems:', e); }
-  return INITIAL_GALLERY;
+  return galleryCache || INITIAL_GALLERY;
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
-  try {
-    await apiPost('/api/gallery', item);
-    notifySync();
-  } catch (e) { console.error('[D1] saveGalleryItem:', e); }
-  return getStoredGalleryItems();
+  const current = galleryCache || INITIAL_GALLERY;
+  const exists = current.some(g => g.id === item.id);
+  const updated = exists ? current.map(g => g.id === item.id ? item : g) : [item, ...current];
+  galleryCache = updated;
+  notifySync();
+  apiPost('/api/gallery', item).catch(() => {});
+  return updated;
 }
 
 export async function updateGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
-  try {
-    await apiPost('/api/gallery', item);
-    notifySync();
-  } catch (e) { console.error('[D1] updateGalleryItem:', e); }
-  return getStoredGalleryItems();
+  return saveGalleryItem(item);
 }
 
 export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
-  try {
-    await apiDelete(`/api/gallery?id=${id}`);
-    notifySync();
-  } catch (e) { console.error('[D1] deleteGalleryItem:', e); }
-  return getStoredGalleryItems();
+  const current = galleryCache || INITIAL_GALLERY;
+  const updated = current.filter(g => g.id !== id);
+  galleryCache = updated;
+  notifySync();
+  apiDelete(`/api/gallery?id=${id}`).catch(() => {});
+  return updated;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -143,36 +153,37 @@ export async function getStoredMenuItems(): Promise<MenuItem[]> {
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
         await Promise.all(INITIAL_MENU_ITEMS.map(item => apiPost('/api/menu', item).catch(() => {})));
+        menuCache = INITIAL_MENU_ITEMS;
         return INITIAL_MENU_ITEMS;
       }
+      menuCache = res.data;
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredMenuItems:', e); }
-  return INITIAL_MENU_ITEMS;
+  return menuCache || INITIAL_MENU_ITEMS;
 }
 
 export async function saveMenuItem(item: MenuItem): Promise<MenuItem[]> {
-  try {
-    await apiPost('/api/menu', item);
-    notifySync();
-  } catch (e) { console.error('[D1] saveMenuItem:', e); }
-  return getStoredMenuItems();
+  const current = menuCache || INITIAL_MENU_ITEMS;
+  const exists = current.some(m => m.id === item.id);
+  const updated = exists ? current.map(m => m.id === item.id ? item : m) : [item, ...current];
+  menuCache = updated;
+  notifySync();
+  apiPost('/api/menu', item).catch(() => {});
+  return updated;
 }
 
 export async function updateMenuItem(item: MenuItem): Promise<MenuItem[]> {
-  try {
-    await apiPost('/api/menu', item);
-    notifySync();
-  } catch (e) { console.error('[D1] updateMenuItem:', e); }
-  return getStoredMenuItems();
+  return saveMenuItem(item);
 }
 
 export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
-  try {
-    await apiDelete(`/api/menu?id=${id}`);
-    notifySync();
-  } catch (e) { console.error('[D1] deleteMenuItem:', e); }
-  return getStoredMenuItems();
+  const current = menuCache || INITIAL_MENU_ITEMS;
+  const updated = current.filter(m => m.id !== id);
+  menuCache = updated;
+  notifySync();
+  apiDelete(`/api/menu?id=${id}`).catch(() => {});
+  return updated;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -184,36 +195,37 @@ export async function getStoredBlogs(): Promise<BlogPost[]> {
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
         await Promise.all(INITIAL_BLOGS.map(b => apiPost('/api/blogs', b).catch(() => {})));
+        blogCache = INITIAL_BLOGS;
         return INITIAL_BLOGS;
       }
+      blogCache = res.data;
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredBlogs:', e); }
-  return INITIAL_BLOGS;
+  return blogCache || INITIAL_BLOGS;
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
-  try {
-    await apiPost('/api/blogs', blog);
-    notifySync();
-  } catch (e) { console.error('[D1] saveBlog:', e); }
-  return getStoredBlogs();
+  const current = blogCache || INITIAL_BLOGS;
+  const exists = current.some(b => b.id === blog.id);
+  const updated = exists ? current.map(b => b.id === blog.id ? blog : b) : [blog, ...current];
+  blogCache = updated;
+  notifySync();
+  apiPost('/api/blogs', blog).catch(() => {});
+  return updated;
 }
 
 export async function updateBlog(blog: BlogPost): Promise<BlogPost[]> {
-  try {
-    await apiPost('/api/blogs', blog);
-    notifySync();
-  } catch (e) { console.error('[D1] updateBlog:', e); }
-  return getStoredBlogs();
+  return saveBlog(blog);
 }
 
 export async function deleteBlog(id: string): Promise<BlogPost[]> {
-  try {
-    await apiDelete(`/api/blogs?id=${id}`);
-    notifySync();
-  } catch (e) { console.error('[D1] deleteBlog:', e); }
-  return getStoredBlogs();
+  const current = blogCache || INITIAL_BLOGS;
+  const updated = current.filter(b => b.id !== id);
+  blogCache = updated;
+  notifySync();
+  apiDelete(`/api/blogs?id=${id}`).catch(() => {});
+  return updated;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -307,46 +319,47 @@ export async function getStoredEventBanners(): Promise<EventBanner[]> {
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
         await Promise.all(DEFAULT_BANNERS.map(b => apiPost('/api/banners', b).catch(() => {})));
+        bannersCache = DEFAULT_BANNERS;
         return DEFAULT_BANNERS;
       }
+      bannersCache = res.data;
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredEventBanners:', e); }
-  return DEFAULT_BANNERS;
+  return bannersCache || DEFAULT_BANNERS;
 }
 
 export async function saveEventBanner(banner: EventBanner): Promise<EventBanner[]> {
-  try {
-    await apiPost('/api/banners', banner);
-    notifySync();
-  } catch (e) { console.error('[D1] saveEventBanner:', e); }
-  return getStoredEventBanners();
+  const current = bannersCache || DEFAULT_BANNERS;
+  const exists = current.some(b => b.id === banner.id);
+  const updated = exists ? current.map(b => b.id === banner.id ? banner : b) : [banner, ...current];
+  bannersCache = updated;
+  notifySync();
+  apiPost('/api/banners', banner).catch(() => {});
+  return updated;
 }
 
 export async function updateEventBanner(banner: EventBanner): Promise<EventBanner[]> {
-  try {
-    await apiPost('/api/banners', banner);
-    notifySync();
-  } catch (e) { console.error('[D1] updateEventBanner:', e); }
-  return getStoredEventBanners();
+  return saveEventBanner(banner);
 }
 
 export async function deleteEventBanner(id: string): Promise<EventBanner[]> {
-  try {
-    await apiDelete(`/api/banners?id=${id}`);
-    notifySync();
-  } catch (e) { console.error('[D1] deleteEventBanner:', e); }
-  return getStoredEventBanners();
+  const current = bannersCache || DEFAULT_BANNERS;
+  const updated = current.filter(b => b.id !== id);
+  bannersCache = updated;
+  notifySync();
+  apiDelete(`/api/banners?id=${id}`).catch(() => {});
+  return updated;
 }
 
 export async function toggleEventBanner(id: string): Promise<EventBanner[]> {
-  try {
-    const all = await getStoredEventBanners();
-    const target = all.find(b => b.id === id);
-    if (target) await apiPost('/api/banners', { ...target, is_active: !target.is_active });
-    notifySync();
-  } catch (e) { console.error('[D1] toggleEventBanner:', e); }
-  return getStoredEventBanners();
+  const current = bannersCache || DEFAULT_BANNERS;
+  const target = current.find(b => b.id === id);
+  if (target) {
+    const updatedBanner = { ...target, is_active: !target.is_active };
+    return saveEventBanner(updatedBanner);
+  }
+  return current;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -358,36 +371,37 @@ export async function getStoredWaterSports(): Promise<RideTicket[]> {
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
         await Promise.all(WATER_SPORTS_RIDES.map(r => apiPost('/api/watersports', r).catch(() => {})));
+        waterSportsCache = WATER_SPORTS_RIDES;
         return WATER_SPORTS_RIDES;
       }
+      waterSportsCache = res.data;
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredWaterSports:', e); }
-  return WATER_SPORTS_RIDES;
+  return waterSportsCache || WATER_SPORTS_RIDES;
 }
 
 export async function saveWaterSports(ride: RideTicket): Promise<RideTicket[]> {
-  try {
-    await apiPost('/api/watersports', ride);
-    notifySync();
-  } catch (e) { console.error('[D1] saveWaterSports:', e); }
-  return getStoredWaterSports();
+  const current = waterSportsCache || WATER_SPORTS_RIDES;
+  const exists = current.some(r => r.id === ride.id);
+  const updated = exists ? current.map(r => r.id === ride.id ? ride : r) : [ride, ...current];
+  waterSportsCache = updated;
+  notifySync();
+  apiPost('/api/watersports', ride).catch(() => {});
+  return updated;
 }
 
 export async function updateWaterSports(ride: RideTicket): Promise<RideTicket[]> {
-  try {
-    await apiPost('/api/watersports', ride);
-    notifySync();
-  } catch (e) { console.error('[D1] updateWaterSports:', e); }
-  return getStoredWaterSports();
+  return saveWaterSports(ride);
 }
 
 export async function deleteWaterSports(id: string): Promise<RideTicket[]> {
-  try {
-    await apiDelete(`/api/watersports?id=${id}`);
-    notifySync();
-  } catch (e) { console.error('[D1] deleteWaterSports:', e); }
-  return getStoredWaterSports();
+  const current = waterSportsCache || WATER_SPORTS_RIDES;
+  const updated = current.filter(r => r.id !== id);
+  waterSportsCache = updated;
+  notifySync();
+  apiDelete(`/api/watersports?id=${id}`).catch(() => {});
+  return updated;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -399,36 +413,37 @@ export async function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
     if (res.success && Array.isArray(res.data)) {
       if (res.data.length === 0) {
         await apiPost('/api/menupages', MENU_BOOKLET_PAGES).catch(() => {});
+        menuPagesCache = MENU_BOOKLET_PAGES;
         return MENU_BOOKLET_PAGES;
       }
+      menuPagesCache = res.data;
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredMenuPages:', e); }
-  return MENU_BOOKLET_PAGES;
+  return menuPagesCache || MENU_BOOKLET_PAGES;
 }
 
 export async function saveMenuPage(page: MenuPageDefinition): Promise<MenuPageDefinition[]> {
-  try {
-    await apiPost('/api/menupages', page);
-    notifySync();
-  } catch (e) { console.error('[D1] saveMenuPage:', e); }
-  return getStoredMenuPages();
+  const current = menuPagesCache || MENU_BOOKLET_PAGES;
+  const exists = current.some(p => p.pageNumber === page.pageNumber);
+  const updated = exists ? current.map(p => p.pageNumber === page.pageNumber ? page : p) : [...current, page];
+  menuPagesCache = updated;
+  notifySync();
+  apiPost('/api/menupages', page).catch(() => {});
+  return updated;
 }
 
 export async function updateMenuPage(page: MenuPageDefinition): Promise<MenuPageDefinition[]> {
-  try {
-    await apiPost('/api/menupages', page);
-    notifySync();
-  } catch (e) { console.error('[D1] updateMenuPage:', e); }
-  return getStoredMenuPages();
+  return saveMenuPage(page);
 }
 
 export async function deleteMenuPage(pageNumber: number): Promise<MenuPageDefinition[]> {
-  try {
-    await apiDelete(`/api/menupages?page_number=${pageNumber}`);
-    notifySync();
-  } catch (e) { console.error('[D1] deleteMenuPage:', e); }
-  return getStoredMenuPages();
+  const current = menuPagesCache || MENU_BOOKLET_PAGES;
+  const updated = current.filter(p => p.pageNumber !== pageNumber);
+  menuPagesCache = updated;
+  notifySync();
+  apiDelete(`/api/menupages?page_number=${pageNumber}`).catch(() => {});
+  return updated;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -437,16 +452,18 @@ export async function deleteMenuPage(pageNumber: number): Promise<MenuPageDefini
 export async function getStoredHeroSettings(): Promise<HeroSettings> {
   try {
     const res = await apiFetch('/api/hero');
-    if (res.success && res.data) return res.data as HeroSettings;
+    if (res.success && res.data) {
+      heroCache = res.data as HeroSettings;
+      return res.data as HeroSettings;
+    }
   } catch (e) { console.error('[D1] getStoredHeroSettings:', e); }
-  return DEFAULT_HERO_SETTINGS;
+  return heroCache || DEFAULT_HERO_SETTINGS;
 }
 
 export async function saveHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
-  try {
-    await apiPost('/api/hero', settings);
-    notifySync();
-  } catch (e) { console.error('[D1] saveHeroSettings:', e); }
+  heroCache = settings;
+  notifySync();
+  apiPost('/api/hero', settings).catch(() => {});
   return settings;
 }
 
