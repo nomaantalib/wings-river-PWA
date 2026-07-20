@@ -12,7 +12,7 @@ const HERO_SLIDES = [
   {
     image: '/images/Screenshot_20260720-180544_Maps.png',
     title: 'Wings River Café',
-    subtitle: 'Taste • Eat • Relax by the River',
+    subtitle: 'Taste • Eat • Relax by the Gomti River',
     tag: 'Lucknow Water Sports & Speedboat Rides',
     blurClass: 'blur-sm opacity-90 scale-105'
   },
@@ -35,6 +35,27 @@ const HERO_SLIDES = [
     title: 'Speedboat Rides on River Gomti',
     subtitle: 'Exhilarating Water Sports Adventures Beside the Cafe',
     tag: 'Lucknow Water Sports Official Hub',
+    blurClass: 'blur-sm opacity-90 scale-105'
+  },
+  {
+    image: '/images/Screenshot_20260720-180621_Maps.png',
+    title: 'Breathtaking Sunset Riverfront',
+    subtitle: 'Relax with Gourmet Coffee & Coolers by Laxman Jhula Bridge',
+    tag: 'Scenic Sunset & Waterfront Deck',
+    blurClass: 'blur-sm opacity-90 scale-105'
+  },
+  {
+    image: '/images/Screenshot_20260720-180644_Maps.png',
+    title: 'Glow of Waterfront Nightlife',
+    subtitle: 'Enchanting Lighting, Music & River Breeze Evenings',
+    tag: 'Lucknow’s Top Waterfront Night Venue',
+    blurClass: 'blur-sm opacity-90 scale-105'
+  },
+  {
+    image: '/images/Screenshot_20260720-180927_Instagram.png',
+    title: 'Master Chef Gourmet Spread',
+    subtitle: 'Authentic Indian, Indochinese & Artisanal Pizzas',
+    tag: 'Premium Multicuisine Gastronomy',
     blurClass: 'blur-sm opacity-90 scale-105'
   }
 ];

@@ -10,7 +10,8 @@ const GALLERY_CATEGORIES = [
   'River View',
   'Evening',
   'Outdoor Seating',
-  'Water Sports'
+  'Water Sports',
+  'Food'
 ];
 
 export default function GallerySection() {

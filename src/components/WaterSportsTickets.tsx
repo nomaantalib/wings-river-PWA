@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Anchor, ShieldCheck, HeartHandshake, Waves, Sparkles, Ticket, Calendar, CheckCircle2 } from 'lucide-react';
+import { Anchor, ShieldCheck, HeartHandshake, Waves, Sparkles, Ticket, Calendar, CheckCircle2, ZoomIn, X } from 'lucide-react';
 
 interface WaterSportsTicketsProps {
   onOpenBooking: (type?: string) => void;
@@ -57,7 +57,7 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
     unit: 'Per Person 1 Round',
     description: 'Fun musical track train ride for toddlers, kids & families near the river park.',
     badge: 'Kids Zone',
-    image: '/images/Screenshot_20260720-180609_Maps.png'
+    image: '/images/Screenshot_20260720-180737_Maps.png'
   },
   {
     id: 'ride-5',
@@ -77,12 +77,13 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
     unit: 'Per Person 1 Round',
     description: 'Enclosed safety netting high-bounce jumping trampoline enclosure.',
     badge: 'Active Play',
-    image: '/images/Screenshot_20260720-180737_Maps.png'
+    image: '/images/Screenshot_20260720-180724_Maps.png'
   }
 ];
 
 export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTicketsProps) {
   const [selectedCategory, setSelectedCategory] = useState<'All' | 'Water Sports' | 'Other Activities'>('All');
+  const [showPosterModal, setShowPosterModal] = useState(false);
 
   const filteredRides = WATER_SPORTS_RIDES.filter(
     (r) => selectedCategory === 'All' || r.category === selectedCategory
@@ -111,8 +112,8 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
                 Official ride tokens for Gomti river speedboats, jet skis, motor boats & kids amusement rides are available directly at our riverside counter beside Wings River Café.
               </p>
 
-              {/* Safety Badges */}
-              <div className="flex flex-wrap gap-4 pt-2">
+              {/* Safety Badges & View Poster Button */}
+              <div className="flex flex-wrap items-center gap-3 pt-2">
                 <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-1.5 rounded-xl text-xs text-mint-200 border border-white/10">
                   <ShieldCheck className="w-4 h-4 text-mint-400" />
                   <span>Safe Rides (Your Safety Our Priority)</span>
@@ -121,6 +122,13 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
                   <HeartHandshake className="w-4 h-4 text-gold-400" />
                   <span>Happy Rides (Fun for Everyone)</span>
                 </div>
+                <button
+                  onClick={() => setShowPosterModal(true)}
+                  className="flex items-center space-x-1.5 bg-gold-500 hover:bg-gold-400 text-dark-950 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md"
+                >
+                  <ZoomIn className="w-4 h-4" />
+                  <span>View Official Rate Poster</span>
+                </button>
               </div>
             </div>
 
@@ -133,12 +141,21 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
               <p className="text-xs text-cream-200">
                 Reserve your ride token online to bypass ticket counter lines during peak hours.
               </p>
-              <button
-                onClick={() => onOpenBooking('speedboat_ride')}
-                className="w-full py-3 bg-gradient-to-r from-mint-300 via-mint-400 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
-              >
-                Book Ride Token Now
-              </button>
+              <div className="flex flex-col gap-2">
+                <button
+                  onClick={() => onOpenBooking('speedboat_ride')}
+                  className="w-full py-3 bg-gradient-to-r from-mint-300 via-mint-400 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
+                >
+                  Book Ride Token Now
+                </button>
+                <button
+                  onClick={() => setShowPosterModal(true)}
+                  className="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-xl border border-white/20 transition-colors flex items-center justify-center space-x-1"
+                >
+                  <ZoomIn className="w-3.5 h-3.5 text-gold-400" />
+                  <span>View Official Ticket Poster</span>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -212,6 +229,41 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
           ))}
         </div>
       </div>
+
+      {/* Official Rate Poster Lightbox Modal */}
+      {showPosterModal && (
+        <div className="fixed inset-0 z-[120] bg-dark-950/95 backdrop-blur-xl flex items-center justify-center p-4">
+          <button
+            onClick={() => setShowPosterModal(false)}
+            className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+          >
+            <X className="w-6 h-6" />
+          </button>
+
+          <div className="max-w-4xl w-full bg-dark-900 rounded-3xl overflow-hidden border border-gold-400/40 shadow-2xl p-4 flex flex-col items-center">
+            <div className="max-h-[80vh] overflow-auto w-full flex justify-center bg-black/40 rounded-2xl p-2">
+              <img
+                src="/images/water_sports_ticket_poster.png"
+                alt="Lucknow Water Sports Official Rates & Ticket Poster"
+                className="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl"
+              />
+            </div>
+            <div className="w-full mt-4 flex items-center justify-between px-4">
+              <div>
+                <span className="text-xs uppercase font-bold text-mint-400">Official Rate Board</span>
+                <h3 className="font-serif font-bold text-lg text-white">Lucknow Water Sports Ticket Poster</h3>
+              </div>
+              <a
+                href="/images/water_sports_ticket_poster.png"
+                download="Lucknow_Water_Sports_Ticket_Poster.png"
+                className="px-5 py-2.5 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
+              >
+                Download Poster
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }
