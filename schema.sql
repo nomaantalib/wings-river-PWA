@@ -1,6 +1,18 @@
 -- Cloudflare D1 Database Schema and Seed Data for Wings River Café
 -- Database ID: c2491a90-0f90-4a1e-8a4d-852e6588a68a
 
+-- Drop existing tables to align updated columns (e.g. page_number, images, is_active)
+DROP TABLE IF EXISTS reservations;
+DROP TABLE IF EXISTS menu_items;
+DROP TABLE IF EXISTS menu_pages;
+DROP TABLE IF EXISTS blogs;
+DROP TABLE IF EXISTS gallery;
+DROP TABLE IF EXISTS reviews;
+DROP TABLE IF EXISTS contact_messages;
+DROP TABLE IF EXISTS event_banners;
+DROP TABLE IF EXISTS water_sports;
+DROP TABLE IF EXISTS settings;
+
 -- 1. Reservations / Bookings Table
 CREATE TABLE IF NOT EXISTS reservations (
   id TEXT PRIMARY KEY,
