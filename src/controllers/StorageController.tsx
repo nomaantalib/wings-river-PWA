@@ -50,23 +50,51 @@ export async function syncDatabase() {
   try {
     // 1. Sync Bookings
     const resBookings = await fetch('/api/bookings').then(r => r.json());
-    if (resBookings.success && resBookings.data && resBookings.data.length > 0) {
-      setLocal('wings_reservations', resBookings.data);
+    if (resBookings.success && resBookings.data) {
+      if (resBookings.data.length > 0) {
+        setLocal('wings_reservations', resBookings.data);
+      } else {
+        const defaults = getStoredReservations();
+        for (const item of defaults) {
+          await postApi('/api/bookings', item);
+        }
+      }
     }
     // 2. Sync Blogs
     const resBlogs = await fetch('/api/blogs').then(r => r.json());
-    if (resBlogs.success && resBlogs.data && resBlogs.data.length > 0) {
-      setLocal('wings_blogs', resBlogs.data);
+    if (resBlogs.success && resBlogs.data) {
+      if (resBlogs.data.length > 0) {
+        setLocal('wings_blogs', resBlogs.data);
+      } else {
+        for (const item of INITIAL_BLOGS) {
+          await postApi('/api/blogs', item);
+        }
+        setLocal('wings_blogs', INITIAL_BLOGS);
+      }
     }
     // 3. Sync Menu Items
     const resMenu = await fetch('/api/menu').then(r => r.json());
-    if (resMenu.success && resMenu.data && resMenu.data.length > 0) {
-      setLocal('wings_menu', resMenu.data);
+    if (resMenu.success && resMenu.data) {
+      if (resMenu.data.length > 0) {
+        setLocal('wings_menu', resMenu.data);
+      } else {
+        for (const item of INITIAL_MENU_ITEMS) {
+          await postApi('/api/menu', item);
+        }
+        setLocal('wings_menu', INITIAL_MENU_ITEMS);
+      }
     }
     // 4. Sync Reviews
     const resReviews = await fetch('/api/reviews').then(r => r.json());
-    if (resReviews.success && resReviews.data && resReviews.data.length > 0) {
-      setLocal('wings_reviews', resReviews.data);
+    if (resReviews.success && resReviews.data) {
+      if (resReviews.data.length > 0) {
+        setLocal('wings_reviews', resReviews.data);
+      } else {
+        for (const item of INITIAL_REVIEWS) {
+          await postApi('/api/reviews', item);
+        }
+        setLocal('wings_reviews', INITIAL_REVIEWS);
+      }
     }
     // 5. Sync Contact Messages
     const resContact = await fetch('/api/contact').then(r => r.json());
@@ -75,16 +103,37 @@ export async function syncDatabase() {
     }
     // 6. Sync Gallery
     const resGallery = await fetch('/api/gallery').then(r => r.json());
-    if (resGallery.success && resGallery.data && resGallery.data.length > 0) {
-      setLocal('wings_gallery', resGallery.data);
+    if (resGallery.success && resGallery.data) {
+      if (resGallery.data.length > 0) {
+        setLocal('wings_gallery', resGallery.data);
+      } else {
+        for (const item of INITIAL_GALLERY) {
+          await postApi('/api/gallery', item);
+        }
+        setLocal('wings_gallery', INITIAL_GALLERY);
+      }
     }
     // 7. Sync Settings (JSON keys for custom lists)
     const resSettings = await fetch('/api/settings').then(r => r.json());
     if (resSettings.success && resSettings.data) {
-      const keys = Object.keys(resSettings.data);
-      keys.forEach(k => {
-        setLocal(k, resSettings.data[k]);
-      });
+      if (!resSettings.data.wings_event_banners) {
+        const defaults = getStoredEventBanners();
+        await postSetting('wings_event_banners', defaults);
+      }
+      if (!resSettings.data.wings_water_sports) {
+        await postSetting('wings_water_sports', WATER_SPORTS_RIDES);
+      }
+      if (!resSettings.data.wings_menu_pages) {
+        await postSetting('wings_menu_pages', MENU_BOOKLET_PAGES);
+      }
+
+      const reSettings = await fetch('/api/settings').then(r => r.json());
+      if (reSettings.success && reSettings.data) {
+        const keys = Object.keys(reSettings.data);
+        keys.forEach(k => {
+          setLocal(k, reSettings.data[k]);
+        });
+      }
     }
 
     // Trigger custom event to tell React views to refresh if they want to
