@@ -125,15 +125,25 @@ export default function GallerySection() {
 
         {/* MODE 1: Auto Animated Carousel Showcase */}
         {viewMode === 'carousel' && filteredItems.length > 0 && (
-          <div className="space-y-6">
+          <div className="space-y-4">
             <div
-              className="relative rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl bg-dark-900 group min-h-[420px] sm:min-h-[520px] flex items-stretch"
+              className="relative rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl bg-dark-900 group h-[340px] sm:h-[420px] lg:h-[480px] max-h-[70vh] flex flex-col justify-between"
               onMouseEnter={() => setIsPlaying(false)}
               onMouseLeave={() => setIsPlaying(true)}
+              onTouchStart={(e) => {
+                const touchDown = e.touches[0].clientX;
+                (window as any)._touchX = touchDown;
+              }}
+              onTouchEnd={(e) => {
+                const touchUp = e.changedTouches[0].clientX;
+                const touchDown = (window as any)._touchX || 0;
+                if (touchDown - touchUp > 50) handleNextSlide();
+                if (touchUp - touchDown > 50) handlePrevSlide();
+              }}
             >
               {/* Sliding Blurred Backdrop (Syncs with main slide) */}
               <div 
-                className="absolute inset-0 flex transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] scale-110 filter blur-xl opacity-60"
+                className="absolute inset-0 flex transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] scale-110 filter blur-xl opacity-50"
                 style={{ transform: `translateX(-${carouselIndex * 100}%)`, width: `${filteredItems.length * 100}%` }}
               >
                 {filteredItems.map((item) => (
@@ -155,67 +165,58 @@ export default function GallerySection() {
                   return (
                     <div
                       key={item.id}
-                      className="w-full h-full flex-shrink-0 relative flex items-end min-h-[420px] sm:min-h-[520px] overflow-hidden"
+                      className="w-full h-full flex-shrink-0 relative flex flex-col justify-between overflow-hidden"
                     >
-                      {/* Ambient Background Blur */}
-                      <img
-                        src={item.image_url}
-                        alt=""
-                        aria-hidden="true"
-                        className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-50 scale-110"
-                      />
-
                       {/* Dark Vignette Overlay Gradient */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/40 to-transparent z-10" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/20 to-dark-950/40 z-10" />
 
                       {/* Main Focused Carousel Image (Full un-cropped display) */}
-                      <img
-                        src={item.image_url}
-                        alt={item.title}
-                        className={`relative z-10 max-h-full max-w-full object-contain mx-auto my-auto p-4 drop-shadow-2xl transition-all duration-700 ${
-                          isActive 
-                            ? 'scale-100 opacity-100' 
-                            : 'scale-95 opacity-20'
-                        }`}
-                      />
+                      <div className="relative z-10 flex-1 flex items-center justify-center p-3 sm:p-6 overflow-hidden">
+                        <img
+                          src={item.image_url}
+                          alt={item.title}
+                          onClick={() => setActivePhoto(item)}
+                          className={`max-h-full max-w-full object-contain mx-auto my-auto drop-shadow-2xl rounded-2xl border border-white/10 cursor-pointer transition-all duration-500 hover:scale-105 ${
+                            isActive 
+                              ? 'scale-100 opacity-100' 
+                              : 'scale-95 opacity-20'
+                          }`}
+                        />
+                      </div>
 
-                      {/* Slide Details Content (only animate/fade for active slide) */}
-                      <div className={`relative z-20 p-6 sm:p-10 w-full flex flex-col sm:flex-row sm:items-end justify-between gap-4 transition-all duration-700 ${
-                        isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                      {/* Slide Details Content */}
+                      <div className={`relative z-20 px-4 py-3 sm:px-8 sm:py-5 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-dark-950/80 backdrop-blur-md border-t border-white/10 transition-all duration-500 ${
+                        isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                       }`}>
-                        <div className="space-y-2 max-w-2xl">
+                        <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center space-x-2">
-                            <span className="px-3 py-1 rounded-full bg-mint-400 text-dark-950 text-xs font-extrabold uppercase shadow-md">
+                            <span className="px-2.5 py-0.5 rounded-full bg-mint-400 text-dark-950 text-[10px] font-extrabold uppercase shadow-sm shrink-0">
                               {item.category}
                             </span>
-                            <span className="text-xs text-gold-300 font-semibold">
+                            <span className="text-[11px] text-gold-300 font-semibold truncate">
                               Photo {idx + 1} of {filteredItems.length}
                             </span>
                           </div>
-                          <h3 className="font-serif font-extrabold text-2xl sm:text-3xl text-white drop-shadow-md">
+                          <h3 className="font-serif font-extrabold text-base sm:text-xl text-white truncate">
                             {item.title}
                           </h3>
-                          <p className="text-xs sm:text-sm text-cream-200">
-                            Official photo capture from Wings River Café & Gomti Waterfront Deck.
-                          </p>
                         </div>
 
-                        <div className="flex items-center space-x-3 shrink-0">
+                        <div className="flex items-center space-x-2 shrink-0">
                           <button
                             onClick={() => setActivePhoto(item)}
-                            className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
+                            className="flex items-center space-x-1.5 px-3.5 py-1.5 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-md hover:scale-105 transition-transform"
                           >
-                            <ZoomIn className="w-4 h-4" />
+                            <ZoomIn className="w-3.5 h-3.5" />
                             <span>Expand Fullscreen</span>
                           </button>
 
-                          {/* Play / Pause Toggle */}
                           <button
                             onClick={() => setIsPlaying(!isPlaying)}
                             title={isPlaying ? 'Pause Auto-Play' : 'Play Auto-Play'}
-                            className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white backdrop-blur-md transition-colors"
+                            className="p-2 rounded-xl bg-white/15 hover:bg-white/25 text-white backdrop-blur-md transition-colors"
                           >
-                            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                           </button>
                         </div>
                       </div>
@@ -227,18 +228,18 @@ export default function GallerySection() {
               {/* Slide Control Navigation Arrows */}
               <button
                 onClick={handlePrevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/60 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full bg-dark-950/70 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110"
                 aria-label="Previous Photo"
               >
-                <ChevronLeft className="w-5 h-5" />
+                <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
 
               <button
                 onClick={handleNextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/60 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2.5 sm:p-3 rounded-full bg-dark-950/70 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-110"
                 aria-label="Next Photo"
               >
-                <ChevronRight className="w-5 h-5" />
+                <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
 
