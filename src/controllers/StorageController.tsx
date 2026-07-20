@@ -339,6 +339,31 @@ export async function deleteMenuPage(pageNumber: number): Promise<MenuPageDefini
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+//  HERO SECTION SETTINGS  — /api/settings (D1 key-value pair)
+// ═══════════════════════════════════════════════════════════════════════════════
+import { HeroSettings, DEFAULT_HERO_SETTINGS } from '@/models/HeroModel';
+
+export async function getStoredHeroSettings(): Promise<HeroSettings> {
+  try {
+    const res = await apiFetch('/api/settings');
+    if (res.success && res.data && res.data.wings_hero_settings) {
+      const parsed = typeof res.data.wings_hero_settings === 'string'
+        ? JSON.parse(res.data.wings_hero_settings)
+        : res.data.wings_hero_settings;
+      return parsed;
+    }
+  } catch (e) { console.error('[D1] getStoredHeroSettings:', e); }
+  return DEFAULT_HERO_SETTINGS;
+}
+
+export async function saveHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
+  try {
+    await apiPost('/api/settings', { key: 'wings_hero_settings', value: JSON.stringify(settings) });
+  } catch (e) { console.error('[D1] saveHeroSettings:', e); }
+  return settings;
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 //  SYNC  — warms all data on page load (no-op here, just fires all fetches)
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function syncDatabase(): Promise<void> {

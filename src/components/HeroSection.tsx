@@ -15,7 +15,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
 
   useEffect(() => {
     let isSubscribed = true;
-    getStoredHeroSettings().then(data => {
+    getStoredHeroSettings().then((data: HeroSettings) => {
       if (isSubscribed && data) setHeroSettings(data);
     });
 
