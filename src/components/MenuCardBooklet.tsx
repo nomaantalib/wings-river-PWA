@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
-import { MENU_BOOKLET_PAGES, INITIAL_MENU_ITEMS, MenuPageDefinition } from '@/lib/db';
-import { ChevronLeft, ChevronRight, BookOpen, Grid, Maximize2, Download, Calendar, Sparkles, ZoomIn, X, Play, Pause } from 'lucide-react';
-import CircularLogo from './CircularLogo';
+import React, { useState, useEffect } from 'react';
+import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem } from '@/lib/db';
+import { ChevronLeft, ChevronRight, BookOpen, Grid, Maximize2, Download, Calendar, ZoomIn, X, Play, Pause } from 'lucide-react';
 
 interface MenuCardBookletProps {
   onOpenBooking: () => void;
@@ -15,29 +14,46 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [activeZoomImage, setActiveZoomImage] = useState<string | null>(null);
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
 
+  // Database client-side states to prevent hydration mismatch
+  const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>([]);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
+  useEffect(() => {
+    setMenuPages(getStoredMenuPages());
+    setMenuItems(getStoredMenuItems());
+  }, []);
+
   // Auto flip effect
-  React.useEffect(() => {
+  useEffect(() => {
     let timer: any;
-    if (isAutoFlipping) {
+    if (isAutoFlipping && menuPages.length > 0) {
       timer = setInterval(() => {
-        setCurrentPageIndex((prev) => (prev + 1) % MENU_BOOKLET_PAGES.length);
+        setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
       }, 4000);
     }
     return () => clearInterval(timer);
-  }, [isAutoFlipping]);
+  }, [isAutoFlipping, menuPages]);
 
-  const currentPage = MENU_BOOKLET_PAGES[currentPageIndex];
+  if (menuPages.length === 0) {
+    return (
+      <div className="py-20 bg-dark-950 text-center text-gray-500 text-xs">
+        Loading booklet menu...
+      </div>
+    );
+  }
+
+  const currentPage = menuPages[currentPageIndex] || menuPages[0];
 
   const nextPage = () => {
-    setCurrentPageIndex((prev) => (prev + 1) % MENU_BOOKLET_PAGES.length);
+    setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
   };
 
   const prevPage = () => {
-    setCurrentPageIndex((prev) => (prev - 1 + MENU_BOOKLET_PAGES.length) % MENU_BOOKLET_PAGES.length);
+    setCurrentPageIndex((prev) => (prev - 1 + menuPages.length) % menuPages.length);
   };
 
   // Find corresponding items for the current page
-  const pageItems = INITIAL_MENU_ITEMS.filter((item) => item.page_number === currentPage.pageNumber);
+  const pageItems = menuItems.filter((item) => item.page_number === currentPage.pageNumber);
 
   return (
     <section id="menu-card" className="py-20 bg-dark-950 text-white relative overflow-hidden">
@@ -89,19 +105,19 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
               }`}
             >
               <Grid className="w-4 h-4" />
-              <span>Grid View (All 8 Pages)</span>
+              <span>Grid View (All {menuPages.length} Pages)</span>
             </button>
           </div>
         </div>
 
         {/* BOOKLET FLIP VIEW */}
-        {viewMode === 'booklet' && (
+        {viewMode === 'booklet' && currentPage && (
           <div className="max-w-4xl mx-auto">
             {/* Top Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 mb-6 text-xs">
               <div className="flex items-center space-x-3">
                 <span className="font-serif font-bold text-mint-300 text-sm">
-                  Page {currentPageIndex + 1} of {MENU_BOOKLET_PAGES.length}
+                  Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
                 <span className="text-gray-400">|</span>
                 <span className="text-gray-200 truncate">{currentPage.title}</span>
@@ -132,8 +148,8 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
                 {/* Download Full Collage */}
                 <a
-                  href="/images/full_menu_card_collage.png"
-                  download="Wings_River_Cafe_Menu_Card.png"
+                  href="/images/food_menu_collage.jpg"
+                  download="Wings_River_Cafe_Menu_Card.jpg"
                   className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-gold-500 text-dark-950 font-bold hover:bg-gold-400 transition-colors"
                 >
                   <Download className="w-3.5 h-3.5" />
@@ -148,7 +164,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 {/* 3D Page Sliding Image */}
                 <div
                   key={currentPageIndex}
-                  className="w-full h-full relative overflow-hidden animate-fade-in flex items-center justify-center p-2 bg-cream-50"
+                  className="w-full h-full relative overflow-hidden animate-fade-in flex items-center justify-center p-2 bg-[#fbf5eb]"
                 >
                   <img
                     src={currentPage.image}
@@ -181,7 +197,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
               {/* Bottom Quick Page Thumbnails Bar */}
               <div className="flex items-center justify-center space-x-2 mt-4 overflow-x-auto pb-2 no-scrollbar">
-                {MENU_BOOKLET_PAGES.map((page, idx) => (
+                {menuPages.map((page, idx) => (
                   <button
                     key={page.pageNumber}
                     onClick={() => {
@@ -238,16 +254,16 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
           </div>
         )}
 
-        {/* GRID VIEW (ALL 8 PAGES) */}
+        {/* GRID VIEW (ALL PAGES) */}
         {viewMode === 'grid' && (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
-            {MENU_BOOKLET_PAGES.map((page, idx) => (
+            {menuPages.map((page) => (
               <div
                 key={page.pageNumber}
                 onClick={() => setActiveZoomImage(page.image)}
                 className="group relative bg-dark-900 rounded-3xl overflow-hidden border border-white/10 hover:border-gold-400 shadow-2xl cursor-pointer transition-all duration-500 hover:-translate-y-2"
               >
-                <div className="h-64 overflow-hidden bg-cream-50 p-2 flex items-center justify-center">
+                <div className="h-64 overflow-hidden bg-[#fbf5eb] p-2 flex items-center justify-center">
                   <img
                     src={page.image}
                     alt={page.title}

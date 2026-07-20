@@ -2,6 +2,7 @@
 export interface RideTicket {
   id: string;
   name: string;
+  emoji?: string;
   category: 'Water Sports' | 'Other Activities';
   price: number;
   unit: string;
@@ -14,6 +15,7 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
   {
     id: 'ride-1',
     name: 'Jetski Thrill Ride',
+    emoji: '🏄',
     category: 'Water Sports',
     price: 350,
     unit: 'Per Person 1 Round',
@@ -24,6 +26,7 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
   {
     id: 'ride-2',
     name: 'Speed Boat Ride',
+    emoji: '⚡',
     category: 'Water Sports',
     price: 250,
     unit: 'Per Person 1 Round',
@@ -34,6 +37,7 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
   {
     id: 'ride-3',
     name: 'Motor Boat Cruise',
+    emoji: '🚤',
     category: 'Water Sports',
     price: 200,
     unit: 'Per Person 1 Round',
@@ -44,6 +48,7 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
   {
     id: 'ride-4',
     name: 'Panda Train',
+    emoji: '🐼',
     category: 'Other Activities',
     price: 50,
     unit: 'Per Person 1 Round',
@@ -54,6 +59,7 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
   {
     id: 'ride-5',
     name: 'Electric Kids Car',
+    emoji: '🚗',
     category: 'Other Activities',
     price: 50,
     unit: 'Per Person 1 Round',
@@ -64,6 +70,7 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
   {
     id: 'ride-6',
     name: 'Trampoline Jump',
+    emoji: '🤸',
     category: 'Other Activities',
     price: 50,
     unit: 'Per Person 1 Round',

@@ -11,6 +11,7 @@ export { INITIAL_GALLERY } from '@/models/GalleryModel';
 export { INITIAL_REVIEWS } from '@/models/ReviewModel';
 
 export type { EventBanner } from '@/controllers/StorageController';
+export type { RideTicket } from '@/models/WaterSportsModel';
 
 export {
   // Reservations
@@ -47,4 +48,14 @@ export {
   updateEventBanner,
   deleteEventBanner,
   toggleEventBanner,
+  // Water Sports
+  getStoredWaterSports,
+  saveWaterSports,
+  updateWaterSports,
+  deleteWaterSports,
+  // Menu Pages
+  getStoredMenuPages,
+  saveMenuPage,
+  updateMenuPage,
+  deleteMenuPage,
 } from '@/controllers/StorageController';

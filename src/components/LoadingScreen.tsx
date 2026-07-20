@@ -15,6 +15,7 @@ interface Drop {
   r: number; alpha: number;
   splashed: boolean;
   trail: { x: number; y: number; r: number; alpha: number }[];
+  isChild?: boolean;
 }
 
 const WATER_COLORS = ['rgba(56,189,248,', 'rgba(125,211,252,', 'rgba(14,165,233,', 'rgba(186,230,253,', 'rgba(255,255,255,'];
@@ -40,9 +41,15 @@ export default function LoadingScreen() {
   const [progress, setProgress] = useState(0);
   const [musicStarted, setMusicStarted] = useState(false);
 
+  const lastSoundTimeRef = useRef<number>(0);
+
   // ── Web Audio: water splash burst sound ────────────────────────────────────
   const playSplashSound = useCallback((intensity: number = 1) => {
     try {
+      const now = performance.now();
+      if (now - lastSoundTimeRef.current < 60) return; // limit sound calls to max once every 60ms
+      lastSoundTimeRef.current = now;
+
       if (!splashAudioCtxRef.current) {
         splashAudioCtxRef.current = new (window.AudioContext || (window as any).webkitAudioContext)();
       }
@@ -285,33 +292,36 @@ export default function LoadingScreen() {
         if (drop.y + drop.r >= (phaseRef.current === 'flood' ? H - floodH : H * 0.98)) {
           if (!drop.splashed) {
             drop.splashed = true;
-            playSplashSound(0.3 + Math.random() * 0.5);
-            // Spawn ripple
-            for (let ri = 0; ri < 3; ri++) {
-              ripples.push({
-                x: drop.x + (Math.random() - 0.5) * 20,
-                y: phaseRef.current === 'flood' ? H - floodH : H * 0.97,
-                r: 0,
-                maxR: 40 + drop.r * 8 + ri * 20,
-                alpha: 0.7 - ri * 0.15,
-                speed: 1.5 + ri * 0.8,
-                color: WATER_COLORS[Math.floor(Math.random() * WATER_COLORS.length)]
-              });
-            }
-            // Splash particles — upward droplets
-            for (let sp = 0; sp < 8; sp++) {
-              const angle = -Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI * 1.2;
-              const speed = 2 + Math.random() * 6;
-              dropsRef.current.push({
-                x: drop.x + (Math.random() - 0.5) * 20,
-                y: drop.y,
-                vx: Math.cos(angle) * speed,
-                vy: Math.sin(angle) * speed - 3,
-                r: 1.5 + Math.random() * 3,
-                alpha: 0.8,
-                splashed: false,
-                trail: []
-              });
+            if (!drop.isChild) {
+              playSplashSound(0.3 + Math.random() * 0.5);
+              // Spawn ripple
+              for (let ri = 0; ri < 3; ri++) {
+                ripples.push({
+                  x: drop.x + (Math.random() - 0.5) * 20,
+                  y: phaseRef.current === 'flood' ? H - floodH : H * 0.97,
+                  r: 0,
+                  maxR: 40 + drop.r * 8 + ri * 20,
+                  alpha: 0.7 - ri * 0.15,
+                  speed: 1.5 + ri * 0.8,
+                  color: WATER_COLORS[Math.floor(Math.random() * WATER_COLORS.length)]
+                });
+              }
+              // Splash particles — upward droplets
+              for (let sp = 0; sp < 5; sp++) {
+                const angle = -Math.PI * 0.5 + (Math.random() - 0.5) * Math.PI * 1.2;
+                const speed = 2 + Math.random() * 5;
+                dropsRef.current.push({
+                  x: drop.x + (Math.random() - 0.5) * 12,
+                  y: drop.y - 2,
+                  vx: Math.cos(angle) * speed,
+                  vy: Math.sin(angle) * speed - 3,
+                  r: 1.2 + Math.random() * 2,
+                  alpha: 0.8,
+                  splashed: false,
+                  trail: [],
+                  isChild: true
+                });
+              }
             }
           }
         } else {

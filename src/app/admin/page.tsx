@@ -9,17 +9,20 @@ import {
   getStoredReviews, deleteReview,
   getStoredContactMessages, deleteContactMessage,
   getStoredEventBanners, saveEventBanner, updateEventBanner, deleteEventBanner, toggleEventBanner,
+  getStoredWaterSports, saveWaterSports, updateWaterSports, deleteWaterSports,
+  getStoredMenuPages, saveMenuPage, updateMenuPage, deleteMenuPage,
   Reservation, MenuItem, BlogPost, GalleryItem, Review, ContactMessage, EventBanner,
+  RideTicket, MenuPageDefinition,
 } from '@/lib/db';
 import ImageUploader from '@/components/ImageUploader';
 import {
   Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Trash2, Edit3,
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
-  Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff,
+  Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen
 } from 'lucide-react';
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
-type TabKey = 'events' | 'bookings' | 'gallery' | 'menu' | 'blogs' | 'reviews' | 'contact';
+type TabKey = 'events' | 'bookings' | 'gallery' | 'menu' | 'menupages' | 'rides' | 'blogs' | 'reviews' | 'contact';
 
 // ─── SHARED STYLE ATOMS ───────────────────────────────────────────────────────
 const inputCls = 'w-full px-3 py-2.5 text-xs bg-dark-950/80 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all';
@@ -80,6 +83,8 @@ export default function AdminDashboard() {
   const [bookings, setBookings]   = useState<Reservation[]>([]);
   const [gallery, setGallery]     = useState<GalleryItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>([]);
+  const [rides, setRides]         = useState<RideTicket[]>([]);
   const [blogs, setBlogs]         = useState<BlogPost[]>([]);
   const [reviews, setReviews]     = useState<Review[]>([]);
   const [messages, setMessages]   = useState<ContactMessage[]>([]);
@@ -95,6 +100,9 @@ export default function AdminDashboard() {
     | { type: 'edit-gallery'; item: GalleryItem }
     | { type: 'add-menu' }
     | { type: 'edit-menu'; item: MenuItem }
+    | { type: 'edit-menupage'; item: MenuPageDefinition }
+    | { type: 'add-ride' }
+    | { type: 'edit-ride'; item: RideTicket }
     | { type: 'add-blog' }
     | { type: 'edit-blog'; item: BlogPost }
     | null
@@ -109,6 +117,8 @@ export default function AdminDashboard() {
     setBookings(getStoredReservations());
     setGallery(getStoredGalleryItems());
     setMenuItems(getStoredMenuItems());
+    setMenuPages(getStoredMenuPages());
+    setRides(getStoredWaterSports());
     setBlogs(getStoredBlogs());
     setReviews(getStoredReviews());
     setMessages(getStoredContactMessages());
@@ -186,6 +196,8 @@ export default function AdminDashboard() {
     { id: 'bookings' as TabKey, label: 'Bookings',      icon: Calendar,    count: bookings.length  },
     { id: 'gallery'  as TabKey, label: 'Gallery',       icon: ImageIcon,   count: gallery.length   },
     { id: 'menu'     as TabKey, label: 'Food Menu',     icon: Utensils,    count: menuItems.length },
+    { id: 'menupages' as TabKey, label: 'Menu Pages',   icon: BookOpen,    count: menuPages.length },
+    { id: 'rides'    as TabKey, label: 'Water Sports',  icon: Waves,       count: rides.length     },
     { id: 'blogs'    as TabKey, label: 'Blog Posts',    icon: FileText,    count: blogs.length     },
     { id: 'reviews'  as TabKey, label: 'Reviews',       icon: Star,        count: reviews.length   },
     { id: 'contact'  as TabKey, label: 'Messages',      icon: Mail,        count: messages.length  },
@@ -366,6 +378,70 @@ export default function AdminDashboard() {
           </TabSection>
         )}
 
+        {/* ═══ MENU PAGES TAB ═══════════════════════════════════════════════ */}
+        {activeTab === 'menupages' && (
+          <TabSection title="Interactive Booklet Pages" subtitle="Modify booklet page sheets, titles, and categories list.">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {menuPages.map(page => (
+                <div key={page.pageNumber} className={`${cardCls} overflow-hidden group`}>
+                  <div className="relative h-48 bg-cream-50 p-2 flex items-center justify-center">
+                    <img src={page.image} alt={page.title} className="max-h-full object-contain" />
+                    <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-dark-950/80 text-amber-400 text-[10px] font-black uppercase">Page 0{page.pageNumber}</span>
+                  </div>
+                  <div className="p-4 space-y-2">
+                    <h4 className="font-serif font-bold text-white text-sm truncate">{page.title}</h4>
+                    <p className="text-[10px] text-gray-400 line-clamp-1">{page.subtitle}</p>
+                    <div className="flex flex-wrap gap-1 pt-1">
+                      {page.categories.map(c => <span key={c} className="px-1.5 py-0.5 rounded bg-white/5 text-gray-300 text-[8px] font-semibold">{c}</span>)}
+                    </div>
+                    <div className="flex items-center space-x-2 pt-2 border-t border-white/5">
+                      <button className={`${btnEdit} flex-1 py-2 font-bold text-xs justify-center flex items-center space-x-1`}
+                        onClick={() => setModal({ type: 'edit-menupage', item: page })}>
+                        <Edit3 className="w-3.5 h-3.5" /><span>Edit Page Sheet</span>
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </TabSection>
+        )}
+
+        {/* ═══ WATER SPORTS TAB ════════════════════════════════════════════ */}
+        {activeTab === 'rides' && (
+          <TabSection title="Water Sports Rides & Activities" subtitle="Manage Lucknow Water Sports speedboats, jet skis, and kids amusement rides."
+            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-ride' })}><Plus className="w-4 h-4" /><span>Add Ride</span></button>}>
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+              {rides.map(ride => (
+                <div key={ride.id} className={`${cardCls} flex items-stretch p-4 space-x-4 group hover:border-amber-400/30 transition-all`}>
+                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-dark-950 shrink-0">
+                    <img src={ride.image} alt={ride.name} className="w-full h-full object-cover" />
+                  </div>
+                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+                    <div>
+                      <div className="flex items-center space-x-1.5">
+                        <span className="text-base">{ride.emoji}</span>
+                        <h4 className="font-bold text-white text-sm truncate">{ride.name}</h4>
+                      </div>
+                      <span className="text-[9px] font-black text-amber-400 uppercase tracking-wider block mt-0.5">{ride.category}</span>
+                      <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{ride.description}</p>
+                    </div>
+                    <div className="flex items-center justify-between pt-1">
+                      <span className="text-xs font-bold text-green-400">₹{ride.price} <span className="text-[9px] font-medium text-gray-500">/ {ride.unit}</span></span>
+                      {ride.badge && <span className="px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 text-[8px] font-black uppercase">{ride.badge}</span>}
+                    </div>
+                  </div>
+                  <div className="flex flex-col justify-between shrink-0 pl-2">
+                    <button className={btnEdit} onClick={() => setModal({ type: 'edit-ride', item: ride })} title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
+                    <button className={btnDanger} onClick={() => setDeleteTarget({ label: 'Ride', fn: () => { setRides(deleteWaterSports(ride.id)); setDeleteTarget(null); } })} title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
+                  </div>
+                </div>
+              ))}
+              {rides.length === 0 && <EmptyState icon={Waves} message="No water sports rides yet. Add your first speedboat or jetski ride!" />}
+            </div>
+          </TabSection>
+        )}
+
         {/* ═══ BLOGS TAB ═══════════════════════════════════════════════════ */}
         {activeTab === 'blogs' && (
           <TabSection title="Blog Articles" subtitle="Publish and manage blog stories shown on the website."
@@ -481,8 +557,34 @@ export default function AdminDashboard() {
           initial={modal.type === 'edit-menu' ? modal.item : undefined}
           onClose={() => setModal(null)}
           onSave={item => {
-            if (modal.type === 'edit-menu') { updateMenuItem(item); setMenuItems(getStoredMenuItems()); }
-            else { saveMenuItem(item); setMenuItems(getStoredMenuItems()); }
+            if (modal.type === 'edit-menu') { updateMenuItem(item); }
+            else { saveMenuItem(item); }
+            setMenuItems(getStoredMenuItems());
+            setModal(null);
+          }}
+        />
+      )}
+
+      {/* Edit Menu Booklet Page */}
+      {modal?.type === 'edit-menupage' && (
+        <MenuPageModal
+          initial={modal.item}
+          onClose={() => setModal(null)}
+          onSave={page => {
+            setMenuPages(updateMenuPage(page));
+            setModal(null);
+          }}
+        />
+      )}
+
+      {/* Add / Edit Water Sports Ride */}
+      {(modal?.type === 'add-ride' || modal?.type === 'edit-ride') && (
+        <RideModal
+          initial={modal.type === 'edit-ride' ? modal.item : undefined}
+          onClose={() => setModal(null)}
+          onSave={ride => {
+            if (modal.type === 'edit-ride') { setRides(updateWaterSports(ride)); }
+            else { setRides(saveWaterSports(ride)); }
             setModal(null);
           }}
         />
@@ -494,8 +596,9 @@ export default function AdminDashboard() {
           initial={modal.type === 'edit-blog' ? modal.item : undefined}
           onClose={() => setModal(null)}
           onSave={blog => {
-            if (modal.type === 'edit-blog') { updateBlog(blog); setBlogs(getStoredBlogs()); }
-            else { saveBlog(blog); setBlogs(getStoredBlogs()); }
+            if (modal.type === 'edit-blog') { updateBlog(blog); }
+            else { saveBlog(blog); }
+            setBlogs(getStoredBlogs());
             setModal(null);
           }}
         />
@@ -628,7 +731,7 @@ function MenuModal({ initial, onClose, onSave }: { initial?: MenuItem; onClose: 
           <div><label className={labelCls}>Price (₹)</label><input type="number" className={inputCls} placeholder="149" value={form.price || ''} onChange={e => set('price', Number(e.target.value))} /></div>
         </div>
         <div><label className={labelCls}>Description</label><textarea className={inputCls} rows={2} placeholder="Short description of the dish..." value={form.description} onChange={e => set('description', e.target.value)} /></div>
-        <div className="flex items-center space-x-4">
+        <div className="flex flex-wrap items-center gap-6">
           <div className="flex items-center space-x-2">
             <input type="checkbox" id="is-veg" checked={form.is_veg} onChange={e => set('is_veg', e.target.checked)} className="w-4 h-4 accent-green-500" />
             <label htmlFor="is-veg" className="text-xs text-gray-300 font-medium">🟢 Vegetarian</label>
@@ -636,6 +739,12 @@ function MenuModal({ initial, onClose, onSave }: { initial?: MenuItem; onClose: 
           <div className="flex items-center space-x-2">
             <input type="checkbox" id="is-avail" checked={form.is_available} onChange={e => set('is_available', e.target.checked)} className="w-4 h-4 accent-amber-500" />
             <label htmlFor="is-avail" className="text-xs text-gray-300 font-medium">✅ Available</label>
+          </div>
+          <div className="flex items-center space-x-2 flex-1 min-w-[120px]">
+            <label className="text-xs text-gray-400 font-bold uppercase whitespace-nowrap">Page Num:</label>
+            <select className={inputCls + ' !py-1.5'} value={form.page_number} onChange={e => set('page_number', Number(e.target.value))}>
+              {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>Page 0{n}</option>)}
+            </select>
           </div>
         </div>
         <div className="flex space-x-3 pt-2">
@@ -680,6 +789,72 @@ function BlogModal({ initial, onClose, onSave }: { initial?: BlogPost; onClose: 
         <div className="flex space-x-3 pt-2">
           <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
           <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Publish Post</span></button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  MENU BOOKLET PAGE MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function MenuPageModal({ initial, onClose, onSave }: { initial: MenuPageDefinition; onClose: () => void; onSave: (p: MenuPageDefinition) => void }) {
+  const [form, setForm] = useState<MenuPageDefinition>({ ...initial });
+  const set = (k: keyof MenuPageDefinition, v: any) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <Modal title={`Edit Booklet Page 0${form.pageNumber}`} onClose={onClose}>
+      <div className="space-y-4">
+        <ImageUploader label="Booklet Page Sheet (upload or URL)" value={form.image} onChange={v => set('image', v)} previewHeight="h-48" maxSizeMB={12} />
+        <div><label className={labelCls}>Page Title</label><input className={inputCls} value={form.title} onChange={e => set('title', e.target.value)} /></div>
+        <div><label className={labelCls}>Subtitle</label><input className={inputCls} value={form.subtitle} onChange={e => set('subtitle', e.target.value)} /></div>
+        <div>
+          <label className={labelCls}>Categories (comma separated)</label>
+          <input className={inputCls} value={form.categories.join(', ')} onChange={e => set('categories', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} />
+        </div>
+        <div className="flex space-x-3 pt-2">
+          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
+          <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Save Sheet</span></button>
+        </div>
+      </div>
+    </Modal>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+//  WATER SPORTS RIDE MODAL
+// ─────────────────────────────────────────────────────────────────────────────
+function RideModal({ initial, onClose, onSave }: { initial?: RideTicket; onClose: () => void; onSave: (r: RideTicket) => void }) {
+  const [form, setForm] = useState<RideTicket>(initial ?? {
+    id: 'ride-' + Date.now(), name: '', category: 'Water Sports', price: 0, unit: 'Per Person 1 Round', description: '', badge: '', image: '', emoji: '🏄'
+  });
+  const set = (k: keyof RideTicket, v: any) => setForm(f => ({ ...f, [k]: v }));
+
+  return (
+    <Modal title={initial ? 'Edit Ride Ticket' : 'Add Ride Ticket'} onClose={onClose}>
+      <div className="space-y-4">
+        <ImageUploader label="Ride Photo (upload or URL)" value={form.image} onChange={v => set('image', v)} previewHeight="h-40" />
+        <div className="grid grid-cols-3 gap-3">
+          <div className="col-span-2"><label className={labelCls}>Ride Name</label><input className={inputCls} placeholder="e.g. Speedboat Tour" value={form.name} onChange={e => set('name', e.target.value)} /></div>
+          <div><label className={labelCls}>Emoji Icon</label><input className={inputCls} placeholder="🏄" value={form.emoji} onChange={e => set('emoji', e.target.value)} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className={labelCls}>Category</label>
+            <select className={inputCls} value={form.category} onChange={e => set('category', e.target.value)}>
+              <option value="Water Sports">Water Sports</option>
+              <option value="Other Activities">Other Activities</option>
+            </select>
+          </div>
+          <div><label className={labelCls}>Price (₹)</label><input type="number" className={inputCls} value={form.price || ''} onChange={e => set('price', Number(e.target.value))} /></div>
+        </div>
+        <div className="grid grid-cols-2 gap-3">
+          <div><label className={labelCls}>Unit</label><input className={inputCls} placeholder="Per Person 1 Round" value={form.unit} onChange={e => set('unit', e.target.value)} /></div>
+          <div><label className={labelCls}>Badge</label><input className={inputCls} placeholder="e.g. Most Popular, Kids Fun" value={form.badge} onChange={e => set('badge', e.target.value)} /></div>
+        </div>
+        <div><label className={labelCls}>Description</label><textarea className={inputCls} rows={2} placeholder="Explain the ride safety, gear, rounds..." value={form.description} onChange={e => set('description', e.target.value)} /></div>
+        <div className="flex space-x-3 pt-2">
+          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
+          <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Save Ride</span></button>
         </div>
       </div>
     </Modal>

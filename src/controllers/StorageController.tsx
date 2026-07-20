@@ -1,9 +1,10 @@
 // StorageController — extended with update + delete operations for all entities
 import { Reservation } from '@/models/ReservationModel';
-import { MenuItem, INITIAL_MENU_ITEMS } from '@/models/MenuModel';
+import { MenuItem, INITIAL_MENU_ITEMS, MenuPageDefinition, MENU_BOOKLET_PAGES } from '@/models/MenuModel';
 import { BlogPost, INITIAL_BLOGS } from '@/models/BlogModel';
 import { GalleryItem, INITIAL_GALLERY } from '@/models/GalleryModel';
 import { Review, ContactMessage, INITIAL_REVIEWS } from '@/models/ReviewModel';
+import { RideTicket, WATER_SPORTS_RIDES } from '@/models/WaterSportsModel';
 
 // ── Generic localStorage helpers ─────────────────────────────────────────────
 function getLocal<T>(key: string, fallback: T): T {
@@ -189,5 +190,47 @@ export function deleteEventBanner(id: string): EventBanner[] {
 export function toggleEventBanner(id: string): EventBanner[] {
   const updated = getStoredEventBanners().map(b => b.id === id ? { ...b, is_active: !b.is_active } : b);
   setLocal('wings_event_banners', updated);
+  return updated;
+}
+
+// ── WATER SPORTS RIDES ────────────────────────────────────────────────────────
+export function getStoredWaterSports(): RideTicket[] {
+  return getLocal<RideTicket[]>('wings_water_sports', WATER_SPORTS_RIDES);
+}
+export function saveWaterSports(ride: RideTicket): RideTicket[] {
+  const current = getStoredWaterSports();
+  current.push(ride);
+  setLocal('wings_water_sports', current);
+  return current;
+}
+export function updateWaterSports(ride: RideTicket): RideTicket[] {
+  const updated = getStoredWaterSports().map(r => r.id === ride.id ? ride : r);
+  setLocal('wings_water_sports', updated);
+  return updated;
+}
+export function deleteWaterSports(id: string): RideTicket[] {
+  const updated = getStoredWaterSports().filter(r => r.id !== id);
+  setLocal('wings_water_sports', updated);
+  return updated;
+}
+
+// ── MENU BOOKLET PAGES ────────────────────────────────────────────────────────
+export function getStoredMenuPages(): MenuPageDefinition[] {
+  return getLocal<MenuPageDefinition[]>('wings_menu_pages', MENU_BOOKLET_PAGES);
+}
+export function saveMenuPage(page: MenuPageDefinition): MenuPageDefinition[] {
+  const current = getStoredMenuPages();
+  current.push(page);
+  setLocal('wings_menu_pages', current);
+  return current;
+}
+export function updateMenuPage(page: MenuPageDefinition): MenuPageDefinition[] {
+  const updated = getStoredMenuPages().map(p => p.pageNumber === page.pageNumber ? page : p);
+  setLocal('wings_menu_pages', updated);
+  return updated;
+}
+export function deleteMenuPage(pageNumber: number): MenuPageDefinition[] {
+  const updated = getStoredMenuPages().filter(p => p.pageNumber !== pageNumber);
+  setLocal('wings_menu_pages', updated);
   return updated;
 }
