@@ -62,7 +62,7 @@ export default function SEOStructuredData() {
     },
     "sameAs": [
       "https://www.instagram.com/wingsriver",
-      "https://www.google.com/maps/place/Lucknow+water+sports+wings+River,+Laxman+mela+ground,+Kala+Kankar+Colony,+Purana+Haidarabad,+sikandar+nagar,+Lucknow,+Uttar+Pradesh+226001/"
+      "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
     ]
   };
 

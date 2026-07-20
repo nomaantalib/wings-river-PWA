@@ -23,12 +23,22 @@ export default function ImageUploader({
   maxSizeMB = 5,
 }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [mode, setMode] = useState<'upload' | 'url'>(value.startsWith('http') || value.startsWith('/') ? 'url' : 'upload');
-  const [urlInput, setUrlInput] = useState(value.startsWith('http') || value.startsWith('/') ? value : '');
+  const safeValue = value || '';
+  const [mode, setMode] = useState<'upload' | 'url'>(safeValue.startsWith('http') || safeValue.startsWith('/') ? 'url' : 'upload');
+  const [urlInput, setUrlInput] = useState(safeValue.startsWith('http') || safeValue.startsWith('/') ? safeValue : '');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [dragOver, setDragOver] = useState(false);
   const [uploadSuccess, setUploadSuccess] = useState(false);
+
+  // Sync state whenever the value prop changes from the parent component
+  React.useEffect(() => {
+    const val = value || '';
+    setUrlInput(val);
+    if (val.startsWith('http') || val.startsWith('/')) {
+      setMode('url');
+    }
+  }, [value]);
 
   const processFile = (file: File) => {
     setError('');
@@ -182,7 +192,11 @@ export default function ImageUploader({
               type="text"
               placeholder="/images/photo.jpg or https://example.com/image.jpg"
               value={urlInput}
-              onChange={e => setUrlInput(e.target.value)}
+              onChange={e => {
+                const val = e.target.value;
+                setUrlInput(val);
+                onChange(val.trim());
+              }}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleUrlApply(); } }}
               className="flex-1 px-3 py-2.5 text-xs bg-dark-950 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all"
             />

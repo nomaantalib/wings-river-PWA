@@ -29,7 +29,7 @@ export default function Footer() {
             {/* SOCIAL ICONS ONLY (No text beside icons) */}
             <div className="flex items-center space-x-3 pt-2">
               <a
-                href="https://www.google.com/maps/place/Lucknow+water+sports+wings+River,+Laxman+mela+ground,+Kala+Kankar+Colony,+Purana+Haidarabad,+sikandar+nagar,+Lucknow,+Uttar+Pradesh+226001/"
+                href="https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Google Maps"

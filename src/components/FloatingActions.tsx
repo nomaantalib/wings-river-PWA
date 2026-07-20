@@ -43,7 +43,7 @@ export default function FloatingActions() {
 
       {/* Google Maps Directions */}
       <a
-        href="https://www.google.com/maps/place/Lucknow+water+sports+wings+River,+Laxman+mela+ground,+Kala+Kankar+Colony,+Purana+Haidarabad,+sikandar+nagar,+Lucknow,+Uttar+Pradesh+226001/"
+        href="https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
         target="_blank"
         rel="noopener noreferrer"
         title="Get Google Maps Directions"
