@@ -39,7 +39,7 @@ export async function onRequestPost(context) {
   if (!db) return new Response(JSON.stringify({ success: false, error: 'Database not bound' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   try {
     await db.prepare(CREATE_TABLE).run();
-    const data = await context.request.json();
+    const data = await context.request.json().catch(() => ({}));
     const id = data.id || `gal-${Date.now()}`;
     const featured = data.featured ? 1 : 0;
     const createdAt = data.created_at || new Date().toISOString();
