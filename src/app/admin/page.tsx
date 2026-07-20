@@ -5,35 +5,65 @@ import {
   getStoredReservations,
   getStoredMenuItems,
   getStoredBlogs,
+  getStoredGalleryItems,
   getStoredReviews,
   getStoredContactMessages,
   saveMenuItem,
   saveBlog,
+  saveGalleryItem,
+  deleteGalleryItem,
+  updateReservationStatus,
   Reservation,
   MenuItem,
   BlogPost,
+  GalleryItem,
   Review,
   ContactMessage
 } from '@/lib/db';
-import { Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Check, LogOut, ShieldAlert } from 'lucide-react';
+import {
+  Lock,
+  Utensils,
+  Calendar,
+  FileText,
+  Star,
+  Mail,
+  Plus,
+  Trash2,
+  Image as ImageIcon,
+  CheckCircle,
+  Clock,
+  XCircle,
+  LogOut,
+  ShieldAlert
+} from 'lucide-react';
 
 export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
 
-  const [activeTab, setActiveTab] = useState<'bookings' | 'menu' | 'blogs' | 'reviews' | 'contact'>('bookings');
+  const [activeTab, setActiveTab] = useState<'bookings' | 'gallery' | 'menu' | 'blogs' | 'reviews' | 'contact'>('bookings');
 
   // Data states
   const [bookings, setBookings] = useState<Reservation[]>([]);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
 
-  // Add Item Modals
+  // Modals
+  const [showAddGalleryModal, setShowAddGalleryModal] = useState(false);
   const [showAddMenuModal, setShowAddMenuModal] = useState(false);
   const [showAddBlogModal, setShowAddBlogModal] = useState(false);
+
+  // New Gallery Item State
+  const [newGalleryItem, setNewGalleryItem] = useState({
+    title: '',
+    category: 'Restaurant',
+    image_url: '/images/Screenshot_20260720-180544_Maps.png',
+    featured: true
+  });
 
   // New Menu Item State
   const [newMenuItem, setNewMenuItem] = useState({
@@ -64,6 +94,7 @@ export default function AdminDashboard() {
 
   const fetchData = () => {
     setBookings(getStoredReservations());
+    setGalleryItems(getStoredGalleryItems());
     setMenuItems(getStoredMenuItems());
     setBlogs(getStoredBlogs());
     setReviews(getStoredReviews());
@@ -85,6 +116,32 @@ export default function AdminDashboard() {
   const handleLogout = () => {
     setIsAuthenticated(false);
     localStorage.removeItem('wings_admin_auth');
+  };
+
+  const handleStatusChange = (id: string, status: string) => {
+    const updated = updateReservationStatus(id, status);
+    setBookings(updated);
+  };
+
+  const handleCreateGalleryItem = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newGalleryItem.title || !newGalleryItem.image_url) return;
+    const item: GalleryItem = {
+      id: 'gal-' + Date.now(),
+      title: newGalleryItem.title,
+      category: newGalleryItem.category,
+      image_url: newGalleryItem.image_url,
+      featured: newGalleryItem.featured
+    };
+    const updated = saveGalleryItem(item);
+    setGalleryItems(updated);
+    setShowAddGalleryModal(false);
+    setNewGalleryItem({ title: '', category: 'Restaurant', image_url: '/images/Screenshot_20260720-180544_Maps.png', featured: true });
+  };
+
+  const handleDeleteGallery = (id: string) => {
+    const updated = deleteGalleryItem(id);
+    setGalleryItems(updated);
   };
 
   const handleCreateMenuItem = (e: React.FormEvent) => {
@@ -135,7 +192,7 @@ export default function AdminDashboard() {
             <div className="w-14 h-14 bg-mint-500/20 text-mint-400 rounded-full flex items-center justify-center mx-auto border border-mint-500/30">
               <Lock className="w-6 h-6" />
             </div>
-            <h2 className="font-serif font-bold text-2xl text-white">Wings River Admin</h2>
+            <h2 className="font-serif font-bold text-2xl text-white">Wings River Admin CMS</h2>
             <p className="text-xs text-gray-400">Enter secure password to access CMS Dashboard</p>
           </div>
 
@@ -157,6 +214,7 @@ export default function AdminDashboard() {
                 onChange={(e) => setPasswordInput(e.target.value)}
                 className="w-full px-4 py-3 text-sm bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-mint-400"
               />
+              <p className="text-[10px] text-gray-500 mt-1">Default Password: <code className="text-gold-400">wingsriver@2026</code></p>
             </div>
 
             <button
@@ -173,15 +231,15 @@ export default function AdminDashboard() {
 
   return (
     <div className="min-h-screen bg-dark-950 text-white flex flex-col">
-      {/* Top Navbar */}
+      {/* Top Header */}
       <header className="bg-dark-900 border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <div className="w-9 h-9 rounded-full bg-mint-500/20 border border-mint-500/40 flex items-center justify-center text-mint-400 font-bold font-serif text-sm">
-            WR
+          <div className="w-9 h-9 rounded-xl overflow-hidden border border-gold-400/40 shrink-0">
+            <img src="/logo.png" alt="Logo" className="w-full h-full object-cover" />
           </div>
           <div>
             <h1 className="font-serif font-bold text-lg text-white">Wings River CMS Panel</h1>
-            <p className="text-[10px] text-mint-400">Pure Client Architecture</p>
+            <p className="text-[10px] text-mint-400">Pure Client Architecture • Event & Media Management</p>
           </div>
         </div>
 
@@ -194,21 +252,22 @@ export default function AdminDashboard() {
         </button>
       </header>
 
-      {/* Admin Content Body */}
+      {/* Admin Body Content */}
       <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
         {/* Navigation Tabs */}
         <div className="flex items-center space-x-2 border-b border-white/10 pb-4 overflow-x-auto no-scrollbar">
           {[
-            { id: 'bookings', label: 'Reservations', icon: Calendar, count: bookings.length },
-            { id: 'menu', label: 'Menu Items', icon: Utensils, count: menuItems.length },
-            { id: 'blogs', label: 'Blog Posts', icon: FileText, count: blogs.length },
+            { id: 'bookings', label: 'Reservations & Events', icon: Calendar, count: bookings.length },
+            { id: 'gallery', label: 'Image Gallery', icon: ImageIcon, count: galleryItems.length },
+            { id: 'menu', label: 'Food Menu', icon: Utensils, count: menuItems.length },
+            { id: 'blogs', label: 'Blog Articles', icon: FileText, count: blogs.length },
             { id: 'reviews', label: 'Reviews', icon: Star, count: reviews.length },
             { id: 'contact', label: 'Messages', icon: Mail, count: messages.length },
           ].map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
+              className={`flex items-center space-x-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-mint-500 text-dark-950 shadow-md'
                   : 'bg-dark-900 text-gray-400 hover:text-white border border-white/5'
@@ -223,10 +282,16 @@ export default function AdminDashboard() {
           ))}
         </div>
 
-        {/* Tab 1: Bookings / Reservations */}
+        {/* Tab 1: Bookings & Events */}
         {activeTab === 'bookings' && (
           <div className="space-y-4">
-            <h3 className="font-serif font-bold text-xl text-white">Table & Water Sports Reservations</h3>
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-serif font-bold text-xl text-white">Table & Event Reservations</h3>
+                <p className="text-xs text-gray-400">Manage table bookings, birthday party setups, and water sports rides.</p>
+              </div>
+            </div>
+
             <div className="bg-dark-900 rounded-2xl border border-white/10 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-left text-xs text-gray-300">
@@ -234,10 +299,11 @@ export default function AdminDashboard() {
                     <tr>
                       <th className="p-4">Guest Name</th>
                       <th className="p-4">Phone</th>
-                      <th className="p-4">Booking Type</th>
+                      <th className="p-4">Event Type</th>
                       <th className="p-4">Date & Time</th>
                       <th className="p-4">Guests</th>
-                      <th className="p-4">Special Requests</th>
+                      <th className="p-4">Status</th>
+                      <th className="p-4">Action</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-white/5">
@@ -248,7 +314,44 @@ export default function AdminDashboard() {
                         <td className="p-4 uppercase text-[10px] font-bold text-gold-400">{b.booking_type}</td>
                         <td className="p-4">{b.date} at {b.time}</td>
                         <td className="p-4">{b.guests} Guests</td>
-                        <td className="p-4 text-gray-400 italic">{b.special_requests || 'None'}</td>
+                        <td className="p-4">
+                          <span
+                            className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold uppercase ${
+                              b.status === 'confirmed'
+                                ? 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+                                : b.status === 'completed'
+                                ? 'bg-blue-500/20 text-blue-400 border border-blue-500/30'
+                                : 'bg-rose-500/20 text-rose-400 border border-rose-500/30'
+                            }`}
+                          >
+                            {b.status}
+                          </span>
+                        </td>
+                        <td className="p-4">
+                          <div className="flex items-center space-x-1.5">
+                            <button
+                              onClick={() => handleStatusChange(b.id, 'confirmed')}
+                              title="Confirm"
+                              className="p-1 rounded bg-emerald-500/20 text-emerald-400 hover:bg-emerald-500 hover:text-dark-950"
+                            >
+                              <CheckCircle className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(b.id, 'completed')}
+                              title="Complete"
+                              className="p-1 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-dark-950"
+                            >
+                              <Clock className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              onClick={() => handleStatusChange(b.id, 'cancelled')}
+                              title="Cancel"
+                              className="p-1 rounded bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white"
+                            >
+                              <XCircle className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -258,7 +361,49 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 2: Menu Items */}
+        {/* Tab 2: Gallery Images */}
+        {activeTab === 'gallery' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-serif font-bold text-xl text-white">Image Gallery Manager</h3>
+                <p className="text-xs text-gray-400">Add, view, and delete venue photos displayed in the auto-slideshow gallery.</p>
+              </div>
+              <button
+                onClick={() => setShowAddGalleryModal(true)}
+                className="flex items-center space-x-1 px-4 py-2 rounded-xl bg-mint-500 text-dark-950 font-bold text-xs shadow-md"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add New Photo</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+              {galleryItems.map((item) => (
+                <div key={item.id} className="bg-dark-900 rounded-2xl p-3 border border-white/10 relative group">
+                  <div className="h-40 rounded-xl overflow-hidden mb-3 relative bg-black">
+                    <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-dark-950/80 text-gold-400 text-[9px] font-extrabold uppercase border border-gold-400/30">
+                      {item.category}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-serif font-bold text-sm text-white truncate pr-2">{item.title}</h4>
+                    <button
+                      onClick={() => handleDeleteGallery(item.id)}
+                      className="p-1.5 rounded-lg bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-colors"
+                      title="Delete Image"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Tab 3: Menu Items */}
         {activeTab === 'menu' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -287,7 +432,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 3: Blog Posts */}
+        {/* Tab 4: Blog Articles */}
         {activeTab === 'blogs' && (
           <div className="space-y-4">
             <div className="flex items-center justify-between">
@@ -313,7 +458,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 4: Reviews */}
+        {/* Tab 5: Reviews */}
         {activeTab === 'reviews' && (
           <div className="space-y-4">
             <h3 className="font-serif font-bold text-xl text-white">Guest Reviews</h3>
@@ -331,7 +476,7 @@ export default function AdminDashboard() {
           </div>
         )}
 
-        {/* Tab 5: Contact Messages */}
+        {/* Tab 6: Contact Messages */}
         {activeTab === 'contact' && (
           <div className="space-y-4">
             <h3 className="font-serif font-bold text-xl text-white">Inquiries & Contact Messages</h3>
@@ -349,6 +494,72 @@ export default function AdminDashboard() {
           </div>
         )}
       </div>
+
+      {/* Add Gallery Item Modal */}
+      {showAddGalleryModal && (
+        <div className="fixed inset-0 z-50 bg-dark-950/80 flex items-center justify-center p-4">
+          <div className="bg-dark-900 rounded-3xl p-6 max-w-md w-full border border-white/10 space-y-4">
+            <h3 className="font-serif font-bold text-xl text-white">Add Photo to Gallery</h3>
+            <form onSubmit={handleCreateGalleryItem} className="space-y-3">
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-400 mb-1">Photo Title</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Sunset Riverfront Deck"
+                  value={newGalleryItem.title}
+                  onChange={(e) => setNewGalleryItem({ ...newGalleryItem, title: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-400 mb-1">Category</label>
+                <select
+                  value={newGalleryItem.category}
+                  onChange={(e) => setNewGalleryItem({ ...newGalleryItem, category: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
+                >
+                  <option value="Restaurant">Restaurant</option>
+                  <option value="River View">River View</option>
+                  <option value="Evening">Evening</option>
+                  <option value="Outdoor Seating">Outdoor Seating</option>
+                  <option value="Water Sports">Water Sports</option>
+                  <option value="Food">Food</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-400 mb-1">Image URL / Path</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="/images/Screenshot_20260720-180544_Maps.png"
+                  value={newGalleryItem.image_url}
+                  onChange={(e) => setNewGalleryItem({ ...newGalleryItem, image_url: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2 pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-mint-500 text-dark-950 font-bold text-xs rounded-xl"
+                >
+                  Add Image
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowAddGalleryModal(false)}
+                  className="w-full py-2.5 bg-white/10 text-white font-bold text-xs rounded-xl"
+                >
+                  Cancel
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Menu Item Modal */}
       {showAddMenuModal && (

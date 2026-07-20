@@ -13,6 +13,10 @@ export { INITIAL_REVIEWS } from '@/models/ReviewModel';
 export {
   getStoredReservations,
   saveReservation,
+  updateReservationStatus,
+  getStoredGalleryItems,
+  saveGalleryItem,
+  deleteGalleryItem,
   getStoredMenuItems,
   saveMenuItem,
   getStoredBlogs,

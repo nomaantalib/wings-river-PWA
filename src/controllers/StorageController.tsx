@@ -1,7 +1,7 @@
-// Storage Controller Layer - Client-Server Controller handling API calls & LocalStorage fallback
 import { Reservation } from '@/models/ReservationModel';
 import { MenuItem, INITIAL_MENU_ITEMS } from '@/models/MenuModel';
 import { BlogPost, INITIAL_BLOGS } from '@/models/BlogModel';
+import { GalleryItem, INITIAL_GALLERY } from '@/models/GalleryModel';
 import { Review, ContactMessage, INITIAL_REVIEWS } from '@/models/ReviewModel';
 
 // Generic LocalStorage Safe Handler
@@ -54,6 +54,32 @@ export function saveReservation(res: Reservation): void {
       body: JSON.stringify(res)
     }).catch(() => {});
   }
+}
+
+export function updateReservationStatus(id: string, newStatus: string): Reservation[] {
+  const current = getStoredReservations();
+  const updated = current.map((r) => (r.id === id ? { ...r, status: newStatus } : r));
+  setLocal('wings_reservations', updated);
+  return updated;
+}
+
+// GALLERY CONTROLLER
+export function getStoredGalleryItems(): GalleryItem[] {
+  return getLocal<GalleryItem[]>('wings_gallery', INITIAL_GALLERY);
+}
+
+export function saveGalleryItem(item: GalleryItem): GalleryItem[] {
+  const current = getStoredGalleryItems();
+  current.unshift(item);
+  setLocal('wings_gallery', current);
+  return current;
+}
+
+export function deleteGalleryItem(id: string): GalleryItem[] {
+  const current = getStoredGalleryItems();
+  const updated = current.filter((g) => g.id !== id);
+  setLocal('wings_gallery', updated);
+  return updated;
 }
 
 // MENU CONTROLLER
