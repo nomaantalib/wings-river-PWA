@@ -8,10 +8,12 @@ export default function ContactSection() {
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [error, setError] = useState('');
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError('');
 
     try {
       const msg: ContactMessage = {
@@ -22,10 +24,11 @@ export default function ContactSection() {
         message: formData.message,
         created_at: new Date().toISOString()
       };
-      saveContactMessage(msg);
+      await saveContactMessage(msg);
       setSuccess(true);
       setFormData({ name: '', phone: '', email: '', message: '' });
-    } catch (e) {
+    } catch (err: any) {
+      setError(err?.message || 'Failed to send message. Please call us directly at 07310008020');
     } finally {
       setLoading(false);
     }
@@ -152,6 +155,12 @@ export default function ContactSection() {
                     className="w-full px-4 py-3 text-sm rounded-xl bg-dark-950 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-mint-400"
                   />
                 </div>
+
+                {error && (
+                  <div className="p-3 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs text-center font-bold">
+                    {error}
+                  </div>
+                )}
 
                 <button
                   type="submit"

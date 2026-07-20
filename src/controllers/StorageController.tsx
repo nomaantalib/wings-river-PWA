@@ -69,10 +69,11 @@ export async function getStoredReservations(): Promise<Reservation[]> {
 }
 
 export async function saveReservation(reservation: Reservation): Promise<void> {
-  try {
-    await apiPost('/api/bookings', reservation);
-    notifySync();
-  } catch (e) { console.error('[D1] saveReservation:', e); }
+  const res = await apiPost('/api/bookings', reservation);
+  if (!res || res.success === false) {
+    throw new Error(res?.error || 'Failed to save reservation');
+  }
+  notifySync();
 }
 
 export async function updateReservationStatus(id: string, newStatus: string): Promise<Reservation[]> {
@@ -228,7 +229,10 @@ export async function getStoredContactMessages(): Promise<ContactMessage[]> {
 }
 
 export async function saveContactMessage(msg: ContactMessage): Promise<void> {
-  await apiPost('/api/contact', msg);
+  const res = await apiPost('/api/contact', msg);
+  if (!res || res.success === false) {
+    throw new Error(res?.error || 'Failed to save contact message');
+  }
   notifySync();
 }
 

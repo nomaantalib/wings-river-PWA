@@ -28,7 +28,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
@@ -49,7 +49,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
         created_at: new Date().toISOString()
       };
 
-      saveReservation(newBooking);
+      await saveReservation(newBooking);
 
       setSuccessMsg('Your reservation request has been submitted successfully! Our team will call you to confirm.');
       setFormData({
@@ -62,7 +62,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
         special_requests: ''
       });
     } catch (err: any) {
-      setErrorMsg('Failed to submit reservation request. Please call us directly at 07310008020');
+      setErrorMsg(err?.message || 'Failed to submit reservation request. Please call us directly at 07310008020');
     } finally {
       setLoading(false);
     }
