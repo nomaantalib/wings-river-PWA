@@ -40,7 +40,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
     <header
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
         scrolled
-          ? 'bg-cream-50/95 backdrop-blur-md shadow-md py-2 border-b border-mint-200/50 text-dark-900'
+          ? 'bg-mint-800/95 backdrop-blur-md shadow-lg py-2 border-b border-gold-500/30 text-white'
           : 'bg-gradient-to-b from-dark-950/80 via-dark-950/40 to-transparent py-4 text-white'
       }`}
     >
@@ -50,15 +50,13 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
           <CircularLogo size={52} className="shrink-0" />
           <div className="flex flex-col">
             <span
-              className={`font-serif font-bold text-lg sm:text-xl tracking-tight leading-none ${
-                scrolled ? 'text-dark-900' : 'text-white'
-              }`}
+              className="font-serif font-bold text-lg sm:text-xl tracking-tight leading-none text-white"
             >
               Wings River <span className="text-gold-500">Café</span>
             </span>
             <span
               className={`text-[10px] font-medium tracking-wider uppercase ${
-                scrolled ? 'text-mint-700' : 'text-mint-300'
+                scrolled ? 'text-gold-300' : 'text-mint-300'
               }`}
             >
               Lucknow Water Sports & Café
@@ -72,8 +70,8 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
             <a
               key={link.name}
               href={link.href}
-              className={`text-sm font-medium transition-colors hover:text-gold-500 ${
-                scrolled ? 'text-dark-800' : 'text-gray-200'
+              className={`text-sm font-medium transition-colors hover:text-gold-300 ${
+                scrolled ? 'text-gray-100' : 'text-gray-200'
               }`}
             >
               {link.name}
@@ -86,7 +84,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
           {/* Reserve CTA Button */}
           <button
             onClick={onOpenBooking}
-            className="hidden sm:flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-mint-400 to-mint-500 text-dark-950 font-semibold text-xs rounded-full shadow-lg hover:shadow-mint-400/30 transition-transform duration-300 hover:scale-105"
+            className="hidden sm:flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-bold text-xs rounded-full shadow-lg hover:scale-105 transition-transform duration-300"
           >
             <Calendar className="w-3.5 h-3.5" />
             <span>Book Table / Party</span>
@@ -101,11 +99,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
               rel="noopener noreferrer"
               title="Google Maps Location"
               aria-label="Google Maps Location"
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
-                scrolled
-                  ? 'bg-mint-100 text-mint-700 hover:bg-mint-300 hover:text-dark-900'
-                  : 'bg-white/15 backdrop-blur-sm text-white hover:bg-gold-500 hover:text-dark-950'
-              }`}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-white/15 backdrop-blur-sm text-white hover:bg-gold-500 hover:text-dark-950"
             >
               <MapPin className="w-4 h-4" />
             </a>
@@ -117,11 +111,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
               rel="noopener noreferrer"
               title="Instagram"
               aria-label="Instagram"
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
-                scrolled
-                  ? 'bg-mint-100 text-mint-700 hover:bg-mint-300 hover:text-dark-900'
-                  : 'bg-white/15 backdrop-blur-sm text-white hover:bg-gold-500 hover:text-dark-950'
-              }`}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-white/15 backdrop-blur-sm text-white hover:bg-gold-500 hover:text-dark-950"
             >
               <Instagram className="w-4 h-4" />
             </a>
@@ -131,11 +121,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
               href="tel:07310008020"
               title="Call Us"
               aria-label="Call Us"
-              className={`w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 ${
-                scrolled
-                  ? 'bg-gold-400 text-dark-950 hover:bg-gold-500'
-                  : 'bg-gold-500 text-dark-950 hover:bg-gold-400'
-              }`}
+              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gold-500 text-dark-950 hover:bg-gold-400"
             >
               <Phone className="w-4 h-4" />
             </a>
@@ -145,9 +131,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle Navigation Menu"
-            className={`lg:hidden p-2 rounded-lg transition-colors ${
-              scrolled ? 'text-dark-900 hover:bg-gray-200' : 'text-white hover:bg-white/20'
-            }`}
+            className="p-2 rounded-lg transition-colors text-white hover:bg-white/20"
           >
             {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
           </button>
