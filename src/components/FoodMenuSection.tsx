@@ -61,7 +61,7 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
   const closeFullscreen = () => { setIsFullscreen(false); resetZoom(); };
 
   return (
-    <section id="menu" className="py-20 relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #f9f3e8 0%, #fdf6ee 50%, #f9f3e8 100%)' }}>
+    <section id="menu" className="py-10 relative overflow-hidden" style={{ background: 'linear-gradient(180deg, #f9f3e8 0%, #fdf6ee 50%, #f9f3e8 100%)' }}>
       {/* Top accent line */}
       <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-amber-400 via-yellow-500 to-amber-400" />
       {/* Ambient glows */}

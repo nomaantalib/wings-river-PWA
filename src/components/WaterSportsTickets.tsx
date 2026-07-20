@@ -35,7 +35,7 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
   const resetZoom = () => setZoomLevel(1);
 
   return (
-    <section id="water-sports-tickets" className="py-20 bg-dark-950 relative overflow-hidden">
+    <section id="water-sports-tickets" className="pt-12 pb-6 bg-dark-950 relative overflow-hidden">
       {/* Ambient decorations */}
       <div className="absolute -top-20 left-0 right-0 h-1 bg-gradient-to-r from-gold-500 via-mint-500 to-gold-500" />
       <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl pointer-events-none" />

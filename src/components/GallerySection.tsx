@@ -55,7 +55,7 @@ export default function GallerySection() {
   const currentCarouselItem = filteredItems[carouselIndex] || filteredItems[0];
 
   return (
-    <section id="gallery" className="py-20 bg-dark-950 text-white relative overflow-hidden">
+    <section id="gallery" className="pt-8 pb-16 bg-dark-950 text-white relative overflow-hidden">
       {/* Background Decorative Ambient Blurs */}
       <div className="absolute top-1/4 -left-40 w-96 h-96 bg-mint-500/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-1/4 -right-40 w-96 h-96 bg-gold-400/10 rounded-full blur-3xl pointer-events-none" />
