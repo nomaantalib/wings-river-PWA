@@ -3,12 +3,15 @@ export interface RideTicket {
   id: string;
   name: string;
   emoji?: string;
-  category: 'Water Sports' | 'Other Activities';
+  category: string;
   price: number;
   unit: string;
   description: string;
   badge?: string;
   image: string;
+  display_order?: number;
+  is_deleted?: number;
+  created_at?: string;
 }
 
 export const WATER_SPORTS_RIDES: RideTicket[] = [

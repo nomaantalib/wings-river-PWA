@@ -1,54 +1,131 @@
--- Seed data for Cloudflare D1 Database wings-river-db (c2491a90-0f90-4a1e-8a4d-852e6588a68a)
+-- Seed data for Cloudflare D1 Database wings_river_cafe_reservations
+-- Database ID: c2491a90-0f90-4a1e-8a4d-852e6588a68a
 
--- 1. Water Sports Rides
-INSERT OR REPLACE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji) VALUES
-('ride-1', 'High-Speed Jet Ski', 'Extreme Adventure', 699, 'Per Person / 10 Mins', 'Feel the thrill of roaring across the Gomti River with professional instructors.', 'Best Seller', '/images/jet-ski.jpg', '🚤'),
-('ride-2', 'Luxury Speedboat Cruise', 'Family & Couples', 999, 'Per Group (Up to 4)', 'Glide along the scenic Lucknow riverfront in our premium covered speedboat.', 'Popular', '/images/speedboat.jpg', '🛥️'),
-('ride-3', 'Banana Boat Rush', 'Group Fun', 499, 'Per Person / 15 Mins', 'Hold on tight as our fast boat pulls your banana tube over river waves!', 'Trending', '/images/banana-boat.jpg', '🍌'),
-('ride-4', 'Bumper Tube Thrill', 'Solo & Couples', 549, 'Per Person', 'Spin and splash across water currents with full safety gear.', 'Fun', '/images/bumper-tube.jpg', '⭕'),
-('ride-5', 'River Water Skiing', 'Pro Adventure', 1299, 'Per Person', 'Master water skiing guided by certified river sports trainers.', 'Pro', '/images/water-skiing.jpg', '🏄');
+-- 1. Users (password_hash is SHA-256 of 'wingsriver@2026')
+INSERT OR REPLACE INTO users (id, username, password_hash, email, role, created_at, updated_at) VALUES
+('usr-admin', 'admin', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'admin@wingsrivercafe.com', 'Administrator', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('usr-editor', 'editor', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'editor@wingsrivercafe.com', 'Editor', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z');
 
--- 2. Event Banners
-INSERT OR REPLACE INTO event_banners (id, title, subtitle, image_url, cta_text, cta_link, is_active) VALUES
-('banner-1', 'Riverside Sunset DJ Party', 'Live Music & Neon Lights every Saturday evening 6 PM onwards', '/images/dj-party.jpg', 'Reserve Canopy', '#booking', 1),
-('banner-2', 'Romantic Candlelight Package', 'Private riverside canopy with 3-course dinner & rose decor', '/images/romantic-dinner.jpg', 'Book Romantic Table', '#booking', 1),
-('banner-3', 'Birthday & Anniversary Bash', 'Custom cakes, river view seating & 15% group discount', '/images/birthday-party.jpg', 'Plan Event', '#booking', 1);
+-- 2. Menu Categories
+INSERT OR REPLACE INTO menu_categories (id, name, slug, description, display_order, is_deleted, created_at, updated_at) VALUES
+('cat-beverages', 'Beverages', 'beverages', 'Hot teas, fresh lime, and soft drinks', 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-breakfast', 'Breakfast', 'breakfast', 'Parathas, Jalebi, and Bun Makkhan', 2, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-chaat', 'Chaat & Starters', 'chaat-starters', 'Lucknowi basket chaat, Agra bhalla, and golgappe', 3, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-drinks', 'Coolers & Mocktails', 'coolers-mocktails', 'Mojitos, iced teas, and pina colada', 4, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-coffee', 'Coffee & Shakes', 'coffee-shakes', 'Cold brew, espresso, and chocolate cookie shakes', 5, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-indian', 'Indian Main Course', 'indian-main-course', 'Dal Makhani, Paneer Lababdar, and deluxe thalis', 6, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-pizza', 'Pizza & Burgers', 'pizza-burgers', 'Wood-fired pizzas and gourmet cottage cheese burgers', 7, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-chinese', 'Chinese Wok & Waffles', 'chinese-wok-waffles', 'Hakka noodles, chilli paneer, and continental sizzlers', 8, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cat-desserts', 'Desserts', 'desserts', 'Shahi Tukda, Gulab Jamun, and ice creams', 9, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z');
 
--- 3. Menu Booklet Pages
-INSERT OR REPLACE INTO menu_pages (page_number, title, subtitle, image, categories) VALUES
-(1, 'Starters & Crispy Bites', 'Freshly Prepared Appetizers', '/images/starters-page.jpg', '["Starter", "Snacks"]'),
-(2, 'Italian & Pizzas', 'Hand-Tossed Wood-Fired Style', '/images/pizza-page.jpg', '["Pizza", "Italian"]'),
-(3, 'Indian & Chinese Main Course', 'Rich Gravies & Wok Specials', '/images/maincourse-page.jpg', '["Indian", "Chinese"]'),
-(4, 'Drinks & Desserts', 'Artisanal Coffees & Shakes', '/images/drinks-page.jpg', '["Drinks", "Coffee", "Desserts"]');
+-- 3. Menu Items
+INSERT OR REPLACE INTO menu_items (id, category_id, name, description, price, is_veg, image_url, is_available, display_order, version, is_deleted, created_at, updated_at) VALUES
+('m1', 'cat-beverages', 'Special Masala Chai', 'Freshly brewed kulhad tea with cardamoms & ginger.', 50.0, 1, '/images/menu_page_1.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m2', 'cat-beverages', 'Fresh Lime Soda', 'Sweet or salted sparkling fresh lime soda.', 60.0, 1, '/images/menu_page_1.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m3', 'cat-breakfast', 'Bun Makkhan', 'Soft toasted bun stuffed with rich farm butter.', 60.0, 1, '/images/menu_page_1.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m4', 'cat-breakfast', 'Special Chola Bhatura', 'Piping hot fluffy bhaturas served with spicy Amritsari chole.', 150.0, 1, '/images/menu_page_1.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m5', 'cat-breakfast', 'Paneer Paratha', 'Stuffed cottage cheese paratha served with curd & pickle.', 110.0, 1, '/images/menu_page_1.png', 1, 3, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m6', 'cat-breakfast', 'Dahi Jalebi (200gm)', 'Crispy golden jalebis paired with fresh thick curd.', 150.0, 1, '/images/menu_page_1.png', 1, 4, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m7', 'cat-chaat', 'Special Pav Bhaji', 'Butter-loaded spicy mashed vegetable bhaji served with toasted pavs.', 150.0, 1, '/images/menu_page_1.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m8', 'cat-chaat', 'Cheese Butter Pav Bhaji', 'Gratinated melted cheese topped over butter pav bhaji.', 170.0, 1, '/images/menu_page_1.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m9', 'cat-chaat', 'Agra Ka Special Bhalla', 'Crispy potato bhalla topped with sweet curd & mint chutney.', 80.0, 1, '/images/menu_page_1.png', 1, 3, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m10', 'cat-chaat', 'Lucknowi Basket Chaat', 'Crispy potato basket filled with tikkis, sprouts & curd.', 150.0, 1, '/images/menu_page_1.png', 1, 4, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m11', 'cat-chaat', 'Gol Gappe (6 Pcs)', 'Crispy puris filled with spicy mint water & tangy chutney.', 40.0, 1, '/images/menu_page_1.png', 1, 5, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m12', 'cat-drinks', 'Virgin Mojito', 'Fresh mint, lime wedges, crushed ice & sparkling soda.', 119.0, 1, '/images/menu_page_2.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m13', 'cat-drinks', 'Blue Lagoon Cooler', 'Refreshing curacao blue citrus cooler with lemon zest.', 129.0, 1, '/images/menu_page_2.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m14', 'cat-drinks', 'Watermelon Sunset Mojito', 'Fresh watermelon extract, mint & chat masala fizz.', 129.0, 1, '/images/menu_page_2.png', 1, 3, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m15', 'cat-drinks', 'Peach Iced Tea', 'Slow brewed tea infused with natural peach nectar.', 129.0, 1, '/images/menu_page_2.png', 1, 4, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m16', 'cat-drinks', 'Virgin Pina Colada', 'Creamy coconut milk & pineapple juice mocktail.', 129.0, 1, '/images/menu_page_2.png', 1, 5, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m17', 'cat-coffee', 'Riverside Cold Brew Coffee', 'Chilled rich espresso blended with vanilla cream.', 149.0, 1, '/images/menu_page_3.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m18', 'cat-desserts', 'Oreo Cream Shake', 'Rich chocolate cookie shake topped with whipped cream.', 149.0, 1, '/images/menu_page_3.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m19', 'cat-chaat', 'Veg Manchow Soup', 'Spicy Indo-Chinese soup served with crispy fried noodles.', 149.0, 1, '/images/menu_page_3.png', 1, 6, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m20', 'cat-chaat', 'Lemon Coriander Soup', 'Vitamin-C rich clear soup with fresh coriander & lime.', 149.0, 1, '/images/menu_page_3.png', 1, 7, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m21', 'cat-indian', 'Dal Makhani Shahi', 'Slow-cooked black lentils in rich cream & butter.', 265.0, 1, '/images/menu_page_4.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m22', 'cat-indian', 'Paneer Lababdar', 'Soft paneer cubes simmered in onion-tomato cashew gravy.', 315.0, 1, '/images/menu_page_4.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m23', 'cat-indian', 'Handi Soya Chaap Gravy', 'Tandoori soya chaap pieces cooked in claypot spices.', 305.0, 1, '/images/menu_page_4.png', 1, 3, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m24', 'cat-indian', 'Deluxe Veg Thali', 'Paneer, Dal Makhani, Mix Veg, Naan, Rice, Raita & Sweet.', 345.0, 1, '/images/menu_page_4.png', 1, 4, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m25', 'cat-pizza', 'Loaded Special Pizza', 'Loaded wood-fired pizza with mozzarella, paneer & peppers.', 349.0, 1, '/images/menu_page_5.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m26', 'cat-pizza', 'Gourmet Paneer Burger', 'Crispy cottage cheese patty, cheddar, jalapenos & dip.', 329.0, 1, '/images/menu_page_5.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m27', 'cat-pizza', 'Cheese Garlic Bread (4 Pcs)', 'Toasted baguette topped with garlic butter & mozzarella.', 235.0, 1, '/images/menu_page_5.png', 1, 3, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m28', 'cat-chinese', 'Chilli Paneer Dry', 'Paneer wok-tossed with capsicum, garlic & Schezwan.', 219.0, 1, '/images/menu_page_6.png', 1, 1, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m29', 'cat-chinese', 'Veg Hakka Noodles', 'Stir-fried noodles loaded with crunchy veggies & light soy.', 249.0, 1, '/images/menu_page_6.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m30', 'cat-chinese', 'Cottage Cheese Sizzler', 'Paneer steak, herb rice, sautéed veggies & french fries.', 449.0, 1, '/images/menu_page_6.png', 1, 3, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m31', 'cat-chinese', 'Red Sauce Arrabiata Pasta', 'Penne pasta tossed in spicy basil tomato concasse.', 275.0, 1, '/images/menu_page_7.png', 1, 4, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m32', 'cat-chinese', 'Paneer Tikka Charcoal Grilled', 'Classic marinated paneer skewers roasted in tandoor.', 299.0, 1, '/images/menu_page_7.png', 1, 5, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m33', 'cat-desserts', 'Hot Gulab Jamun (2 Pcs)', 'Soft milk solids dumplings in hot cardamom syrup.', 99.0, 1, '/images/menu_page_7.png', 1, 2, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('m34', 'cat-desserts', 'Royal Shahi Tukda', 'Saffron bread topped with thick rabri & pistachios.', 169.0, 1, '/images/menu_page_7.png', 1, 3, 1, 0, '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z');
 
--- 4. Food Menu Items
-INSERT OR REPLACE INTO menu_items (id, category, name, description, price, is_veg, image_url, is_available, page_number) VALUES
-('m-1', 'Starter', 'Crispy Chilli Paneer', 'Fresh cottage cheese tossed in spicy soy-garlic sauce with peppers', 280, 1, '/images/chilli-paneer.jpg', 1, 1),
-('m-2', 'Starter', 'Tandoori Malai Soya Chaap', 'Marinated chaap cooked in charcoal clay oven with rich cream', 290, 1, '/images/malai-chaap.jpg', 1, 1),
-('m-3', 'Pizza', 'Wings Special Riverside Pizza', 'Loaded with olives, jalapeños, bell peppers, extra mozzarella', 390, 1, '/images/pizza.jpg', 1, 2),
-('m-4', 'Italian', 'Creamy Alfredo Pasta', 'Penne pasta in garlic parmesan white cream sauce', 320, 1, '/images/alfredo-pasta.jpg', 1, 2),
-('m-5', 'Indian', 'Dal Makhani & Butter Naan Combo', 'Overnight slow-cooked black lentils served with 2 flaky butter naans', 340, 1, '/images/dal-makhani.jpg', 1, 3),
-('m-6', 'Drinks', 'Iced Hazelnut Cold Coffee', 'Rich espresso blended with chilled milk and hazelnut syrup', 180, 1, '/images/cold-coffee.jpg', 1, 4),
-('m-7', 'Desserts', 'Hot Sizzling Brownie with Vanilla', 'Warm chocolate brownie topped with melting vanilla ice cream & fudge', 240, 1, '/images/sizzling-brownie.jpg', 1, 4);
+-- 4. Menu Pages
+INSERT OR REPLACE INTO menu_pages (page_number, title, subtitle, image, categories, display_order, is_deleted, updated_at) VALUES
+(1, 'Wings River & Water Sports Menu', 'Delicious Moments, Unforgettable Memories', '/menu card food/page1.png', '["Cover"]', 1, 0, '2026-07-20T18:00:00Z'),
+(2, 'Beverages, Breakfast & Chaat', 'Chai, Chola Bhatura, Pav Bhaji & Agra Bhalla', '/menu card food/page2.png', '["Beverages","Breakfast","Chaat"]', 2, 0, '2026-07-20T18:00:00Z'),
+(3, 'Coolers & Mocktails', 'Virgin Mojito, Blue Lagoon, Iced Teas & Lassi', '/menu card food/page 3.png', '["Coolers & Mocktails"]', 3, 0, '2026-07-20T18:00:00Z'),
+(4, 'Shakes & Gourmet Soups', 'Oreo Shake, Cold Coffee, Manchow & Sweet Corn', '/menu card food/page4 .png', '["Shakes","Soup"]', 4, 0, '2026-07-20T18:00:00Z'),
+(5, 'Indian Main Course & South Indian', 'Butter Chicken, Dal Makhani, Paneer Lababdar & Thalis', '/menu card food/page 5.png', '["Indian","South Indian"]', 5, 0, '2026-07-20T18:00:00Z'),
+(6, 'Pizza, Burger & Sandwiches', 'Loaded Wings Pizza, Paneer Burger & Garlic Breads', '/menu card food/page6 .png', '["Pizza","Burger","Sandwiches"]', 6, 0, '2026-07-20T18:00:00Z'),
+(7, 'Chinese Woks & Sizzlers', 'Hakka Noodles, Chilli Paneer, Manchurian & Sizzlers', '/menu card food/page 7.png', '["Chinese","Sizzlers"]', 7, 0, '2026-07-20T18:00:00Z'),
+(8, 'Indo-Continental Bites & Desserts', 'Pastas, Paneer Tikka, Gulab Jamun & Shahi Tukda', '/menu card food/page 8.png', '["Indo-Continental","Dessert"]', 8, 0, '2026-07-20T18:00:00Z');
 
--- 5. Blog Posts
-INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, images, author, read_time, is_published) VALUES
-('blog-1', 'Experience Lucknow’s Best Riverside Dining at Wings River Café', 'experience-lucknows-best-riverside-dining', 'Discover why Wings River Café in Purana Haidarabad is Lucknow’s favorite hotspot for delicious multicuisine food and scenic river views.', 'Wings River Café brings a unique blend of exquisite multicuisine food, vibrant riverfront seating, and thrilling water sports right in the heart of Lucknow near Hazratganj & Purana Haidarabad.\n\nEnjoy our handcrafted pizzas, sizzling brownies, and artisan cold coffees while watching the sunset over the Gomti River.', 'Food & Dining', '/images/blog-riverside.jpg', '["/images/blog-riverside.jpg", "/images/canopy-seating.jpg"]', 'Wings River Team', '4 min read', 1),
-('blog-2', 'Top 5 Water Sports Rides to Try in Lucknow', 'top-5-water-sports-rides-lucknow', 'From high-speed Jet Skis to luxury Speedboats, here is your ultimate guide to water sports adventures at Wings River Café.', 'Looking for adrenaline-pumping fun in Lucknow? Wings River Café offers licensed river adventure rides including Jet Skis, Speedboat Cruises, and Banana Rides.', 'Water Sports', '/images/jet-ski.jpg', '["/images/jet-ski.jpg", "/images/speedboat.jpg"]', 'Wings River Team', '3 min read', 1);
+-- 5. Blogs
+INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, images, author, read_time, status, version, is_deleted, published_at, created_at, updated_at) VALUES
+('b1', 'Experience Lucknow’s Finest Riverside Dining & Speedboat Rides', 'riverside-dining-and-speedboat-rides-lucknow', 'Discover why Wings River Café at Laxman Jhula Park offers an unforgettable blend of multicuisine delicacies and thrilling river adventures.', 'Wings River Café is not just a place to eat—it is a complete sensory destination situated right along the Gomti River at Laxman Mela Ground. Guests can enjoy mouthwatering multicuisine dishes on our elevated riverside deck while watching speedboats zip across the water.\n\nOur open-air seating provides panoramic views of the water sunset, with warm lighting and ambient acoustic music setting the perfect mood. Combine your meal with an adrenaline-pumping speedboat round operated directly by Lucknow Water Sports!', 'Riverside Experience', '/images/Screenshot_20260720-180544_Maps.png', '["/images/Screenshot_20260720-180544_Maps.png","/images/Screenshot_20260720-180609_Maps.png"]', 'Wings River Team', '4 min read', 'published', 1, 0, '2026-07-15T00:00:00Z', '2026-07-15T00:00:00Z', '2026-07-15T00:00:00Z'),
+('b2', 'Host Unforgettable Birthday Parties & Celebrations by the Gomti River', 'host-birthday-parties-wings-river-cafe', 'From fairy light canopies to custom buffet menus, learn how to turn your birthday or anniversary into a magical evening.', 'Searching for the best party venue in Hazratganj and Purana Haidarabad? Wings River Café offers exclusive outdoor canopy setups, personalized lighting arches, DJ audio equipment, and customizable multicuisine buffet spreads for up to 200 guests.\n\nWhether it is a romantic candlelit anniversary setup or a lively birthday bash with friends, our dedicated event management team handles end-to-end decor, custom cake arrangements, and live grill stations.', 'Events & Parties', '/images/Screenshot_20260720-180609_Maps.png', '["/images/Screenshot_20260720-180609_Maps.png","/images/Screenshot_20260720-180644_Maps.png"]', 'Event Coordinator', '3 min read', 'published', 1, 0, '2026-07-10T00:00:00Z', '2026-07-10T00:00:00Z', '2026-07-10T00:00:00Z'),
+('b3', 'Nightlife & Evening Ambiance at Laxman Jhula Waterfront', 'nightlife-and-evening-ambiance-wings-river-cafe', 'Experience the stunning night illumination, cool Gomti river breezes, and candlelit outdoor tables.', 'As sunset sets over the Gomti River, Wings River Café transforms into a glowing haven. Enjoy wood-fired pizzas, gourmet cocktails, and soothing music with a magnificent view of the lit-up Laxman Jhula Bridge.\n\nNight owls can relax under our illuminated palm canopy until midnight while sampling artisanal cold coffees, mocktails, and sizzling hot Indo-Chinese starters.', 'Nightlife', '/images/Screenshot_20260720-180644_Maps.png', '["/images/Screenshot_20260720-180644_Maps.png","/images/Screenshot_20260720-180544_Maps.png"]', 'Lifestyle Editor', '3 min read', 'published', 1, 0, '2026-07-08T00:00:00Z', '2026-07-08T00:00:00Z', '2026-07-08T00:00:00Z'),
+('b4', 'Official Lucknow Water Sports Ticket Rates & Speedboat Guide', 'lucknow-water-sports-ticket-rates-guide', 'Check out official ride tokens for Jetskis, Speedboats, Motorboats, and kids amusement rides.', 'Lucknow Water Sports operating directly at Wings River Café counter offers safe and thrilling rides on Gomti river. Read our complete guide on rates, safety gear, and booking packages.\n\nAll rides come equipped with standard life jackets and certified captains. Group discounts and combo packages (Ride + Meal Token) are available at the front desk.', 'Water Sports', '/images/water_sports_ticket_poster.png', '["/images/water_sports_ticket_poster.png","/images/Screenshot_20260720-180544_Maps.png"]', 'Water Sports Captain', '5 min read', 'published', 1, 0, '2026-07-05T00:00:00Z', '2026-07-05T00:00:00Z', '2026-07-05T00:00:00Z'),
+('b5', 'Chef’s Gourmet Specials & Signature Mocktails Highlight', 'chefs-gourmet-specials-signature-mocktails', 'Explore our top chef recommendations from Paneer Tikka to Blue Lagoon coolers.', 'From traditional North Indian delicacies to trendy mocktails and sizzling Indochinese woks, discover what makes our multicuisine menu a culinary favorite in Lucknow.\n\nDon’t miss out on our Signature Virgin Mojito, Special Chola Bhatura, and Handi Soya Chaap prepared fresh daily by master chefs.', 'Culinary Highlights', '/images/Screenshot_20260720-180938_Instagram.png', '["/images/Screenshot_20260720-180938_Instagram.png","/images/food_menu_collage.jpg"]', 'Head Chef', '4 min read', 'published', 1, 0, '2026-07-01T00:00:00Z', '2026-07-01T00:00:00Z', '2026-07-01T00:00:00Z');
 
 -- 6. Photo Gallery
-INSERT OR REPLACE INTO gallery (id, title, category, image_url, featured) VALUES
-('gal-1', 'Golden Hour Riverside View', 'River View', '/images/golden-hour.jpg', 1),
-('gal-2', 'Private Outdoor Canopy Seating', 'Outdoor Seating', '/images/canopy-seating.jpg', 1),
-('gal-3', 'Handcrafted Pizza & Drinks', 'Food', '/images/pizza.jpg', 1),
-('gal-4', 'Jet Ski Ride Action Shot', 'Water Sports', '/images/jet-ski.jpg', 1);
+INSERT OR REPLACE INTO gallery (id, title, category, image_url, featured, display_order, is_deleted, created_at) VALUES
+('g1', 'Jet Ski Thrill Ride — Gomti River', 'Water Sports', '/images/Screenshot_20260720-180544_Maps.png', 1, 1, 0, '2026-07-20T18:00:00Z'),
+('g2', 'Speedboat Action Shot — Gomti', 'Water Sports', '/images/Screenshot_20260720-180745_Maps.png', 1, 2, 0, '2026-07-20T18:00:00Z'),
+('g3', 'Water Sports Activity Poster', 'Water Sports', '/images/watersports_menu.jpg', 1, 3, 0, '2026-07-20T18:00:00Z'),
+('g4', 'Motorboat Cruise — Laxman Jhula', 'Water Sports', '/images/Screenshot_20260720-180555_Maps.png', 1, 4, 0, '2026-07-20T18:00:00Z'),
+('g5', 'Fairy Light Canopy Evening Setup', 'Evening', '/images/Screenshot_20260720-180609_Maps.png', 1, 5, 0, '2026-07-20T18:00:00Z'),
+('g6', 'Sunset Gomti Riverfront Lounge', 'River View', '/images/Screenshot_20260720-180621_Maps.png', 1, 6, 0, '2026-07-20T18:00:00Z'),
+('g7', 'Nighttime Waterfront Party Lights', 'Evening', '/images/Screenshot_20260720-180644_Maps.png', 1, 7, 0, '2026-07-20T18:00:00Z'),
+('g8', 'Riverside Lounge Evening Ambience', 'Evening', '/images/Screenshot_20260720-180755_Maps.png', 0, 8, 0, '2026-07-20T18:00:00Z'),
+('g9', 'Cozy Indoor Dining Lounge', 'Restaurant', '/images/Screenshot_20260720-180630_Maps.png', 0, 9, 0, '2026-07-20T18:00:00Z'),
+('g10', 'Café Entrance — Laxman Mela Ground', 'Outdoor Seating', '/images/Screenshot_20260720-180724_Maps.png', 0, 10, 0, '2026-07-20T18:00:00Z'),
+('g11', 'Outdoor Riverside Lawn & Garden Tables', 'Outdoor Seating', '/images/Screenshot_20260720-180737_Maps.png', 0, 11, 0, '2026-07-20T18:00:00Z'),
+('g12', 'Customer Dining Deck & Celebration Venue', 'Outdoor Seating', '/images/Screenshot_20260720-180812_Maps.png', 0, 12, 0, '2026-07-20T18:00:00Z'),
+('g13', 'Instagram Highlight: Deck Vibe', 'Restaurant', '/images/Screenshot_20260720-175721_Instagram.png', 0, 13, 0, '2026-07-20T18:00:00Z'),
+('g14', 'Chef Special Gourmet Food Spread', 'Food', '/images/Screenshot_20260720-180927_Instagram.png', 1, 14, 0, '2026-07-20T18:00:00Z'),
+('g15', 'Signature Drinks & Mocktail Bar', 'Food', '/images/Screenshot_20260720-180938_Instagram.png', 1, 15, 0, '2026-07-20T18:00:00Z');
 
--- 7. Customer Reviews
-INSERT OR REPLACE INTO reviews (id, author_name, rating, review_text, date_str, is_approved) VALUES
-('rev-1', 'Rohan Sharma', 5, 'The best café experience in Lucknow! The river view during sunset is breathtaking and the Chilli Paneer was top tier.', 'Jul 2026', 1),
-('rev-2', 'Priya Verma', 5, 'Celebrated my birthday here in their canopy setup. Amazing food, quick service, and the speedboat ride was super fun!', 'Jul 2026', 1),
-('rev-3', 'Amitabh Roy', 5, 'Unbelievable vibes next to the river. Great cold coffee and sizzling brownie!', 'Jun 2026', 1);
+-- 7. Reviews / Testimonials
+INSERT OR REPLACE INTO reviews (id, author_name, rating, review_text, date_str, avatar_url, status, is_deleted, created_at) VALUES
+('r1', 'Ananya Sharma', 5, 'Amazing riverside view with great food! The paneer tikka and cold coffee were fantastic. Riding the speedboat before dinner was the highlight of our weekend!', '2 days ago', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', 'approved', 0, '2026-07-20T18:00:00Z'),
+('r2', 'Rahul Verma', 5, 'Celebrated my sister’s 25th birthday here. The fairy light decoration near the river was magical. Staff were very courteous and the food was delicious!', '1 week ago', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', 'approved', 0, '2026-07-20T18:00:00Z');
 
--- 8. Site Hero Settings
+-- 8. Water Sports
+INSERT OR REPLACE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order, is_deleted, created_at) VALUES
+('ride-1', 'Jetski Thrill Ride', 'Water Sports', 350.0, 'Per Person 1 Round', 'High speed jet ski adventure on Gomti river with certified instructor & life jacket.', 'Most Popular', '/images/Screenshot_20260720-180544_Maps.png', '🏄', 1, 0, '2026-07-20T18:00:00Z'),
+('ride-2', 'Speed Boat Ride', 'Water Sports', 250.0, 'Per Person 1 Round', 'Exhilarating twin-engine speedboat ride offering panoramic riverfront views.', 'Family Favorite', '/images/Screenshot_20260720-180745_Maps.png', '⚡', 2, 0, '2026-07-20T18:00:00Z'),
+('ride-3', 'Motor Boat Cruise', 'Water Sports', 200.0, 'Per Person 1 Round', 'Smooth & comfortable motor boat cruise around Laxman Jhula park riverfront.', 'Scenic Cruise', '/images/Screenshot_20260720-180555_Maps.png', '🚤', 3, 0, '2026-07-20T18:00:00Z'),
+('ride-4', 'Panda Train', 'Other Activities', 50.0, 'Per Person 1 Round', 'Fun musical track train ride for toddlers, kids & families near the river park.', 'Kids Zone', '/images/Screenshot_20260720-180737_Maps.png', '🐼', 4, 0, '2026-07-20T18:00:00Z'),
+('ride-5', 'Electric Kids Car', 'Other Activities', 50.0, 'Per Person 1 Round', 'Illuminated battery-powered electric drive cars for young adventurers.', 'Kids Fun', '/images/Screenshot_20260720-180621_Maps.png', '🚗', 5, 0, '2026-07-20T18:00:00Z'),
+('ride-6', 'Trampoline Jump', 'Other Activities', 50.0, 'Per Person 1 Round', 'Enclosed safety netting high-bounce jumping trampoline enclosure.', 'Active Play', '/images/Screenshot_20260720-180724_Maps.png', '🤸', 6, 0, '2026-07-20T18:00:00Z');
+
+-- 9. Event Banners
+INSERT OR REPLACE INTO event_banners (id, title, subtitle, image_url, cta_text, cta_link, status, display_order, is_deleted, created_at) VALUES
+('eb-1', '🎉 Weekend Riverside Fiesta!', 'Live music, gourmet BBQ & unlimited mocktails every Saturday & Sunday evening.', '/images/Screenshot_20260720-180609_Maps.png', 'Reserve Your Spot', '#booking', 'published', 1, 0, '2026-07-20T18:00:00Z');
+
+-- 10. FAQs
+INSERT OR REPLACE INTO faqs (id, question, answer, display_order, is_deleted, created_at) VALUES
+('faq-1', 'Where is Wings River Café located?', 'We are located inside Laxman Mela Ground at Laxman Jhula Park, Gomti River Front, Hazratganj, Lucknow, UP 226001.', 1, 0, '2026-07-20T18:00:00Z'),
+('faq-2', 'Are water sports safe?', 'Yes, all rides are conducted by certified captains. Every passenger is provided with a standard safety life jacket.', 2, 0, '2026-07-20T18:00:00Z'),
+('faq-3', 'Do you take private party reservations?', 'Yes! We host birthday parties, anniversaries, candlelit dinners, and corporate events with custom catering.', 3, 0, '2026-07-20T18:00:00Z');
+
+-- 11. Team Members
+INSERT OR REPLACE INTO team_members (id, name, role, bio, image, display_order, is_deleted, created_at) VALUES
+('tm-1', 'Amit Saxena', 'General Manager', ' অমিত oversees restaurant operations and ensures first-class client dining experiences.', '/images/logo.png', 1, 0, '2026-07-20T18:00:00Z'),
+('tm-2', 'Chef Suresh Kumar', 'Head Chef', 'Suresh heads our multicuisine kitchen preparing authentic Indian, Chinese & Italian woks.', '/images/logo.png', 2, 0, '2026-07-20T18:00:00Z');
+
+-- 12. Offers
+INSERT OR REPLACE INTO offers_discounts (id, title, code, description, discount_value, discount_type, status, is_deleted, created_at) VALUES
+('off-1', 'Monsoon Special Flat Discount', 'MONSOON10', 'Enjoy a flat 10% discount on all family buffet dine-in items.', 10.0, 'percentage', 'active', 0, '2026-07-20T18:00:00Z'),
+('off-2', 'Free Speedboat Ride Combo', 'RIDEFREE', 'Get 1 free speedboat cruise ride on bill value above ₹1500.', 1500.0, 'flat', 'active', 0, '2026-07-20T18:00:00Z');
+
+-- 13. Settings (Key-Value)
 INSERT OR REPLACE INTO settings (key, value) VALUES
-('wings_hero', '{"badge":"Taste • Eat • Rides","title":"Lucknow’s Premier Riverside Café & Water Sports","subtitle":"Experience multicuisine dining with scenic river views, private canopy setups & exciting water rides in Purana Haidarabad.","ctaText":"Book a Table","ctaLink":"#booking"}');
+('wings_hero', '{"badgeText":"✨ Lucknow’s Premier Waterfront Dining & Water Sports Destination","mainHeadline":"Wings River Café & Water Sports","subHeadline":"Multicuisine Gourmet Food, Riverside Deck & Thrilling Speedboat Rides","contactPhone":"07310008020","aboutBadge":"Premium Multicuisine & Waterfront Haven","aboutTitle":"Welcome to Wings River Café","aboutParagraph1":"Located inside Laxman Mela Ground at Laxman Jhula Park along the scenic Gomti River in Lucknow, Wings River Café is a premier destination where exquisite multicuisine gastronomy meets breathtaking riverside natural ambience and thrilling Lucknow Water Sports speedboat rides.","aboutParagraph2":"Whether you are planning a relaxed family gathering, a festive birthday party under our sparkling fairy-light canopy, or a romantic candlelit evening beside the gentle river waters, our elevated indoor & outdoor dining decks offer an unforgettable experience.","aboutPrimaryImage":"/images/Screenshot_20260720-180544_Maps.png","aboutSecondaryImage":"/images/Screenshot_20260720-180609_Maps.png"}');

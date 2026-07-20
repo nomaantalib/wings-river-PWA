@@ -11,8 +11,13 @@ export interface BlogPost {
   tags?: string[];   // Topic tags for filtering
   author: string;
   read_time: string;
-  created_at: string;
+  created_at?: string;
+  status?: string;   // draft, published, scheduled
   is_published?: boolean;
+  version?: number;
+  is_deleted?: number;
+  published_at?: string;
+  updated_at?: string;
 }
 
 export const INITIAL_BLOGS: BlogPost[] = [

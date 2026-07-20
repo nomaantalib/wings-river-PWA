@@ -11,24 +11,51 @@ import {
   getStoredEventBanners, saveEventBanner, updateEventBanner, deleteEventBanner, toggleEventBanner,
   getStoredWaterSports, saveWaterSports, updateWaterSports, deleteWaterSports,
   getStoredMenuPages, saveMenuPage, updateMenuPage, deleteMenuPage,
-  getStoredHeroSettings, saveHeroSettings, HeroSettings, HeroSlide, DEFAULT_HERO_SETTINGS,
+  getStoredHeroSettings, saveHeroSettings,
+  // New CMS exports
+  getStoredCategories, saveCategory, deleteCategory,
+  getStoredFaqs, saveFaq, deleteFaq,
+  getStoredTeamMembers, saveTeamMember, deleteTeamMember,
+  getStoredOffers, saveOffer, deleteOffer,
+  getStoredMedia, saveMediaItem, deleteMediaItem,
+  getStoredAuditLogs,
+  getStoredPages, savePage, deletePage,
+  // Types
   Reservation, MenuItem, BlogPost, GalleryItem, Review, ContactMessage, EventBanner,
-  RideTicket, MenuPageDefinition,
+  RideTicket, MenuPageDefinition, HeroSettings,
+  MenuCategory, OfferDiscount, FaqItem, TeamMember, MediaItem, SitePage, AuditLog
 } from '@/lib/db';
-import ImageUploader from '@/components/ImageUploader';
 import {
   Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Trash2, Edit3,
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
-  Megaphone, ToggleLeft, ToggleRight,  X, Save, Eye, EyeOff, Waves, BookOpen, Sparkles, Home
+  Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
+  Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen
 } from 'lucide-react';
 
-// ─── TYPES ───────────────────────────────────────────────────────────────────
-type TabKey = 'hero' | 'events' | 'bookings' | 'gallery' | 'menu' | 'menupages' | 'rides' | 'blogs' | 'reviews' | 'contact';
+// Tab Keys matching separate management modules
+type TabKey = 
+  | 'dashboard'
+  | 'hero' 
+  | 'pages'
+  | 'categories' 
+  | 'menu' 
+  | 'menupages' 
+  | 'blogs' 
+  | 'gallery' 
+  | 'rides' 
+  | 'banners' 
+  | 'offers' 
+  | 'faqs' 
+  | 'team' 
+  | 'bookings' 
+  | 'reviews' 
+  | 'contact' 
+  | 'media' 
+  | 'audit';
 
-// ─── SHARED STYLE ATOMS ───────────────────────────────────────────────────────
 const inputCls = 'w-full px-3 py-2.5 text-xs bg-dark-950/80 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all';
 const labelCls = 'block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1';
-const cardCls = 'bg-dark-900/70 backdrop-blur-sm border border-white/8 rounded-2xl';
+const cardCls = 'bg-dark-900/70 backdrop-blur-sm border border-white/8 rounded-2xl p-5';
 const btnPrimary = 'flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs shadow-md transition-all hover:scale-105';
 const btnDanger  = 'p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white transition-all';
 const btnEdit    = 'p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white transition-all';
@@ -40,7 +67,7 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
       <div className="bg-dark-900 border border-white/10 rounded-3xl p-6 max-w-lg w-full shadow-2xl my-8 space-y-5">
         <div className="flex items-center justify-between">
           <h3 className="font-serif font-bold text-xl text-white">{title}</h3>
-          <button onClick={onClose} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 transition-colors"><X className="w-4 h-4" /></button>
+          <button type="button" onClick={onClose} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 transition-colors"><X className="w-4 h-4" /></button>
         </div>
         {children}
       </div>
@@ -51,8 +78,8 @@ function Modal({ title, onClose, children }: { title: string; onClose: () => voi
 // ─── CONFIRM DELETE ───────────────────────────────────────────────────────────
 function ConfirmDelete({ label, onConfirm, onCancel }: { label: string; onConfirm: () => void; onCancel: () => void }) {
   return (
-    <div className="fixed inset-0 z-[400] bg-dark-950/90 flex items-center justify-center p-4">
-      <div className="bg-dark-900 border border-rose-500/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4">
+    <div className="fixed inset-0 z-[400] bg-dark-950/90 flex items-center justify-center p-4 text-white">
+      <div className="bg-dark-900 border border-rose-500/30 rounded-2xl p-6 max-w-sm w-full shadow-2xl text-center space-y-4 font-sans">
         <div className="w-12 h-12 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center mx-auto">
           <Trash2 className="w-6 h-6" />
         </div>
@@ -61,1253 +88,1331 @@ function ConfirmDelete({ label, onConfirm, onCancel }: { label: string; onConfir
           <p className="text-xs text-gray-400 mt-1">This action cannot be undone.</p>
         </div>
         <div className="flex items-center space-x-3">
-          <button onClick={onCancel} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-colors">Cancel</button>
-          <button onClick={onConfirm} className="flex-1 py-2.5 bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs rounded-xl transition-colors">Yes, Delete</button>
+          <button type="button" onClick={onCancel} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-colors">Cancel</button>
+          <button type="button" onClick={onConfirm} className="flex-1 py-2.5 bg-rose-500 hover:bg-rose-400 text-white font-bold text-xs rounded-xl transition-colors">Yes, Delete</button>
         </div>
       </div>
     </div>
   );
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  MAIN ADMIN DASHBOARD
-// ══════════════════════════════════════════════════════════════════════════════
-export default function AdminDashboard() {
-  const [mounted, setMounted] = useState(false);
+export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
-  const [showPwd, setShowPwd] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
-  const [activeTab, setActiveTab] = useState<TabKey>('events');
+  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Data
-  const [heroSettings, setHeroSettings] = useState<HeroSettings>(DEFAULT_HERO_SETTINGS);
-  const [banners, setBanners]     = useState<EventBanner[]>([]);
-  const [bookings, setBookings]   = useState<Reservation[]>([]);
-  const [gallery, setGallery]     = useState<GalleryItem[]>([]);
+  // Core CMS state
+  const [reservations, setReservations] = useState<Reservation[]>([]);
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [gallery, setGallery] = useState<GalleryItem[]>([]);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [messages, setMessages] = useState<ContactMessage[]>([]);
+  const [banners, setBanners] = useState<EventBanner[]>([]);
+  const [rides, setRides] = useState<RideTicket[]>([]);
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>([]);
-  const [rides, setRides]         = useState<RideTicket[]>([]);
-  const [blogs, setBlogs]         = useState<BlogPost[]>([]);
-  const [reviews, setReviews]     = useState<Review[]>([]);
-  const [messages, setMessages]   = useState<ContactMessage[]>([]);
+  const [faqs, setFaqs] = useState<FaqItem[]>([]);
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [offers, setOffers] = useState<OfferDiscount[]>([]);
+  const [media, setMedia] = useState<MediaItem[]>([]);
+  const [pages, setPages] = useState<SitePage[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
+  const [heroSettings, setHeroSettings] = useState<HeroSettings | null>(null);
 
-  // Delete confirm state
-  const [deleteTarget, setDeleteTarget] = useState<{ label: string; fn: () => void } | null>(null);
+  // Edit / Creation modals state
+  const [categoryModal, setCategoryModal] = useState<Partial<MenuCategory> | null>(null);
+  const [menuModal, setMenuModal] = useState<Partial<MenuItem> | null>(null);
+  const [blogModal, setBlogModal] = useState<Partial<BlogPost> | null>(null);
+  const [galleryModal, setGalleryModal] = useState<Partial<GalleryItem> | null>(null);
+  const [rideModal, setRideModal] = useState<Partial<RideTicket> | null>(null);
+  const [bannerModal, setBannerModal] = useState<Partial<EventBanner> | null>(null);
+  const [offerModal, setOfferModal] = useState<Partial<OfferDiscount> | null>(null);
+  const [faqModal, setFaqModal] = useState<Partial<FaqItem> | null>(null);
+  const [teamModal, setTeamModal] = useState<Partial<TeamMember> | null>(null);
+  const [pageModal, setPageModal] = useState<Partial<SitePage> | null>(null);
+  const [mediaModal, setMediaModal] = useState<Partial<MediaItem> | null>(null);
+  const [menuPageModal, setMenuPageModal] = useState<Partial<MenuPageDefinition> | null>(null);
 
-  // Modal open state
-  const [modal, setModal] = useState<
-    | { type: 'add-banner' }
-    | { type: 'edit-banner'; item: EventBanner }
-    | { type: 'add-gallery' }
-    | { type: 'edit-gallery'; item: GalleryItem }
-    | { type: 'add-menu' }
-    | { type: 'edit-menu'; item: MenuItem }
-    | { type: 'add-menupage' }
-    | { type: 'edit-menupage'; item: MenuPageDefinition }
-    | { type: 'add-ride' }
-    | { type: 'edit-ride'; item: RideTicket }
-    | { type: 'add-blog' }
-    | { type: 'edit-blog'; item: BlogPost }
-    | { type: 'add-heroslide' }
-    | { type: 'edit-heroslide'; item: HeroSlide }
-    | null
-  >(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ label: string; action: () => void } | null>(null);
 
-  // ── Auth ──────────────────────────────────────────────────────────────────
-  // ── Auth & Active Tab Persistence ─────────────────────────────────────────
+  // Search, Filter & Sort options
+  const [searchQuery, setSearchQuery] = useState('');
+  const [categoryFilter, setCategoryFilter] = useState('');
+  const [sortBy, setSortBy] = useState('display_order');
+  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
+
   useEffect(() => {
-    setMounted(true);
-    if (localStorage.getItem('wings_admin_auth') === 'true') {
+    const authStatus = localStorage.getItem('wings_admin_auth');
+    const token = localStorage.getItem('wings_admin_jwt');
+    if (authStatus === 'true' && token) {
       setIsAuthenticated(true);
       loadAll();
-      const savedTab = localStorage.getItem('wings_admin_tab') as TabKey;
-      if (savedTab) setActiveTab(savedTab);
+    } else {
+      setIsLoading(false);
     }
+  }, []);
 
+  // Sync listener
+  useEffect(() => {
     const handleSync = () => {
-      if (localStorage.getItem('wings_admin_auth') === 'true') { loadAll(); }
+      if (isAuthenticated) loadAll();
     };
     window.addEventListener('wings_db_sync', handleSync);
     return () => window.removeEventListener('wings_db_sync', handleSync);
-  }, []);
+  }, [isAuthenticated]);
+
   const loadAll = async () => {
-    setHeroSettings(await getStoredHeroSettings());
-    setBanners(await getStoredEventBanners());
-    setBookings(await getStoredReservations());
-    setGallery(await getStoredGalleryItems());
-    setMenuItems(await getStoredMenuItems());
-    setMenuPages(await getStoredMenuPages());
-    setRides(await getStoredWaterSports());
-    setBlogs(await getStoredBlogs());
-    setReviews(await getStoredReviews());
-    setMessages(await getStoredContactMessages());
-  };
-  const handleLogin = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (passwordInput === 'wingsriver@2026' || passwordInput === 'admin') {
-      setIsAuthenticated(true);
-      localStorage.setItem('wings_admin_auth', 'true');
-      setErrorMsg('');
-      loadAll();
-    } else { setErrorMsg('Invalid password. Use: wingsriver@2026'); }
-  };
-  const handleLogout = () => {
-    setIsAuthenticated(false);
-    localStorage.removeItem('wings_admin_auth');
-    localStorage.removeItem('wings_admin_tab');
-    if (typeof window !== 'undefined') {
-      window.location.href = '/';
+    setIsLoading(true);
+    try {
+      const [
+        resBookings, resMenu, resCategories, resBlogs, resGallery,
+        resReviews, resMessages, resBanners, resRides, resMenuPages,
+        resFaqs, resTeam, resOffers, resMedia, resPages, resHero
+      ] = await Promise.all([
+        getStoredReservations(), getStoredMenuItems(), getStoredCategories(),
+        getStoredBlogs(), getStoredGalleryItems(), getStoredReviews(),
+        getStoredContactMessages(), getStoredEventBanners(), getStoredWaterSports(),
+        getStoredMenuPages(), getStoredFaqs(), getStoredTeamMembers(),
+        getStoredOffers(), getStoredMedia(), getStoredPages(), getStoredHeroSettings()
+      ]);
+
+      setReservations(resBookings);
+      setMenuItems(resMenu);
+      setCategories(resCategories);
+      setBlogs(resBlogs);
+      setGallery(resGallery);
+      setReviews(resReviews);
+      setMessages(resMessages);
+      setBanners(resBanners);
+      setRides(resRides);
+      setMenuPages(resMenuPages);
+      setFaqs(resFaqs);
+      setTeam(resTeam);
+      setOffers(resOffers);
+      setMedia(resMedia);
+      setPages(resPages);
+      setHeroSettings(resHero);
+
+      // Audit logs (auth protected)
+      const logs = await getStoredAuditLogs();
+      setAuditLogs(logs);
+
+    } catch (e) {
+      console.error('Error fetching data:', e);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  if (!mounted) {
-    return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
-        <div className="text-center space-y-3">
-          <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Loading Wings River CMS...</p>
-        </div>
-      </div>
-    );
-  }
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMsg('');
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: 'admin', password: passwordInput })
+      });
+      const data = await res.json();
+      if (data.success && data.token) {
+        localStorage.setItem('wings_admin_jwt', data.token);
+        localStorage.setItem('wings_admin_auth', 'true');
+        setIsAuthenticated(true);
+        loadAll();
+      } else {
+        setErrorMsg(data.error || 'Invalid admin credentials.');
+      }
+    } catch (err) {
+      setErrorMsg('Failed to validate credentials on D1 Server.');
+    }
+  };
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  LOGIN SCREEN
-  // ─────────────────────────────────────────────────────────────────────────
+  const handleLogout = () => {
+    localStorage.removeItem('wings_admin_auth');
+    localStorage.removeItem('wings_admin_jwt');
+    setIsAuthenticated(false);
+  };
+
+  // ─── CRUD OPERATORS ─────────────────────────────────────────────────────────
+
+  // Categories Save
+  const saveCategoryItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!categoryModal) return;
+    const catToSave = {
+      id: categoryModal.id || `cat-${Date.now()}`,
+      name: categoryModal.name || '',
+      slug: categoryModal.slug || (categoryModal.name || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      description: categoryModal.description || '',
+      display_order: Number(categoryModal.display_order) || 0
+    };
+    const fresh = await saveCategory(catToSave);
+    setCategories(fresh);
+    setCategoryModal(null);
+  };
+
+  // Menu Items Save
+  const saveMenuItemItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!menuModal) return;
+    const itemToSave = {
+      id: menuModal.id || `menu-${Date.now()}`,
+      category_id: menuModal.category_id || 'cat-beverages',
+      name: menuModal.name || '',
+      description: menuModal.description || '',
+      price: Number(menuModal.price) || 0.0,
+      is_veg: menuModal.is_veg !== false,
+      image_url: menuModal.image_url || '/images/menu_page_1.png',
+      is_available: menuModal.is_available !== false,
+      display_order: Number(menuModal.display_order) || 0,
+      version: Number(menuModal.version) || 1,
+      is_deleted: Number(menuModal.is_deleted) || 0
+    };
+    const fresh = await saveMenuItem(itemToSave);
+    setMenuItems(fresh);
+    setMenuModal(null);
+  };
+
+  // Blog Posts Save
+  const saveBlogPost = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!blogModal) return;
+    const blogToSave = {
+      id: blogModal.id || `blog-${Date.now()}`,
+      title: blogModal.title || '',
+      slug: blogModal.slug || (blogModal.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      excerpt: blogModal.excerpt || '',
+      content: blogModal.content || '',
+      category: blogModal.category || 'Food & Dining',
+      cover_image: blogModal.cover_image || '',
+      images: blogModal.images || [],
+      author: blogModal.author || 'Wings River Team',
+      read_time: blogModal.read_time || '4 min read',
+      status: blogModal.status || 'draft',
+      is_published: blogModal.status === 'published'
+    };
+    const fresh = await saveBlog(blogToSave);
+    setBlogs(fresh);
+    setBlogModal(null);
+  };
+
+  // Photo Gallery Save
+  const saveGalleryPhoto = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!galleryModal) return;
+    const photoToSave = {
+      id: galleryModal.id || `gal-${Date.now()}`,
+      title: galleryModal.title || '',
+      category: galleryModal.category || 'Restaurant',
+      image_url: galleryModal.image_url || '',
+      featured: galleryModal.featured || false,
+      display_order: Number(galleryModal.display_order) || 0
+    };
+    const fresh = await saveGalleryItem(photoToSave);
+    setGallery(fresh);
+    setGalleryModal(null);
+  };
+
+  // Water Sports Save
+  const saveRideTicket = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!rideModal) return;
+    const rideToSave = {
+      id: rideModal.id || `ride-${Date.now()}`,
+      name: rideModal.name || '',
+      category: rideModal.category || 'Water Sports',
+      price: Number(rideModal.price) || 0.0,
+      unit: rideModal.unit || 'Per Person',
+      description: rideModal.description || '',
+      badge: rideModal.badge || '',
+      image: rideModal.image || '',
+      emoji: rideModal.emoji || '🏄',
+      display_order: Number(rideModal.display_order) || 0
+    };
+    const fresh = await saveWaterSports(rideToSave);
+    setRides(fresh);
+    setRideModal(null);
+  };
+
+  // Event Banner Save
+  const saveBannerItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!bannerModal) return;
+    const bannerToSave = {
+      id: bannerModal.id || `eb-${Date.now()}`,
+      title: bannerModal.title || '',
+      subtitle: bannerModal.subtitle || '',
+      image_url: bannerModal.image_url || '',
+      cta_text: bannerModal.cta_text || '',
+      cta_link: bannerModal.cta_link || '',
+      is_active: bannerModal.is_active !== false
+    };
+    const fresh = await saveEventBanner(bannerToSave);
+    setBanners(fresh);
+    setBannerModal(null);
+  };
+
+  // Offers Save
+  const saveOfferItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!offerModal) return;
+    const offerToSave = {
+      id: offerModal.id || `off-${Date.now()}`,
+      title: offerModal.title || '',
+      code: offerModal.code || '',
+      description: offerModal.description || '',
+      discount_value: Number(offerModal.discount_value) || 0.0,
+      discount_type: offerModal.discount_type || 'percentage',
+      status: offerModal.status || 'draft'
+    };
+    const fresh = await saveOffer(offerToSave);
+    setOffers(fresh);
+    setOfferModal(null);
+  };
+
+  // FAQs Save
+  const saveFaqItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!faqModal) return;
+    const faqToSave = {
+      id: faqModal.id || `faq-${Date.now()}`,
+      question: faqModal.question || '',
+      answer: faqModal.answer || '',
+      display_order: Number(faqModal.display_order) || 0
+    };
+    const fresh = await saveFaq(faqToSave);
+    setFaqs(fresh);
+    setFaqModal(null);
+  };
+
+  // Team Members Save
+  const saveTeamMemberItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!teamModal) return;
+    const tmToSave = {
+      id: teamModal.id || `tm-${Date.now()}`,
+      name: teamModal.name || '',
+      role: teamModal.role || '',
+      bio: teamModal.bio || '',
+      image: teamModal.image || '',
+      display_order: Number(teamModal.display_order) || 0
+    };
+    const fresh = await saveTeamMember(tmToSave);
+    setTeam(fresh);
+    setTeamModal(null);
+  };
+
+  // Dynamic Pages Save
+  const saveDynamicPage = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!pageModal) return;
+    const pageToSave = {
+      id: pageModal.id || `pg-${Date.now()}`,
+      title: pageModal.title || '',
+      slug: pageModal.slug || (pageModal.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+      content: pageModal.content || '',
+      status: pageModal.status || 'draft',
+      display_order: Number(pageModal.display_order) || 0,
+      version: Number(pageModal.version) || 1
+    };
+    const fresh = await savePage(pageToSave);
+    setPages(fresh);
+    setPageModal(null);
+  };
+
+  // Media Library Upload
+  const handleMediaUpload = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!mediaModal) return;
+    const itemToSave = {
+      id: mediaModal.id || `med-${Date.now()}`,
+      url: mediaModal.url || '',
+      alt_text: mediaModal.alt_text || '',
+      caption: mediaModal.caption || '',
+      category: mediaModal.category || 'general',
+      file_size: Number(mediaModal.file_size) || 0,
+      dimensions: mediaModal.dimensions || ''
+    };
+    const fresh = await saveMediaItem(itemToSave);
+    setMedia(fresh);
+    setMediaModal(null);
+  };
+
+  // Hero Section Settings Save
+  const handleHeroSettingsSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!heroSettings) return;
+    const updated = await saveHeroSettings(heroSettings);
+    setHeroSettings(updated);
+  };
+
+  // Menu Booklet Page Save
+  const saveMenuPageItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!menuPageModal) return;
+    const pageToSave = {
+      page_number: Number(menuPageModal.page_number) || 1,
+      title: menuPageModal.title || '',
+      subtitle: menuPageModal.subtitle || '',
+      image: menuPageModal.image || '',
+      categories: Array.isArray(menuPageModal.categories) ? menuPageModal.categories : [],
+      display_order: Number(menuPageModal.display_order) || 0
+    };
+    const fresh = await saveMenuPage(pageToSave);
+    setMenuPages(fresh);
+    setMenuPageModal(null);
+  };
+
+  // ─── LOGIN PANEL ───────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative"
-        style={{ background: 'radial-gradient(circle at 50% 0%, #1a0e0200 0%, #0a0604 70%)' }}>
-        
-        {/* Redirect button to return to home page */}
-        <div className="absolute top-6 left-6 z-20">
-          <a
-            href="/"
-            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-amber-300 font-bold text-xs border border-white/10 transition-all shadow-md hover:scale-105"
-          >
-            <Home className="w-4 h-4 text-amber-400" />
-            <span>← Back to Website Home</span>
-          </a>
-        </div>
-
-        <div className="w-full max-w-md space-y-6">
-          {/* Logo */}
-          <div className="text-center space-y-3">
-            <img src="/logo.png" alt="Wings River Café" className="w-20 h-20 rounded-2xl object-cover mx-auto border-2 border-amber-400/40 shadow-2xl" />
-            <div>
-              <h1 className="font-serif font-extrabold text-3xl text-white">Wings River CMS</h1>
-              <p className="text-xs text-amber-400 font-semibold tracking-widest uppercase mt-1">Admin Content Management</p>
+      <main className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative overflow-hidden font-sans">
+        <div className="absolute inset-0 bg-radial-gradient from-amber-500/10 via-transparent to-transparent opacity-40" />
+        <div className="max-w-md w-full bg-dark-900 border border-white/10 rounded-3xl p-8 relative z-10 shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-2xl bg-amber-500 text-dark-950 flex items-center justify-center mx-auto shadow-lg">
+              <Lock className="w-6 h-6" />
             </div>
+            <h2 className="font-serif font-bold text-2xl text-white">Wings River Café CMS</h2>
+            <p className="text-xs text-gray-400">Secure Cloudflare D1-Backed Administrator Area</p>
           </div>
-
-          <div className="bg-dark-900/70 backdrop-blur-sm border border-white/10 rounded-3xl p-8 shadow-2xl space-y-5">
-            {errorMsg && (
-              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center space-x-2">
-                <ShieldAlert className="w-4 h-4 shrink-0" /><span>{errorMsg}</span>
-              </div>
-            )}
-            <form onSubmit={handleLogin} className="space-y-4">
-              <div>
-                <label className={labelCls}>Admin Password</label>
-                <div className="relative">
-                  <input
-                    type={showPwd ? 'text' : 'password'}
-                    required
-                    autoComplete="current-password"
-                    placeholder="Enter admin password"
-                    value={passwordInput}
-                    onChange={e => setPasswordInput(e.target.value)}
-                    className={inputCls + ' pr-10'}
-                  />
-                  <button type="button" onClick={() => setShowPwd(v => !v)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white">
-                    {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
-                </div>
-                <p className="text-[10px] text-gray-500 mt-1.5">Default: <code className="text-amber-400">wingsriver@2026</code></p>
-              </div>
-              <button type="submit"
-                className="w-full py-3.5 font-bold text-sm rounded-xl shadow-lg transition-all hover:scale-[1.02] text-dark-950"
-                style={{ background: 'linear-gradient(135deg, #f59e0b, #16a34a)' }}>
-                <Lock className="w-4 h-4 inline mr-2" />Access Dashboard
-              </button>
-            </form>
-          </div>
+          {errorMsg && (
+            <div className="px-4 py-3 bg-rose-500/10 border border-rose-500/30 rounded-xl flex items-center space-x-2 text-rose-400 text-xs">
+              <ShieldAlert className="w-4 h-4 shrink-0" />
+              <span>{errorMsg}</span>
+            </div>
+          )}
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="space-y-1">
+              <label className={labelCls}>Administrator Password</label>
+              <input type="password" placeholder="••••••••••••" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className={inputCls} required />
+            </div>
+            <button type="submit" className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl shadow-lg hover:shadow-amber-500/20 transition-all">Sign In</button>
+          </form>
         </div>
-      </div>
+      </main>
     );
   }
 
-  // ─────────────────────────────────────────────────────────────────────────
-  //  MAIN DASHBOARD
-  // ─────────────────────────────────────────────────────────────────────────
-  const TABS = [
-    { id: 'hero'     as TabKey, label: 'Hero Section',  icon: Sparkles,    count: heroSettings.slides?.length || 0 },
-    { id: 'events'   as TabKey, label: 'Event Banners', icon: Megaphone,   count: banners.length   },
-    { id: 'bookings' as TabKey, label: 'Bookings',      icon: Calendar,    count: bookings.length  },
-    { id: 'gallery'  as TabKey, label: 'Gallery',       icon: ImageIcon,   count: gallery.length   },
-    { id: 'menu'     as TabKey, label: 'Food Menu',     icon: Utensils,    count: menuItems.length },
-    { id: 'menupages' as TabKey, label: 'Menu Pages',   icon: BookOpen,    count: menuPages.length },
-    { id: 'rides'    as TabKey, label: 'Water Sports',  icon: Waves,       count: rides.length     },
-    { id: 'blogs'    as TabKey, label: 'Blog Posts',    icon: FileText,    count: blogs.length     },
-    { id: 'reviews'  as TabKey, label: 'Reviews',       icon: Star,        count: reviews.length   },
-    { id: 'contact'  as TabKey, label: 'Messages',      icon: Mail,        count: messages.length  },
-  ];
-
+  // ─── MAIN ADMIN WORKSPACE ──────────────────────────────────────────────────
   return (
-    <div className="min-h-screen text-white flex flex-col" style={{ background: '#0a0604' }}>
-      {/* Header */}
-      <header className="sticky top-0 z-50 border-b border-white/10 px-4 sm:px-6 py-3 flex items-center justify-between"
-        style={{ background: 'rgba(10,6,4,0.95)', backdropFilter: 'blur(24px)' }}>
-        <div className="flex items-center space-x-3">
-          <img src="/logo.png" alt="Logo" className="w-9 h-9 rounded-xl object-cover border border-amber-400/40 shadow-lg" />
+    <main className="min-h-screen bg-dark-950 text-white font-sans flex">
+      {/* Sidebar Navigation */}
+      <aside className="w-64 bg-dark-900 border-r border-white/10 flex flex-col shrink-0">
+        <div className="p-6 border-b border-white/10 flex items-center space-x-2">
+          <div className="w-8 h-8 rounded-lg bg-amber-500 text-dark-950 flex items-center justify-center font-bold">W</div>
           <div>
-            <h1 className="font-serif font-bold text-base text-white leading-tight">Wings River CMS</h1>
-            <p className="text-[9px] text-amber-400 font-semibold uppercase tracking-widest">Full Content Management</p>
+            <h1 className="font-serif font-bold text-sm leading-tight">Wings River CMS</h1>
+            <p className="text-[10px] text-amber-400 font-mono">D1 Production Storage</p>
           </div>
         </div>
-        
-        {/* Navigation & Logout Controls */}
-        <div className="flex items-center space-x-2">
-          <a
-            href="/"
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500 hover:to-emerald-500 text-amber-300 hover:text-dark-950 font-bold text-xs border border-amber-500/40 transition-all hover:scale-105 shadow-md"
-            title="Go to Website Home Page"
-          >
-            <Home className="w-3.5 h-3.5" />
-            <span>Home Page</span>
-          </a>
-          <button onClick={handleLogout}
-            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-xs text-rose-300 hover:text-white border border-rose-500/30 transition-all hover:scale-105"
-            title="Logout and return to site">
-            <LogOut className="w-3.5 h-3.5" /><span>Logout</span>
+
+        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
+          <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'dashboard' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Home className="w-4 h-4" /> <span>Dashboard Overview</span>
+          </button>
+          <button onClick={() => setActiveTab('hero')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'hero' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Settings className="w-4 h-4" /> <span>Hero & About CMS</span>
+          </button>
+          <button onClick={() => setActiveTab('pages')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'pages' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <FileText className="w-4 h-4" /> <span>Dynamic Pages</span>
+          </button>
+          <button onClick={() => setActiveTab('categories')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'categories' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Layers className="w-4 h-4" /> <span>Menu Categories</span>
+          </button>
+          <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'menu' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Utensils className="w-4 h-4" /> <span>Menu Items</span>
+          </button>
+          <button onClick={() => setActiveTab('menupages')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'menupages' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <BookOpen className="w-4 h-4" /> <span>Booklet Pages</span>
+          </button>
+          <button onClick={() => setActiveTab('blogs')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'blogs' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <FileText className="w-4 h-4" /> <span>Blogs & News</span>
+          </button>
+          <button onClick={() => setActiveTab('gallery')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'gallery' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <ImageIcon className="w-4 h-4" /> <span>Photo Gallery</span>
+          </button>
+          <button onClick={() => setActiveTab('rides')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'rides' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Waves className="w-4 h-4" /> <span>Water Sports Rides</span>
+          </button>
+          <button onClick={() => setActiveTab('banners')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'banners' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Megaphone className="w-4 h-4" /> <span>Promo Banners</span>
+          </button>
+          <button onClick={() => setActiveTab('offers')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'offers' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Tag className="w-4 h-4" /> <span>Offers & Discounts</span>
+          </button>
+          <button onClick={() => setActiveTab('faqs')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'faqs' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <HelpCircle className="w-4 h-4" /> <span>FAQs Management</span>
+          </button>
+          <button onClick={() => setActiveTab('team')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'team' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Users className="w-4 h-4" /> <span>Team Members</span>
+          </button>
+          <button onClick={() => setActiveTab('bookings')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookings' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Calendar className="w-4 h-4" /> <span>Reservations</span>
+          </button>
+          <button onClick={() => setActiveTab('reviews')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'reviews' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Star className="w-4 h-4" /> <span>Customer Reviews</span>
+          </button>
+          <button onClick={() => setActiveTab('contact')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'contact' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Mail className="w-4 h-4" /> <span>Inquiries & Messages</span>
+          </button>
+          <button onClick={() => setActiveTab('media')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'media' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <FolderOpen className="w-4 h-4" /> <span>Media Library</span>
+          </button>
+          <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'audit' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
+            <Database className="w-4 h-4" /> <span>Security Audit Logs</span>
+          </button>
+        </nav>
+
+        <div className="p-4 border-t border-white/10">
+          <button onClick={handleLogout} className="w-full flex items-center justify-center space-x-2 py-2.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 rounded-xl text-xs font-bold transition-all">
+            <LogOut className="w-4 h-4" /> <span>Log Out</span>
           </button>
         </div>
-      </header>
+      </aside>
 
-      {/* Tab Nav */}
-      <nav className="border-b border-white/10 overflow-x-auto no-scrollbar"
-        style={{ background: 'rgba(15,10,6,0.8)' }}>
-        <div className="flex items-center px-4 sm:px-6 space-x-1 py-2">
-          {TABS.map(tab => (
-            <button key={tab.id} onClick={() => { setActiveTab(tab.id); localStorage.setItem('wings_admin_tab', tab.id); }}
-              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
-                activeTab === tab.id
-                  ? 'bg-amber-500 text-dark-950 shadow-md shadow-amber-500/20'
-                  : 'text-gray-400 hover:text-white hover:bg-white/5'
-              }`}>
-              <tab.icon className="w-3.5 h-3.5" />
-              <span>{tab.label}</span>
-              <span className={`px-1.5 py-0.5 rounded-full text-[9px] font-black ${activeTab === tab.id ? 'bg-dark-950/30 text-dark-950' : 'bg-white/10 text-gray-300'}`}>{tab.count}</span>
-            </button>
-          ))}
-        </div>
-      </nav>
+      {/* Main Content Workspace */}
+      <section className="flex-1 flex flex-col min-w-0 overflow-y-auto">
+        <header className="px-8 py-5 border-b border-white/10 flex items-center justify-between">
+          <h2 className="font-serif font-bold text-xl uppercase tracking-wider text-amber-400">{activeTab} Section</h2>
+          <div className="flex items-center space-x-4">
+            <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-500/30">D1 Storage Connected</span>
+            <button onClick={loadAll} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-mono transition-colors">Reload Data</button>
+          </div>
+        </header>
 
-      {/* Content */}
-      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8">
-
-        {/* ═══ HERO SECTION TAB ════════════════════════════════════════════ */}
-        {activeTab === 'hero' && (
-          <TabSection title="Hero Section Settings & Slideshow" subtitle="Edit main Hero headline, sub-headline, contact phone number, and background slideshow images."
-            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-heroslide' })}><Plus className="w-4 h-4" /><span>Add Slide</span></button>}>
-            <div className="space-y-6">
-              {/* Header Text Settings Card */}
-              <div className={`${cardCls} p-6 space-y-4`}>
-                <h3 className="font-serif font-bold text-amber-400 text-lg flex items-center space-x-2">
-                  <Sparkles className="w-4 h-4" />
-                  <span>Main Hero Text & Contact Details</span>
-                </h3>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <label className={labelCls}>Badge Tagline</label>
-                    <input className={inputCls} value={heroSettings.badgeText || ''} onChange={e => setHeroSettings(h => ({ ...h, badgeText: e.target.value }))} />
-                  </div>
-                  <div>
-                    <label className={labelCls}>Contact Phone Number</label>
-                    <input className={inputCls} value={heroSettings.contactPhone || ''} onChange={e => setHeroSettings(h => ({ ...h, contactPhone: e.target.value }))} />
-                  </div>
-                  <div>
-                    <label className={labelCls}>Main Headline</label>
-                    <input className={inputCls} value={heroSettings.mainHeadline || ''} onChange={e => setHeroSettings(h => ({ ...h, mainHeadline: e.target.value }))} />
-                  </div>
-                  <div>
-                    <label className={labelCls}>Sub-Headline</label>
-                    <input className={inputCls} value={heroSettings.subHeadline || ''} onChange={e => setHeroSettings(h => ({ ...h, subHeadline: e.target.value }))} />
-                  </div>
-                </div>
-
-                <div className="border-t border-white/10 my-4 pt-4 space-y-4">
-                  <h3 className="font-serif font-bold text-amber-400 text-lg flex items-center space-x-2">
-                    <BookOpen className="w-4 h-4" />
-                    <span>About Section Content & Images</span>
-                  </h3>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className={labelCls}>About Badge Tag</label>
-                      <input className={inputCls} value={heroSettings.aboutBadge || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutBadge: e.target.value }))} />
-                    </div>
-                    <div>
-                      <label className={labelCls}>About Title Headline</label>
-                      <input className={inputCls} value={heroSettings.aboutTitle || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutTitle: e.target.value }))} />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className={labelCls}>About Paragraph 1</label>
-                      <textarea className={inputCls} rows={3} value={heroSettings.aboutParagraph1 || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutParagraph1: e.target.value }))} />
-                    </div>
-                    <div className="md:col-span-2">
-                      <label className={labelCls}>About Paragraph 2</label>
-                      <textarea className={inputCls} rows={3} value={heroSettings.aboutParagraph2 || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutParagraph2: e.target.value }))} />
-                    </div>
-                    <div>
-                      <ImageUploader label="Primary About Image (upload or URL)" value={heroSettings.aboutPrimaryImage || ''} onChange={v => setHeroSettings(h => ({ ...h, aboutPrimaryImage: v }))} previewHeight="h-32" />
-                    </div>
-                    <div>
-                      <ImageUploader label="Secondary Floating Image (upload or URL)" value={heroSettings.aboutSecondaryImage || ''} onChange={v => setHeroSettings(h => ({ ...h, aboutSecondaryImage: v }))} previewHeight="h-32" />
-                    </div>
-                  </div>
-                </div>
-
-                <div className="flex justify-end pt-2 border-t border-white/5">
-                  <button onClick={async () => { await saveHeroSettings(heroSettings); alert('Site settings saved successfully!'); }} className={btnPrimary}>
-                    <Save className="w-4 h-4" /><span>Save Settings</span>
-                  </button>
-                </div>
-              </div>
-
-              {/* Background Slides Grid */}
-              <div className="space-y-3">
-                <h3 className="font-serif font-bold text-white text-base">Background Slideshow Images ({heroSettings.slides?.length || 0})</h3>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {heroSettings.slides.map(slide => (
-                    <div key={slide.id} className={`${cardCls} overflow-hidden group`}>
-                      <div className="relative h-44 bg-dark-950">
-                        <img src={slide.image} alt={slide.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                        <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-dark-950/80 text-amber-400 text-[9px] font-black uppercase border border-amber-400/25">{slide.tag}</span>
-                      </div>
-                      <div className="p-4 space-y-2">
-                        <h4 className="font-serif font-bold text-white text-sm truncate">{slide.title}</h4>
-                        <p className="text-[10px] text-gray-400 line-clamp-1">{slide.subtitle}</p>
-                        <div className="flex items-center space-x-2 pt-2 border-t border-white/5">
-                          <button className={`${btnEdit} flex-1 py-1.5 font-bold text-xs justify-center flex items-center space-x-1`}
-                            onClick={() => setModal({ type: 'edit-heroslide', item: slide })}>
-                            <Edit3 className="w-3.5 h-3.5" /><span>Edit Slide</span>
-                          </button>
-                          <button className={btnDanger}
-                            onClick={() => setDeleteTarget({
-                              label: `Slide (${slide.title})`,
-                              fn: async () => {
-                                const updatedSlides = heroSettings.slides.filter(s => s.id !== slide.id);
-                                const newSettings = { ...heroSettings, slides: updatedSlides };
-                                setHeroSettings(await saveHeroSettings(newSettings));
-                                setDeleteTarget(null);
-                              }
-                            })}
-                            title="Delete Slide">
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </TabSection>
-        )}
-
-        {/* ═══ EVENT BANNERS TAB ═══════════════════════════════════════════ */}
-        {activeTab === 'events' && (
-          <TabSection title="Event Banners" subtitle="Add promotional banners displayed across the site homepage."
-            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-banner' })}><Plus className="w-4 h-4" /><span>Add Banner</span></button>}>
+        <div className="p-8 space-y-6">
+          {isLoading ? (
             <div className="space-y-4">
-              {banners.map(banner => (
-                <div key={banner.id} className={`${cardCls} overflow-hidden`}>
-                  <div className="flex flex-col sm:flex-row items-stretch">
-                    {/* Image */}
-                    <div className="sm:w-48 h-32 sm:h-auto shrink-0 bg-dark-950 overflow-hidden">
-                      <img src={banner.image_url} alt={banner.title} className="w-full h-full object-cover" />
+              <div className="h-8 bg-white/5 rounded-lg animate-pulse w-1/4" />
+              <div className="h-40 bg-white/5 rounded-2xl animate-pulse" />
+            </div>
+          ) : (
+            <>
+              {/* TAB 1: DASHBOARD OVERVIEW */}
+              {activeTab === 'dashboard' && (
+                <div className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
+                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
+                      <div className="text-gray-400 text-xs">Total Reservations</div>
+                      <div className="text-2xl font-bold">{reservations.length}</div>
                     </div>
-                    {/* Details */}
-                    <div className="flex-1 p-5 flex flex-col justify-between space-y-3">
-                      <div>
-                        <div className="flex items-center space-x-2 mb-1">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase ${banner.is_active ? 'bg-green-500/20 text-green-400 border border-green-500/30' : 'bg-gray-500/20 text-gray-400 border border-gray-500/30'}`}>
-                            {banner.is_active ? 'Active' : 'Hidden'}
-                          </span>
-                        </div>
-                        <h4 className="font-serif font-bold text-white text-base">{banner.title}</h4>
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">{banner.subtitle}</p>
-                        <p className="text-[10px] text-amber-400 font-semibold mt-1">CTA: {banner.cta_text} → {banner.cta_link}</p>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <button onClick={async () => { setBanners(await toggleEventBanner(banner.id)); }} title={banner.is_active ? 'Hide Banner' : 'Show Banner'}
-                          className={`flex items-center space-x-1 px-3 py-1.5 rounded-xl text-xs font-bold transition-all ${banner.is_active ? 'bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white' : 'bg-gray-500/20 text-gray-400 hover:bg-gray-500 hover:text-white'}`}>
-                          {banner.is_active ? <ToggleRight className="w-3.5 h-3.5" /> : <ToggleLeft className="w-3.5 h-3.5" />}
-                          <span>{banner.is_active ? 'Active' : 'Hidden'}</span>
-                        </button>
-                        <button className={btnEdit} onClick={() => setModal({ type: 'edit-banner', item: banner })} title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
-                        <button className={btnDanger} onClick={() => setDeleteTarget({ label: 'Banner', fn: async () => { setBanners(await deleteEventBanner(banner.id)); setDeleteTarget(null); } })} title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
-                      </div>
+                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
+                      <div className="text-gray-400 text-xs">Menu Items</div>
+                      <div className="text-2xl font-bold">{menuItems.length}</div>
+                    </div>
+                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
+                      <div className="text-gray-400 text-xs">Blogs & News</div>
+                      <div className="text-2xl font-bold">{blogs.length}</div>
+                    </div>
+                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
+                      <div className="text-gray-400 text-xs">Media Library</div>
+                      <div className="text-2xl font-bold">{media.length} items</div>
+                    </div>
+                  </div>
+
+                  <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-4">
+                    <h3 className="font-serif font-bold text-base">Recent Site Operations Audit Logs</h3>
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="border-b border-white/10 text-gray-400 font-mono">
+                            <th className="py-2.5">User</th>
+                            <th className="py-2.5">Action</th>
+                            <th className="py-2.5">Details</th>
+                            <th className="py-2.5">Timestamp</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {auditLogs.slice(0, 10).map((l) => (
+                            <tr key={l.id} className="hover:bg-white/5 font-mono">
+                              <td className="py-2.5 text-amber-400">{l.user_id}</td>
+                              <td className="py-2.5 font-bold">{l.action}</td>
+                              <td className="py-2.5 text-gray-300">{l.details}</td>
+                              <td className="py-2.5 text-gray-400">{new Date(l.created_at).toLocaleString()}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
                     </div>
                   </div>
                 </div>
-              ))}
-              {banners.length === 0 && <EmptyState icon={Megaphone} message="No event banners yet. Add your first promotional banner!" />}
-            </div>
-          </TabSection>
-        )}
+              )}
 
-        {/* ═══ BOOKINGS TAB ════════════════════════════════════════════════ */}
-        {activeTab === 'bookings' && (
-          <TabSection title="Reservations & Bookings" subtitle="Manage table, event, and water sports token reservations.">
-            <div className={`${cardCls} overflow-hidden`}>
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs text-gray-300">
-                  <thead className="text-gray-500 uppercase text-[10px] tracking-wider border-b border-white/10">
-                    <tr>{['Guest', 'Phone', 'Type', 'Date & Time', 'Guests', 'Status', 'Actions'].map(h => <th key={h} className="px-4 py-3">{h}</th>)}</tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/5">
-                    {bookings.map(b => (
-                      <tr key={b.id} className="hover:bg-white/3 transition-colors">
-                        <td className="px-4 py-3 font-bold text-white">{b.name}</td>
-                        <td className="px-4 py-3 text-amber-400 font-medium">{b.phone}</td>
-                        <td className="px-4 py-3"><span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[9px] font-black uppercase border border-amber-500/20">{b.booking_type?.replace(/_/g, ' ')}</span></td>
-                        <td className="px-4 py-3 text-gray-300">{b.date} · {b.time}</td>
-                        <td className="px-4 py-3 text-gray-300">{b.guests} pax</td>
-                        <td className="px-4 py-3">
-                          <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase border ${b.status === 'confirmed' ? 'bg-green-500/15 text-green-400 border-green-500/25' : b.status === 'completed' ? 'bg-blue-500/15 text-blue-400 border-blue-500/25' : 'bg-rose-500/15 text-rose-400 border-rose-500/25'}`}>{b.status}</span>
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center space-x-1">
-                            <button onClick={async () => setBookings(await updateReservationStatus(b.id, 'confirmed'))} title="Confirm" className="p-1 rounded bg-green-500/20 text-green-400 hover:bg-green-500 hover:text-white transition-all"><CheckCircle className="w-3.5 h-3.5" /></button>
-                            <button onClick={async () => setBookings(await updateReservationStatus(b.id, 'completed'))} title="Complete" className="p-1 rounded bg-blue-500/20 text-blue-400 hover:bg-blue-500 hover:text-white transition-all"><Clock className="w-3.5 h-3.5" /></button>
-                            <button onClick={async () => setBookings(await updateReservationStatus(b.id, 'cancelled'))} title="Cancel" className="p-1 rounded bg-rose-500/20 text-rose-400 hover:bg-rose-500 hover:text-white transition-all"><XCircle className="w-3.5 h-3.5" /></button>
-                            <button onClick={() => setDeleteTarget({ label: 'Reservation', fn: async () => { setBookings(await deleteReservation(b.id)); setDeleteTarget(null); } })} title="Delete" className={btnDanger}><Trash2 className="w-3 h-3" /></button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-                {bookings.length === 0 && <div className="p-8 text-center text-gray-500 text-sm">No bookings yet.</div>}
-              </div>
-            </div>
-          </TabSection>
-        )}
-
-        {/* ═══ GALLERY TAB ═════════════════════════════════════════════════ */}
-        {activeTab === 'gallery' && (
-          <TabSection title="Image Gallery" subtitle="Add, edit, and delete venue photos for the auto-slideshow gallery."
-            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-gallery' })}><Plus className="w-4 h-4" /><span>Add Photo</span></button>}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-              {gallery.map(item => (
-                <div key={item.id} className={`${cardCls} overflow-hidden group`}>
-                  <div className="relative h-44 bg-dark-950">
-                    <img src={item.image_url} alt={item.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                    <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-dark-950/85 text-amber-400 text-[9px] font-black uppercase border border-amber-400/25">{item.category}</span>
-                    {item.featured && <span className="absolute top-2 right-2 px-2 py-0.5 rounded-full bg-amber-500/90 text-dark-950 text-[9px] font-black">⭐ Featured</span>}
-                  </div>
-                  <div className="p-4 flex items-center justify-between">
-                    <h4 className="font-bold text-sm text-white truncate pr-2 flex-1">{item.title}</h4>
-                    <div className="flex items-center space-x-1.5 shrink-0">
-                      <button className={btnEdit} onClick={() => setModal({ type: 'edit-gallery', item })} title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
-                      <button className={btnDanger} onClick={() => setDeleteTarget({ label: 'Gallery Photo', fn: async () => { setGallery(await deleteGalleryItem(item.id)); setDeleteTarget(null); } })} title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {gallery.length === 0 && <EmptyState icon={ImageIcon} message="No gallery photos yet." />}
-            </div>
-          </TabSection>
-        )}
-
-        {/* ═══ MENU TAB ════════════════════════════════════════════════════ */}
-        {activeTab === 'menu' && (
-          <TabSection title="Food & Café Menu" subtitle="Manage menu items displayed in the admin-controlled menu section."
-            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-menu' })}><Plus className="w-4 h-4" /><span>Add Dish</span></button>}>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {menuItems.map(item => (
-                <div key={item.id} className={`${cardCls} flex items-center space-x-4 p-4 group hover:border-amber-400/30 transition-all`}>
-                  <div className="w-16 h-16 rounded-xl overflow-hidden bg-dark-950 shrink-0">
-                    <img src={item.image_url} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <span className="text-[9px] font-black text-amber-400 uppercase tracking-wider">{item.category}</span>
-                    <h4 className="font-bold text-white text-sm truncate">{item.name}</h4>
-                    <div className="flex items-center space-x-2 mt-0.5">
-                      <span className="text-xs font-bold text-green-400">₹{item.price}</span>
-                      <span className={`px-1.5 py-0.5 rounded text-[8px] font-black uppercase ${item.is_veg ? 'bg-green-500/20 text-green-400' : 'bg-rose-500/20 text-rose-400'}`}>{item.is_veg ? 'Veg' : 'Non-Veg'}</span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col space-y-1.5 shrink-0">
-                    <button className={btnEdit} onClick={() => setModal({ type: 'edit-menu', item })} title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
-                    <button className={btnDanger} onClick={() => setDeleteTarget({ label: 'Menu Item', fn: async () => { setMenuItems(await deleteMenuItem(item.id)); setDeleteTarget(null); } })} title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </div>
-              ))}
-              {menuItems.length === 0 && <EmptyState icon={Utensils} message="No menu items yet." />}
-            </div>
-          </TabSection>
-        )}
-
-        {/* ═══ MENU PAGES TAB ═══════════════════════════════════════════════ */}
-        {activeTab === 'menupages' && (
-          <TabSection title="Interactive Booklet Pages" subtitle="Add new booklet pages or modify existing page sheets, titles, and categories."
-            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-menupage' })}><Plus className="w-4 h-4" /><span>Add New Page</span></button>}>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-              {menuPages.map(page => (
-                <div key={page.pageNumber} className={`${cardCls} overflow-hidden group`}>
-                  <div className="relative h-48 bg-cream-50 p-2 flex items-center justify-center">
-                    <img src={page.image} alt={page.title} className="max-h-full object-contain" />
-                    <span className="absolute top-2 left-2 px-2.5 py-0.5 rounded-full bg-dark-950/80 text-amber-400 text-[10px] font-black uppercase">Page {String(page.pageNumber).padStart(2, '0')}</span>
-                  </div>
-                  <div className="p-4 space-y-2">
-                    <h4 className="font-serif font-bold text-white text-sm truncate">{page.title}</h4>
-                    <p className="text-[10px] text-gray-400 line-clamp-1">{page.subtitle}</p>
-                    <div className="flex flex-wrap gap-1 pt-1">
-                      {page.categories.map(c => <span key={c} className="px-1.5 py-0.5 rounded bg-white/5 text-gray-300 text-[8px] font-semibold">{c}</span>)}
-                    </div>
-                    <div className="flex items-center space-x-2 pt-2 border-t border-white/5">
-                      <button className={`${btnEdit} flex-1 py-2 font-bold text-xs justify-center flex items-center space-x-1`}
-                        onClick={() => setModal({ type: 'edit-menupage', item: page })}>
-                        <Edit3 className="w-3.5 h-3.5" /><span>Edit Sheet</span>
-                      </button>
-                      <button className={btnDanger}
-                        onClick={() => setDeleteTarget({ label: `Menu Page ${page.pageNumber}`, fn: async () => { setMenuPages(await deleteMenuPage(page.pageNumber)); setDeleteTarget(null); } })}
-                        title="Delete Page">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              ))}
-              {menuPages.length === 0 && <EmptyState icon={BookOpen} message="No menu pages yet. Add your first interactive booklet page!" />}
-            </div>
-          </TabSection>
-        )}
-
-        {/* ═══ WATER SPORTS TAB ════════════════════════════════════════════ */}
-        {activeTab === 'rides' && (
-          <TabSection title="Water Sports Rides & Activities" subtitle="Manage Lucknow Water Sports speedboats, jet skis, and kids amusement rides."
-            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-ride' })}><Plus className="w-4 h-4" /><span>Add Ride</span></button>}>
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-              {rides.map(ride => (
-                <div key={ride.id} className={`${cardCls} flex items-stretch p-4 space-x-4 group hover:border-amber-400/30 transition-all`}>
-                  <div className="w-20 h-20 rounded-xl overflow-hidden bg-dark-950 shrink-0">
-                    <img src={ride.image} alt={ride.name} className="w-full h-full object-cover" />
-                  </div>
-                  <div className="flex-1 min-w-0 flex flex-col justify-between">
+              {/* TAB 2: HERO & ABOUT CMS */}
+              {activeTab === 'hero' && heroSettings && (
+                <form onSubmit={handleHeroSettingsSave} className="space-y-6 max-w-2xl bg-dark-900 border border-white/10 rounded-2xl p-6">
+                  <h3 className="font-serif font-bold text-base text-amber-400">Public Website Hero Section Configuration</h3>
+                  <div className="space-y-4">
                     <div>
-                      <div className="flex items-center space-x-1.5">
-                        <span className="text-base">{ride.emoji}</span>
-                        <h4 className="font-bold text-white text-sm truncate">{ride.name}</h4>
-                      </div>
-                      <span className="text-[9px] font-black text-amber-400 uppercase tracking-wider block mt-0.5">{ride.category}</span>
-                      <p className="text-[10px] text-gray-400 mt-1 line-clamp-1">{ride.description}</p>
+                      <label className={labelCls}>Top Highlight Badge</label>
+                      <input type="text" value={heroSettings.badgeText || ''} onChange={(e) => setHeroSettings({ ...heroSettings, badgeText: e.target.value })} className={inputCls} />
                     </div>
-                    <div className="flex items-center justify-between pt-1">
-                      <span className="text-xs font-bold text-green-400">₹{ride.price} <span className="text-[9px] font-medium text-gray-500">/ {ride.unit}</span></span>
-                      {ride.badge && <span className="px-1.5 py-0.5 rounded bg-yellow-400/20 text-yellow-300 text-[8px] font-black uppercase">{ride.badge}</span>}
+                    <div>
+                      <label className={labelCls}>Main Title Headline</label>
+                      <input type="text" value={heroSettings.mainHeadline || ''} onChange={(e) => setHeroSettings({ ...heroSettings, mainHeadline: e.target.value })} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Sub-Headline Tagline</label>
+                      <input type="text" value={heroSettings.subHeadline || ''} onChange={(e) => setHeroSettings({ ...heroSettings, subHeadline: e.target.value })} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Contact Phone number</label>
+                      <input type="text" value={heroSettings.contactPhone || ''} onChange={(e) => setHeroSettings({ ...heroSettings, contactPhone: e.target.value })} className={inputCls} />
                     </div>
                   </div>
-                  <div className="flex flex-col justify-between shrink-0 pl-2">
-                    <button className={btnEdit} onClick={() => setModal({ type: 'edit-ride', item: ride })} title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
-                    <button className={btnDanger} onClick={() => setDeleteTarget({ label: 'Ride', fn: async () => { setRides(await deleteWaterSports(ride.id)); setDeleteTarget(null); } })} title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
-                  </div>
-                </div>
-              ))}
-              {rides.length === 0 && <EmptyState icon={Waves} message="No water sports rides yet. Add your first speedboat or jetski ride!" />}
-            </div>
-          </TabSection>
-        )}
 
-        {/* ═══ BLOGS TAB ═══════════════════════════════════════════════════ */}
-        {activeTab === 'blogs' && (
-          <TabSection title="Blog Articles" subtitle="Publish and manage blog stories shown on the website with multi-image galleries."
-            action={<button className={btnPrimary} onClick={() => setModal({ type: 'add-blog' })}><Plus className="w-4 h-4" /><span>New Post</span></button>}>
-            <div className="space-y-4">
-              {blogs.map(blog => {
-                const imgCount = (blog.images && blog.images.length > 0) ? blog.images.length : (blog.cover_image ? 1 : 0);
-                return (
-                  <div key={blog.id} className={`${cardCls} flex flex-col sm:flex-row items-stretch overflow-hidden group hover:border-amber-400/30 transition-all`}>
-                    <div className="sm:w-48 h-36 sm:h-auto shrink-0 bg-dark-950 overflow-hidden relative">
-                      <img src={blog.cover_image} alt={blog.title} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-                      <span className="absolute top-2 left-2 px-2 py-0.5 rounded-full bg-dark-950/85 text-amber-400 text-[9px] font-black uppercase border border-amber-400/20">
-                        🖼️ {imgCount} {imgCount === 1 ? 'Photo' : 'Photos'}
-                      </span>
+                  <h3 className="font-serif font-bold text-base text-amber-400 pt-6 border-t border-white/10">About Section Narrative</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={labelCls}>Narrative Header Tag</label>
+                      <input type="text" value={heroSettings.aboutBadge || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutBadge: e.target.value })} className={inputCls} />
                     </div>
-                    <div className="flex-1 p-5 flex flex-col justify-between">
+                    <div>
+                      <label className={labelCls}>About Main Title</label>
+                      <input type="text" value={heroSettings.aboutTitle || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutTitle: e.target.value })} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>First Paragraph Content</label>
+                      <textarea rows={4} value={heroSettings.aboutParagraph1 || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutParagraph1: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Second Paragraph Content</label>
+                      <textarea rows={4} value={heroSettings.aboutParagraph2 || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutParagraph2: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400" />
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
                       <div>
-                        <div className="flex flex-wrap items-center gap-2 mb-1.5">
-                          <span className="px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 text-[9px] font-black uppercase border border-amber-500/20">{blog.category}</span>
-                          <span className="text-[10px] text-gray-500">{blog.created_at} · {blog.read_time}</span>
-                        </div>
-                        <h4 className="font-serif font-bold text-white text-base leading-snug">{blog.title}</h4>
-                        <p className="text-xs text-gray-400 mt-1 line-clamp-2">{blog.excerpt}</p>
-                        {blog.tags && blog.tags.length > 0 && (
-                          <div className="flex flex-wrap gap-1 mt-2">
-                            {blog.tags.map(t => <span key={t} className="px-1.5 py-0.5 rounded bg-white/5 text-gray-400 text-[9px]">#{t}</span>)}
-                          </div>
-                        )}
+                        <label className={labelCls}>Primary Image URL</label>
+                        <input type="text" value={heroSettings.aboutPrimaryImage || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutPrimaryImage: e.target.value })} className={inputCls} />
                       </div>
-                      <div className="flex items-center space-x-2 mt-3">
-                        <button className={`${btnEdit} flex items-center space-x-1`} onClick={() => setModal({ type: 'edit-blog', item: blog })}><Edit3 className="w-3.5 h-3.5" /><span className="text-xs font-bold">Edit Article</span></button>
-                        <button className={`${btnDanger} flex items-center space-x-1`} onClick={() => setDeleteTarget({ label: 'Blog Post', fn: async () => { setBlogs(await deleteBlog(blog.id)); setDeleteTarget(null); } })}><Trash2 className="w-3.5 h-3.5" /><span className="text-xs font-bold">Delete</span></button>
+                      <div>
+                        <label className={labelCls}>Secondary Image URL</label>
+                        <input type="text" value={heroSettings.aboutSecondaryImage || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutSecondaryImage: e.target.value })} className={inputCls} />
                       </div>
                     </div>
                   </div>
-                );
-              })}
-              {blogs.length === 0 && <EmptyState icon={FileText} message="No blog posts yet." />}
-            </div>
-          </TabSection>
-        )}
 
-        {/* ═══ REVIEWS TAB ═════════════════════════════════════════════════ */}
-        {activeTab === 'reviews' && (
-          <TabSection title="Guest Reviews" subtitle="View and moderate customer reviews.">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {reviews.map(rev => (
-                <div key={rev.id} className={`${cardCls} p-5 space-y-2`}>
+                  <button type="submit" className={btnPrimary}>Save Hero & About Settings</button>
+                </form>
+              )}
+
+              {/* TAB 3: DYNAMIC PAGES */}
+              {activeTab === 'pages' && (
+                <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div className="w-9 h-9 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400 font-black text-sm">{rev.author_name?.charAt(0)}</div>
-                      <div>
-                        <h4 className="font-bold text-white text-sm">{rev.author_name}</h4>
-                        <span className="text-[10px] text-gray-500">{rev.date_str}</span>
+                    <h3 className="font-serif font-bold text-base">Dynamic Static Pages</h3>
+                    <button onClick={() => setPageModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Page</span></button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {pages.map((p) => (
+                      <div key={p.id} className="bg-dark-900/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{p.title}</h4>
+                          <p className="text-[10px] text-gray-400 font-mono">/{p.slug} • status: {p.status}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => setPageModal(p)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => setDeleteTarget({ label: p.title, action: async () => { await deletePage(p.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                        </div>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <span className="text-amber-400 text-sm font-black">{'★'.repeat(rev.rating)}{'☆'.repeat(5 - rev.rating)}</span>
-                      <button className={btnDanger} onClick={() => setDeleteTarget({ label: 'Review', fn: async () => { setReviews(await deleteReview(rev.id)); setDeleteTarget(null); } })}><Trash2 className="w-3.5 h-3.5" /></button>
-                    </div>
-                  </div>
-                  <p className="text-xs text-gray-300 italic leading-relaxed border-l-2 border-amber-400/30 pl-3">"{rev.review_text}"</p>
-                </div>
-              ))}
-              {reviews.length === 0 && <EmptyState icon={Star} message="No reviews yet." />}
-            </div>
-          </TabSection>
-        )}
-
-        {/* ═══ CONTACT TAB ═════════════════════════════════════════════════ */}
-        {activeTab === 'contact' && (
-          <TabSection title="Contact Messages" subtitle="Inquiries received from the contact form.">
-            <div className="space-y-3">
-              {messages.map(m => (
-                <div key={m.id} className={`${cardCls} p-5 flex items-start justify-between space-x-4`}>
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-1">
-                      <h4 className="font-bold text-white text-sm">{m.name}</h4>
-                      <span className="text-amber-400 text-xs font-medium">{m.phone}</span>
-                      <span className="text-[10px] text-gray-500 ml-auto">{m.created_at}</span>
-                    </div>
-                    <p className="text-xs text-gray-300 leading-relaxed">{m.message}</p>
-                  </div>
-                  <button className={btnDanger} onClick={() => setDeleteTarget({ label: 'Message', fn: async () => { setMessages(await deleteContactMessage(m.id)); setDeleteTarget(null); } })}><Trash2 className="w-3.5 h-3.5" /></button>
-                </div>
-              ))}
-              {messages.length === 0 && <EmptyState icon={Mail} message="No contact messages yet." />}
-            </div>
-          </TabSection>
-        )}
-      </div>
-
-      {/* ═══ MODALS ══════════════════════════════════════════════════════════ */}
-
-      {/* Add / Edit Event Banner */}
-      {(modal?.type === 'add-banner' || modal?.type === 'edit-banner') && (
-        <BannerModal
-          initial={modal.type === 'edit-banner' ? modal.item : undefined}
-          onClose={() => setModal(null)}
-          onSave={async banner => {
-            if (modal.type === 'edit-banner') { setBanners(await updateEventBanner(banner)); }
-            else { setBanners(await saveEventBanner(banner)); }
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Add / Edit Gallery */}
-      {(modal?.type === 'add-gallery' || modal?.type === 'edit-gallery') && (
-        <GalleryModal
-          initial={modal.type === 'edit-gallery' ? modal.item : undefined}
-          onClose={() => setModal(null)}
-          onSave={async item => {
-            if (modal.type === 'edit-gallery') { setGallery(await updateGalleryItem(item)); }
-            else { setGallery(await saveGalleryItem(item)); }
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Add / Edit Menu Item */}
-      {(modal?.type === 'add-menu' || modal?.type === 'edit-menu') && (
-        <MenuModal
-          initial={modal.type === 'edit-menu' ? modal.item : undefined}
-          onClose={() => setModal(null)}
-          onSave={async item => {
-            if (modal.type === 'edit-menu') { setMenuItems(await updateMenuItem(item)); }
-            else { setMenuItems(await saveMenuItem(item)); }
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Add Menu Booklet Page */}
-      {modal?.type === 'add-menupage' && (
-        <AddMenuPageModal
-          existingPageNumbers={menuPages.map(p => p.pageNumber)}
-          onClose={() => setModal(null)}
-          onSave={async page => {
-            setMenuPages(await saveMenuPage(page));
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Edit Menu Booklet Page */}
-      {modal?.type === 'edit-menupage' && (
-        <MenuPageModal
-          initial={modal.item}
-          onClose={() => setModal(null)}
-          onSave={async page => {
-            setMenuPages(await updateMenuPage(page));
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Add / Edit Water Sports Ride */}
-      {(modal?.type === 'add-ride' || modal?.type === 'edit-ride') && (
-        <RideModal
-          initial={modal.type === 'edit-ride' ? modal.item : undefined}
-          onClose={() => setModal(null)}
-          onSave={async ride => {
-            if (modal.type === 'edit-ride') { setRides(await updateWaterSports(ride)); }
-            else { setRides(await saveWaterSports(ride)); }
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Add / Edit Blog */}
-      {(modal?.type === 'add-blog' || modal?.type === 'edit-blog') && (
-        <BlogModal
-          initial={modal.type === 'edit-blog' ? modal.item : undefined}
-          onClose={() => setModal(null)}
-          onSave={async blog => {
-            if (modal.type === 'edit-blog') { setBlogs(await updateBlog(blog)); }
-            else { setBlogs(await saveBlog(blog)); }
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Add / Edit Hero Slide */}
-      {(modal?.type === 'add-heroslide' || modal?.type === 'edit-heroslide') && (
-        <HeroSlideModal
-          initial={modal.type === 'edit-heroslide' ? modal.item : undefined}
-          onClose={() => setModal(null)}
-          onSave={async slide => {
-            let updatedSlides: HeroSlide[];
-            if (modal.type === 'edit-heroslide') {
-              updatedSlides = heroSettings.slides.map(s => s.id === slide.id ? slide : s);
-            } else {
-              updatedSlides = [slide, ...heroSettings.slides];
-            }
-            const updatedSettings = { ...heroSettings, slides: updatedSlides };
-            setHeroSettings(await saveHeroSettings(updatedSettings));
-            setModal(null);
-          }}
-        />
-      )}
-
-      {/* Delete confirm */}
-      {deleteTarget && (
-        <ConfirmDelete
-          label={deleteTarget.label}
-          onConfirm={deleteTarget.fn}
-          onCancel={() => setDeleteTarget(null)}
-        />
-      )}
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  HELPER COMPONENTS
-// ─────────────────────────────────────────────────────────────────────────────
-function TabSection({ title, subtitle, action, children }: { title: string; subtitle?: string; action?: React.ReactNode; children: React.ReactNode }) {
-  return (
-    <div className="space-y-5">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="font-serif font-bold text-2xl text-white">{title}</h2>
-          {subtitle && <p className="text-xs text-gray-500 mt-0.5">{subtitle}</p>}
-        </div>
-        {action}
-      </div>
-      {children}
-    </div>
-  );
-}
-
-function EmptyState({ icon: Icon, message }: { icon: React.ElementType; message: string }) {
-  return (
-    <div className="col-span-full text-center py-16 space-y-3">
-      <div className="w-14 h-14 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center mx-auto">
-        <Icon className="w-6 h-6 text-gray-500" />
-      </div>
-      <p className="text-sm text-gray-500">{message}</p>
-    </div>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  BANNER MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-function BannerModal({ initial, onClose, onSave }: { initial?: EventBanner; onClose: () => void; onSave: (b: EventBanner) => void }) {
-  const [form, setForm] = useState<EventBanner>(initial ?? {
-    id: 'eb-' + Date.now(),
-    title: '', subtitle: '', image_url: '', cta_text: 'Reserve Now', cta_link: '#booking', is_active: true, created_at: new Date().toISOString(),
-  });
-  const set = (k: keyof EventBanner, v: any) => setForm(f => ({ ...f, [k]: v }));
-
-  return (
-    <Modal title={initial ? 'Edit Event Banner' : 'Add Event Banner'} onClose={onClose}>
-      <div className="space-y-4">
-        <div><label className={labelCls}>Banner Title</label><input className={inputCls} placeholder="e.g. 🎉 Weekend Riverside Fiesta!" value={form.title} onChange={e => set('title', e.target.value)} /></div>
-        <div><label className={labelCls}>Subtitle / Description</label><textarea className={inputCls} rows={2} placeholder="Short description of the event..." value={form.subtitle} onChange={e => set('subtitle', e.target.value)} /></div>
-        <ImageUploader label="Banner Image" value={form.image_url} onChange={v => set('image_url', v)} previewHeight="h-40" />
-        <div className="grid grid-cols-2 gap-3">
-          <div><label className={labelCls}>CTA Button Text</label><input className={inputCls} placeholder="Reserve Now" value={form.cta_text} onChange={e => set('cta_text', e.target.value)} /></div>
-          <div><label className={labelCls}>CTA Link</label><input className={inputCls} placeholder="#booking or https://..." value={form.cta_link} onChange={e => set('cta_link', e.target.value)} /></div>
-        </div>
-        <div className="flex items-center space-x-3">
-          <input type="checkbox" id="banner-active" checked={form.is_active} onChange={e => set('is_active', e.target.checked)} className="w-4 h-4 accent-amber-500" />
-          <label htmlFor="banner-active" className="text-xs text-gray-300 font-medium">Active (visible on site)</label>
-        </div>
-        <div className="flex space-x-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Save Banner</span></button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  GALLERY MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-function GalleryModal({ initial, onClose, onSave }: { initial?: GalleryItem; onClose: () => void; onSave: (g: GalleryItem) => void }) {
-  const [form, setForm] = useState<GalleryItem>(initial ?? { id: 'gal-' + Date.now(), title: '', category: 'Restaurant', image_url: '', featured: false });
-  const set = (k: keyof GalleryItem, v: any) => setForm(f => ({ ...f, [k]: v }));
-
-  return (
-    <Modal title={initial ? 'Edit Gallery Photo' : 'Add Gallery Photo'} onClose={onClose}>
-      <div className="space-y-4">
-        <ImageUploader label="Photo (upload from device or use URL)" value={form.image_url} onChange={v => set('image_url', v)} previewHeight="h-48" maxSizeMB={8} />
-        <div><label className={labelCls}>Photo Title</label><input className={inputCls} placeholder="e.g. Sunset Riverfront Deck" value={form.title} onChange={e => set('title', e.target.value)} /></div>
-        <div><label className={labelCls}>Category</label>
-          <select className={inputCls} value={form.category} onChange={e => set('category', e.target.value)}>
-            {['Restaurant', 'River View', 'Evening', 'Outdoor Seating', 'Water Sports', 'Food'].map(c => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="flex items-center space-x-3">
-          <input type="checkbox" id="gallery-featured" checked={form.featured} onChange={e => set('featured', e.target.checked)} className="w-4 h-4 accent-amber-500" />
-          <label htmlFor="gallery-featured" className="text-xs text-gray-300 font-medium">⭐ Featured (shown first in carousel)</label>
-        </div>
-        <div className="flex space-x-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Save Photo</span></button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  MENU ITEM MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-function MenuModal({ initial, onClose, onSave }: { initial?: MenuItem; onClose: () => void; onSave: (m: MenuItem) => void }) {
-  const [form, setForm] = useState<MenuItem>(initial ?? {
-    id: 'm-' + Date.now(), name: '', category: 'Starter', description: '', price: 0, is_veg: true, image_url: '', is_available: true, page_number: 1
-  });
-  const set = (k: keyof MenuItem, v: any) => setForm(f => ({ ...f, [k]: v }));
-
-  return (
-    <Modal title={initial ? 'Edit Menu Item' : 'Add Menu Item'} onClose={onClose}>
-      <div className="space-y-4">
-        <ImageUploader label="Dish Photo (upload or URL)" value={form.image_url} onChange={v => set('image_url', v)} previewHeight="h-40" />
-        <div className="grid grid-cols-2 gap-3">
-          <div className="col-span-2"><label className={labelCls}>Dish Name</label><input className={inputCls} placeholder="e.g. Paneer Tikka Masala" value={form.name} onChange={e => set('name', e.target.value)} /></div>
-          <div><label className={labelCls}>Category</label>
-            <select className={inputCls} value={form.category} onChange={e => set('category', e.target.value)}>
-              {['Starter', 'Indian', 'Chinese', 'Italian', 'Pizza', 'Burger', 'Coffee', 'Desserts', 'Drinks', 'Chaat', 'Breakfast', 'Shakes', 'Soup'].map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div><label className={labelCls}>Price (₹)</label><input type="number" className={inputCls} placeholder="149" value={form.price || ''} onChange={e => set('price', Number(e.target.value))} /></div>
-        </div>
-        <div><label className={labelCls}>Description</label><textarea className={inputCls} rows={2} placeholder="Short description of the dish..." value={form.description} onChange={e => set('description', e.target.value)} /></div>
-        <div className="flex flex-wrap items-center gap-6">
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" id="is-veg" checked={form.is_veg} onChange={e => set('is_veg', e.target.checked)} className="w-4 h-4 accent-green-500" />
-            <label htmlFor="is-veg" className="text-xs text-gray-300 font-medium">🟢 Vegetarian</label>
-          </div>
-          <div className="flex items-center space-x-2">
-            <input type="checkbox" id="is-avail" checked={form.is_available} onChange={e => set('is_available', e.target.checked)} className="w-4 h-4 accent-amber-500" />
-            <label htmlFor="is-avail" className="text-xs text-gray-300 font-medium">✅ Available</label>
-          </div>
-          <div className="flex items-center space-x-2 flex-1 min-w-[120px]">
-            <label className="text-xs text-gray-400 font-bold uppercase whitespace-nowrap">Page Num:</label>
-            <select className={inputCls + ' !py-1.5'} value={form.page_number} onChange={e => set('page_number', Number(e.target.value))}>
-              {[1, 2, 3, 4, 5, 6, 7, 8].map(n => <option key={n} value={n}>Page 0{n}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="flex space-x-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Save Dish</span></button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
-
-// ─────────────────────────────────────────────────────────────────────────────
-//  BLOG MODAL (With Multi-Image Upload & Details)
-// ─────────────────────────────────────────────────────────────────────────────
-function BlogModal({ initial, onClose, onSave }: { initial?: BlogPost; onClose: () => void; onSave: (b: BlogPost) => void }) {
-  const [form, setForm] = useState<BlogPost>(initial ?? {
-    id: 'blog-' + Date.now(),
-    title: '',
-    slug: '',
-    excerpt: '',
-    content: '',
-    category: 'Food & Dining',
-    cover_image: '',
-    images: [],
-    tags: [],
-    author: 'Wings River Team',
-    read_time: '3 min read',
-    created_at: new Date().toISOString().split('T')[0],
-    is_published: true
-  });
-  const [newImage, setNewImage] = useState('');
-
-  const set = (k: keyof BlogPost, v: any) => setForm(f => ({ ...f, [k]: v }));
-  const autoSlug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-
-  const addImageToGallery = (url: string) => {
-    if (!url.trim()) return;
-    const currentImages = form.images || [];
-    if (!currentImages.includes(url)) {
-      const updated = [...currentImages, url];
-      setForm(f => ({
-        ...f,
-        images: updated,
-        cover_image: f.cover_image || url
-      }));
-    }
-    setNewImage('');
-  };
-
-  const removeImage = (index: number) => {
-    const currentImages = form.images || [];
-    const removedUrl = currentImages[index];
-    const updated = currentImages.filter((_, i) => i !== index);
-    let newCover = form.cover_image;
-    if (form.cover_image === removedUrl) {
-      newCover = updated.length > 0 ? updated[0] : '';
-    }
-    setForm(f => ({ ...f, images: updated, cover_image: newCover }));
-  };
-
-  const setCoverImage = (url: string) => {
-    setForm(f => ({ ...f, cover_image: url }));
-  };
-
-  const handleSave = () => {
-    if (!form.title.trim()) { alert('Please enter a blog title.'); return; }
-    if (!form.content.trim()) { alert('Please enter blog content.'); return; }
-    const imagesList = form.images || [];
-    const finalCover = form.cover_image || (imagesList.length > 0 ? imagesList[0] : '/images/Screenshot_20260720-180544_Maps.png');
-    onSave({
-      ...form,
-      cover_image: finalCover,
-      images: imagesList.length > 0 ? imagesList : [finalCover]
-    });
-  };
-
-  return (
-    <Modal title={initial ? 'Edit Blog Post' : 'Publish New Blog Post'} onClose={onClose}>
-      <div className="space-y-4 max-h-[80vh] overflow-y-auto pr-1">
-        {/* Article Title */}
-        <div>
-          <label className={labelCls}>Article Title *</label>
-          <input className={inputCls} placeholder="e.g. Top 5 River Dining Experiences in Lucknow" value={form.title}
-            onChange={e => { set('title', e.target.value); if (!initial) set('slug', autoSlug(e.target.value)); }} />
-        </div>
-
-        {/* Category & Read Time & Author */}
-        <div className="grid grid-cols-3 gap-3">
-          <div><label className={labelCls}>Category</label>
-            <select className={inputCls} value={form.category} onChange={e => set('category', e.target.value)}>
-              {['Food & Dining', 'Riverside Experience', 'Events & Parties', 'Water Sports', 'Nightlife', 'Culinary Highlights', 'Travel & Lifestyle'].map(c => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-          <div><label className={labelCls}>Author</label><input className={inputCls} placeholder="Wings River Team" value={form.author} onChange={e => set('author', e.target.value)} /></div>
-          <div><label className={labelCls}>Read Time</label><input className={inputCls} placeholder="4 min read" value={form.read_time} onChange={e => set('read_time', e.target.value)} /></div>
-        </div>
-
-        {/* Primary Cover Image */}
-        <div>
-          <label className={labelCls}>Main Cover Image</label>
-          <ImageUploader label="Upload Cover Image or enter URL" value={form.cover_image} onChange={v => {
-            set('cover_image', v);
-            if (v && (!form.images || !form.images.includes(v))) {
-              setForm(f => ({ ...f, images: [v, ...(f.images || [])] }));
-            }
-          }} previewHeight="h-40" />
-        </div>
-
-        {/* Multi-Image Gallery Uploader */}
-        <div className="p-4 rounded-2xl bg-white/3 border border-white/10 space-y-3">
-          <div className="flex items-center justify-between">
-            <label className={labelCls + ' !mb-0 text-amber-400 font-bold flex items-center space-x-1.5'}>
-              <ImageIcon className="w-3.5 h-3.5" />
-              <span>Article Photo Gallery (Multiple Images)</span>
-            </label>
-            <span className="text-[10px] text-gray-400 font-semibold">{form.images?.length || 0} Photos Added</span>
-          </div>
-
-          {/* Quick Uploader / Add URL */}
-          <div className="space-y-2">
-            <ImageUploader label="Upload photo to add to blog gallery" value={newImage} onChange={v => {
-              if (v) addImageToGallery(v);
-            }} previewHeight="h-28" />
-          </div>
-
-          {/* Gallery Thumbnails Grid */}
-          {form.images && form.images.length > 0 && (
-            <div className="grid grid-cols-3 sm:grid-cols-4 gap-2.5 pt-2">
-              {form.images.map((imgUrl, idx) => (
-                <div key={idx} className="relative group rounded-xl overflow-hidden bg-dark-950 border border-white/10 aspect-video">
-                  <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
-                  {form.cover_image === imgUrl && (
-                    <span className="absolute top-1 left-1 px-1.5 py-0.5 rounded bg-amber-500 text-dark-950 font-black text-[8px] uppercase">Cover</span>
-                  )}
-                  <div className="absolute inset-0 bg-dark-950/80 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center space-y-1 p-1">
-                    {form.cover_image !== imgUrl && (
-                      <button type="button" onClick={() => setCoverImage(imgUrl)} className="px-2 py-0.5 rounded bg-amber-500 text-dark-950 text-[9px] font-bold">Set Cover</button>
-                    )}
-                    <button type="button" onClick={() => removeImage(idx)} className="px-2 py-0.5 rounded bg-rose-500 text-white text-[9px] font-bold">Remove</button>
+                    ))}
                   </div>
                 </div>
-              ))}
-            </div>
+              )}
+
+              {/* TAB 4: CATEGORIES */}
+              {activeTab === 'categories' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Menu Categories</h3>
+                    <button onClick={() => setCategoryModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Category</span></button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {categories.map((c) => (
+                      <div key={c.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{c.name}</h4>
+                          <p className="text-[10px] text-gray-400">Slug: {c.slug} • Order: {c.display_order}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => setCategoryModal(c)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => setDeleteTarget({ label: c.name, action: async () => { await deleteCategory(c.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 5: MENU ITEMS */}
+              {activeTab === 'menu' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Menu Food Dishes</h3>
+                    <button onClick={() => setMenuModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Menu Item</span></button>
+                  </div>
+                  <div className="bg-dark-900/50 border border-white/10 rounded-2xl p-6 overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="border-b border-white/10 text-gray-400">
+                          <th className="py-2.5">Dish Name</th>
+                          <th className="py-2.5">Category ID</th>
+                          <th className="py-2.5">Price</th>
+                          <th className="py-2.5">Type</th>
+                          <th className="py-2.5">Availability</th>
+                          <th className="py-2.5">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {menuItems.map((m) => (
+                          <tr key={m.id} className="hover:bg-white/5">
+                            <td className="py-2.5 font-bold text-white">{m.name}</td>
+                            <td className="py-2.5 text-gray-400 font-mono">{m.category_id}</td>
+                            <td className="py-2.5">₹{m.price}</td>
+                            <td className="py-2.5">{m.is_veg ? '🟢 Veg' : '🔴 Non-Veg'}</td>
+                            <td className="py-2.5">{m.is_available ? '✅ In Stock' : '❌ Out of Stock'}</td>
+                            <td className="py-2.5 flex items-center space-x-2">
+                              <button onClick={() => setMenuModal(m)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                              <button onClick={() => setDeleteTarget({ label: m.name, action: async () => { await deleteMenuItem(m.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* OTHER TABS OMITTED FOR BRIEFNESS BUT INCLUDED IN THE FULL CODE */}
+              {activeTab === 'blogs' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Blogs & Stories</h3>
+                    <button onClick={() => setBlogModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Create Blog</span></button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {blogs.map((b) => (
+                      <div key={b.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{b.title}</h4>
+                          <p className="text-[10px] text-gray-400">/{b.slug} • Author: {b.author} • status: {b.status}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => setBlogModal(b)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => setDeleteTarget({ label: b.title, action: async () => { await deleteBlog(b.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'gallery' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Gallery Images</h3>
+                    <button onClick={() => setGalleryModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Photo</span></button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {gallery.map((g) => (
+                      <div key={g.id} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
+                        <img src={g.image_url} alt={g.title} className="w-full h-32 object-cover" />
+                        <div className="p-3">
+                          <h4 className="font-bold text-xs text-white truncate">{g.title}</h4>
+                          <p className="text-[10px] text-gray-400">{g.category}</p>
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                            <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">{g.featured ? 'Featured' : 'Standard'}</span>
+                            <button onClick={() => setDeleteTarget({ label: g.title, action: async () => { await deleteGalleryItem(g.id); loadAll(); } })} className="text-rose-400 hover:text-rose-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'rides' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Water Sports Rides</h3>
+                    <button onClick={() => setRideModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Ride</span></button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {rides.map((r) => (
+                      <div key={r.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div className="flex items-center space-x-3">
+                          <span className="text-2xl">{r.emoji}</span>
+                          <div>
+                            <h4 className="font-bold text-sm text-white">{r.name}</h4>
+                            <p className="text-[10px] text-gray-400">₹{r.price} {r.unit} • {r.badge}</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => setRideModal(r)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => setDeleteTarget({ label: r.name, action: async () => { await deleteWaterSports(r.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'faqs' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Frequently Asked Questions</h3>
+                    <button onClick={() => setFaqModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add FAQ</span></button>
+                  </div>
+                  <div className="space-y-3">
+                    {faqs.map((f) => (
+                      <div key={f.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 space-y-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-bold text-sm text-amber-400">Q: {f.question}</h4>
+                          <div className="flex items-center space-x-2">
+                            <button onClick={() => setFaqModal(f)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                            <button onClick={() => setDeleteTarget({ label: f.question, action: async () => { await deleteFaq(f.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-300">A: {f.answer}</p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'team' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Team Members</h3>
+                    <button onClick={() => setTeamModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Team Member</span></button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {team.map((t) => (
+                      <div key={t.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{t.name}</h4>
+                          <p className="text-[10px] text-gray-400">{t.role} • {t.bio}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => setTeamModal(t)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => setDeleteTarget({ label: t.name, action: async () => { await deleteTeamMember(t.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'bookings' && (
+                <div className="space-y-4">
+                  <h3 className="font-serif font-bold text-base">Reservations Bookings</h3>
+                  <div className="bg-dark-900/50 border border-white/10 rounded-2xl overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="border-b border-white/10 text-gray-400">
+                          <th className="py-2.5">Name</th>
+                          <th className="py-2.5">Phone</th>
+                          <th className="py-2.5">Type</th>
+                          <th className="py-2.5">Date & Time</th>
+                          <th className="py-2.5">Guests</th>
+                          <th className="py-2.5">Status</th>
+                          <th className="py-2.5">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {reservations.map((r) => (
+                          <tr key={r.id} className="hover:bg-white/5">
+                            <td className="py-2.5 font-bold">{r.name}</td>
+                            <td className="py-2.5 font-mono">{r.phone}</td>
+                            <td className="py-2.5 capitalize">{r.booking_type.replace('_', ' ')}</td>
+                            <td className="py-2.5">{r.date} @ {r.time}</td>
+                            <td className="py-2.5">{r.guests}</td>
+                            <td className="py-2.5">
+                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase font-bold ${r.status === 'confirmed' ? 'bg-emerald-500/20 text-emerald-400' : r.status === 'cancelled' ? 'bg-rose-500/20 text-rose-400' : 'bg-amber-500/20 text-amber-400'}`}>{r.status}</span>
+                            </td>
+                            <td className="py-2.5 flex items-center space-x-2">
+                              {r.status === 'pending' && (
+                                <button onClick={async () => { await updateReservationStatus(r.id, 'confirmed'); loadAll(); }} className="text-emerald-400 hover:underline">Confirm</button>
+                              )}
+                              <button onClick={() => setDeleteTarget({ label: `Booking for ${r.name}`, action: async () => { await deleteReservation(r.id); loadAll(); } })} className="text-rose-400 hover:underline">Delete</button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'reviews' && (
+                <div className="space-y-4">
+                  <h3 className="font-serif font-bold text-base">Reviews Feed</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {reviews.map((r) => (
+                      <div key={r.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{r.author_name} ({r.rating} ★)</h4>
+                          <p className="text-xs text-gray-300 mt-1">{r.review_text}</p>
+                        </div>
+                        <button onClick={() => setDeleteTarget({ label: `Review by ${r.author_name}`, action: async () => { await deleteReview(r.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'contact' && (
+                <div className="space-y-4">
+                  <h3 className="font-serif font-bold text-base">Customer Inquiries</h3>
+                  <div className="grid grid-cols-1 gap-4">
+                    {messages.map((m) => (
+                      <div key={m.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{m.name} ({m.phone} • {m.email})</h4>
+                          <p className="text-xs text-gray-300 mt-1">{m.message}</p>
+                        </div>
+                        <button onClick={() => setDeleteTarget({ label: `Message from ${m.name}`, action: async () => { await deleteContactMessage(m.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'media' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Media Library Files</h3>
+                    <button onClick={() => setMediaModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Upload Media</span></button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {media.map((m) => (
+                      <div key={m.id} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
+                        <img src={m.url} alt={m.alt_text} className="w-full h-32 object-cover" />
+                        <div className="p-3">
+                          <h4 className="font-bold text-xs text-white truncate">{m.alt_text || 'No Alt Text'}</h4>
+                          <p className="text-[10px] text-gray-400">{m.category}</p>
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                            <span className="text-[9px] text-gray-500">{m.dimensions}</span>
+                            <button onClick={() => setDeleteTarget({ label: m.alt_text || 'Media Item', action: async () => { await deleteMediaItem(m.id); loadAll(); } })} className="text-rose-400 hover:text-rose-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'offers' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Discount Coupons & Offers</h3>
+                    <button onClick={() => setOfferModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Offer</span></button>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {offers.map((o) => (
+                      <div key={o.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{o.title} (Code: <span className="font-mono text-amber-400">{o.code}</span>)</h4>
+                          <p className="text-[10px] text-gray-400">{o.discount_value}% Discount • {o.status}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => setOfferModal(o)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => setDeleteTarget({ label: o.title, action: async () => { await deleteOffer(o.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'menupages' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Menu Booklet Pages</h3>
+                    <button onClick={() => setMenuPageModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Menu Page</span></button>
+                  </div>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                    {menuPages.map((mp) => (
+                      <div key={mp.page_number} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
+                        <img src={mp.image} alt={mp.title} className="w-full h-32 object-cover" />
+                        <div className="p-3">
+                          <h4 className="font-bold text-xs text-white">Page {mp.page_number}</h4>
+                          <p className="text-[10px] text-gray-400 truncate">{mp.title}</p>
+                          <div className="flex items-center justify-end mt-2 pt-2 border-t border-white/5">
+                            <button onClick={() => setDeleteTarget({ label: `Page ${mp.page_number}`, action: async () => { await deleteMenuPage(mp.page_number!); loadAll(); } })} className="text-rose-400 hover:text-rose-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'banners' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Promotion Banners</h3>
+                    <button onClick={() => setBannerModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Banner</span></button>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4">
+                    {banners.map((b) => (
+                      <div key={b.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
+                        <div>
+                          <h4 className="font-bold text-sm text-white">{b.title}</h4>
+                          <p className="text-[10px] text-gray-400">{b.subtitle} • CTA: {b.cta_text}</p>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <button onClick={() => setBannerModal(b)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
+                          <button onClick={() => setDeleteTarget({ label: b.title, action: async () => { await deleteEventBanner(b.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'audit' && (
+                <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-4">
+                  <h3 className="font-serif font-bold text-base">D1 Audit Logs Database</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-xs text-left">
+                      <thead>
+                        <tr className="border-b border-white/10 text-gray-400 font-mono">
+                          <th className="py-2.5">User</th>
+                          <th className="py-2.5">Action</th>
+                          <th className="py-2.5">Details</th>
+                          <th className="py-2.5">Timestamp</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-white/5">
+                        {auditLogs.map((l) => (
+                          <tr key={l.id} className="hover:bg-white/5 font-mono">
+                            <td className="py-2.5 text-amber-400">{l.user_id}</td>
+                            <td className="py-2.5 font-bold">{l.action}</td>
+                            <td className="py-2.5 text-gray-300">{l.details}</td>
+                            <td className="py-2.5 text-gray-400">{new Date(l.created_at).toLocaleString()}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+            </>
           )}
         </div>
 
-        {/* Excerpt */}
-        <div>
-          <label className={labelCls}>Excerpt (Short Summary for card)</label>
-          <textarea className={inputCls} rows={2} placeholder="A brief catchy description shown in the blog card..." value={form.excerpt} onChange={e => set('excerpt', e.target.value)} />
-        </div>
+        {/* ─── MODALS ───────────────────────────────────────────────────────────── */}
 
-        {/* Full Content */}
-        <div>
-          <label className={labelCls}>Full Blog Content (Paragraphs)</label>
-          <textarea className={inputCls} rows={6} placeholder="Write the full blog story here. Use double line breaks between paragraphs..." value={form.content} onChange={e => set('content', e.target.value)} />
-        </div>
+        {/* Delete Confirmation Modal */}
+        {deleteTarget && (
+          <ConfirmDelete label={deleteTarget.label} onConfirm={() => { deleteTarget.action(); setDeleteTarget(null); }} onCancel={() => setDeleteTarget(null)} />
+        )}
 
-        {/* Tags */}
-        <div>
-          <label className={labelCls}>Topic Tags (comma separated)</label>
-          <input className={inputCls} placeholder="e.g. Riverside, Speedboat, Gomti River, Gourmet" value={(form.tags || []).join(', ')}
-            onChange={e => set('tags', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} />
-        </div>
+        {/* Category Modal */}
+        {categoryModal && (
+          <Modal title={categoryModal.id ? "Edit Category" : "Add Category"} onClose={() => setCategoryModal(null)}>
+            <form onSubmit={saveCategoryItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Category Name</label>
+                <input type="text" required value={categoryModal.name || ''} onChange={(e) => setCategoryModal({ ...categoryModal, name: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Description</label>
+                <input type="text" value={categoryModal.description || ''} onChange={(e) => setCategoryModal({ ...categoryModal, description: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Display Order</label>
+                <input type="number" value={categoryModal.display_order || 0} onChange={(e) => setCategoryModal({ ...categoryModal, display_order: parseInt(e.target.value) })} className={inputCls} />
+              </div>
+              <button type="submit" className={btnPrimary}>Save Category</button>
+            </form>
+          </Modal>
+        )}
 
-        {/* Save / Cancel buttons */}
-        <div className="flex space-x-3 pt-3">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={handleSave} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1">
-            <Save className="w-3.5 h-3.5" />
-            <span>{initial ? 'Update Post' : 'Publish Article'}</span>
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
+        {/* Menu Item Modal */}
+        {menuModal && (
+          <Modal title={menuModal.id ? "Edit Menu Item" : "Add Menu Item"} onClose={() => setMenuModal(null)}>
+            <form onSubmit={saveMenuItemItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Dish Name</label>
+                <input type="text" required value={menuModal.name || ''} onChange={(e) => setMenuModal({ ...menuModal, name: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Category</label>
+                <select value={menuModal.category_id || 'cat-beverages'} onChange={(e) => setMenuModal({ ...menuModal, category_id: e.target.value })} className={inputCls}>
+                  {categories.map((c) => (
+                    <option key={c.id} value={c.id}>{c.name}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className={labelCls}>Price (₹)</label>
+                <input type="number" step="0.01" required value={menuModal.price || ''} onChange={(e) => setMenuModal({ ...menuModal, price: parseFloat(e.target.value) })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Description</label>
+                <textarea rows={3} value={menuModal.description || ''} onChange={(e) => setMenuModal({ ...menuModal, description: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
+              </div>
+              <div>
+                <label className={labelCls}>Image URL</label>
+                <input type="text" value={menuModal.image_url || ''} onChange={(e) => setMenuModal({ ...menuModal, image_url: e.target.value })} className={inputCls} />
+              </div>
+              <div className="flex space-x-4">
+                <label className="flex items-center space-x-2 text-xs text-white">
+                  <input type="checkbox" checked={menuModal.is_veg !== false} onChange={(e) => setMenuModal({ ...menuModal, is_veg: e.target.checked })} />
+                  <span>Veg (Green Label)</span>
+                </label>
+                <label className="flex items-center space-x-2 text-xs text-white">
+                  <input type="checkbox" checked={menuModal.is_available !== false} onChange={(e) => setMenuModal({ ...menuModal, is_available: e.target.checked })} />
+                  <span>Available In Stock</span>
+                </label>
+              </div>
+              <button type="submit" className={btnPrimary}>Save Menu Item</button>
+            </form>
+          </Modal>
+        )}
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  ADD MENU BOOKLET PAGE MODAL (New Page)
-// ─────────────────────────────────────────────────────────────────────────────
-function AddMenuPageModal({ existingPageNumbers, onClose, onSave }: { existingPageNumbers: number[]; onClose: () => void; onSave: (p: MenuPageDefinition) => void }) {
-  const nextPageNum = existingPageNumbers.length > 0 ? Math.max(...existingPageNumbers) + 1 : 1;
-  const [form, setForm] = useState<MenuPageDefinition>({
-    pageNumber: nextPageNum,
-    title: '',
-    subtitle: '',
-    image: '',
-    categories: [],
-  });
-  const set = (k: keyof MenuPageDefinition, v: any) => setForm(f => ({ ...f, [k]: v }));
+        {/* Blog Modal */}
+        {blogModal && (
+          <Modal title={blogModal.id ? "Edit Blog Post" : "Create Blog Post"} onClose={() => setBlogModal(null)}>
+            <form onSubmit={saveBlogPost} className="space-y-4">
+              <div>
+                <label className={labelCls}>Blog Title</label>
+                <input type="text" required value={blogModal.title || ''} onChange={(e) => setBlogModal({ ...blogModal, title: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Category</label>
+                <input type="text" value={blogModal.category || ''} onChange={(e) => setBlogModal({ ...blogModal, category: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Cover Image URL</label>
+                <input type="text" value={blogModal.cover_image || ''} onChange={(e) => setBlogModal({ ...blogModal, cover_image: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Excerpt Summary</label>
+                <input type="text" value={blogModal.excerpt || ''} onChange={(e) => setBlogModal({ ...blogModal, excerpt: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Content Narrative</label>
+                <textarea rows={5} value={blogModal.content || ''} onChange={(e) => setBlogModal({ ...blogModal, content: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
+              </div>
+              <div>
+                <label className="flex items-center space-x-2 text-xs text-white">
+                  <input type="checkbox" checked={blogModal.status === 'published'} onChange={(e) => setBlogModal({ ...blogModal, status: e.target.checked ? 'published' : 'draft' })} />
+                  <span>Publish Instantly</span>
+                </label>
+              </div>
+              <button type="submit" className={btnPrimary}>Save Blog Post</button>
+            </form>
+          </Modal>
+        )}
 
-  const handleSave = () => {
-    if (!form.title.trim()) { alert('Please enter a page title.'); return; }
-    if (!form.image.trim()) { alert('Please upload or enter a page image URL.'); return; }
-    onSave(form);
-  };
+        {/* Gallery Modal */}
+        {galleryModal && (
+          <Modal title={galleryModal.id ? "Edit Gallery Item" : "Add Gallery Item"} onClose={() => setGalleryModal(null)}>
+            <form onSubmit={saveGalleryPhoto} className="space-y-4">
+              <div>
+                <label className={labelCls}>Photo Title</label>
+                <input type="text" required value={galleryModal.title || ''} onChange={(e) => setGalleryModal({ ...galleryModal, title: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Category</label>
+                <input type="text" value={galleryModal.category || ''} onChange={(e) => setGalleryModal({ ...galleryModal, category: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Image URL</label>
+                <input type="text" required value={galleryModal.image_url || ''} onChange={(e) => setGalleryModal({ ...galleryModal, image_url: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className="flex items-center space-x-2 text-xs text-white">
+                  <input type="checkbox" checked={galleryModal.featured || false} onChange={(e) => setGalleryModal({ ...galleryModal, featured: e.target.checked })} />
+                  <span>Feature on Homepage Gallery</span>
+                </label>
+              </div>
+              <button type="submit" className={btnPrimary}>Save Photo</button>
+            </form>
+          </Modal>
+        )}
 
-  return (
-    <Modal title="Add New Booklet Page" onClose={onClose}>
-      <div className="space-y-4">
-        {/* Info badge */}
-        <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs flex items-start space-x-2">
-          <BookOpen className="w-4 h-4 shrink-0 mt-0.5" />
-          <span>This page will appear in the <strong>Interactive Menu Card</strong> booklet on the website. Upload your menu card image and set the page details.</span>
-        </div>
-        <ImageUploader label="Page Image / Menu Card Sheet (upload or URL)" value={form.image} onChange={v => set('image', v)} previewHeight="h-56" maxSizeMB={12} />
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2">
-            <label className={labelCls}>Page Title</label>
-            <input className={inputCls} placeholder="e.g. Starters & Snacks" value={form.title} onChange={e => set('title', e.target.value)} />
-          </div>
-          <div>
-            <label className={labelCls}>Page No.</label>
-            <input type="number" min={1} className={inputCls} value={form.pageNumber}
-              onChange={e => set('pageNumber', Number(e.target.value))} />
-          </div>
-        </div>
-        <div><label className={labelCls}>Subtitle / Description</label><input className={inputCls} placeholder="Short description shown below page title..." value={form.subtitle} onChange={e => set('subtitle', e.target.value)} /></div>
-        <div>
-          <label className={labelCls}>Categories (comma separated)</label>
-          <input className={inputCls} placeholder="e.g. Starter, Snacks, Tandoor" value={form.categories.join(', ')}
-            onChange={e => set('categories', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} />
-          <p className="text-[10px] text-gray-500 mt-1">These appear as tags on the booklet page card.</p>
-        </div>
-        <div className="flex space-x-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={handleSave} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Add Page</span></button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
+        {/* Ride Modal */}
+        {rideModal && (
+          <Modal title={rideModal.id ? "Edit Ride Ticket" : "Add Ride Ticket"} onClose={() => setRideModal(null)}>
+            <form onSubmit={saveRideTicket} className="space-y-4">
+              <div>
+                <label className={labelCls}>Ride Name</label>
+                <input type="text" required value={rideModal.name || ''} onChange={(e) => setRideModal({ ...rideModal, name: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Price (₹)</label>
+                <input type="number" required value={rideModal.price || ''} onChange={(e) => setRideModal({ ...rideModal, price: parseFloat(e.target.value) })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Price Unit</label>
+                <input type="text" value={rideModal.unit || ''} onChange={(e) => setRideModal({ ...rideModal, unit: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Description</label>
+                <input type="text" value={rideModal.description || ''} onChange={(e) => setRideModal({ ...rideModal, description: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Badge Tag</label>
+                <input type="text" value={rideModal.badge || ''} onChange={(e) => setRideModal({ ...rideModal, badge: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Image URL</label>
+                <input type="text" value={rideModal.image || ''} onChange={(e) => setRideModal({ ...rideModal, image: e.target.value })} className={inputCls} />
+              </div>
+              <button type="submit" className={btnPrimary}>Save Ride Ticket</button>
+            </form>
+          </Modal>
+        )}
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  EDIT MENU BOOKLET PAGE MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-function MenuPageModal({ initial, onClose, onSave }: { initial: MenuPageDefinition; onClose: () => void; onSave: (p: MenuPageDefinition) => void }) {
-  const [form, setForm] = useState<MenuPageDefinition>({ ...initial });
-  const set = (k: keyof MenuPageDefinition, v: any) => setForm(f => ({ ...f, [k]: v }));
+        {/* FAQ Modal */}
+        {faqModal && (
+          <Modal title={faqModal.id ? "Edit FAQ" : "Add FAQ"} onClose={() => setFaqModal(null)}>
+            <form onSubmit={saveFaqItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Question</label>
+                <input type="text" required value={faqModal.question || ''} onChange={(e) => setFaqModal({ ...faqModal, question: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Answer</label>
+                <textarea rows={3} required value={faqModal.answer || ''} onChange={(e) => setFaqModal({ ...faqModal, answer: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
+              </div>
+              <button type="submit" className={btnPrimary}>Save FAQ</button>
+            </form>
+          </Modal>
+        )}
 
-  return (
-    <Modal title={`Edit Booklet Page ${String(form.pageNumber).padStart(2, '0')}`} onClose={onClose}>
-      <div className="space-y-4">
-        <ImageUploader label="Booklet Page Sheet (upload or URL)" value={form.image} onChange={v => set('image', v)} previewHeight="h-48" maxSizeMB={12} />
-        <div><label className={labelCls}>Page Title</label><input className={inputCls} value={form.title} onChange={e => set('title', e.target.value)} /></div>
-        <div><label className={labelCls}>Subtitle</label><input className={inputCls} value={form.subtitle} onChange={e => set('subtitle', e.target.value)} /></div>
-        <div>
-          <label className={labelCls}>Categories (comma separated)</label>
-          <input className={inputCls} value={form.categories.join(', ')} onChange={e => set('categories', e.target.value.split(',').map(s => s.trim()).filter(Boolean))} />
-        </div>
-        <div className="flex space-x-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Save Sheet</span></button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
+        {/* Team Modal */}
+        {teamModal && (
+          <Modal title={teamModal.id ? "Edit Member" : "Add Member"} onClose={() => setTeamModal(null)}>
+            <form onSubmit={saveTeamMemberItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Full Name</label>
+                <input type="text" required value={teamModal.name || ''} onChange={(e) => setTeamModal({ ...teamModal, name: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Role / Designation</label>
+                <input type="text" required value={teamModal.role || ''} onChange={(e) => setTeamModal({ ...teamModal, role: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Short Bio</label>
+                <input type="text" value={teamModal.bio || ''} onChange={(e) => setTeamModal({ ...teamModal, bio: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Image URL</label>
+                <input type="text" value={teamModal.image || ''} onChange={(e) => setTeamModal({ ...teamModal, image: e.target.value })} className={inputCls} />
+              </div>
+              <button type="submit" className={btnPrimary}>Save Team Member</button>
+            </form>
+          </Modal>
+        )}
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  WATER SPORTS RIDE MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-function RideModal({ initial, onClose, onSave }: { initial?: RideTicket; onClose: () => void; onSave: (r: RideTicket) => void }) {
-  const [form, setForm] = useState<RideTicket>(initial ?? {
-    id: 'ride-' + Date.now(), name: '', category: 'Water Sports', price: 0, unit: 'Per Person 1 Round', description: '', badge: '', image: '', emoji: '🏄'
-  });
-  const set = (k: keyof RideTicket, v: any) => setForm(f => ({ ...f, [k]: v }));
+        {/* Dynamic Page Modal */}
+        {pageModal && (
+          <Modal title={pageModal.id ? "Edit Static Page" : "Add Static Page"} onClose={() => setPageModal(null)}>
+            <form onSubmit={saveDynamicPage} className="space-y-4">
+              <div>
+                <label className={labelCls}>Page Title</label>
+                <input type="text" required value={pageModal.title || ''} onChange={(e) => setPageModal({ ...pageModal, title: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Slug</label>
+                <input type="text" value={pageModal.slug || ''} onChange={(e) => setPageModal({ ...pageModal, slug: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Content (HTML/Markdown Supported)</label>
+                <textarea rows={5} value={pageModal.content || ''} onChange={(e) => setPageModal({ ...pageModal, content: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
+              </div>
+              <div>
+                <label className={labelCls}>Status</label>
+                <select value={pageModal.status || 'draft'} onChange={(e) => setPageModal({ ...pageModal, status: e.target.value as any })} className={inputCls}>
+                  <option value="draft">Draft</option>
+                  <option value="published">Published</option>
+                </select>
+              </div>
+              <button type="submit" className={btnPrimary}>Save Page</button>
+            </form>
+          </Modal>
+        )}
 
-  return (
-    <Modal title={initial ? 'Edit Ride Ticket' : 'Add Ride Ticket'} onClose={onClose}>
-      <div className="space-y-4">
-        <ImageUploader label="Ride Photo (upload or URL)" value={form.image} onChange={v => set('image', v)} previewHeight="h-40" />
-        <div className="grid grid-cols-3 gap-3">
-          <div className="col-span-2"><label className={labelCls}>Ride Name</label><input className={inputCls} placeholder="e.g. Speedboat Tour" value={form.name} onChange={e => set('name', e.target.value)} /></div>
-          <div><label className={labelCls}>Emoji Icon</label><input className={inputCls} placeholder="🏄" value={form.emoji} onChange={e => set('emoji', e.target.value)} /></div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div><label className={labelCls}>Category</label>
-            <select className={inputCls} value={form.category} onChange={e => set('category', e.target.value)}>
-              <option value="Water Sports">Water Sports</option>
-              <option value="Other Activities">Other Activities</option>
-            </select>
-          </div>
-          <div><label className={labelCls}>Price (₹)</label><input type="number" className={inputCls} value={form.price || ''} onChange={e => set('price', Number(e.target.value))} /></div>
-        </div>
-        <div className="grid grid-cols-2 gap-3">
-          <div><label className={labelCls}>Unit</label><input className={inputCls} placeholder="Per Person 1 Round" value={form.unit} onChange={e => set('unit', e.target.value)} /></div>
-          <div><label className={labelCls}>Badge</label><input className={inputCls} placeholder="e.g. Most Popular, Kids Fun" value={form.badge} onChange={e => set('badge', e.target.value)} /></div>
-        </div>
-        <div><label className={labelCls}>Description</label><textarea className={inputCls} rows={2} placeholder="Explain the ride safety, gear, rounds..." value={form.description} onChange={e => set('description', e.target.value)} /></div>
-        <div className="flex space-x-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={() => onSave(form)} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1"><Save className="w-3.5 h-3.5" /><span>Save Ride</span></button>
-        </div>
-      </div>
-    </Modal>
-  );
-}
+        {/* Media Modal */}
+        {mediaModal && (
+          <Modal title="Upload File to Media Library" onClose={() => setMediaModal(null)}>
+            <form onSubmit={handleMediaUpload} className="space-y-4">
+              <div>
+                <label className={labelCls}>File/Image URL</label>
+                <input type="text" required value={mediaModal.url || ''} onChange={(e) => setMediaModal({ ...mediaModal, url: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Alt Text</label>
+                <input type="text" value={mediaModal.alt_text || ''} onChange={(e) => setMediaModal({ ...mediaModal, alt_text: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Caption</label>
+                <input type="text" value={mediaModal.caption || ''} onChange={(e) => setMediaModal({ ...mediaModal, caption: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Category</label>
+                <input type="text" value={mediaModal.category || 'general'} onChange={(e) => setMediaModal({ ...mediaModal, category: e.target.value })} className={inputCls} />
+              </div>
+              <button type="submit" className={btnPrimary}>Save Media Item</button>
+            </form>
+          </Modal>
+        )}
 
-// ─────────────────────────────────────────────────────────────────────────────
-//  HERO SLIDE MODAL
-// ─────────────────────────────────────────────────────────────────────────────
-function HeroSlideModal({ initial, onClose, onSave }: { initial?: HeroSlide; onClose: () => void; onSave: (s: HeroSlide) => void }) {
-  const [form, setForm] = useState<HeroSlide>(initial ?? {
-    id: 'hs-' + Date.now(),
-    image: '',
-    title: '',
-    subtitle: '',
-    tag: 'Wings River Café'
-  });
-  const set = (k: keyof HeroSlide, v: any) => setForm(f => ({ ...f, [k]: v }));
+        {/* Offer Modal */}
+        {offerModal && (
+          <Modal title={offerModal.id ? "Edit Coupon" : "Add Coupon"} onClose={() => setOfferModal(null)}>
+            <form onSubmit={saveOfferItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Coupon Title</label>
+                <input type="text" required value={offerModal.title || ''} onChange={(e) => setOfferModal({ ...offerModal, title: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Discount Code</label>
+                <input type="text" required value={offerModal.code || ''} onChange={(e) => setOfferModal({ ...offerModal, code: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Discount Value</label>
+                <input type="number" required value={offerModal.discount_value || ''} onChange={(e) => setOfferModal({ ...offerModal, discount_value: parseFloat(e.target.value) })} className={inputCls} />
+              </div>
+              <button type="submit" className={btnPrimary}>Save Coupon</button>
+            </form>
+          </Modal>
+        )}
 
-  const handleSave = () => {
-    if (!form.image.trim()) { alert('Please upload or enter a background image URL.'); return; }
-    if (!form.title.trim()) { alert('Please enter a slide title.'); return; }
-    onSave(form);
-  };
+        {/* Menu Booklet Page Modal */}
+        {menuPageModal && (
+          <Modal title="Add Menu Booklet Page" onClose={() => setMenuPageModal(null)}>
+            <form onSubmit={saveMenuPageItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Page Number</label>
+                <input type="number" required value={menuPageModal.page_number || ''} onChange={(e) => setMenuPageModal({ ...menuPageModal, page_number: parseInt(e.target.value) })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Title</label>
+                <input type="text" value={menuPageModal.title || ''} onChange={(e) => setMenuPageModal({ ...menuPageModal, title: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Subtitle</label>
+                <input type="text" value={menuPageModal.subtitle || ''} onChange={(e) => setMenuPageModal({ ...menuPageModal, subtitle: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Image URL</label>
+                <input type="text" required value={menuPageModal.image || ''} onChange={(e) => setMenuPageModal({ ...menuPageModal, image: e.target.value })} className={inputCls} />
+              </div>
+              <button type="submit" className={btnPrimary}>Save Page</button>
+            </form>
+          </Modal>
+        )}
 
-  return (
-    <Modal title={initial ? 'Edit Hero Slide' : 'Add New Hero Slide'} onClose={onClose}>
-      <div className="space-y-4">
-        <ImageUploader label="Background Slide Image (upload or URL)" value={form.image} onChange={v => set('image', v)} previewHeight="h-48" maxSizeMB={10} />
-        <div>
-          <label className={labelCls}>Slide Main Title</label>
-          <input className={inputCls} placeholder="e.g. Luxurious Riverside Dining" value={form.title} onChange={e => set('title', e.target.value)} />
-        </div>
-        <div>
-          <label className={labelCls}>Slide Subtitle</label>
-          <input className={inputCls} placeholder="e.g. Multicuisine Delights with Scenic Sunset Views" value={form.subtitle} onChange={e => set('subtitle', e.target.value)} />
-        </div>
-        <div>
-          <label className={labelCls}>Tagline Badge Text</label>
-          <input className={inputCls} placeholder="e.g. Family Restaurant & Evening Ambience" value={form.tag} onChange={e => set('tag', e.target.value)} />
-        </div>
-        <div className="flex space-x-3 pt-2">
-          <button onClick={onClose} className="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl">Cancel</button>
-          <button onClick={handleSave} className="flex-1 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1">
-            <Save className="w-3.5 h-3.5" /><span>Save Slide</span>
-          </button>
-        </div>
-      </div>
-    </Modal>
+      </section>
+    </main>
   );
 }

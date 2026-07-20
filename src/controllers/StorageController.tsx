@@ -1,5 +1,5 @@
-// StorageController — 100% Cloudflare D1 as the only storage engine.
-// No localStorage. All reads fetch directly from D1. All writes POST/DELETE directly to D1.
+// StorageController — Cloudflare D1 persistent storage engine via Hono.
+// No mock local storage. Full support for REST endpoints with JWT authorization.
 
 import { Reservation }                             from '@/models/ReservationModel';
 import { MenuItem, INITIAL_MENU_ITEMS, MenuPageDefinition, MENU_BOOKLET_PAGES } from '@/models/MenuModel';
@@ -9,6 +9,86 @@ import { Review, ContactMessage, INITIAL_REVIEWS } from '@/models/ReviewModel';
 import { RideTicket, WATER_SPORTS_RIDES }          from '@/models/WaterSportsModel';
 import { HeroSettings, DEFAULT_HERO_SETTINGS }     from '@/models/HeroModel';
 
+// ── Models & Types for Expanded Modules ──────────────────────────────────────
+export interface MenuCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description: string;
+  display_order: number;
+  is_deleted?: number;
+}
+
+export interface OfferDiscount {
+  id: string;
+  title: string;
+  code: string;
+  description: string;
+  discount_value: number;
+  discount_type: 'percentage' | 'flat';
+  status: 'draft' | 'active' | 'expired';
+}
+
+export interface FaqItem {
+  id: string;
+  question: string;
+  answer: string;
+  display_order: number;
+}
+
+export interface TeamMember {
+  id: string;
+  name: string;
+  role: string;
+  bio: string;
+  image: string;
+  display_order: number;
+}
+
+export interface MediaItem {
+  id: string;
+  url: string;
+  alt_text: string;
+  caption: string;
+  category: string;
+  file_size: number;
+  dimensions: string;
+  created_at?: string;
+}
+
+export interface SitePage {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  status: 'draft' | 'published' | 'scheduled';
+  display_order: number;
+  version: number;
+  published_at?: string;
+  created_at?: string;
+}
+
+export interface AuditLog {
+  id: string;
+  user_id: string;
+  action: string;
+  details: string;
+  created_at: string;
+}
+
+export interface EventBanner {
+  id: string;
+  title: string;
+  subtitle: string;
+  image_url: string;
+  cta_text: string;
+  cta_link: string;
+  is_active?: boolean;
+  status?: string;
+  display_order?: number;
+  created_at?: string;
+}
+
 // ── Event dispatch helper to notify all open UI components instantly ─────────
 function notifySync() {
   if (typeof window !== 'undefined') {
@@ -16,6 +96,7 @@ function notifySync() {
   }
 }
 
+// ── Core API Path Mapping ────────────────────────────────────────────────────
 function getApiUrl(url: string): string {
   if (typeof window !== 'undefined') {
     const hostname = window.location.hostname;
@@ -26,10 +107,27 @@ function getApiUrl(url: string): string {
   return url;
 }
 
+// Fetch headers helper incorporating JWT tokens
+function getHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json'
+  };
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('wings_admin_jwt');
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+  }
+  return headers;
+}
+
 // ── Core D1 API fetch helpers ──────────────────────────────────────────────────
 async function apiFetch(url: string): Promise<any> {
   try {
-    const res = await fetch(getApiUrl(url), { cache: 'no-store' });
+    const res = await fetch(getApiUrl(url), {
+      headers: getHeaders(),
+      cache: 'no-store'
+    });
     if (!res.ok) {
       return { success: false, data: [] };
     }
@@ -43,7 +141,7 @@ async function apiPost(url: string, data: any): Promise<any> {
   try {
     const res = await fetch(getApiUrl(url), {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: getHeaders(),
       body: JSON.stringify(data),
     });
     if (!res.ok) {
@@ -57,7 +155,10 @@ async function apiPost(url: string, data: any): Promise<any> {
 
 async function apiDelete(url: string): Promise<any> {
   try {
-    const res = await fetch(getApiUrl(url), { method: 'DELETE' });
+    const res = await fetch(getApiUrl(url), {
+      method: 'DELETE',
+      headers: getHeaders()
+    });
     if (!res.ok) {
       return { success: false };
     }
@@ -68,14 +169,11 @@ async function apiDelete(url: string): Promise<any> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  RESERVATIONS / BOOKINGS — /api/bookings (Cloudflare D1)
+//  RESERVATIONS / BOOKINGS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredReservations(): Promise<Reservation[]> {
-  try {
-    const res = await apiFetch('/api/bookings');
-    if (res.success && Array.isArray(res.data)) return res.data;
-  } catch (e) { console.error('[D1] getStoredReservations:', e); }
-  return [];
+  const res = await apiFetch('/api/bookings');
+  return res.success && Array.isArray(res.data) ? res.data : [];
 }
 
 export async function saveReservation(reservation: Reservation): Promise<void> {
@@ -87,37 +185,25 @@ export async function saveReservation(reservation: Reservation): Promise<void> {
 }
 
 export async function updateReservationStatus(id: string, newStatus: string): Promise<Reservation[]> {
-  try {
-    const all = await getStoredReservations();
-    const matched = all.find(r => r.id === id);
-    if (matched) await apiPost('/api/bookings', { ...matched, status: newStatus });
-    notifySync();
-    return await getStoredReservations();
-  } catch (e) { console.error('[D1] updateReservationStatus:', e); return []; }
+  const all = await getStoredReservations();
+  const matched = all.find(r => r.id === id);
+  if (matched) await apiPost('/api/bookings', { ...matched, status: newStatus });
+  notifySync();
+  return getStoredReservations();
 }
 
 export async function deleteReservation(id: string): Promise<Reservation[]> {
-  try {
-    await apiDelete(`/api/bookings?id=${id}`);
-    notifySync();
-  } catch (e) { console.error('[D1] deleteReservation:', e); }
+  await apiDelete(`/api/bookings/${id}`);
+  notifySync();
   return getStoredReservations();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  GALLERY — /api/gallery (Cloudflare D1)
+//  GALLERY
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
-  try {
-    const res = await apiFetch('/api/gallery');
-    if (res.success && Array.isArray(res.data)) {
-      if (res.data.length > 0) return res.data;
-      await Promise.all(INITIAL_GALLERY.map(item => apiPost('/api/gallery', item)));
-      const fresh = await apiFetch('/api/gallery');
-      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
-    }
-  } catch (e) { console.error('[D1] getStoredGalleryItems:', e); }
-  return INITIAL_GALLERY;
+  const res = await apiFetch('/api/gallery');
+  return res.success && Array.isArray(res.data) ? res.data : INITIAL_GALLERY;
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
@@ -131,25 +217,37 @@ export async function updateGalleryItem(item: GalleryItem): Promise<GalleryItem[
 }
 
 export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
-  await apiDelete(`/api/gallery?id=${id}`);
+  await apiDelete(`/api/gallery/${id}`);
   notifySync();
   return getStoredGalleryItems();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  MENU ITEMS — /api/menu (Cloudflare D1)
+//  MENU CATEGORIES
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function getStoredCategories(): Promise<MenuCategory[]> {
+  const res = await apiFetch('/api/categories');
+  return res.success && Array.isArray(res.data) ? res.data : [];
+}
+
+export async function saveCategory(cat: MenuCategory): Promise<MenuCategory[]> {
+  await apiPost('/api/categories', cat);
+  notifySync();
+  return getStoredCategories();
+}
+
+export async function deleteCategory(id: string): Promise<MenuCategory[]> {
+  await apiDelete(`/api/categories/${id}`);
+  notifySync();
+  return getStoredCategories();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  MENU ITEMS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredMenuItems(): Promise<MenuItem[]> {
-  try {
-    const res = await apiFetch('/api/menu');
-    if (res.success && Array.isArray(res.data)) {
-      if (res.data.length > 0) return res.data;
-      await Promise.all(INITIAL_MENU_ITEMS.map(item => apiPost('/api/menu', item)));
-      const fresh = await apiFetch('/api/menu');
-      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
-    }
-  } catch (e) { console.error('[D1] getStoredMenuItems:', e); }
-  return INITIAL_MENU_ITEMS;
+  const res = await apiFetch('/api/menu');
+  return res.success && Array.isArray(res.data) ? res.data : INITIAL_MENU_ITEMS;
 }
 
 export async function saveMenuItem(item: MenuItem): Promise<MenuItem[]> {
@@ -163,25 +261,17 @@ export async function updateMenuItem(item: MenuItem): Promise<MenuItem[]> {
 }
 
 export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
-  await apiDelete(`/api/menu?id=${id}`);
+  await apiDelete(`/api/menu/${id}`);
   notifySync();
   return getStoredMenuItems();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  BLOGS — /api/blogs (Cloudflare D1)
+//  BLOGS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredBlogs(): Promise<BlogPost[]> {
-  try {
-    const res = await apiFetch('/api/blogs');
-    if (res.success && Array.isArray(res.data)) {
-      if (res.data.length > 0) return res.data;
-      await Promise.all(INITIAL_BLOGS.map(b => apiPost('/api/blogs', b)));
-      const fresh = await apiFetch('/api/blogs');
-      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
-    }
-  } catch (e) { console.error('[D1] getStoredBlogs:', e); }
-  return INITIAL_BLOGS;
+  const res = await apiFetch('/api/blogs');
+  return res.success && Array.isArray(res.data) ? res.data : INITIAL_BLOGS;
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
@@ -195,47 +285,37 @@ export async function updateBlog(blog: BlogPost): Promise<BlogPost[]> {
 }
 
 export async function deleteBlog(id: string): Promise<BlogPost[]> {
-  await apiDelete(`/api/blogs?id=${id}`);
+  await apiDelete(`/api/blogs/${id}`);
   notifySync();
   return getStoredBlogs();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  REVIEWS — /api/reviews (Cloudflare D1)
+//  REVIEWS / TESTIMONIALS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredReviews(): Promise<Review[]> {
-  try {
-    const res = await apiFetch('/api/reviews');
-    if (res.success && Array.isArray(res.data)) {
-      if (res.data.length > 0) return res.data;
-      await Promise.all(INITIAL_REVIEWS.map(r => apiPost('/api/reviews', r)));
-      const fresh = await apiFetch('/api/reviews');
-      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
-    }
-  } catch (e) { console.error('[D1] getStoredReviews:', e); }
-  return INITIAL_REVIEWS;
+  const res = await apiFetch('/api/reviews');
+  return res.success && Array.isArray(res.data) ? res.data : INITIAL_REVIEWS;
 }
 
-export async function saveReview(rev: Review): Promise<void> {
-  await apiPost('/api/reviews', rev);
+export async function saveReview(review: Review): Promise<Review[]> {
+  await apiPost('/api/reviews', review);
   notifySync();
+  return getStoredReviews();
 }
 
 export async function deleteReview(id: string): Promise<Review[]> {
-  await apiDelete(`/api/reviews?id=${id}`);
+  await apiDelete(`/api/reviews/${id}`);
   notifySync();
   return getStoredReviews();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  CONTACT MESSAGES — /api/contact (Cloudflare D1)
+//  CONTACT MESSAGES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredContactMessages(): Promise<ContactMessage[]> {
-  try {
-    const res = await apiFetch('/api/contact');
-    if (res.success && Array.isArray(res.data)) return res.data;
-  } catch (e) { console.error('[D1] getStoredContactMessages:', e); }
-  return [];
+  const res = await apiFetch('/api/contact');
+  return res.success && Array.isArray(res.data) ? res.data : [];
 }
 
 export async function saveContactMessage(msg: ContactMessage): Promise<void> {
@@ -247,49 +327,17 @@ export async function saveContactMessage(msg: ContactMessage): Promise<void> {
 }
 
 export async function deleteContactMessage(id: string): Promise<ContactMessage[]> {
-  await apiDelete(`/api/contact?id=${id}`);
+  await apiDelete(`/api/contact/${id}`);
   notifySync();
   return getStoredContactMessages();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  EVENT BANNERS — /api/banners (Cloudflare D1)
+//  EVENT BANNERS
 // ═══════════════════════════════════════════════════════════════════════════════
-export interface EventBanner {
-  id: string;
-  title: string;
-  subtitle: string;
-  image_url: string;
-  cta_text: string;
-  cta_link: string;
-  is_active: boolean;
-  created_at: string;
-}
-
-const DEFAULT_BANNERS: EventBanner[] = [
-  {
-    id: 'eb-1',
-    title: '🎉 Weekend Riverside Fiesta!',
-    subtitle: 'Live music, gourmet BBQ & unlimited mocktails every Saturday & Sunday evening.',
-    image_url: '/images/Screenshot_20260720-180609_Maps.png',
-    cta_text: 'Reserve Your Spot',
-    cta_link: '#booking',
-    is_active: true,
-    created_at: new Date().toISOString(),
-  },
-];
-
 export async function getStoredEventBanners(): Promise<EventBanner[]> {
-  try {
-    const res = await apiFetch('/api/banners');
-    if (res.success && Array.isArray(res.data)) {
-      if (res.data.length > 0) return res.data;
-      await Promise.all(DEFAULT_BANNERS.map(b => apiPost('/api/banners', b)));
-      const fresh = await apiFetch('/api/banners');
-      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
-    }
-  } catch (e) { console.error('[D1] getStoredEventBanners:', e); }
-  return DEFAULT_BANNERS;
+  const res = await apiFetch('/api/banners');
+  return res.success && Array.isArray(res.data) ? res.data : [];
 }
 
 export async function saveEventBanner(banner: EventBanner): Promise<EventBanner[]> {
@@ -303,7 +351,7 @@ export async function updateEventBanner(banner: EventBanner): Promise<EventBanne
 }
 
 export async function deleteEventBanner(id: string): Promise<EventBanner[]> {
-  await apiDelete(`/api/banners?id=${id}`);
+  await apiDelete(`/api/banners/${id}`);
   notifySync();
   return getStoredEventBanners();
 }
@@ -319,19 +367,11 @@ export async function toggleEventBanner(id: string): Promise<EventBanner[]> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  WATER SPORTS RIDES — /api/watersports (Cloudflare D1)
+//  WATER SPORTS RIDES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredWaterSports(): Promise<RideTicket[]> {
-  try {
-    const res = await apiFetch('/api/watersports');
-    if (res.success && Array.isArray(res.data)) {
-      if (res.data.length > 0) return res.data;
-      await Promise.all(WATER_SPORTS_RIDES.map(r => apiPost('/api/watersports', r)));
-      const fresh = await apiFetch('/api/watersports');
-      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
-    }
-  } catch (e) { console.error('[D1] getStoredWaterSports:', e); }
-  return WATER_SPORTS_RIDES;
+  const res = await apiFetch('/api/watersports');
+  return res.success && Array.isArray(res.data) ? res.data : WATER_SPORTS_RIDES;
 }
 
 export async function saveWaterSports(ride: RideTicket): Promise<RideTicket[]> {
@@ -345,24 +385,31 @@ export async function updateWaterSports(ride: RideTicket): Promise<RideTicket[]>
 }
 
 export async function deleteWaterSports(id: string): Promise<RideTicket[]> {
-  await apiDelete(`/api/watersports?id=${id}`);
+  await apiDelete(`/api/watersports/${id}`);
   notifySync();
   return getStoredWaterSports();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  MENU BOOKLET PAGES — /api/menupages (Cloudflare D1)
+//  MENU BOOKLET PAGES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
-  try {
-    const res = await apiFetch('/api/menupages');
-    if (res.success && Array.isArray(res.data)) {
-      if (res.data.length > 0) return res.data;
-      await Promise.all(MENU_BOOKLET_PAGES.map(p => apiPost('/api/menupages', p)));
-      const fresh = await apiFetch('/api/menupages');
-      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
-    }
-  } catch (e) { console.error('[D1] getStoredMenuPages:', e); }
+  const res = await apiFetch('/api/menupages');
+  if (res.success && Array.isArray(res.data)) {
+    return res.data.map((item: any) => {
+      let cats = [];
+      if (typeof item.categories === 'string') {
+        try { cats = JSON.parse(item.categories); } catch (e) { cats = []; }
+      } else if (Array.isArray(item.categories)) {
+        cats = item.categories;
+      }
+      return {
+        ...item,
+        pageNumber: item.page_number ?? item.pageNumber,
+        categories: cats
+      };
+    });
+  }
   return MENU_BOOKLET_PAGES;
 }
 
@@ -377,22 +424,17 @@ export async function updateMenuPage(page: MenuPageDefinition): Promise<MenuPage
 }
 
 export async function deleteMenuPage(pageNumber: number): Promise<MenuPageDefinition[]> {
-  await apiDelete(`/api/menupages?page_number=${pageNumber}`);
+  await apiDelete(`/api/menupages/${pageNumber}`);
   notifySync();
   return getStoredMenuPages();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  HERO SECTION SETTINGS — /api/hero (Cloudflare D1)
+//  SITE SETTINGS & HERO
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredHeroSettings(): Promise<HeroSettings> {
-  try {
-    const res = await apiFetch('/api/hero');
-    if (res.success && res.data && Object.keys(res.data).length > 0) {
-      return res.data as HeroSettings;
-    }
-  } catch (e) { console.error('[D1] getStoredHeroSettings:', e); }
-  return DEFAULT_HERO_SETTINGS;
+  const res = await apiFetch('/api/hero');
+  return res.success && res.data ? (res.data as HeroSettings) : DEFAULT_HERO_SETTINGS;
 }
 
 export async function saveHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
@@ -402,7 +444,115 @@ export async function saveHeroSettings(settings: HeroSettings): Promise<HeroSett
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  SYNC — trigger refresh across browser tabs/components
+//  FAQs
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function getStoredFaqs(): Promise<FaqItem[]> {
+  const res = await apiFetch('/api/faqs');
+  return res.success && Array.isArray(res.data) ? res.data : [];
+}
+
+export async function saveFaq(faq: FaqItem): Promise<FaqItem[]> {
+  await apiPost('/api/faqs', faq);
+  notifySync();
+  return getStoredFaqs();
+}
+
+export async function deleteFaq(id: string): Promise<FaqItem[]> {
+  await apiDelete(`/api/faqs/${id}`);
+  notifySync();
+  return getStoredFaqs();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  TEAM MEMBERS
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function getStoredTeamMembers(): Promise<TeamMember[]> {
+  const res = await apiFetch('/api/team');
+  return res.success && Array.isArray(res.data) ? res.data : [];
+}
+
+export async function saveTeamMember(tm: TeamMember): Promise<TeamMember[]> {
+  await apiPost('/api/team', tm);
+  notifySync();
+  return getStoredTeamMembers();
+}
+
+export async function deleteTeamMember(id: string): Promise<TeamMember[]> {
+  await apiDelete(`/api/team/${id}`);
+  notifySync();
+  return getStoredTeamMembers();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  OFFERS & DISCOUNTS
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function getStoredOffers(): Promise<OfferDiscount[]> {
+  const res = await apiFetch('/api/offers');
+  return res.success && Array.isArray(res.data) ? res.data : [];
+}
+
+export async function saveOffer(off: OfferDiscount): Promise<OfferDiscount[]> {
+  await apiPost('/api/offers', off);
+  notifySync();
+  return getStoredOffers();
+}
+
+export async function deleteOffer(id: string): Promise<OfferDiscount[]> {
+  await apiDelete(`/api/offers/${id}`);
+  notifySync();
+  return getStoredOffers();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  MEDIA LIBRARY
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function getStoredMedia(): Promise<MediaItem[]> {
+  const res = await apiFetch('/api/media');
+  return res.success && Array.isArray(res.data) ? res.data : [];
+}
+
+export async function saveMediaItem(media: MediaItem): Promise<MediaItem[]> {
+  await apiPost('/api/media', media);
+  notifySync();
+  return getStoredMedia();
+}
+
+export async function deleteMediaItem(id: string): Promise<MediaItem[]> {
+  await apiDelete(`/api/media/${id}`);
+  notifySync();
+  return getStoredMedia();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  AUDIT LOGS
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function getStoredAuditLogs(): Promise<AuditLog[]> {
+  const res = await apiFetch('/api/logs');
+  return res.success && Array.isArray(res.data) ? res.data : [];
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  DYNAMIC PAGES
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function getStoredPages(): Promise<SitePage[]> {
+  const res = await apiFetch('/api/pages');
+  return res.success && Array.isArray(res.data) ? res.data : [];
+}
+
+export async function savePage(page: SitePage): Promise<SitePage[]> {
+  await apiPost('/api/pages', page);
+  notifySync();
+  return getStoredPages();
+}
+
+export async function deletePage(id: string, hard: boolean = false): Promise<SitePage[]> {
+  await apiDelete(`/api/pages/${id}?hard=${hard ? '1' : '0'}`);
+  notifySync();
+  return getStoredPages();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  SYNC
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function syncDatabase(): Promise<void> {
   notifySync();

@@ -5,6 +5,9 @@ export interface GalleryItem {
   category: string;
   image_url: string;
   featured?: boolean;
+  display_order?: number;
+  is_deleted?: number;
+  created_at?: string;
 }
 
 export const INITIAL_GALLERY: GalleryItem[] = [

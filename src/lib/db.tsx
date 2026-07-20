@@ -64,4 +64,40 @@ export {
   // Hero Settings
   getStoredHeroSettings,
   saveHeroSettings,
+  // Menu Categories
+  getStoredCategories,
+  saveCategory,
+  deleteCategory,
+  // FAQs
+  getStoredFaqs,
+  saveFaq,
+  deleteFaq,
+  // Team Members
+  getStoredTeamMembers,
+  saveTeamMember,
+  deleteTeamMember,
+  // Offers
+  getStoredOffers,
+  saveOffer,
+  deleteOffer,
+  // Media Library
+  getStoredMedia,
+  saveMediaItem,
+  deleteMediaItem,
+  // Audit Logs
+  getStoredAuditLogs,
+  // Dynamic Pages
+  getStoredPages,
+  savePage,
+  deletePage,
+} from '@/controllers/StorageController';
+
+export type {
+  MenuCategory,
+  OfferDiscount,
+  FaqItem,
+  TeamMember,
+  MediaItem,
+  SitePage,
+  AuditLog,
 } from '@/controllers/StorageController';
