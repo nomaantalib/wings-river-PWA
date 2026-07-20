@@ -50,14 +50,52 @@ export default function ImageUploader({
       setError(`Image must be smaller than ${maxSizeMB}MB.`);
       return;
     }
+    const compressAndResize = (dataUrl: string, callback: (compressed: string) => void) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const MAX_HEIGHT = 800;
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > MAX_WIDTH) {
+            height = Math.round((height * MAX_WIDTH) / width);
+            width = MAX_WIDTH;
+          }
+        } else {
+          if (height > MAX_HEIGHT) {
+            width = Math.round((width * MAX_HEIGHT) / height);
+            height = MAX_HEIGHT;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        if (ctx) {
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.75);
+          callback(compressedDataUrl);
+        } else {
+          callback(dataUrl);
+        }
+      };
+      img.onerror = () => callback(dataUrl);
+      img.src = dataUrl;
+    };
+
     setLoading(true);
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result as string;
-      onChange(result);
-      setLoading(false);
-      setUploadSuccess(true);
-      setTimeout(() => setUploadSuccess(false), 2500);
+      compressAndResize(result, (compressed) => {
+        onChange(compressed);
+        setLoading(false);
+        setUploadSuccess(true);
+        setTimeout(() => setUploadSuccess(false), 2500);
+      });
     };
     reader.onerror = () => {
       setError('Failed to read image file. Please try again.');
