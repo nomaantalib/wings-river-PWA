@@ -1,7 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Anchor, ShieldCheck, HeartHandshake, Waves, Sparkles, Ticket, Calendar, CheckCircle2, ZoomIn, X } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import {
+  Anchor, ShieldCheck, HeartHandshake, Waves, Ticket,
+  ZoomIn, ZoomOut, X, Download, Maximize2, CheckCircle2,
+  IndianRupee, AlertCircle, Clock
+} from 'lucide-react';
 
 interface WaterSportsTicketsProps {
   onOpenBooking: (type?: string) => void;
@@ -10,6 +14,7 @@ interface WaterSportsTicketsProps {
 export interface RideTicket {
   id: string;
   name: string;
+  emoji: string;
   category: 'Water Sports' | 'Other Activities';
   price: number;
   unit: string;
@@ -20,61 +25,43 @@ export interface RideTicket {
 
 export const WATER_SPORTS_RIDES: RideTicket[] = [
   {
-    id: 'ride-1',
-    name: 'Jetski Thrill Ride',
-    category: 'Water Sports',
-    price: 350,
-    unit: 'Per Person 1 Round',
-    description: 'High speed jet ski adventure on Gomti river with certified instructor & life jacket.',
+    id: 'ride-1', name: 'Jetski Thrill Ride', emoji: '🏄',
+    category: 'Water Sports', price: 350, unit: 'Per Person 1 Round',
+    description: 'High-speed jet ski adventure on Gomti river with certified instructor & life jacket provided.',
     badge: 'Most Popular',
     image: '/images/Screenshot_20260720-180544_Maps.png'
   },
   {
-    id: 'ride-2',
-    name: 'Speed Boat Ride',
-    category: 'Water Sports',
-    price: 250,
-    unit: 'Per Person 1 Round',
-    description: 'Exhilarating twin-engine speedboat ride offering panoramic riverfront views.',
+    id: 'ride-2', name: 'Speed Boat Ride', emoji: '⚡',
+    category: 'Water Sports', price: 250, unit: 'Per Person 1 Round',
+    description: 'Twin-engine speedboat ride with panoramic riverfront views. Life jackets included.',
     badge: 'Family Favorite',
     image: '/images/Screenshot_20260720-180745_Maps.png'
   },
   {
-    id: 'ride-3',
-    name: 'Motor Boat Cruise',
-    category: 'Water Sports',
-    price: 200,
-    unit: 'Per Person 1 Round',
+    id: 'ride-3', name: 'Motor Boat Cruise', emoji: '🚤',
+    category: 'Water Sports', price: 200, unit: 'Per Person 1 Round',
     description: 'Smooth & comfortable motor boat cruise around Laxman Jhula park riverfront.',
     badge: 'Scenic Cruise',
     image: '/images/Screenshot_20260720-180555_Maps.png'
   },
   {
-    id: 'ride-4',
-    name: 'Panda Train',
-    category: 'Other Activities',
-    price: 50,
-    unit: 'Per Person 1 Round',
+    id: 'ride-4', name: 'Panda Train', emoji: '🐼',
+    category: 'Other Activities', price: 50, unit: 'Per Person 1 Round',
     description: 'Fun musical track train ride for toddlers, kids & families near the river park.',
     badge: 'Kids Zone',
     image: '/images/Screenshot_20260720-180737_Maps.png'
   },
   {
-    id: 'ride-5',
-    name: 'Electric Kids Car',
-    category: 'Other Activities',
-    price: 50,
-    unit: 'Per Person 1 Round',
+    id: 'ride-5', name: 'Electric Kids Car', emoji: '🚗',
+    category: 'Other Activities', price: 50, unit: 'Per Person 1 Round',
     description: 'Illuminated battery-powered electric drive cars for young adventurers.',
     badge: 'Kids Fun',
     image: '/images/Screenshot_20260720-180621_Maps.png'
   },
   {
-    id: 'ride-6',
-    name: 'Trampoline Jump',
-    category: 'Other Activities',
-    price: 50,
-    unit: 'Per Person 1 Round',
+    id: 'ride-6', name: 'Trampoline Jump', emoji: '🤸',
+    category: 'Other Activities', price: 50, unit: 'Per Person 1 Round',
     description: 'Enclosed safety netting high-bounce jumping trampoline enclosure.',
     badge: 'Active Play',
     image: '/images/Screenshot_20260720-180724_Maps.png'
@@ -84,83 +71,121 @@ export const WATER_SPORTS_RIDES: RideTicket[] = [
 export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTicketsProps) {
   const [selectedCategory, setSelectedCategory] = useState<'All' | 'Water Sports' | 'Other Activities'>('All');
   const [showPosterModal, setShowPosterModal] = useState(false);
+  const [zoomLevel, setZoomLevel] = useState(1);
+  const [hoveredRide, setHoveredRide] = useState<string | null>(null);
 
   const filteredRides = WATER_SPORTS_RIDES.filter(
     (r) => selectedCategory === 'All' || r.category === selectedCategory
   );
 
-  return (
-    <section id="water-sports-tickets" className="py-16 bg-cream-50 relative">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        {/* Poster Style Ticket Header */}
-        <div className="bg-gradient-to-r from-dark-950 via-mint-900 to-dark-950 rounded-3xl p-8 sm:p-12 border-2 border-gold-400/40 shadow-2xl text-white relative overflow-hidden mb-12">
-          {/* Subtle Background Waves */}
-          <div className="absolute inset-0 bg-[radial-gradient(#8FD3C7_1px,transparent_1px)] [background-size:20px_20px] opacity-15 pointer-events-none" />
+  const zoomIn = () => setZoomLevel((z) => Math.min(z + 0.3, 4));
+  const zoomOut = () => setZoomLevel((z) => Math.max(z - 0.3, 0.5));
+  const resetZoom = () => setZoomLevel(1);
 
-          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
-            <div className="lg:col-span-8 space-y-4">
-              <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-gold-400 text-dark-950 font-extrabold text-xs tracking-wider uppercase shadow-md">
+  return (
+    <section id="water-sports-tickets" className="py-20 bg-gradient-to-b from-cream-50 via-white to-cream-50 relative overflow-hidden">
+      {/* Ambient decorations */}
+      <div className="absolute -top-20 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-mint-400 to-blue-400" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-mint-200/20 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+
+        {/* ── HERO HEADER CARD ── */}
+        <div className="relative rounded-3xl overflow-hidden mb-16 shadow-2xl border border-blue-300/30">
+          {/* Background image */}
+          <div
+            className="absolute inset-0 bg-cover bg-center opacity-25"
+            style={{ backgroundImage: "url('/images/Screenshot_20260720-180544_Maps.png')" }}
+          />
+          <div className="absolute inset-0 bg-gradient-to-br from-[#0a1628] via-[#0d2244] to-[#061525]" style={{ opacity: 0.93 }} />
+
+          {/* Wave SVG decoration */}
+          <div className="absolute bottom-0 left-0 right-0 overflow-hidden leading-none">
+            <svg viewBox="0 0 1200 80" className="w-full" preserveAspectRatio="none">
+              <path d="M0,40 C300,80 900,0 1200,40 L1200,80 L0,80 Z" fill="rgba(255,255,255,0.04)" />
+            </svg>
+          </div>
+
+          <div className="relative z-10 grid grid-cols-1 lg:grid-cols-5 gap-8 items-stretch p-8 sm:p-12">
+            {/* Left: Text */}
+            <div className="lg:col-span-3 space-y-5">
+              <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-yellow-400 text-dark-950 font-extrabold text-xs tracking-wider uppercase shadow-md">
                 <Ticket className="w-4 h-4" />
-                <span>Lucknow Water Sports Counter</span>
+                <span>Lucknow Water Sports — Official Tokens</span>
               </div>
 
               <h2 className="font-serif text-3xl sm:text-5xl font-extrabold text-white tracking-tight leading-tight">
-                All Tokens & Tickets Available Here
+                All Tokens & Tickets<br />
+                <span className="text-yellow-400">Available Here!</span>
               </h2>
 
-              <p className="font-sans text-cream-200 text-sm sm:text-base max-w-2xl">
-                Official ride tokens for Gomti river speedboats, jet skis, motor boats & kids amusement rides are available directly at our riverside counter beside Wings River Café.
+              <p className="font-sans text-blue-100 text-sm sm:text-base max-w-2xl leading-relaxed">
+                Reserve your ride token online and skip the queue — then simply <strong className="text-yellow-300">pay at the counter</strong> when you arrive. Tokens are valid for the same day.
               </p>
 
-              {/* Safety Badges & View Poster Button */}
-              <div className="flex flex-wrap items-center gap-3 pt-2">
-                <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-1.5 rounded-xl text-xs text-mint-200 border border-white/10">
+              {/* Pay at Counter Notice */}
+              <div className="flex items-start space-x-3 bg-yellow-400/15 border border-yellow-400/40 rounded-2xl px-5 py-4">
+                <AlertCircle className="w-5 h-5 text-yellow-400 shrink-0 mt-0.5" />
+                <div>
+                  <p className="text-yellow-300 font-extrabold text-sm">Online Reservation → Pay at Counter</p>
+                  <p className="text-blue-200 text-xs mt-0.5 leading-relaxed">
+                    All ride tokens & tickets are available <strong>only at the physical counter</strong> beside Wings River Café. Reserve your spot online now — payment is collected at the waterfront.
+                  </p>
+                </div>
+              </div>
+
+              {/* Safety Badges */}
+              <div className="flex flex-wrap items-center gap-3 pt-1">
+                <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-blue-100 border border-white/15">
                   <ShieldCheck className="w-4 h-4 text-mint-400" />
-                  <span>Safe Rides (Your Safety Our Priority)</span>
+                  <span>Safe Rides · Your Safety Our Priority</span>
                 </div>
-                <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-1.5 rounded-xl text-xs text-gold-300 border border-white/10">
-                  <HeartHandshake className="w-4 h-4 text-gold-400" />
-                  <span>Happy Rides (Fun for Everyone)</span>
+                <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-yellow-200 border border-white/15">
+                  <HeartHandshake className="w-4 h-4 text-yellow-400" />
+                  <span>Happy Rides · Fun for Everyone</span>
                 </div>
-                <button
-                  onClick={() => setShowPosterModal(true)}
-                  className="flex items-center space-x-1.5 bg-gold-500 hover:bg-gold-400 text-dark-950 px-4 py-1.5 rounded-xl text-xs font-bold transition-all shadow-md"
-                >
-                  <ZoomIn className="w-4 h-4" />
-                  <span>View Official Rate Poster</span>
-                </button>
+                <div className="flex items-center space-x-2 bg-white/10 px-3.5 py-2 rounded-xl text-xs text-blue-100 border border-white/15">
+                  <Waves className="w-4 h-4 text-mint-300" />
+                  <span>Feel the Thrill · Splash & Make Memories!</span>
+                </div>
               </div>
             </div>
 
-            {/* Poster Highlight Card */}
-            <div className="lg:col-span-4 bg-white/10 backdrop-blur-md border border-white/20 p-6 rounded-3xl text-center space-y-4 shadow-xl">
-              <div className="w-16 h-16 rounded-2xl bg-gold-400 text-dark-950 flex items-center justify-center mx-auto shadow-lg">
-                <Anchor className="w-8 h-8" />
+            {/* Right: Official Poster Card */}
+            <div className="lg:col-span-2 flex flex-col gap-4">
+              {/* Poster preview */}
+              <div
+                className="relative rounded-2xl overflow-hidden border-2 border-yellow-400/50 shadow-2xl cursor-pointer group flex-1 min-h-[200px]"
+                onClick={() => setShowPosterModal(true)}
+              >
+                <img
+                  src="/images/watersports_menu.jpg"
+                  alt="Lucknow Water Sports — Official Rate Poster"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                />
+                <div className="absolute inset-0 bg-dark-950/30 group-hover:bg-dark-950/10 transition-colors flex items-center justify-center">
+                  <div className="bg-white/90 backdrop-blur-sm text-dark-900 font-bold text-xs px-4 py-2 rounded-full flex items-center space-x-2 shadow-lg group-hover:scale-110 transition-transform">
+                    <Maximize2 className="w-3.5 h-3.5" />
+                    <span>View Full Rate Poster</span>
+                  </div>
+                </div>
+                <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-yellow-400 text-dark-950 text-[10px] font-extrabold uppercase">Official</div>
               </div>
-              <h3 className="font-serif font-bold text-xl text-white">Instant Ticket Reservation</h3>
-              <p className="text-xs text-cream-200">
-                Reserve your ride token online to bypass ticket counter lines during peak hours.
-              </p>
-              <div className="flex flex-col gap-2">
-                <button
-                  onClick={() => onOpenBooking('speedboat_ride')}
-                  className="w-full py-3 bg-gradient-to-r from-mint-300 via-mint-400 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
-                >
-                  Book Ride Token Now
-                </button>
-                <button
-                  onClick={() => setShowPosterModal(true)}
-                  className="w-full py-2 bg-white/10 hover:bg-white/20 text-white font-semibold text-xs rounded-xl border border-white/20 transition-colors flex items-center justify-center space-x-1"
-                >
-                  <ZoomIn className="w-3.5 h-3.5 text-gold-400" />
-                  <span>View Official Ticket Poster</span>
-                </button>
-              </div>
+
+              {/* Reserve CTA */}
+              <button
+                onClick={() => onOpenBooking('speedboat_ride')}
+                className="w-full py-4 bg-gradient-to-r from-yellow-400 via-yellow-300 to-mint-400 text-dark-950 font-extrabold text-sm rounded-2xl shadow-xl hover:scale-105 transition-transform flex items-center justify-center space-x-2"
+              >
+                <Ticket className="w-4 h-4" />
+                <span>Reserve Ride Token Now — Pay at Counter</span>
+              </button>
             </div>
           </div>
         </div>
 
-        {/* Category Filter Tabs */}
+        {/* ── CATEGORY FILTER ── */}
         <div className="flex items-center justify-center space-x-3 mb-10">
           {(['All', 'Water Sports', 'Other Activities'] as const).map((cat) => (
             <button
@@ -168,99 +193,165 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
               onClick={() => setSelectedCategory(cat)}
               className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-300 ${
                 selectedCategory === cat
-                  ? 'bg-mint-500 text-dark-950 shadow-md scale-105'
-                  : 'bg-white text-gray-700 hover:bg-mint-100 border border-gray-200'
+                  ? 'bg-gradient-to-r from-blue-600 to-mint-500 text-white shadow-lg scale-105'
+                  : 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200 shadow-sm'
               }`}
             >
-              {cat}
+              {cat === 'Water Sports' ? '🌊 ' : cat === 'Other Activities' ? '🎡 ' : '🎯 '}{cat}
             </button>
           ))}
         </div>
 
-        {/* Ride Tickets Grid */}
+        {/* ── RIDE CARDS GRID ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredRides.map((ride) => (
             <div
               key={ride.id}
-              className="bg-white rounded-3xl overflow-hidden shadow-xl border border-cream-200 hover:border-mint-400 hover:shadow-2xl transition-all duration-300 flex flex-col group"
+              onMouseEnter={() => setHoveredRide(ride.id)}
+              onMouseLeave={() => setHoveredRide(null)}
+              className="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100 hover:border-blue-300 hover:shadow-2xl hover:-translate-y-1 transition-all duration-400 flex flex-col group"
             >
-              {/* Image & Badge */}
+              {/* Image */}
               <div className="relative h-52 w-full overflow-hidden bg-gray-900">
                 <img
                   src={ride.image}
                   alt={ride.name}
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                 />
+                {/* Blur layer on hover */}
+                <div className={`absolute inset-0 bg-cover bg-center blur-xl opacity-0 group-hover:opacity-40 transition-opacity duration-500 scale-110`}
+                  style={{ backgroundImage: `url(${ride.image})` }} />
+
                 <div className="absolute top-3 left-3">
-                  <span className="px-3 py-1 rounded-full bg-dark-950/80 backdrop-blur-md text-gold-400 text-[10px] font-bold uppercase tracking-wider border border-gold-400/30">
+                  <span className="px-3 py-1 rounded-full bg-dark-950/85 backdrop-blur-md text-yellow-400 text-[10px] font-bold uppercase tracking-wider border border-yellow-400/30">
                     {ride.badge || ride.category}
                   </span>
                 </div>
 
-                {/* Price Pill */}
-                <div className="absolute bottom-3 right-3 bg-gradient-to-r from-mint-500 to-gold-400 text-dark-950 font-serif font-extrabold text-base px-4 py-1.5 rounded-full shadow-lg">
-                  ₹{ride.price} <span className="text-[10px] font-sans font-normal text-dark-900">/ {ride.unit}</span>
+                {/* Price pill */}
+                <div className="absolute bottom-3 right-3 bg-gradient-to-r from-blue-600 to-mint-500 text-white font-serif font-extrabold text-base px-4 py-1.5 rounded-full shadow-lg">
+                  ₹{ride.price}
+                  <span className="text-[9px] font-sans font-normal ml-1 opacity-90">/ {ride.unit}</span>
+                </div>
+
+                {/* Category chip */}
+                <div className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-white/20 backdrop-blur-sm text-white text-[9px] font-bold uppercase">
+                  {ride.emoji}
                 </div>
               </div>
 
               {/* Card Details */}
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-mint-600 block mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 block mb-1">
                     {ride.category}
                   </span>
-                  <h3 className="font-serif font-bold text-xl text-dark-900 group-hover:text-mint-700 transition-colors">
-                    {ride.name}
+                  <h3 className="font-serif font-bold text-xl text-dark-900 group-hover:text-blue-700 transition-colors">
+                    {ride.emoji} {ride.name}
                   </h3>
-                  <p className="font-sans text-xs text-gray-600 leading-relaxed mt-2">
-                    {ride.description}
-                  </p>
+                  <p className="font-sans text-xs text-gray-600 leading-relaxed mt-2">{ride.description}</p>
+                </div>
+
+                {/* Pay at counter notice */}
+                <div className="flex items-center space-x-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
+                  <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
+                  <span className="text-[10px] text-amber-700 font-semibold">Reserve now · Pay at counter on arrival</span>
                 </div>
 
                 <button
-                  onClick={() => onOpenBooking('speedboat_ride')}
-                  className="w-full py-3 bg-cream-100 hover:bg-mint-400 text-dark-900 font-bold text-xs rounded-xl border border-mint-200 transition-colors flex items-center justify-center space-x-1.5 shadow-sm"
+                  onClick={() => onOpenBooking(ride.id)}
+                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-mint-500 hover:from-blue-500 hover:to-mint-400 text-white font-bold text-xs rounded-xl transition-all shadow-lg hover:shadow-blue-300/40 flex items-center justify-center space-x-1.5"
                 >
-                  <Ticket className="w-3.5 h-3.5 text-gold-600" />
-                  <span>Reserve {ride.name} Token</span>
+                  <Ticket className="w-3.5 h-3.5" />
+                  <span>Get Token — {ride.emoji} {ride.name}</span>
                 </button>
               </div>
             </div>
           ))}
         </div>
+
+        {/* ── FOOTER NOTE ── */}
+        <div className="mt-12 text-center">
+          <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-blue-50 border border-blue-200 rounded-3xl px-8 py-5">
+            <div className="flex items-center space-x-2 text-blue-700">
+              <CheckCircle2 className="w-5 h-5 text-mint-500" />
+              <span className="text-sm font-bold">Token reserved online</span>
+            </div>
+            <span className="text-gray-400 hidden sm:block">→</span>
+            <div className="flex items-center space-x-2 text-blue-700">
+              <IndianRupee className="w-5 h-5 text-yellow-500" />
+              <span className="text-sm font-bold">Pay cash at the Lucknow Water Sports counter</span>
+            </div>
+            <span className="text-gray-400 hidden sm:block">→</span>
+            <div className="flex items-center space-x-2 text-blue-700">
+              <Waves className="w-5 h-5 text-blue-500" />
+              <span className="text-sm font-bold">Enjoy your ride!</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Official Rate Poster Lightbox Modal */}
+      {/* ─── FULLSCREEN POSTER LIGHTBOX ─── */}
       {showPosterModal && (
-        <div className="fixed inset-0 z-[120] bg-dark-950/95 backdrop-blur-xl flex items-center justify-center p-4">
-          <button
-            onClick={() => setShowPosterModal(false)}
-            className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
-
-          <div className="max-w-4xl w-full bg-dark-900 rounded-3xl overflow-hidden border border-gold-400/40 shadow-2xl p-4 flex flex-col items-center">
-            <div className="max-h-[80vh] overflow-auto w-full flex justify-center bg-black/40 rounded-2xl p-2">
-              <img
-                src="/images/water_sports_ticket_poster.png"
-                alt="Lucknow Water Sports Official Rates & Ticket Poster"
-                className="max-h-[75vh] w-auto object-contain rounded-xl shadow-2xl"
-              />
-            </div>
-            <div className="w-full mt-4 flex items-center justify-between px-4">
+        <div
+          className="fixed inset-0 z-[200] bg-dark-950/97 backdrop-blur-2xl flex flex-col items-center justify-center"
+          onClick={(e) => { if (e.target === e.currentTarget) { setShowPosterModal(false); resetZoom(); } }}
+        >
+          {/* Control bar */}
+          <div className="flex items-center justify-between w-full max-w-5xl px-4 sm:px-6 py-3 mb-3">
+            <div className="flex items-center space-x-3">
+              <img src="/logo.png" alt="Logo" className="w-9 h-9 rounded-xl object-cover border border-yellow-400/40" />
               <div>
-                <span className="text-xs uppercase font-bold text-mint-400">Official Rate Board</span>
-                <h3 className="font-serif font-bold text-lg text-white">Lucknow Water Sports Ticket Poster</h3>
+                <span className="font-serif font-bold text-white text-sm block">Official Rate Poster</span>
+                <span className="text-[10px] text-yellow-400 font-semibold uppercase tracking-widest">Lucknow Water Sports</span>
               </div>
-              <a
-                href="/images/water_sports_ticket_poster.png"
-                download="Lucknow_Water_Sports_Ticket_Poster.png"
-                className="px-5 py-2.5 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
-              >
-                Download Poster
-              </a>
             </div>
+            <div className="flex items-center space-x-2">
+              <button onClick={zoomOut} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <button onClick={resetZoom} className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold min-w-[52px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </button>
+              <button onClick={zoomIn} className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-all">
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <a href="/images/watersports_menu.jpg" download="Lucknow_Water_Sports_Rates.jpg"
+                className="p-2 rounded-xl bg-mint-400/80 hover:bg-mint-400 text-dark-950 transition-all">
+                <Download className="w-4 h-4" />
+              </a>
+              <button onClick={() => { setShowPosterModal(false); resetZoom(); }}
+                className="p-2 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-rose-300 hover:text-white transition-all">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+
+          {/* Poster image */}
+          <div className="flex-1 w-full max-w-5xl flex items-center justify-center overflow-auto px-4">
+            <img
+              src="/images/watersports_menu.jpg"
+              alt="Lucknow Water Sports Official Rate Poster"
+              className="max-h-[80vh] max-w-full object-contain rounded-2xl shadow-2xl border border-yellow-400/20 select-none"
+              style={{
+                transform: `scale(${zoomLevel})`,
+                transformOrigin: 'center center',
+                transition: 'transform 0.2s ease-out',
+              }}
+              draggable={false}
+            />
+          </div>
+
+          {/* CTA below poster */}
+          <div className="w-full max-w-5xl px-4 py-4 flex items-center justify-between">
+            <p className="text-xs text-gray-500">Press <kbd className="px-1.5 py-0.5 bg-white/10 text-gray-300 rounded text-[10px] font-mono">Esc</kbd> to close</p>
+            <button
+              onClick={() => { setShowPosterModal(false); onOpenBooking('speedboat_ride'); }}
+              className="px-6 py-2.5 bg-gradient-to-r from-yellow-400 to-mint-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform flex items-center space-x-2"
+            >
+              <Ticket className="w-3.5 h-3.5" />
+              <span>Reserve Token — Pay at Counter</span>
+            </button>
           </div>
         </div>
       )}
