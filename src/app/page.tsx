@@ -7,6 +7,7 @@ import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import MenuCardBooklet from '@/components/MenuCardBooklet';
+import WaterSportsTickets from '@/components/WaterSportsTickets';
 import FoodMenuSection from '@/components/FoodMenuSection';
 import GallerySection from '@/components/GallerySection';
 import ReviewsSection from '@/components/ReviewsSection';
@@ -34,8 +35,12 @@ export default function Home() {
       <HeroSection onOpenBooking={handleOpenBooking} />
       <AboutSection />
       <FeaturesSection />
+      
+      {/* Dynamic Interactive Menu & Water Sports Hub */}
       <MenuCardBooklet onOpenBooking={() => handleOpenBooking('table_booking')} />
+      <WaterSportsTickets onOpenBooking={handleOpenBooking} />
       <FoodMenuSection onOpenBooking={() => handleOpenBooking('table_booking')} />
+      
       <GallerySection />
       <ReviewsSection />
       <BlogSection />
