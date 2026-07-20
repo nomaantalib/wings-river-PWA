@@ -69,7 +69,7 @@ export default function Footer() {
             <ul className="space-y-2.5 text-xs text-gray-300">
               <li><a href="#home" className="hover:text-mint-300 transition-colors">Home</a></li>
               <li><a href="#about" className="hover:text-mint-300 transition-colors">About Us</a></li>
-              <li><a href="#menu" className="hover:text-mint-300 transition-colors">Food Menu</a></li>
+              <li><a href="#menu-card" className="hover:text-mint-300 transition-colors">Food Menu</a></li>
               <li><a href="#gallery" className="hover:text-mint-300 transition-colors">Photo Gallery</a></li>
               <li><a href="#reviews" className="hover:text-mint-300 transition-colors">Customer Reviews</a></li>
               <li><a href="#blog" className="hover:text-mint-300 transition-colors">WordPress Blog</a></li>

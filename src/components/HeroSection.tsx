@@ -159,7 +159,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
           </button>
 
           <a
-            href="#menu"
+            href="#menu-card"
             className="flex items-center space-x-2 px-7 py-3.5 bg-dark-900/80 backdrop-blur-md border border-mint-400/40 text-cream-100 font-semibold text-sm rounded-full hover:bg-dark-800 transition-all duration-300"
           >
             <Utensils className="w-4 h-4 text-gold-400" />
