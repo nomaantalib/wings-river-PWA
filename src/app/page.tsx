@@ -17,6 +17,7 @@ import ContactSection from '@/components/ContactSection';
 import Footer from '@/components/Footer';
 import FloatingActions from '@/components/FloatingActions';
 import BookingModal from '@/components/BookingModal';
+import InstallPWAView from '@/views/InstallPWAView';
 
 export default function Home() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -49,6 +50,7 @@ export default function Home() {
       
       <Footer />
       <FloatingActions />
+      <InstallPWAView />
 
       <BookingModal
         isOpen={isBookingOpen}

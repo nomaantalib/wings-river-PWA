@@ -55,7 +55,13 @@ export default function RootLayout({
     <html lang="en" className="scroll-smooth">
       <head>
         <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#8FD3C7" />
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Wings River" />
+        <link rel="apple-touch-icon" href="/images/menu_page_cover.png" />
       </head>
       <body className="bg-dark-950 text-dark-900 antialiased selection:bg-mint-300 selection:text-dark-950">
         <SEOStructuredData />

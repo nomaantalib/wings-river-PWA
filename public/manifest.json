@@ -1,0 +1,32 @@
+{
+  "name": "Wings River Café & Water Sports Lucknow",
+  "short_name": "Wings River",
+  "description": "Lucknow's Premier Waterfront Family Restaurant, Birthday Canopies & Gomti River Speedboat Rides at Laxman Mela Ground.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#081714",
+  "theme_color": "#8FD3C7",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/images/menu_page_cover.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/images/full_menu_card_collage.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["food", "dining", "entertainment", "travel"],
+  "screenshots": [
+    {
+      "src": "/images/Screenshot_20260720-180544_Maps.png",
+      "sizes": "1080x1920",
+      "type": "image/png"
+    }
+  ]
+}
