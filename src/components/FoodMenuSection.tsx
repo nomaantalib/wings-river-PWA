@@ -13,7 +13,7 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const [pan, setPan] = useState({ x: 0, y: 0 });
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(true);
   const lastTouchDist = useRef<number | null>(null);
 
   const MIN_ZOOM = 0.5, MAX_ZOOM = 5, ZOOM_STEP = 0.3;
