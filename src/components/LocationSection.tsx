@@ -87,8 +87,8 @@ export default function LocationSection() {
             </div>
           </div>
 
-          {/* Embedded Map */}
-          <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-white/10 shadow-2xl min-h-[380px] bg-dark-800 relative">
+          {/* Embedded Map (Medium/Large Screens Only) */}
+          <div className="hidden md:block lg:col-span-7 rounded-3xl overflow-hidden border border-white/10 shadow-2xl min-h-[380px] bg-dark-800 relative">
             <iframe
               title="Wings River Cafe Google Maps"
               src={mapEmbedUrl}
@@ -97,6 +97,29 @@ export default function LocationSection() {
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
             />
+          </div>
+
+          {/* Map Redirect Link Card (Mobile/Small Screens Only) */}
+          <div className="block md:hidden rounded-3xl overflow-hidden border border-gold-400/20 bg-dark-950 p-8 shadow-2xl text-center space-y-5">
+            <div className="w-16 h-16 rounded-full bg-gold-400/10 border border-gold-400/30 flex items-center justify-center mx-auto animate-pulse">
+              <MapPin className="w-8 h-8 text-gold-400" />
+            </div>
+            <div className="space-y-2">
+              <h4 className="font-serif font-bold text-lg text-white">Wings River Cafe Location</h4>
+              <p className="text-xs text-gray-400 leading-relaxed">Laxman Mela Ground river bank, Purana Haidarabad, Lucknow, Uttar Pradesh 226001</p>
+              <div className="inline-block bg-white/5 border border-white/10 px-3.5 py-1 rounded-full text-[10px] font-mono text-gold-300">
+                GPS Coordinates: 26.85764° N, 80.94902° E
+              </div>
+            </div>
+            <a
+              href={directMapsLink}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="block w-full py-3.5 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-2"
+            >
+              <Navigation className="w-3.5 h-3.5" />
+              <span>Launch Maps & Navigate</span>
+            </a>
           </div>
         </div>
       </div>
