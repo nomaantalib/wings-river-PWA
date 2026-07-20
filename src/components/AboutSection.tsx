@@ -12,15 +12,17 @@ export default function AboutSection() {
       label: 'Happy Customers',
       subText: 'Satisfied Diners & Parties',
       color: 'text-mint-600',
-      bgColor: 'bg-mint-100'
+      bgColor: 'bg-mint-100',
+      cardBg: 'bg-white border-mint-100'
     },
     {
       icon: Star,
       value: '4.1★',
       label: 'Google Rating',
       subText: 'Top Rated Waterfront Spot',
-      color: 'text-gold-500',
-      bgColor: 'bg-gold-300/30'
+      color: 'text-dark-900',
+      bgColor: 'bg-gold-500',
+      cardBg: 'bg-gold-300/25 border-gold-400/50 shadow-gold-500/10'
     },
     {
       icon: IndianRupee,
@@ -28,7 +30,8 @@ export default function AboutSection() {
       label: 'Affordable Dining',
       subText: 'Premium Multicuisine Value',
       color: 'text-mint-700',
-      bgColor: 'bg-mint-100'
+      bgColor: 'bg-mint-100',
+      cardBg: 'bg-white border-mint-100'
     },
     {
       icon: Clock,
@@ -36,7 +39,8 @@ export default function AboutSection() {
       label: 'Open Daily',
       subText: 'Lunch, Sunset & Late Dinner',
       color: 'text-gold-600',
-      bgColor: 'bg-gold-300/30'
+      bgColor: 'bg-gold-300/30',
+      cardBg: 'bg-white border-mint-100'
     }
   ];
 
@@ -132,12 +136,11 @@ export default function AboutSection() {
           </div>
         </div>
 
-        {/* Animated Statistics Banner */}
         <div className="mt-16 grid grid-cols-2 lg:grid-cols-4 gap-6">
           {stats.map((stat, idx) => (
             <div
               key={idx}
-              className="bg-white rounded-2xl p-6 shadow-lg border border-mint-100 hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center"
+              className={`${stat.cardBg} rounded-2xl p-6 shadow-lg border hover:shadow-xl hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center`}
             >
               <div className={`w-12 h-12 rounded-2xl ${stat.bgColor} flex items-center justify-center mb-3`}>
                 <stat.icon className={`w-6 h-6 ${stat.color}`} />

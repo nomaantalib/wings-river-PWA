@@ -9,7 +9,7 @@
   "d1_databases": [
     {
       "binding": "DB",
-      "database_name": "wings-river-db",
+      "database_name": "wings_river_cafe_reservations",
       "database_id": "c2491a90-0f90-4a1e-8a4d-852e6588a68a"
     }
   ],
