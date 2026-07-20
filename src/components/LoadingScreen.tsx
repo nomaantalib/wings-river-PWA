@@ -382,7 +382,7 @@ export default function LoadingScreen() {
   const [fadeOut, setFadeOut] = useState(false);
   const audioCtxRef = useRef<AudioContext | null>(null);
 
-  // Play ambient water sound via Web Audio API
+  // Play ambient water, engine, sizzle & chime sound via Web Audio API
   const playWaterSound = () => {
     try {
       const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
@@ -390,33 +390,133 @@ export default function LoadingScreen() {
       const ctx = new AudioCtx();
       audioCtxRef.current = ctx;
 
-      // White noise for water
-      const bufferSize = ctx.sampleRate * 2;
+      const tNow = ctx.currentTime;
+
+      // 1. Create a common noise buffer for water spray & food sizzle
+      const bufferSize = ctx.sampleRate * 4;
       const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
       const data = buffer.getChannelData(0);
       for (let i = 0; i < bufferSize; i++) {
-        data[i] = (Math.random() * 2 - 1) * 0.08;
+        data[i] = Math.random() * 2 - 1;
       }
+      const noiseNode = ctx.createBufferSource();
+      noiseNode.buffer = buffer;
+      noiseNode.loop = true;
 
-      const source = ctx.createBufferSource();
-      source.buffer = buffer;
-      source.loop = true;
+      // Filter for noise (we animate frequency over time)
+      const noiseFilter = ctx.createBiquadFilter();
+      noiseFilter.type = 'bandpass';
+      noiseFilter.Q.value = 1.0;
 
-      // Bandpass filter to make it sound like water
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'bandpass';
-      filter.frequency.value = 800;
-      filter.Q.value = 0.5;
+      const noiseGain = ctx.createGain();
+      noiseGain.gain.setValueAtTime(0, tNow);
 
-      const gainNode = ctx.createGain();
-      gainNode.gain.setValueAtTime(0, ctx.currentTime);
-      gainNode.gain.linearRampToValueAtTime(0.3, ctx.currentTime + 0.5);
-      gainNode.gain.linearRampToValueAtTime(0, ctx.currentTime + TOTAL_DURATION / 1000 - 0.3);
+      noiseNode.connect(noiseFilter);
+      noiseFilter.connect(noiseGain);
+      noiseGain.connect(ctx.destination);
+      noiseNode.start();
 
-      source.connect(filter);
-      filter.connect(gainNode);
-      gainNode.connect(ctx.destination);
-      source.start();
+      // ── SCENE 1: Jet Ski Water Spray & Engine Hum (0.0s to 1.1s) ──────────
+      // Spray: bandpass around 900Hz
+      noiseFilter.frequency.setValueAtTime(950, tNow);
+      noiseGain.gain.linearRampToValueAtTime(0.08, tNow + 0.1);
+      
+      // Engine Hum: sawtooth oscillator modulated
+      const engineOsc = ctx.createOscillator();
+      const engineGain = ctx.createGain();
+      engineOsc.type = 'sawtooth';
+      engineOsc.frequency.setValueAtTime(55, tNow);
+      engineGain.gain.setValueAtTime(0, tNow);
+      engineGain.gain.linearRampToValueAtTime(0.12, tNow + 0.2);
+
+      // Modulator for engine vibration (LFO)
+      const lfo = ctx.createOscillator();
+      const lfoGain = ctx.createGain();
+      lfo.frequency.value = 8; // Hz vibration
+      lfoGain.gain.value = 6;  // Mod depth
+      lfo.connect(lfoGain);
+      lfoGain.connect(engineOsc.frequency);
+
+      engineOsc.connect(engineGain);
+      engineGain.connect(ctx.destination);
+      lfo.start();
+      engineOsc.start();
+
+      // Fade out Jet Ski (ends at 1.1s)
+      noiseGain.gain.setValueAtTime(0.08, tNow + 0.9);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, tNow + 1.1);
+      engineGain.gain.setValueAtTime(0.12, tNow + 0.9);
+      engineGain.gain.exponentialRampToValueAtTime(0.001, tNow + 1.15);
+
+      // Clean up engine osc nodes
+      setTimeout(() => {
+        try { lfo.stop(); engineOsc.stop(); } catch {}
+      }, 1300);
+
+      // ── SCENE 2: Food Sizzling Platter (1.1s to 2.2s) ───────────────────
+      const tSizzle = tNow + 1.1;
+      // Highpass/Bandpass at 7500Hz for high sizzle sound
+      setTimeout(() => {
+        try {
+          noiseFilter.type = 'highpass';
+          noiseFilter.frequency.setValueAtTime(6500, tSizzle);
+        } catch {}
+      }, 1080);
+      noiseGain.gain.setValueAtTime(0, tSizzle);
+      noiseGain.gain.linearRampToValueAtTime(0.09, tSizzle + 0.1);
+      noiseGain.gain.setValueAtTime(0.09, tSizzle + 0.9);
+      noiseGain.gain.exponentialRampToValueAtTime(0.001, tSizzle + 1.1);
+
+      // ── SCENE 3: Gentle River Waves (2.2s to 3.1s) ──────────────────────
+      const tWaves = tNow + 2.2;
+      setTimeout(() => {
+        try {
+          noiseFilter.type = 'bandpass';
+          noiseFilter.Q.value = 0.6;
+          noiseFilter.frequency.setValueAtTime(320, tWaves);
+        } catch {}
+      }, 2180);
+      // Wave sound swell (0.28Hz LFO effect simulated via envelopes)
+      noiseGain.gain.setValueAtTime(0, tWaves);
+      noiseGain.gain.linearRampToValueAtTime(0.08, tWaves + 0.3); // swell
+      noiseGain.gain.linearRampToValueAtTime(0.02, tWaves + 0.65); // fall
+      noiseGain.gain.linearRampToValueAtTime(0.001, tWaves + 0.9); // fade
+
+      // ── SCENE 4: Welcome Chime Chord (3.1s to 3.7s) ─────────────────────
+      const tChime = tNow + 3.1;
+      const oscC = ctx.createOscillator();
+      const oscE = ctx.createOscillator();
+      const oscG = ctx.createOscillator();
+      const chimeGain = ctx.createGain();
+
+      oscC.frequency.value = 523.25; // C5
+      oscE.frequency.value = 659.25; // E5
+      oscG.frequency.value = 783.99; // G5
+
+      oscC.type = 'sine';
+      oscE.type = 'sine';
+      oscG.type = 'sine';
+
+      chimeGain.gain.setValueAtTime(0, tChime);
+      chimeGain.gain.linearRampToValueAtTime(0.07, tChime + 0.05);
+      chimeGain.gain.exponentialRampToValueAtTime(0.001, tChime + 0.6);
+
+      oscC.connect(chimeGain);
+      oscE.connect(chimeGain);
+      oscG.connect(chimeGain);
+      chimeGain.connect(ctx.destination);
+
+      oscC.start(tChime);
+      oscE.start(tChime);
+      oscG.start(tChime);
+
+      setTimeout(() => {
+        try {
+          oscC.stop(); oscE.stop(); oscG.stop();
+          noiseNode.stop();
+        } catch {}
+      }, 4000);
+
     } catch {
       // silently ignore if audio not supported
     }
