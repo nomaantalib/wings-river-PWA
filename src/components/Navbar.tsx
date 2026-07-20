@@ -33,6 +33,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
     { name: 'Blog', href: '#blog' },
     { name: 'Location', href: '#location' },
     { name: 'Contact', href: '#contact' },
+    { name: 'Admin CMS', href: '/admin' },
   ];
 
   return (

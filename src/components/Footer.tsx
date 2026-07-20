@@ -107,7 +107,7 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} Wings River Café (विंग्स रिवर). All Rights Reserved.</p>
+          <p>© {new Date().getFullYear()} Wings River Café. All Rights Reserved.</p>
           <p className="mt-2 sm:mt-0 flex items-center space-x-1">
             <span>Crafted with</span>
             <Heart className="w-3.5 h-3.5 text-rose-500 fill-current inline" />
