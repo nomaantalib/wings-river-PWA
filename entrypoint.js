@@ -1,8 +1,10 @@
-import { onRequestGet as getBlogs } from './functions/api/blogs.js';
-import { onRequestGet as getBookings, onRequestPost as postBookings } from './functions/api/bookings.js';
-import { onRequestPost as postContact } from './functions/api/contact.js';
-import { onRequestGet as getMenu } from './functions/api/menu.js';
-import { onRequestGet as getReviews } from './functions/api/reviews.js';
+import { onRequestGet as getBlogs, onRequestPost as postBlogs, onRequestDelete as deleteBlogs } from './functions/api/blogs.js';
+import { onRequestGet as getBookings, onRequestPost as postBookings, onRequestDelete as deleteBookings } from './functions/api/bookings.js';
+import { onRequestGet as getContact, onRequestPost as postContact, onRequestDelete as deleteContact } from './functions/api/contact.js';
+import { onRequestGet as getMenu, onRequestPost as postMenu, onRequestDelete as deleteMenu } from './functions/api/menu.js';
+import { onRequestGet as getReviews, onRequestPost as postReviews, onRequestDelete as deleteReviews } from './functions/api/reviews.js';
+import { onRequestGet as getGallery, onRequestPost as postGallery, onRequestDelete as deleteGallery } from './functions/api/gallery.js';
+import { onRequestGet as getSettings, onRequestPost as postSettings, onRequestDelete as deleteSettings } from './functions/api/settings.js';
 
 export default {
   async fetch(request, env, ctx) {
@@ -21,32 +23,55 @@ export default {
     }
 
     try {
-      if (url.pathname === '/api/blogs' && request.method === 'GET') {
-        const res = await getBlogs(context);
-        return injectCors(res, corsHeaders);
-      }
+      // ── RESERVATIONS ──
       if (url.pathname === '/api/bookings') {
-        if (request.method === 'GET') {
-          const res = await getBookings(context);
-          return injectCors(res, corsHeaders);
-        }
-        if (request.method === 'POST') {
-          const res = await postBookings(context);
-          return injectCors(res, corsHeaders);
-        }
+        if (request.method === 'GET') return injectCors(await getBookings(context), corsHeaders);
+        if (request.method === 'POST') return injectCors(await postBookings(context), corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteBookings(context), corsHeaders);
       }
-      if (url.pathname === '/api/contact' && request.method === 'POST') {
-        const res = await postContact(context);
-        return injectCors(res, corsHeaders);
+
+      // ── BLOGS ──
+      if (url.pathname === '/api/blogs') {
+        if (request.method === 'GET') return injectCors(await getBlogs(context), corsHeaders);
+        if (request.method === 'POST') return injectCors(await postBlogs(context), corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteBlogs(context), corsHeaders);
       }
-      if (url.pathname === '/api/menu' && request.method === 'GET') {
-        const res = await getMenu(context);
-        return injectCors(res, corsHeaders);
+
+      // ── MENU ──
+      if (url.pathname === '/api/menu') {
+        if (request.method === 'GET') return injectCors(await getMenu(context), corsHeaders);
+        if (request.method === 'POST') return injectCors(await postMenu(context), corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteMenu(context), corsHeaders);
       }
-      if (url.pathname === '/api/reviews' && request.method === 'GET') {
-        const res = await getReviews(context);
-        return injectCors(res, corsHeaders);
+
+      // ── REVIEWS ──
+      if (url.pathname === '/api/reviews') {
+        if (request.method === 'GET') return injectCors(await getReviews(context), corsHeaders);
+        if (request.method === 'POST') return injectCors(await postReviews(context), corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteReviews(context), corsHeaders);
       }
+
+      // ── CONTACT MESSAGES ──
+      if (url.pathname === '/api/contact') {
+        if (request.method === 'GET') return injectCors(await getContact(context), corsHeaders);
+        if (request.method === 'POST') return injectCors(await postContact(context), corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteContact(context), corsHeaders);
+      }
+
+      // ── GALLERY ──
+      if (url.pathname === '/api/gallery') {
+        if (request.method === 'GET') return injectCors(await getGallery(context), corsHeaders);
+        if (request.method === 'POST') return injectCors(await postGallery(context), corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteGallery(context), corsHeaders);
+      }
+
+      // ── SETTINGS (JSON keys) ──
+      if (url.pathname === '/api/settings') {
+        if (request.method === 'GET') return injectCors(await getSettings(context), corsHeaders);
+        if (request.method === 'POST') return injectCors(await postSettings(context), corsHeaders);
+        if (request.method === 'DELETE') return injectCors(await deleteSettings(context), corsHeaders);
+      }
+
     } catch (err) {
       return new Response(JSON.stringify({ success: false, error: err.message }), {
         status: 500,

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import LoadingScreen from '@/components/LoadingScreen';
 import BackgroundMusic from '@/components/BackgroundMusic';
 import Navbar from '@/components/Navbar';
@@ -23,6 +23,13 @@ import InstallPWAView from '@/views/InstallPWAView';
 export default function Home() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingInitialType, setBookingInitialType] = useState('table_booking');
+  const [syncKey, setSyncKey] = useState(0);
+
+  useEffect(() => {
+    const handleSync = () => setSyncKey(prev => prev + 1);
+    window.addEventListener('wings_db_sync', handleSync);
+    return () => window.removeEventListener('wings_db_sync', handleSync);
+  }, []);
 
   const handleOpenBooking = (type: string = 'table_booking') => {
     setBookingInitialType(type);
@@ -39,13 +46,13 @@ export default function Home() {
       <FeaturesSection />
       
       {/* Dynamic Interactive Menu & Water Sports Hub */}
-      <MenuCardBooklet onOpenBooking={() => handleOpenBooking('table_booking')} />
-      <WaterSportsTickets onOpenBooking={handleOpenBooking} />
-      <FoodMenuSection onOpenBooking={() => handleOpenBooking('table_booking')} />
+      <MenuCardBooklet key={`booklet-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
+      <WaterSportsTickets key={`sports-${syncKey}`} onOpenBooking={handleOpenBooking} />
+      <FoodMenuSection key={`menu-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       
-      <GallerySection />
-      <ReviewsSection />
-      <BlogSection />
+      <GallerySection key={`gallery-${syncKey}`} />
+      <ReviewsSection key={`reviews-${syncKey}`} />
+      <BlogSection key={`blog-${syncKey}`} />
       <LocationSection />
       <ContactSection />
       

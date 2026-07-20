@@ -1,4 +1,4 @@
-// Cloudflare Workers Functions API Endpoint for Customer Reviews (D1-backed)
+// Cloudflare Workers Functions API Endpoint for Photo Gallery (D1-backed)
 export async function onRequestGet(context) {
   const db = context.env.DB;
   if (!db) {
@@ -7,7 +7,7 @@ export async function onRequestGet(context) {
     });
   }
   try {
-    const { results } = await db.prepare("SELECT * FROM reviews ORDER BY created_at DESC").all();
+    const { results } = await db.prepare("SELECT * FROM gallery ORDER BY created_at DESC").all();
     return new Response(JSON.stringify({ success: true, data: results }), {
       headers: { 'Content-Type': 'application/json' }
     });
@@ -24,25 +24,21 @@ export async function onRequestPost(context) {
   if (!db) return new Response(JSON.stringify({ success: false, error: 'Database not bound' }), { status: 500 });
   try {
     const data = await context.request.json();
-    const id = data.id || `rev-${Date.now()}`;
-    const rating = parseInt(data.rating) || 5;
-    const isApproved = data.is_approved !== undefined ? (data.is_approved ? 1 : 0) : 1;
-    const dateStr = data.date_str || new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+    const id = data.id || `gal-${Date.now()}`;
+    const featured = data.featured !== undefined ? (data.featured ? 1 : 0) : 0;
 
     await db.prepare(`
-      INSERT OR REPLACE INTO reviews (id, author_name, rating, review_text, date_str, avatar_url, is_approved)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
+      INSERT OR REPLACE INTO gallery (id, title, category, image_url, featured)
+      VALUES (?, ?, ?, ?, ?)
     `).bind(
       id,
-      data.author_name || data.author,
-      rating,
-      data.review_text || data.text,
-      dateStr,
-      data.avatar_url || data.avatar || null,
-      isApproved
+      data.title,
+      data.category || 'Restaurant',
+      data.image_url,
+      featured
     ).run();
 
-    return new Response(JSON.stringify({ success: true, message: 'Review saved', id }), {
+    return new Response(JSON.stringify({ success: true, message: 'Gallery item saved', id }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (err) {
@@ -61,8 +57,8 @@ export async function onRequestDelete(context) {
     const id = url.searchParams.get('id');
     if (!id) throw new Error('Missing ID parameter');
 
-    await db.prepare("DELETE FROM reviews WHERE id = ?").bind(id).run();
-    return new Response(JSON.stringify({ success: true, message: 'Review deleted' }), {
+    await db.prepare("DELETE FROM gallery WHERE id = ?").bind(id).run();
+    return new Response(JSON.stringify({ success: true, message: 'Gallery item deleted' }), {
       headers: { 'Content-Type': 'application/json' }
     });
   } catch (err) {

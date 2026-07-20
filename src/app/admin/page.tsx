@@ -113,6 +113,12 @@ export default function AdminDashboard() {
   useEffect(() => {
     setMounted(true);
     if (localStorage.getItem('wings_admin_auth') === 'true') { setIsAuthenticated(true); loadAll(); }
+
+    const handleSync = () => {
+      if (localStorage.getItem('wings_admin_auth') === 'true') { loadAll(); }
+    };
+    window.addEventListener('wings_db_sync', handleSync);
+    return () => window.removeEventListener('wings_db_sync', handleSync);
   }, []);
   const loadAll = () => {
     setBanners(getStoredEventBanners());
