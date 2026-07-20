@@ -32,16 +32,16 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
   const resetZoom = () => setZoomLevel(1);
 
   return (
-    <section id="water-sports-tickets" className="py-20 bg-gradient-to-b from-cream-50 via-white to-cream-50 relative overflow-hidden">
+    <section id="water-sports-tickets" className="py-20 bg-dark-950 relative overflow-hidden">
       {/* Ambient decorations */}
-      <div className="absolute -top-20 left-0 right-0 h-1 bg-gradient-to-r from-blue-400 via-mint-400 to-blue-400" />
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-blue-200/20 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-mint-200/20 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute -top-20 left-0 right-0 h-1 bg-gradient-to-r from-gold-500 via-mint-500 to-gold-500" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-gold-500/5 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-mint-500/5 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
 
         {/* ── HERO HEADER CARD ── */}
-        <div className="relative rounded-3xl overflow-hidden mb-16 shadow-2xl border border-blue-300/30">
+        <div className="relative rounded-3xl overflow-hidden mb-16 shadow-2xl border border-gold-400/25">
           {/* Background image */}
           <div
             className="absolute inset-0 bg-cover bg-center opacity-25"
@@ -142,8 +142,8 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
               onClick={() => setSelectedCategory(cat)}
               className={`px-5 py-2.5 rounded-full text-xs font-bold transition-all duration-300 ${
                 selectedCategory === cat
-                  ? 'bg-gradient-to-r from-blue-600 to-mint-500 text-white shadow-lg scale-105'
-                  : 'bg-white text-gray-700 hover:bg-blue-50 border border-gray-200 shadow-sm'
+                  ? 'bg-gradient-to-r from-mint-300 via-mint-400 to-gold-400 text-dark-950 shadow-lg scale-105'
+                  : 'bg-white/10 hover:bg-white/20 text-gray-300 border border-white/10'
               }`}
             >
               {cat === 'Water Sports' ? '🌊 ' : cat === 'Other Activities' ? '🎡 ' : '🎯 '}{cat}
@@ -158,7 +158,7 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
               key={ride.id}
               onMouseEnter={() => setHoveredRide(ride.id)}
               onMouseLeave={() => setHoveredRide(null)}
-              className="bg-white rounded-3xl overflow-hidden shadow-xl border border-gray-100 hover:border-blue-300 hover:shadow-2xl hover:-translate-y-1 transition-all duration-400 flex flex-col group"
+              className="bg-dark-900/40 backdrop-blur-sm border border-white/10 hover:border-gold-400/40 hover:shadow-2xl hover:shadow-gold-500/10 hover:-translate-y-1 transition-all duration-400 flex flex-col group rounded-3xl overflow-hidden"
             >
               {/* Image */}
               <div className="relative h-52 w-full overflow-hidden bg-gray-900">
@@ -172,13 +172,13 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
                   style={{ backgroundImage: `url(${ride.image})` }} />
 
                 <div className="absolute top-3 left-3">
-                  <span className="px-3 py-1 rounded-full bg-dark-950/85 backdrop-blur-md text-yellow-400 text-[10px] font-bold uppercase tracking-wider border border-yellow-400/30">
+                  <span className="px-3 py-1 rounded-full bg-dark-950/85 backdrop-blur-md text-gold-400 text-[10px] font-bold uppercase tracking-wider border border-gold-400/30">
                     {ride.badge || ride.category}
                   </span>
                 </div>
 
                 {/* Price pill */}
-                <div className="absolute bottom-3 right-3 bg-gradient-to-r from-blue-600 to-mint-500 text-white font-serif font-extrabold text-base px-4 py-1.5 rounded-full shadow-lg">
+                <div className="absolute bottom-3 right-3 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-serif font-extrabold text-base px-4 py-1.5 rounded-full shadow-lg">
                   ₹{ride.price}
                   <span className="text-[9px] font-sans font-normal ml-1 opacity-90">/ {ride.unit}</span>
                 </div>
@@ -192,24 +192,24 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
               {/* Card Details */}
               <div className="p-6 flex-1 flex flex-col justify-between space-y-4">
                 <div>
-                  <span className="text-[10px] font-bold uppercase tracking-widest text-blue-600 block mb-1">
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-mint-400 block mb-1">
                     {ride.category}
                   </span>
-                  <h3 className="font-serif font-bold text-xl text-dark-900 group-hover:text-blue-700 transition-colors">
+                  <h3 className="font-serif font-bold text-xl text-white group-hover:text-gold-300 transition-colors">
                     {ride.emoji} {ride.name}
                   </h3>
-                  <p className="font-sans text-xs text-gray-600 leading-relaxed mt-2">{ride.description}</p>
+                  <p className="font-sans text-xs text-gray-300 leading-relaxed mt-2">{ride.description}</p>
                 </div>
 
                 {/* Pay at counter notice */}
-                <div className="flex items-center space-x-2 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2">
-                  <Clock className="w-3.5 h-3.5 text-amber-600 shrink-0" />
-                  <span className="text-[10px] text-amber-700 font-semibold">Reserve now · Pay at counter on arrival</span>
+                <div className="flex items-center space-x-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                  <Clock className="w-3.5 h-3.5 text-gold-400 shrink-0" />
+                  <span className="text-[10px] text-gold-300 font-semibold">Reserve now · Pay at counter on arrival</span>
                 </div>
 
                 <button
                   onClick={() => onOpenBooking(ride.id)}
-                  className="w-full py-3 bg-gradient-to-r from-blue-600 to-mint-500 hover:from-blue-500 hover:to-mint-400 text-white font-bold text-xs rounded-xl transition-all shadow-lg hover:shadow-blue-300/40 flex items-center justify-center space-x-1.5"
+                  className="w-full py-3 bg-gradient-to-r from-mint-300 to-gold-400 hover:from-mint-200 hover:to-gold-300 text-dark-950 font-bold text-xs rounded-xl transition-all shadow-lg hover:shadow-gold-500/20 flex items-center justify-center space-x-1.5"
                 >
                   <Ticket className="w-3.5 h-3.5" />
                   <span>Get Token — {ride.emoji} {ride.name}</span>
@@ -221,19 +221,19 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
 
         {/* ── FOOTER NOTE ── */}
         <div className="mt-12 text-center">
-          <div className="inline-flex flex-col sm:flex-row items-center gap-4 bg-blue-50 border border-blue-200 rounded-3xl px-8 py-5">
-            <div className="flex items-center space-x-2 text-blue-700">
-              <CheckCircle2 className="w-5 h-5 text-mint-500" />
+          <div className="inline-flex flex-col lg:flex-row items-center gap-4 bg-dark-900/60 backdrop-blur-sm border border-white/10 rounded-3xl px-8 py-5 text-gray-300">
+            <div className="flex items-center space-x-2 text-mint-300">
+              <CheckCircle2 className="w-5 h-5 text-mint-400" />
               <span className="text-sm font-bold">Token reserved online</span>
             </div>
-            <span className="text-gray-400 hidden sm:block">→</span>
-            <div className="flex items-center space-x-2 text-blue-700">
-              <IndianRupee className="w-5 h-5 text-yellow-500" />
+            <span className="text-gray-600 hidden lg:block">→</span>
+            <div className="flex items-center space-x-2 text-gold-300">
+              <IndianRupee className="w-5 h-5 text-gold-400" />
               <span className="text-sm font-bold">Pay cash at the Lucknow Water Sports counter</span>
             </div>
-            <span className="text-gray-400 hidden sm:block">→</span>
-            <div className="flex items-center space-x-2 text-blue-700">
-              <Waves className="w-5 h-5 text-blue-500" />
+            <span className="text-gray-600 hidden lg:block">→</span>
+            <div className="flex items-center space-x-2 text-mint-300">
+              <Waves className="w-5 h-5 text-mint-400" />
               <span className="text-sm font-bold">Enjoy your ride!</span>
             </div>
           </div>

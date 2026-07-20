@@ -25,20 +25,19 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/logo.png', type: 'image/png', sizes: '192x192' },
-      { url: '/logo.png', type: 'image/png', sizes: '512x512' },
+      { url: '/logo-rounded.svg', type: 'image/svg+xml', sizes: 'any' },
     ],
     apple: [
-      { url: '/logo.png', sizes: '180x180' },
+      { url: '/logo-rounded.svg', sizes: '180x180' },
     ],
-    shortcut: '/logo.png',
+    shortcut: '/logo-rounded.svg',
   },
   openGraph: {
     title: 'Wings River Café | Taste • Eat • Rides',
     description: 'Luxury waterfront restaurant, birthday party canopy & speedboat rides along Gomti River, Lucknow.',
     url: 'https://wings-river-cafe-blog.pages.dev',
     siteName: 'Wings River Café',
-    images: [{ url: 'https://wings-river-cafe-blog.pages.dev/logo.png', width: 512, height: 512, alt: 'Wings River Café Logo' }],
+    images: [{ url: 'https://wings-river-cafe-blog.pages.dev/logo-rounded.svg', width: 512, height: 512, alt: 'Wings River Café Logo' }],
     locale: 'en_IN',
     type: 'website',
   },
@@ -46,7 +45,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Wings River Café Lucknow',
     description: 'Taste • Eat • Rides at Laxman Jhula Park, Gomti Riverfront Lucknow.',
-    images: ['https://wings-river-cafe-blog.pages.dev/logo.png'],
+    images: ['https://wings-river-cafe-blog.pages.dev/logo-rounded.svg'],
   },
   robots: { index: true, follow: true },
 };
@@ -55,15 +54,29 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        {/* Favicon — use logo.png */}
-        <link rel="icon" href="/logo.png" type="image/png" />
-        <link rel="shortcut icon" href="/logo.png" type="image/png" />
-        <link rel="apple-touch-icon" href="/logo.png" sizes="180x180" />
+        {/* Favicon — use logo-rounded.svg with 20% border radius */}
+        <link rel="icon" href="/logo-rounded.svg" type="image/svg+xml" />
+        <link rel="shortcut icon" href="/logo-rounded.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/logo-rounded.svg" sizes="180x180" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Wings River" />
+        {/* Auto-reload window on ChunkLoadError or script asset 404 failures (e.g. after new deploys) */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+            window.addEventListener('error', function(e) {
+              var msg = e.message || '';
+              var target = e.target || {};
+              var src = target.src || '';
+              if (msg.indexOf('ChunkLoadError') !== -1 || msg.indexOf('Loading chunk') !== -1 || (target.tagName === 'SCRIPT' && src.indexOf('_next/static/chunks/') !== -1)) {
+                console.warn('Chunk load failure detected. Reloading page...', src);
+                window.location.reload();
+              }
+            }, true);
+          `
+        }} />
         {/* Google Fonts — Playfair Display + Lato (café feel) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

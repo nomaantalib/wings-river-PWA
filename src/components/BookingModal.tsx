@@ -163,7 +163,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                     placeholder="e.g. Rahul Sharma"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-mint-400"
                   />
                 </div>
 
@@ -178,7 +178,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                     placeholder="e.g. 07310008020"
                     value={formData.phone}
                     onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-mint-400"
                   />
                 </div>
               </div>
@@ -195,7 +195,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                     required
                     value={formData.date}
                     onChange={(e) => setFormData({ ...formData, date: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-mint-400"
                   />
                 </div>
 
@@ -209,7 +209,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                     required
                     value={formData.time}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-mint-400"
                   />
                 </div>
 
@@ -221,10 +221,10 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                   <select
                     value={formData.guests}
                     onChange={(e) => setFormData({ ...formData, guests: e.target.value })}
-                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400 bg-white"
+                    className="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-mint-400 bg-white"
                   >
                     {[1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 30, 50].map((n) => (
-                      <option key={n} value={n}>
+                      <option key={n} value={n} className="text-gray-900">
                         {n} {n === 1 ? 'Guest' : 'Guests'}
                       </option>
                     ))}
@@ -243,7 +243,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                   placeholder="name@example.com"
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                  className="w-full px-3.5 py-2.5 text-sm rounded-xl border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-mint-400"
                 />
               </div>
 
@@ -257,7 +257,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                   placeholder="e.g. Riverside table, Birthday cake setup, Fairy lights decoration..."
                   value={formData.special_requests}
                   onChange={(e) => setFormData({ ...formData, special_requests: e.target.value })}
-                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                  className="w-full px-3.5 py-2 text-sm rounded-xl border border-gray-300 text-gray-900 focus:outline-none focus:ring-2 focus:ring-mint-400"
                 />
               </div>
 

@@ -72,6 +72,7 @@ function ConfirmDelete({ label, onConfirm, onCancel }: { label: string; onConfir
 //  MAIN ADMIN DASHBOARD
 // ══════════════════════════════════════════════════════════════════════════════
 export default function AdminDashboard() {
+  const [mounted, setMounted] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [showPwd, setShowPwd] = useState(false);
@@ -110,6 +111,7 @@ export default function AdminDashboard() {
 
   // ── Auth ──────────────────────────────────────────────────────────────────
   useEffect(() => {
+    setMounted(true);
     if (localStorage.getItem('wings_admin_auth') === 'true') { setIsAuthenticated(true); loadAll(); }
   }, []);
   const loadAll = () => {
@@ -133,6 +135,17 @@ export default function AdminDashboard() {
     } else { setErrorMsg('Invalid password. Use: wingsriver@2026'); }
   };
   const handleLogout = () => { setIsAuthenticated(false); localStorage.removeItem('wings_admin_auth'); };
+
+  if (!mounted) {
+    return (
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
+        <div className="text-center space-y-3">
+          <div className="w-10 h-10 border-4 border-amber-400 border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">Loading Wings River CMS...</p>
+        </div>
+      </div>
+    );
+  }
 
   // ─────────────────────────────────────────────────────────────────────────
   //  LOGIN SCREEN
@@ -164,6 +177,7 @@ export default function AdminDashboard() {
                   <input
                     type={showPwd ? 'text' : 'password'}
                     required
+                    autoComplete="current-password"
                     placeholder="Enter admin password"
                     value={passwordInput}
                     onChange={e => setPasswordInput(e.target.value)}
