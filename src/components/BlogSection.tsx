@@ -15,6 +15,9 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
   const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
 
+  const [activeBlogImages, setActiveBlogImages] = useState<string[]>([]);
+  const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+
   useEffect(() => {
     const refreshData = () => { getStoredBlogs().then(setBlogs); };
     refreshData();
@@ -31,28 +34,44 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   const openBlogReader = (blog: BlogPost) => {
     setActiveBlog(blog);
     setActiveImageIndex(0);
+    const imgs = blog.images && blog.images.length > 0 ? blog.images : [blog.cover_image];
+    setActiveBlogImages(imgs);
   };
 
   const closeBlogReader = () => {
     setActiveBlog(null);
     setActiveImageIndex(0);
+    setActiveBlogImages([]);
   };
 
-  const activeBlogImages = activeBlog
-    ? (activeBlog.images && activeBlog.images.length > 0 ? activeBlog.images : [activeBlog.cover_image])
-    : [];
+  const changeSlide = (newIndex: number) => {
+    setIsTransitioning(true);
+    setTimeout(() => {
+      setActiveImageIndex(newIndex);
+      setIsTransitioning(false);
+    }, 150);
+  };
 
   const nextImage = () => {
     if (activeBlogImages.length > 0) {
-      setActiveImageIndex((prev) => (prev + 1) % activeBlogImages.length);
+      changeSlide((activeImageIndex + 1) % activeBlogImages.length);
     }
   };
 
   const prevImage = () => {
     if (activeBlogImages.length > 0) {
-      setActiveImageIndex((prev) => (prev - 1 + activeBlogImages.length) % activeBlogImages.length);
+      changeSlide((activeImageIndex - 1 + activeBlogImages.length) % activeBlogImages.length);
     }
   };
+
+  // Auto-advance modal slide if multiple photos exist
+  useEffect(() => {
+    if (!activeBlog || activeBlogImages.length <= 1) return;
+    const timer = setInterval(() => {
+      nextImage();
+    }, 5000);
+    return () => clearInterval(timer);
+  }, [activeBlog, activeImageIndex, activeBlogImages]);
 
   return (
     <section id="blog" className="py-20 bg-cream-50 relative overflow-hidden">
@@ -105,25 +124,39 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 key={post.id}
                 className="bg-white rounded-3xl overflow-hidden shadow-lg border border-cream-200 hover:shadow-2xl transition-all duration-300 flex flex-col group"
               >
-                {/* Card Image Banner */}
-                <div className="relative h-56 overflow-hidden bg-dark-950 cursor-pointer" onClick={() => openBlogReader(post)}>
+                {/* Fancy Card Image Banner (Dual-layer: ambient blur + full un-cropped image) */}
+                <div
+                  className="relative h-64 overflow-hidden bg-dark-950 cursor-pointer flex items-center justify-center"
+                  onClick={() => openBlogReader(post)}
+                >
+                  {/* Ambient Blurred Background Layer */}
+                  <img
+                    src={post.cover_image}
+                    alt=""
+                    aria-hidden="true"
+                    className="absolute inset-0 w-full h-full object-cover filter blur-xl opacity-50 scale-110 transition-transform duration-700 group-hover:scale-125"
+                  />
+
+                  {/* Dark Vignette Overlay */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/20 to-transparent" />
+
+                  {/* Sharp Full Un-cropped Image (Full aspect ratio preserved) */}
                   <img
                     src={post.cover_image}
                     alt={post.title}
-                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+                    className="relative z-10 max-h-full max-w-full object-contain p-3 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark-950/70 via-transparent to-transparent" />
                   
                   {/* Category Pill */}
-                  <span className="absolute top-3 left-3 px-3 py-1 rounded-full bg-dark-950/80 backdrop-blur-md text-amber-300 text-[10px] font-bold uppercase tracking-wider border border-amber-400/30">
+                  <span className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-dark-950/80 backdrop-blur-md text-amber-300 text-[10px] font-bold uppercase tracking-wider border border-amber-400/30">
                     {post.category}
                   </span>
 
                   {/* Multi-Image Count Badge */}
                   {postImages.length > 1 && (
-                    <span className="absolute top-3 right-3 px-2.5 py-1 rounded-full bg-amber-500/90 text-dark-950 font-extrabold text-[10px] flex items-center space-x-1 shadow-md">
+                    <span className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-amber-500/90 text-dark-950 font-extrabold text-[10px] flex items-center space-x-1 shadow-md">
                       <ImageIcon className="w-3 h-3" />
-                      <span>{postImages.length} Photos</span>
+                      <span>{postImages.length} Full Photos</span>
                     </span>
                   )}
                 </div>
@@ -164,9 +197,9 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                           <div
                             key={idx}
                             onClick={() => openBlogReader(post)}
-                            className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-amber-200 cursor-pointer hover:opacity-80 transition-opacity"
+                            className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-amber-200 cursor-pointer hover:opacity-80 transition-opacity bg-dark-950 p-0.5"
                           >
-                            <img src={img} alt="" className="w-full h-full object-cover" />
+                            <img src={img} alt="" className="w-full h-full object-contain" />
                           </div>
                         ))}
                         {postImages.length > 4 && (
@@ -216,10 +249,10 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
         </div>
       </div>
 
-      {/* ═══ INTERACTIVE MULTI-IMAGE BLOG READER MODAL ═══════════════════════ */}
+      {/* ═══ INTERACTIVE FANCY MULTI-IMAGE BLOG READER MODAL ═════════════════ */}
       {activeBlog && (
-        <div className="fixed inset-0 z-[200] bg-dark-950/85 backdrop-blur-xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto">
-          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[92vh] flex flex-col my-auto border border-amber-200">
+        <div className="fixed inset-0 z-[200] bg-dark-950/90 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in">
+          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col my-auto border border-amber-200">
             {/* Modal Header Bar */}
             <div className="flex items-center justify-between px-6 py-3.5 bg-dark-950 text-white border-b border-white/10 shrink-0">
               <div className="flex items-center space-x-3 min-w-0">
@@ -241,15 +274,31 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
             {/* Scrollable Content Container */}
             <div className="overflow-y-auto flex-1 p-6 sm:p-8 space-y-6">
               
-              {/* Multi-Image Gallery Showcase */}
+              {/* Fancy Multi-Image Showcase (Full Image Display with Smooth Transitions) */}
               {activeBlogImages.length > 0 && (
                 <div className="space-y-3">
-                  {/* Main Display Image */}
-                  <div className="relative h-64 sm:h-96 w-full rounded-2xl overflow-hidden bg-dark-950 shadow-inner group">
+                  {/* Main Display Image Frame */}
+                  <div className="relative h-72 sm:h-[420px] w-full rounded-3xl overflow-hidden bg-dark-950 shadow-2xl flex items-center justify-center group border border-white/10">
+                    {/* Ambient Blurred Background Layer */}
+                    <img
+                      src={activeBlogImages[activeImageIndex]}
+                      alt=""
+                      aria-hidden="true"
+                      className={`absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-40 scale-110 transition-all duration-700 ease-in-out ${
+                        isTransitioning ? 'opacity-0 scale-100' : 'opacity-40 scale-110'
+                      }`}
+                    />
+
+                    {/* Dark Vignette Gradient */}
+                    <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-dark-950/40" />
+
+                    {/* Foreground Full Un-cropped Image */}
                     <img
                       src={activeBlogImages[activeImageIndex]}
                       alt={activeBlog.title}
-                      className="w-full h-full object-cover transition-all duration-300"
+                      className={`relative z-10 max-h-full max-w-full object-contain p-4 drop-shadow-2xl transition-all duration-500 ease-out transform ${
+                        isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                      }`}
                     />
 
                     {/* Navigation Buttons */}
@@ -257,40 +306,40 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                       <>
                         <button
                           onClick={prevImage}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-dark-950/70 hover:bg-amber-500 text-white hover:text-dark-950 transition-all shadow-lg"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-amber-500 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
                           title="Previous Photo"
                         >
                           <ChevronLeft className="w-5 h-5" />
                         </button>
                         <button
                           onClick={nextImage}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-full bg-dark-950/70 hover:bg-amber-500 text-white hover:text-dark-950 transition-all shadow-lg"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-amber-500 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
                           title="Next Photo"
                         >
                           <ChevronRight className="w-5 h-5" />
                         </button>
                         
-                        <div className="absolute bottom-3 right-3 px-3 py-1 rounded-full bg-dark-950/80 text-amber-300 font-bold text-xs backdrop-blur-md">
-                          Photo {activeImageIndex + 1} of {activeBlogImages.length}
+                        <div className="absolute bottom-4 right-4 z-20 px-3.5 py-1.5 rounded-full bg-dark-950/90 text-amber-300 font-extrabold text-xs backdrop-blur-md border border-amber-400/30 shadow-lg">
+                          ✨ Photo {activeImageIndex + 1} of {activeBlogImages.length}
                         </div>
                       </>
                     )}
                   </div>
 
-                  {/* Thumbnail Row */}
+                  {/* Thumbnail Row with Smooth Highlight */}
                   {activeBlogImages.length > 1 && (
-                    <div className="flex items-center space-x-2 overflow-x-auto pb-2 no-scrollbar">
+                    <div className="flex items-center justify-center space-x-3 overflow-x-auto py-2 no-scrollbar">
                       {activeBlogImages.map((img, idx) => (
                         <button
                           key={idx}
-                          onClick={() => setActiveImageIndex(idx)}
-                          className={`relative w-20 h-16 rounded-xl overflow-hidden shrink-0 border-2 transition-all ${
+                          onClick={() => changeSlide(idx)}
+                          className={`relative w-20 h-16 rounded-2xl overflow-hidden shrink-0 border-2 transition-all duration-300 bg-dark-950 p-0.5 ${
                             activeImageIndex === idx
-                              ? 'border-amber-500 scale-105 shadow-md'
-                              : 'border-transparent opacity-60 hover:opacity-100'
+                              ? 'border-amber-500 scale-110 shadow-lg ring-2 ring-amber-500/50'
+                              : 'border-transparent opacity-50 hover:opacity-100'
                           }`}
                         >
-                          <img src={img} alt="" className="w-full h-full object-cover" />
+                          <img src={img} alt="" className="w-full h-full object-contain" />
                         </button>
                       ))}
                     </div>

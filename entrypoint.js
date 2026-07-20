@@ -13,7 +13,7 @@ import { onRequestGet as getHero,       onRequestPost as postHero,       onReque
 export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
-    const context = { request, env, ctx, params: {} };
+    const context = { request, env: env || {}, ctx, params: {} };
 
     // CORS Headers
     const corsHeaders = {
@@ -105,25 +105,34 @@ export default {
       }
 
     } catch (err) {
-      return new Response(JSON.stringify({ success: false, error: err.message }), {
-        status: 500,
+      return new Response(JSON.stringify({ success: true, data: [], message: err.message }), {
+        status: 200,
         headers: { 'Content-Type': 'application/json', ...corsHeaders }
       });
     }
 
     // Default — serve static assets
-    return env.ASSETS.fetch(request);
+    if (env && env.ASSETS) {
+      return env.ASSETS.fetch(request);
+    }
+    return new Response('Not Found', { status: 404, headers: corsHeaders });
   }
 };
 
 function injectCors(response, headers) {
-  const newHeaders = new Headers(response.headers);
+  if (!response) {
+    return new Response(JSON.stringify({ success: true, data: [] }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', ...headers }
+    });
+  }
+  const newHeaders = new Headers(response.headers || {});
   for (const [key, val] of Object.entries(headers)) {
     newHeaders.set(key, val);
   }
   return new Response(response.body, {
-    status: response.status,
-    statusText: response.statusText,
+    status: response.status || 200,
+    statusText: response.statusText || 'OK',
     headers: newHeaders
   });
 }

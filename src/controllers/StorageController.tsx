@@ -18,28 +18,43 @@ function notifySync() {
 
 // ── Core D1 API fetch helpers ──────────────────────────────────────────────────
 async function apiFetch(url: string): Promise<any> {
-  const res = await fetch(url, { cache: 'no-store' });
-  if (!res.ok) throw new Error(`GET ${url} → ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(url, { cache: 'no-store' });
+    if (!res.ok) {
+      return { success: false, data: [] };
+    }
+    return await res.json();
+  } catch (err) {
+    return { success: false, data: [] };
+  }
 }
 
 async function apiPost(url: string, data: any): Promise<any> {
-  const res = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(data),
-  });
-  if (!res.ok) {
-    const txt = await res.text().catch(() => '');
-    throw new Error(`POST ${url} → ${res.status}: ${txt}`);
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      return { success: false };
+    }
+    return await res.json();
+  } catch (err) {
+    return { success: false };
   }
-  return res.json();
 }
 
 async function apiDelete(url: string): Promise<any> {
-  const res = await fetch(url, { method: 'DELETE' });
-  if (!res.ok) throw new Error(`DELETE ${url} → ${res.status}`);
-  return res.json();
+  try {
+    const res = await fetch(url, { method: 'DELETE' });
+    if (!res.ok) {
+      return { success: false };
+    }
+    return await res.json();
+  } catch (err) {
+    return { success: false };
+  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

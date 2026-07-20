@@ -8,8 +8,8 @@ let globalAudio: HTMLAudioElement | null = null;
 let globalMuted = false;
 
 export default function BackgroundMusic() {
-  const [muted, setMuted] = useState(true); // Default muted to ensure user-initiated autoplay policy compliance
-  const [started, setStarted] = useState(false);
+  const [muted, setMuted] = useState(false); // Default unmuted (music ON by default)
+  const [started, setStarted] = useState(true);
   const [volume, setVolume] = useState(0.28);
   const [showVolume, setShowVolume] = useState(false);
   const [wavePhase, setWavePhase] = useState(0);
@@ -76,41 +76,63 @@ export default function BackgroundMusic() {
     };
   }, []);
 
-  // Start music on first user interaction
+  // Start music automatically on mount or first user interaction
   useEffect(() => {
-    const initAudio = () => {
+    const startAudio = () => {
       if (globalAudio) {
-        setStarted(true);
-        setMuted(globalAudio.muted);
+        if (globalAudio.paused && !globalMuted) {
+          globalAudio.play().catch(() => {});
+        }
         return;
       }
       try {
         const audio = new Audio('/audio/background.mp3');
         audio.loop = true;
-        audio.volume = 0;
+        audio.volume = 0.28;
         audio.play().then(() => {
           globalAudio = audio;
           setStarted(true);
           setMuted(false);
           globalMuted = false;
-          // Fade in over 3 seconds
-          let vol = 0;
-          const fade = setInterval(() => {
-            vol = Math.min(vol + 0.01, 0.28);
-            audio.volume = vol;
-            if (vol >= 0.28) clearInterval(fade);
-          }, 100);
-        }).catch(() => {});
+        }).catch(() => {
+          // Autoplay blocked by browser policy — attach interaction listeners to start audio on first interaction
+          const unlock = () => {
+            if (!globalAudio) {
+              const a = new Audio('/audio/background.mp3');
+              a.loop = true;
+              a.volume = 0.28;
+              a.play().then(() => {
+                globalAudio = a;
+                setStarted(true);
+                setMuted(false);
+                globalMuted = false;
+              }).catch(() => {});
+            } else if (globalAudio.paused && !globalMuted) {
+              globalAudio.play().catch(() => {});
+            }
+          };
+          ['click', 'touchstart', 'keydown', 'scroll', 'mousemove', 'pointerdown'].forEach(evt =>
+            window.addEventListener(evt, unlock, { once: true })
+          );
+        });
       } catch {}
     };
 
+    startAudio();
+
     const onInteract = () => {
-      initAudio();
-      ['click', 'touchstart', 'keydown', 'scroll'].forEach(e => window.removeEventListener(e, onInteract));
+      if (!globalAudio || (globalAudio.paused && !globalMuted)) {
+        startAudio();
+      }
     };
-    ['click', 'touchstart', 'keydown', 'scroll'].forEach(e => window.addEventListener(e, onInteract, { once: true }));
+    ['click', 'touchstart', 'keydown', 'scroll', 'pointerdown'].forEach(e =>
+      window.addEventListener(e, onInteract, { once: true })
+    );
+
     return () => {
-      ['click', 'touchstart', 'keydown', 'scroll'].forEach(e => window.removeEventListener(e, onInteract));
+      ['click', 'touchstart', 'keydown', 'scroll', 'pointerdown'].forEach(e =>
+        window.removeEventListener(e, onInteract)
+      );
     };
   }, []);
 
@@ -120,7 +142,6 @@ export default function BackgroundMusic() {
     globalMuted = newMuted;
 
     if (!globalAudio) {
-      // Lazy load and play if not started yet
       try {
         const audio = new Audio('/audio/background.mp3');
         audio.loop = true;
@@ -216,3 +237,4 @@ export default function BackgroundMusic() {
     </div>
   );
 }
+

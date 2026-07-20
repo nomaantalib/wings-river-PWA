@@ -19,7 +19,7 @@ import ImageUploader from '@/components/ImageUploader';
 import {
   Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Trash2, Edit3,
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
-  Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen, Sparkles
+  Megaphone, ToggleLeft, ToggleRight,  X, Save, Eye, EyeOff, Waves, BookOpen, Sparkles, Home
 } from 'lucide-react';
 
 // ─── TYPES ───────────────────────────────────────────────────────────────────
@@ -146,7 +146,13 @@ export default function AdminDashboard() {
       loadAll();
     } else { setErrorMsg('Invalid password. Use: wingsriver@2026'); }
   };
-  const handleLogout = () => { setIsAuthenticated(false); localStorage.removeItem('wings_admin_auth'); };
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('wings_admin_auth');
+    if (typeof window !== 'undefined') {
+      window.location.href = '/';
+    }
+  };
 
   if (!mounted) {
     return (
@@ -164,8 +170,20 @@ export default function AdminDashboard() {
   // ─────────────────────────────────────────────────────────────────────────
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4"
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4 relative"
         style={{ background: 'radial-gradient(circle at 50% 0%, #1a0e0200 0%, #0a0604 70%)' }}>
+        
+        {/* Redirect button to return to home page */}
+        <div className="absolute top-6 left-6 z-20">
+          <a
+            href="/"
+            className="inline-flex items-center space-x-2 px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-amber-300 font-bold text-xs border border-white/10 transition-all shadow-md hover:scale-105"
+          >
+            <Home className="w-4 h-4 text-amber-400" />
+            <span>← Back to Website Home</span>
+          </a>
+        </div>
+
         <div className="w-full max-w-md space-y-6">
           {/* Logo */}
           <div className="text-center space-y-3">
@@ -242,10 +260,23 @@ export default function AdminDashboard() {
             <p className="text-[9px] text-amber-400 font-semibold uppercase tracking-widest">Full Content Management</p>
           </div>
         </div>
-        <button onClick={handleLogout}
-          className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-gray-300 border border-white/10 transition-colors">
-          <LogOut className="w-3.5 h-3.5" /><span>Logout</span>
-        </button>
+        
+        {/* Navigation & Logout Controls */}
+        <div className="flex items-center space-x-2">
+          <a
+            href="/"
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-amber-500/20 to-emerald-500/20 hover:from-amber-500 hover:to-emerald-500 text-amber-300 hover:text-dark-950 font-bold text-xs border border-amber-500/40 transition-all hover:scale-105 shadow-md"
+            title="Go to Website Home Page"
+          >
+            <Home className="w-3.5 h-3.5" />
+            <span>Home Page</span>
+          </a>
+          <button onClick={handleLogout}
+            className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-rose-500/20 hover:bg-rose-500 text-xs text-rose-300 hover:text-white border border-rose-500/30 transition-all hover:scale-105"
+            title="Logout and return to site">
+            <LogOut className="w-3.5 h-3.5" /><span>Logout</span>
+          </button>
+        </div>
       </header>
 
       {/* Tab Nav */}

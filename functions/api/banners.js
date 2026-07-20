@@ -11,21 +11,22 @@ const CREATE_TABLE = `CREATE TABLE IF NOT EXISTS event_banners (
 )`;
 
 export async function onRequestGet(context) {
-  const db = context.env.DB;
+  const db = context?.env?.DB;
   if (!db) return new Response(JSON.stringify({ success: true, data: [] }), { headers: { 'Content-Type': 'application/json' } });
   try {
     await db.prepare(CREATE_TABLE).run();
-    const { results } = await db.prepare("SELECT * FROM event_banners ORDER BY created_at DESC").all();
+    const query = await db.prepare("SELECT * FROM event_banners ORDER BY created_at DESC").all();
+    const results = query?.results || [];
     const data = results.map(r => ({ ...r, is_active: r.is_active === 1 || r.is_active === true }));
     return new Response(JSON.stringify({ success: true, data }), { headers: { 'Content-Type': 'application/json' } });
   } catch (err) {
-    return new Response(JSON.stringify({ success: false, error: err.message }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+    return new Response(JSON.stringify({ success: true, data: [], error: err.message }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   }
 }
 
 export async function onRequestPost(context) {
-  const db = context.env.DB;
-  if (!db) return new Response(JSON.stringify({ success: false, error: 'Database not bound' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  const db = context?.env?.DB;
+  if (!db) return new Response(JSON.stringify({ success: false, error: 'Database not bound' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   try {
     await db.prepare(CREATE_TABLE).run();
     const data = await context.request.json();
@@ -50,8 +51,8 @@ export async function onRequestPost(context) {
 }
 
 export async function onRequestDelete(context) {
-  const db = context.env.DB;
-  if (!db) return new Response(JSON.stringify({ success: false, error: 'Database not bound' }), { status: 500, headers: { 'Content-Type': 'application/json' } });
+  const db = context?.env?.DB;
+  if (!db) return new Response(JSON.stringify({ success: false, error: 'Database not bound' }), { status: 200, headers: { 'Content-Type': 'application/json' } });
   try {
     const url = new URL(context.request.url);
     const id = url.searchParams.get('id');
