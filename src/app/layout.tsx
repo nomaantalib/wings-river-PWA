@@ -1,36 +1,44 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import SEOStructuredData from '@/components/SEOStructuredData';
 
+export const viewport: Viewport = {
+  themeColor: '#d97706',
+};
+
 export const metadata: Metadata = {
-  title: 'Wings River Café | Premium Riverside Restaurant & Water Sports in Lucknow',
-  description: 'Wings River Café is Lucknow’s premier waterfront family restaurant at Laxman Mela Ground. Enjoy gourmet multicuisine food, birthday party canopies, scenic river sunset dining & Lucknow Water Sports speedboat rides. Call 07310008020.',
+  title: 'Wings River Café | Riverside Restaurant & Water Sports Lucknow',
+  description: "Wings River Café — Lucknow's premier waterfront family restaurant at Laxman Mela Ground. Gourmet multicuisine dining, birthday party canopies, river sunset dining & Lucknow Water Sports speedboat rides. Call 07310008020.",
   keywords: [
-    'Wings River Cafe',
-    'Wings River Lucknow',
+    'Wings River Cafe Lucknow',
     'Lucknow Water Sports',
     'Riverside Cafe Lucknow',
     'Family Restaurant Hazratganj',
-    'Purana Haidarabad Cafe',
     'Laxman Mela Ground Cafe',
     'Speedboat Rides Gomti River',
     'Birthday Party Venue Lucknow',
-    'Multicuisine Restaurant Lucknow'
+    'Multicuisine Restaurant Lucknow',
+    'Jetski Lucknow',
+    'Café near Gomti River'
   ],
   authors: [{ name: 'Wings River Café' }],
+  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: '/logo.png', type: 'image/png', sizes: '192x192' },
+      { url: '/logo.png', type: 'image/png', sizes: '512x512' },
+    ],
+    apple: [
+      { url: '/logo.png', sizes: '180x180' },
+    ],
+    shortcut: '/logo.png',
+  },
   openGraph: {
     title: 'Wings River Café | Taste • Eat • Rides',
     description: 'Luxury waterfront restaurant, birthday party canopy & speedboat rides along Gomti River, Lucknow.',
     url: 'https://wings-river-cafe-blog.pages.dev',
     siteName: 'Wings River Café',
-    images: [
-      {
-        url: 'https://wings-river-cafe-blog.pages.dev/logo.png',
-        width: 1200,
-        height: 630,
-        alt: 'Wings River Café - Taste, Eat & Rides Multicuisine Logo'
-      }
-    ],
+    images: [{ url: 'https://wings-river-cafe-blog.pages.dev/logo.png', width: 512, height: 512, alt: 'Wings River Café Logo' }],
     locale: 'en_IN',
     type: 'website',
   },
@@ -40,30 +48,28 @@ export const metadata: Metadata = {
     description: 'Taste • Eat • Rides at Laxman Jhula Park, Gomti Riverfront Lucknow.',
     images: ['https://wings-river-cafe-blog.pages.dev/logo.png'],
   },
-  robots: {
-    index: true,
-    follow: true,
-  },
+  robots: { index: true, follow: true },
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
-        <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        {/* Favicon — use logo.png */}
+        <link rel="icon" href="/logo.png" type="image/png" />
+        <link rel="shortcut icon" href="/logo.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/logo.png" sizes="180x180" />
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#8FD3C7" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Wings River" />
+        {/* Google Fonts — Playfair Display + Lato (café feel) */}
+        <link rel="preconnect" href="https://fonts.googleapis.com" />
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+        <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Lato:wght@300;400;700;900&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
-      <body className="bg-dark-950 text-dark-900 antialiased selection:bg-mint-300 selection:text-dark-950">
+      <body className="antialiased selection:bg-amber-300 selection:text-amber-950" style={{ fontFamily: "'Lato', sans-serif", background: '#0a0604' }}>
         <SEOStructuredData />
         {children}
       </body>

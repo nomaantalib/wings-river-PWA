@@ -4,8 +4,8 @@
   "description": "Lucknow's Premier Waterfront Family Restaurant, Birthday Canopies & Gomti River Speedboat Rides at Laxman Mela Ground.",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#081714",
-  "theme_color": "#8FD3C7",
+  "background_color": "#0a0604",
+  "theme_color": "#d97706",
   "orientation": "portrait-primary",
   "icons": [
     {
@@ -15,7 +15,7 @@
       "purpose": "any maskable"
     },
     {
-      "src": "/images/logo.png",
+      "src": "/logo.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
