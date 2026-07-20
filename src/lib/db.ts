@@ -64,6 +64,12 @@ export interface ContactMessage {
   created_at?: string;
 }
 
+// Helper to resolve D1 binding dynamically whether named 'wings_river_cafe' or 'DB'
+export function getD1Binding(env: any) {
+  if (!env) return null;
+  return env.wings_river_cafe || env.DB || null;
+}
+
 // Menu Card Booklet Page Definitions
 export interface MenuPageDefinition {
   pageNumber: number;

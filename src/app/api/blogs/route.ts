@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { INITIAL_BLOGS, BlogPost } from '@/lib/db';
+import { INITIAL_BLOGS, BlogPost, getD1Binding } from '@/lib/db';
 
 export const runtime = 'edge';
 
@@ -7,9 +7,9 @@ let localBlogs: BlogPost[] = [...INITIAL_BLOGS];
 
 export async function GET() {
   try {
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      const { results } = await env.DB.prepare('SELECT * FROM blogs ORDER BY created_at DESC').all();
+    const db = getD1Binding(process.env);
+    if (db) {
+      const { results } = await db.prepare('SELECT * FROM blogs ORDER BY created_at DESC').all();
       return NextResponse.json({ success: true, data: results.length ? results : localBlogs });
     }
     return NextResponse.json({ success: true, data: localBlogs });
@@ -41,9 +41,9 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString().split('T')[0]
     };
 
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      await env.DB.prepare(
+    const db = getD1Binding(process.env);
+    if (db) {
+      await db.prepare(
         `INSERT INTO blogs (id, title, slug, excerpt, content, category, cover_image, author, read_time)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(newBlog.id, newBlog.title, newBlog.slug, newBlog.excerpt, newBlog.content, newBlog.category, newBlog.cover_image, newBlog.author, newBlog.read_time).run();

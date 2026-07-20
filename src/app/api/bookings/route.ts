@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { Reservation } from '@/lib/db';
+import { Reservation, getD1Binding } from '@/lib/db';
 
 export const runtime = 'edge';
 
@@ -22,10 +22,9 @@ let localReservations: Reservation[] = [
 
 export async function GET(request: Request) {
   try {
-    // Cloudflare D1 integration if bound in edge environment
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      const { results } = await env.DB.prepare(
+    const db = getD1Binding(process.env);
+    if (db) {
+      const { results } = await db.prepare(
         'SELECT * FROM reservations ORDER BY created_at DESC'
       ).all();
       return NextResponse.json({ success: true, data: results });
@@ -63,9 +62,9 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString()
     };
 
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      await env.DB.prepare(
+    const db = getD1Binding(process.env);
+    if (db) {
+      await db.prepare(
         `INSERT INTO reservations (id, name, phone, email, booking_type, date, time, guests, special_requests, status)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(

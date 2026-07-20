@@ -9,6 +9,11 @@
   "pages_build_output_dir": ".vercel/output/static",
   "d1_databases": [
     {
+      "binding": "wings_river_cafe",
+      "database_name": "wings-river-cafe-db",
+      "database_id": "c2491a90-0f90-4a1e-8a4d-852e6588a68a"
+    },
+    {
       "binding": "DB",
       "database_name": "wings-river-cafe-db",
       "database_id": "c2491a90-0f90-4a1e-8a4d-852e6588a68a"

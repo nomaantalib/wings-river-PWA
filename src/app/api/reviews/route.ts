@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { INITIAL_REVIEWS, Review } from '@/lib/db';
+import { INITIAL_REVIEWS, Review, getD1Binding } from '@/lib/db';
 
 export const runtime = 'edge';
 
@@ -7,9 +7,9 @@ let localReviews: Review[] = [...INITIAL_REVIEWS];
 
 export async function GET() {
   try {
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      const { results } = await env.DB.prepare('SELECT * FROM reviews ORDER BY created_at DESC').all();
+    const db = getD1Binding(process.env);
+    if (db) {
+      const { results } = await db.prepare('SELECT * FROM reviews ORDER BY created_at DESC').all();
       return NextResponse.json({ success: true, data: results.length ? results : localReviews });
     }
     return NextResponse.json({ success: true, data: localReviews });
@@ -36,9 +36,9 @@ export async function POST(request: Request) {
       avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(author_name)}`
     };
 
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      await env.DB.prepare(
+    const db = getD1Binding(process.env);
+    if (db) {
+      await db.prepare(
         `INSERT INTO reviews (id, author_name, rating, review_text, date_str, avatar_url) VALUES (?, ?, ?, ?, ?, ?)`
       ).bind(newReview.id, newReview.author_name, newReview.rating, newReview.review_text, newReview.date_str, newReview.avatar_url).run();
     } else {

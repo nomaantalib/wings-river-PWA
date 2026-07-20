@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { ContactMessage } from '@/lib/db';
+import { ContactMessage, getD1Binding } from '@/lib/db';
 
 export const runtime = 'edge';
 
@@ -7,9 +7,9 @@ let localMessages: ContactMessage[] = [];
 
 export async function GET() {
   try {
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      const { results } = await env.DB.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC').all();
+    const db = getD1Binding(process.env);
+    if (db) {
+      const { results } = await db.prepare('SELECT * FROM contact_messages ORDER BY created_at DESC').all();
       return NextResponse.json({ success: true, data: results });
     }
     return NextResponse.json({ success: true, data: localMessages });
@@ -36,9 +36,9 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString()
     };
 
-    const env = (process.env as any) || {};
-    if (env.DB) {
-      await env.DB.prepare(
+    const db = getD1Binding(process.env);
+    if (db) {
+      await db.prepare(
         `INSERT INTO contact_messages (id, name, phone, email, message) VALUES (?, ?, ?, ?, ?)`
       ).bind(newMessage.id, newMessage.name, newMessage.phone, newMessage.email, newMessage.message).run();
     } else {
