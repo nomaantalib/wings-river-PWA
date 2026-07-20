@@ -1,0 +1,9 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wings-river-cafe-blog",
+  "main": "entrypoint.js",
+  "compatibility_date": "2026-07-20",
+  "assets": {
+    "directory": "./out"
+  }
+}
