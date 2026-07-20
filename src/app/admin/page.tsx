@@ -337,9 +337,41 @@ export default function AdminDashboard() {
                     <input className={inputCls} value={heroSettings.subHeadline || ''} onChange={e => setHeroSettings(h => ({ ...h, subHeadline: e.target.value }))} />
                   </div>
                 </div>
-                <div className="flex justify-end">
-                  <button onClick={async () => { await saveHeroSettings(heroSettings); alert('Hero text settings saved successfully!'); }} className={btnPrimary}>
-                    <Save className="w-4 h-4" /><span>Save Text Settings</span>
+
+                <div className="border-t border-white/10 my-4 pt-4 space-y-4">
+                  <h3 className="font-serif font-bold text-amber-400 text-lg flex items-center space-x-2">
+                    <BookOpen className="w-4 h-4" />
+                    <span>About Section Content & Images</span>
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelCls}>About Badge Tag</label>
+                      <input className={inputCls} value={heroSettings.aboutBadge || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutBadge: e.target.value }))} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>About Title Headline</label>
+                      <input className={inputCls} value={heroSettings.aboutTitle || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutTitle: e.target.value }))} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className={labelCls}>About Paragraph 1</label>
+                      <textarea className={inputCls} rows={3} value={heroSettings.aboutParagraph1 || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutParagraph1: e.target.value }))} />
+                    </div>
+                    <div className="md:col-span-2">
+                      <label className={labelCls}>About Paragraph 2</label>
+                      <textarea className={inputCls} rows={3} value={heroSettings.aboutParagraph2 || ''} onChange={e => setHeroSettings(h => ({ ...h, aboutParagraph2: e.target.value }))} />
+                    </div>
+                    <div>
+                      <ImageUploader label="Primary About Image (upload or URL)" value={heroSettings.aboutPrimaryImage || ''} onChange={v => setHeroSettings(h => ({ ...h, aboutPrimaryImage: v }))} previewHeight="h-32" />
+                    </div>
+                    <div>
+                      <ImageUploader label="Secondary Floating Image (upload or URL)" value={heroSettings.aboutSecondaryImage || ''} onChange={v => setHeroSettings(h => ({ ...h, aboutSecondaryImage: v }))} previewHeight="h-32" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex justify-end pt-2 border-t border-white/5">
+                  <button onClick={async () => { await saveHeroSettings(heroSettings); alert('Site settings saved successfully!'); }} className={btnPrimary}>
+                    <Save className="w-4 h-4" /><span>Save Settings</span>
                   </button>
                 </div>
               </div>

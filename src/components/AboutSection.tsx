@@ -1,10 +1,31 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Users, Star, IndianRupee, Clock, Award, ShieldCheck, HeartHandshake, Anchor } from 'lucide-react';
 import CircularLogo from './CircularLogo';
+import { getStoredHeroSettings, HeroSettings, DEFAULT_HERO_SETTINGS } from '@/lib/db';
 
 export default function AboutSection() {
+  const [settings, setSettings] = useState<HeroSettings>(DEFAULT_HERO_SETTINGS);
+
+  useEffect(() => {
+    let isSubscribed = true;
+    getStoredHeroSettings().then((data) => {
+      if (isSubscribed && data) setSettings(data);
+    });
+
+    const handleSync = async () => {
+      const updated = await getStoredHeroSettings();
+      if (isSubscribed && updated) setSettings(updated);
+    };
+
+    window.addEventListener('wings_db_sync', handleSync);
+    return () => {
+      isSubscribed = false;
+      window.removeEventListener('wings_db_sync', handleSync);
+    };
+  }, []);
+
   const stats = [
     {
       icon: Users,
@@ -59,7 +80,7 @@ export default function AboutSection() {
             {/* Primary Main Image (River & Deck view) */}
             <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/90 bg-dark-900">
               <img
-                src="/images/Screenshot_20260720-180544_Maps.png"
+                src={settings.aboutPrimaryImage || "/images/Screenshot_20260720-180544_Maps.png"}
                 alt="Wings River Cafe Waterfront & Water Sports"
                 className="w-full h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
               />
@@ -76,7 +97,7 @@ export default function AboutSection() {
             {/* Secondary Floating Overlapping Card (Evening Lights Canopy) */}
             <div className="absolute -bottom-8 -right-4 sm:-right-8 w-3/5 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/90 hidden sm:block group/sub shadow-gold-500/20">
               <img
-                src="/images/Screenshot_20260720-180609_Maps.png"
+                src={settings.aboutSecondaryImage || "/images/Screenshot_20260720-180609_Maps.png"}
                 alt="Evening Party Canopy at Wings River Cafe"
                 className="w-full h-48 object-cover group-hover/sub:scale-110 transition-transform duration-700"
               />
@@ -96,23 +117,19 @@ export default function AboutSection() {
           <div>
             <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-mint-200/60 border border-mint-300 text-mint-800 text-xs font-bold uppercase tracking-wider mb-3">
               <Award className="w-3.5 h-3.5 text-gold-600" />
-              <span>Premium Multicuisine & Waterfront Haven</span>
+              <span>{settings.aboutBadge || 'Premium Multicuisine & Waterfront Haven'}</span>
             </div>
 
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-dark-900 tracking-tight leading-tight mb-4">
-              Welcome to <span className="text-mint-600">Wings River</span> <span className="text-gold-500">Café</span>
+              {settings.aboutTitle || 'Welcome to Wings River Café'}
             </h2>
 
             <p className="font-sans text-gray-700 text-base sm:text-lg leading-relaxed mb-6">
-              Located inside <strong>Laxman Mela Ground at Laxman Jhula Park</strong> along the scenic Gomti River in Lucknow, 
-              <strong> Wings River Café</strong> is a premier destination where exquisite multicuisine gastronomy 
-              meets breathtaking riverside natural ambience and thrilling <strong>Lucknow Water Sports speedboat rides</strong>.
+              {settings.aboutParagraph1 || 'Located inside Laxman Mela Ground at Laxman Jhula Park along the scenic Gomti River in Lucknow, Wings River Café is a premier destination where exquisite multicuisine gastronomy meets breathtaking riverside natural ambience and thrilling Lucknow Water Sports speedboat rides.'}
             </p>
 
             <p className="font-sans text-gray-600 text-sm sm:text-base leading-relaxed mb-8">
-              Whether you are planning a relaxed family gathering, a festive birthday party under our sparkling fairy-light canopy, 
-              or a romantic candlelit evening beside the gentle river waters, our elevated indoor & outdoor dining decks offer 
-              an unforgettable experience.
+              {settings.aboutParagraph2 || 'Whether you are planning a relaxed family gathering, a festive birthday party under our sparkling fairy-light canopy, or a romantic candlelit evening beside the gentle river waters, our elevated indoor & outdoor dining decks offer an unforgettable experience.'}
             </p>
 
             {/* Key Value Highlights */}

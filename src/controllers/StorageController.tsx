@@ -16,10 +16,20 @@ function notifySync() {
   }
 }
 
+function getApiUrl(url: string): string {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return `https://wings-river-cafe-blog.pages.dev${url}`;
+    }
+  }
+  return url;
+}
+
 // ── Core D1 API fetch helpers ──────────────────────────────────────────────────
 async function apiFetch(url: string): Promise<any> {
   try {
-    const res = await fetch(url, { cache: 'no-store' });
+    const res = await fetch(getApiUrl(url), { cache: 'no-store' });
     if (!res.ok) {
       return { success: false, data: [] };
     }
@@ -31,7 +41,7 @@ async function apiFetch(url: string): Promise<any> {
 
 async function apiPost(url: string, data: any): Promise<any> {
   try {
-    const res = await fetch(url, {
+    const res = await fetch(getApiUrl(url), {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -47,7 +57,7 @@ async function apiPost(url: string, data: any): Promise<any> {
 
 async function apiDelete(url: string): Promise<any> {
   try {
-    const res = await fetch(url, { method: 'DELETE' });
+    const res = await fetch(getApiUrl(url), { method: 'DELETE' });
     if (!res.ok) {
       return { success: false };
     }
