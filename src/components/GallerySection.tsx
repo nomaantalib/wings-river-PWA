@@ -121,72 +121,102 @@ export default function GallerySection() {
         </div>
 
         {/* MODE 1: Auto Animated Carousel Showcase */}
-        {viewMode === 'carousel' && currentCarouselItem && (
+        {viewMode === 'carousel' && filteredItems.length > 0 && (
           <div className="space-y-6">
             <div
-              className="relative rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl bg-dark-900 group min-h-[420px] sm:min-h-[520px] flex items-end"
+              className="relative rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl bg-dark-900 group min-h-[420px] sm:min-h-[520px] flex items-stretch"
               onMouseEnter={() => setIsPlaying(false)}
               onMouseLeave={() => setIsPlaying(true)}
             >
-              {/* Blurred Background Image Layer */}
-              <div
-                className="absolute inset-0 bg-cover bg-center filter blur-xl scale-110 opacity-60 transition-all duration-1000"
-                style={{ backgroundImage: `url(${currentCarouselItem.image_url})` }}
-              />
+              {/* Sliding Blurred Backdrop (Syncs with main slide) */}
+              <div 
+                className="absolute inset-0 flex transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] scale-110 filter blur-xl opacity-60"
+                style={{ transform: `translateX(-${carouselIndex * 100}%)`, width: `${filteredItems.length * 100}%` }}
+              >
+                {filteredItems.map((item) => (
+                  <div 
+                    key={`bg-${item.id}`} 
+                    className="w-full h-full bg-cover bg-center flex-shrink-0"
+                    style={{ backgroundImage: `url(${item.image_url})` }}
+                  />
+                ))}
+              </div>
 
-              {/* Main Focused Carousel Image */}
-              <img
-                src={currentCarouselItem.image_url}
-                alt={currentCarouselItem.title}
-                className="absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 opacity-90 group-hover:scale-105"
-              />
+              {/* Main Slides Track */}
+              <div 
+                className="flex w-full h-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
+                style={{ transform: `translateX(-${carouselIndex * 100}%)`, width: `${filteredItems.length * 100}%` }}
+              >
+                {filteredItems.map((item, idx) => {
+                  const isActive = idx === carouselIndex;
+                  return (
+                    <div
+                      key={item.id}
+                      className="w-full h-full flex-shrink-0 relative flex items-end min-h-[420px] sm:min-h-[520px] overflow-hidden"
+                    >
+                      {/* Vignette Overlay Gradient */}
+                      <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/40 to-transparent z-10" />
 
-              {/* Vignette Overlay Gradient */}
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/40 to-transparent" />
+                      {/* Main Focused Carousel Image with 3D zoom & blur on inactive */}
+                      <img
+                        src={item.image_url}
+                        alt={item.title}
+                        className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 ${
+                          isActive 
+                            ? 'scale-100 opacity-90 blur-0' 
+                            : 'scale-95 opacity-20 blur-[3px]'
+                        }`}
+                      />
 
-              {/* Slide Details Content */}
-              <div className="relative z-20 p-6 sm:p-10 w-full flex flex-col sm:flex-row sm:items-end justify-between gap-4">
-                <div className="space-y-2 max-w-2xl">
-                  <div className="flex items-center space-x-2">
-                    <span className="px-3 py-1 rounded-full bg-mint-400 text-dark-950 text-xs font-extrabold uppercase shadow-md">
-                      {currentCarouselItem.category}
-                    </span>
-                    <span className="text-xs text-gold-300 font-semibold">
-                      Photo {carouselIndex + 1} of {filteredItems.length}
-                    </span>
-                  </div>
-                  <h3 className="font-serif font-extrabold text-2xl sm:text-3xl text-white drop-shadow-md">
-                    {currentCarouselItem.title}
-                  </h3>
-                  <p className="text-xs sm:text-sm text-cream-200">
-                    Official photo capture from Wings River Café & Gomti Waterfront Deck.
-                  </p>
-                </div>
+                      {/* Slide Details Content (only animate/fade for active slide) */}
+                      <div className={`relative z-20 p-6 sm:p-10 w-full flex flex-col sm:flex-row sm:items-end justify-between gap-4 transition-all duration-700 ${
+                        isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                      }`}>
+                        <div className="space-y-2 max-w-2xl">
+                          <div className="flex items-center space-x-2">
+                            <span className="px-3 py-1 rounded-full bg-mint-400 text-dark-950 text-xs font-extrabold uppercase shadow-md">
+                              {item.category}
+                            </span>
+                            <span className="text-xs text-gold-300 font-semibold">
+                              Photo {idx + 1} of {filteredItems.length}
+                            </span>
+                          </div>
+                          <h3 className="font-serif font-extrabold text-2xl sm:text-3xl text-white drop-shadow-md">
+                            {item.title}
+                          </h3>
+                          <p className="text-xs sm:text-sm text-cream-200">
+                            Official photo capture from Wings River Café & Gomti Waterfront Deck.
+                          </p>
+                        </div>
 
-                <div className="flex items-center space-x-3 shrink-0">
-                  <button
-                    onClick={() => setActivePhoto(currentCarouselItem)}
-                    className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
-                  >
-                    <ZoomIn className="w-4 h-4" />
-                    <span>Expand Fullscreen</span>
-                  </button>
+                        <div className="flex items-center space-x-3 shrink-0">
+                          <button
+                            onClick={() => setActivePhoto(item)}
+                            className="flex items-center space-x-2 px-4 py-2.5 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
+                          >
+                            <ZoomIn className="w-4 h-4" />
+                            <span>Expand Fullscreen</span>
+                          </button>
 
-                  {/* Play / Pause Toggle */}
-                  <button
-                    onClick={() => setIsPlaying(!isPlaying)}
-                    title={isPlaying ? 'Pause Auto-Play' : 'Play Auto-Play'}
-                    className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white backdrop-blur-md transition-colors"
-                  >
-                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </button>
-                </div>
+                          {/* Play / Pause Toggle */}
+                          <button
+                            onClick={() => setIsPlaying(!isPlaying)}
+                            title={isPlaying ? 'Pause Auto-Play' : 'Play Auto-Play'}
+                            className="p-2.5 rounded-xl bg-white/20 hover:bg-white/30 text-white backdrop-blur-md transition-colors"
+                          >
+                            {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* Slide Control Navigation Arrows */}
               <button
                 onClick={handlePrevSlide}
-                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/60 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl"
+                className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/60 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105"
                 aria-label="Previous Photo"
               >
                 <ChevronLeft className="w-5 h-5" />
@@ -194,7 +224,7 @@ export default function GallerySection() {
 
               <button
                 onClick={handleNextSlide}
-                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/60 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl"
+                className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/60 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/20 transition-all shadow-xl hover:scale-105"
                 aria-label="Next Photo"
               >
                 <ChevronRight className="w-5 h-5" />

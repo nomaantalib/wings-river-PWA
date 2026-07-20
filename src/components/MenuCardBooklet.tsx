@@ -10,7 +10,7 @@ interface MenuCardBookletProps {
 
 export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps) {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<'booklet' | 'grid'>('booklet');
+  const [viewMode, setViewMode] = useState<'booklet' | 'grid' | 'scroll'>('booklet');
   const [activeZoomImage, setActiveZoomImage] = useState<string | null>(null);
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
 
@@ -77,7 +77,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
           </p>
 
           {/* Mode Selector Controls */}
-          <div className="flex items-center justify-center space-x-3 mt-6">
+          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
             <button
               onClick={() => {
                 setViewMode('booklet');
@@ -91,6 +91,21 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
             >
               <BookOpen className="w-4 h-4" />
               <span>3D Page Flip Booklet</span>
+            </button>
+
+            <button
+              onClick={() => {
+                setViewMode('scroll');
+                setIsAutoFlipping(false);
+              }}
+              className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
+                viewMode === 'scroll'
+                  ? 'bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 shadow-lg shadow-mint-400/20'
+                  : 'bg-white/10 hover:bg-white/20 text-gray-300 border border-white/10'
+              }`}
+            >
+              <Maximize2 className="w-4 h-4" />
+              <span>Scroll Feed</span>
             </button>
 
             <button
@@ -251,6 +266,80 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 </div>
               </div>
             )}
+          </div>
+        )}
+        {/* SCROLL FEED VIEW */}
+        {viewMode === 'scroll' && (
+          <div className="flex flex-col lg:flex-row gap-8 items-start animate-fade-in">
+            {/* Quick Sticky Page Navigator Sidebar */}
+            <div className="w-full lg:w-60 lg:sticky lg:top-24 bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/10 shrink-0 space-y-4">
+              <h4 className="font-serif font-bold text-sm text-gold-400 uppercase tracking-widest">
+                Quick Index
+              </h4>
+              <div className="grid grid-cols-4 lg:grid-cols-1 gap-2 text-xs">
+                {menuPages.map((page, idx) => (
+                  <button
+                    key={page.pageNumber}
+                    onClick={() => {
+                      document.getElementById(`menu-scroll-page-${page.pageNumber}`)?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                      });
+                    }}
+                    className="flex items-center space-x-2 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-400/30 text-left transition-all text-gray-300 hover:text-white"
+                  >
+                    <span className="font-mono font-bold text-mint-400 shrink-0">0{page.pageNumber}</span>
+                    <span className="truncate hidden lg:inline">{page.title}</span>
+                  </button>
+                ))}
+              </div>
+              <div className="pt-2 border-t border-white/10 hidden lg:block">
+                <button
+                  onClick={onOpenBooking}
+                  className="w-full flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-bold rounded-xl text-xs shadow-md hover:scale-[1.02] transition-transform"
+                >
+                  <Calendar className="w-4 h-4" />
+                  <span>Reserve Table Now</span>
+                </button>
+              </div>
+            </div>
+
+            {/* Continuous Vertical Feed */}
+            <div className="flex-1 w-full space-y-8">
+              {menuPages.map((page, idx) => (
+                <div
+                  key={page.pageNumber}
+                  id={`menu-scroll-page-${page.pageNumber}`}
+                  className="relative bg-[#fbf5eb] p-4 sm:p-6 rounded-3xl border-2 border-gold-400/20 shadow-2xl transition-all duration-300 hover:border-gold-400/50"
+                >
+                  {/* Floating Page Badge */}
+                  <div className="absolute top-4 left-4 bg-dark-950/80 backdrop-blur-md text-gold-300 px-4 py-1.5 rounded-full text-xs font-bold z-10 border border-gold-400/25 shadow-lg">
+                    Page {idx + 1} of {menuPages.length} · {page.title}
+                  </div>
+
+                  {/* Actions bar inside page card */}
+                  <div className="absolute top-4 right-4 flex items-center space-x-1.5 z-10">
+                    <button
+                      onClick={() => setActiveZoomImage(page.image)}
+                      className="p-2 rounded-full bg-dark-950/80 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/10 transition-colors shadow-lg"
+                      title="Expand Full Screen"
+                    >
+                      <ZoomIn className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Page Image */}
+                  <div className="relative group overflow-hidden rounded-2xl flex items-center justify-center bg-transparent mt-8">
+                    <img
+                      src={page.image}
+                      alt={page.title}
+                      className="w-full h-auto object-contain filter drop-shadow-xl rounded-xl transition-all duration-500 group-hover:scale-[1.01]"
+                    />
+                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors pointer-events-none" />
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
