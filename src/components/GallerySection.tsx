@@ -141,34 +141,34 @@ export default function GallerySection() {
                 if (touchUp - touchDown > 50) handlePrevSlide();
               }}
             >
-              {/* Sliding Blurred Backdrop (Syncs with main slide) */}
-              <div 
-                className="absolute inset-0 flex transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)] scale-125 filter blur-2xl opacity-60"
-                style={{ transform: `translateX(-${carouselIndex * 100}%)`, width: `${filteredItems.length * 100}%` }}
-              >
-                {filteredItems.map((item) => (
+              {/* Sliding Blurred Backdrop (Syncs with main slide via cross-fade) */}
+              <div className="absolute inset-0 w-full h-full pointer-events-none z-0">
+                {filteredItems.map((item, idx) => (
                   <div 
                     key={`bg-${item.id}`} 
-                    className="w-full h-full bg-cover bg-center flex-shrink-0"
+                    className={`absolute inset-0 bg-cover bg-center filter blur-2xl transition-opacity duration-700 ${
+                      idx === carouselIndex ? 'opacity-60 scale-110' : 'opacity-0 scale-100'
+                    }`}
                     style={{ backgroundImage: `url(${item.image_url})` }}
                   />
                 ))}
               </div>
 
-              {/* Main Slides Track */}
-              <div 
-                className="flex w-full h-full transition-transform duration-700 ease-[cubic-bezier(0.16,1,0.3,1)]"
-                style={{ transform: `translateX(-${carouselIndex * 100}%)`, width: `${filteredItems.length * 100}%` }}
-              >
+              {/* Main Slides Track (Absolute-positioned cross-fade) */}
+              <div className="relative w-full h-full z-10">
                 {filteredItems.map((item, idx) => {
                   const isActive = idx === carouselIndex;
                   return (
                     <div
                       key={item.id}
-                      className="w-full h-full flex-shrink-0 relative flex flex-col justify-between overflow-hidden"
+                      className={`absolute inset-0 w-full h-full flex flex-col justify-between overflow-hidden transition-all duration-700 ease-in-out ${
+                        isActive 
+                          ? 'opacity-100 scale-100 pointer-events-auto z-10' 
+                          : 'opacity-0 scale-95 pointer-events-none z-0'
+                      }`}
                     >
                       {/* Vignette Overlay */}
-                      <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-dark-950/40 z-10 pointer-events-none" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-dark-950/45 z-10 pointer-events-none" />
 
                       {/* Main Focused Carousel Image (Full un-cropped display with ambient drop shadow) */}
                       <div className="relative z-10 flex-1 flex items-center justify-center p-4 sm:p-8 overflow-hidden">
@@ -176,18 +176,12 @@ export default function GallerySection() {
                           src={item.image_url}
                           alt={item.title}
                           onClick={() => setActivePhoto(item)}
-                          className={`max-h-full max-w-full object-contain mx-auto my-auto drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)] rounded-2xl border border-white/20 cursor-pointer transition-all duration-700 hover:scale-[1.03] ${
-                            isActive 
-                              ? 'scale-100 opacity-100' 
-                              : 'scale-95 opacity-20'
-                          }`}
+                          className="max-h-full max-w-full object-contain mx-auto my-auto drop-shadow-[0_25px_50px_rgba(0,0,0,0.85)] rounded-2xl border border-white/20 cursor-pointer transition-all duration-700 hover:scale-[1.03]"
                         />
                       </div>
 
                       {/* Slide Details Content */}
-                      <div className={`relative z-20 px-4 py-3 sm:px-8 sm:py-5 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-dark-950/90 backdrop-blur-xl border-t border-white/10 transition-all duration-500 ${
-                        isActive ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                      }`}>
+                      <div className="relative z-20 px-4 py-3 sm:px-8 sm:py-5 w-full flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-dark-950/90 backdrop-blur-xl border-t border-white/10">
                         <div className="space-y-1 min-w-0 flex-1">
                           <div className="flex items-center space-x-2">
                             <span className="px-3 py-0.5 rounded-full bg-gradient-to-r from-mint-400 to-gold-400 text-dark-950 text-[10px] font-black uppercase shadow-sm shrink-0">
