@@ -94,18 +94,18 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
           <div className="relative bg-white rounded-[10%_10%_10%_10%/4%_4%_4%_4%] shadow-2xl border border-amber-200/60 overflow-hidden"
             style={{ borderRadius: '1.5rem' }}>
             {/* Control bar */}
-            <div className="flex items-center justify-between px-5 py-3 border-b border-amber-200/40"
+            <div className="flex flex-col md:flex-row items-center justify-between gap-3 px-5 py-4 border-b border-amber-200/40"
               style={{ background: 'linear-gradient(90deg, #2d1a0e, #4a2c1a, #2d1a0e)' }}>
-              <div className="flex items-center space-x-2">
-                <div className="w-8 h-8 rounded-xl overflow-hidden border border-amber-400/40">
+              <div className="flex items-center space-x-2 w-full md:w-auto justify-center md:justify-start">
+                <div className="w-8 h-8 rounded-xl overflow-hidden border border-amber-400/40 shrink-0">
                   <img src="/logo.png" alt="Wings River Café Logo" className="w-full h-full object-cover" />
                 </div>
-                <div>
-                  <span className="font-serif font-bold text-white text-sm">Wings River Café</span>
-                  <span className="block text-[9px] text-amber-400 font-semibold uppercase tracking-widest">Café & Restaurant Menu</span>
+                <div className="text-center md:text-left">
+                  <span className="font-serif font-bold text-white text-sm block md:inline">Wings River Café</span>
+                  <span className="block text-[9px] text-amber-400 font-semibold uppercase tracking-widest leading-none mt-0.5">Café & Restaurant Menu</span>
                 </div>
               </div>
-              <div className="flex items-center space-x-1.5">
+              <div className="flex items-center space-x-1.5 w-full md:w-auto justify-center">
                 <button onClick={zoomOut} disabled={zoomLevel <= MIN_ZOOM} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 transition-all" title="Zoom Out"><ZoomOut className="w-3.5 h-3.5" /></button>
                 <button onClick={resetZoom} className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold min-w-[44px] text-center">{Math.round(zoomLevel * 100)}%</button>
                 <button onClick={zoomIn} disabled={zoomLevel >= MAX_ZOOM} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 transition-all" title="Zoom In"><ZoomIn className="w-3.5 h-3.5" /></button>

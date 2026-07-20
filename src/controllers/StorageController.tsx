@@ -202,8 +202,16 @@ export async function deleteReservation(id: string): Promise<Reservation[]> {
 //  GALLERY
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
-  const res = await apiFetch('/api/gallery');
-  return res.success && Array.isArray(res.data) ? res.data : INITIAL_GALLERY;
+  try {
+    const res = await apiFetch('/api/gallery');
+    if (res.success && Array.isArray(res.data)) {
+      if (res.data.length > 0) return res.data;
+      await Promise.all(INITIAL_GALLERY.map(g => apiPost('/api/gallery', g)));
+      const fresh = await apiFetch('/api/gallery');
+      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
+    }
+  } catch (e) { console.error('[D1] getStoredGalleryItems:', e); }
+  return INITIAL_GALLERY;
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
@@ -226,8 +234,27 @@ export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
 //  MENU CATEGORIES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredCategories(): Promise<MenuCategory[]> {
-  const res = await apiFetch('/api/categories');
-  return res.success && Array.isArray(res.data) ? res.data : [];
+  try {
+    const res = await apiFetch('/api/categories');
+    if (res.success && Array.isArray(res.data)) {
+      if (res.data.length > 0) return res.data;
+      const initialCats = [
+        { id: 'cat-beverages', name: 'Beverages', slug: 'beverages', description: 'Hot teas, fresh lime, and soft drinks', display_order: 1 },
+        { id: 'cat-breakfast', name: 'Breakfast', slug: 'breakfast', description: 'Parathas, Jalebi, and Bun Makkhan', display_order: 2 },
+        { id: 'cat-chaat', name: 'Chaat & Starters', slug: 'chaat-starters', description: 'Lucknowi basket chaat, Agra bhalla, and golgappe', display_order: 3 },
+        { id: 'cat-drinks', name: 'Coolers & Mocktails', slug: 'coolers-mocktails', description: 'Mojitos, iced teas, and pina colada', display_order: 4 },
+        { id: 'cat-coffee', name: 'Coffee & Shakes', slug: 'coffee-shakes', description: 'Cold brew, espresso, and chocolate cookie shakes', display_order: 5 },
+        { id: 'cat-indian', name: 'Indian Main Course', slug: 'indian-main-course', description: 'Dal Makhani, Paneer Lababdar, and deluxe thalis', display_order: 6 },
+        { id: 'cat-pizza', name: 'Pizza & Burgers', slug: 'pizza-burgers', description: 'Wood-fired pizzas and gourmet cottage cheese burgers', display_order: 7 },
+        { id: 'cat-chinese', name: 'Chinese Wok & Waffles', slug: 'chinese-wok-waffles', description: 'Hakka noodles, chilli paneer, and continental sizzlers', display_order: 8 },
+        { id: 'cat-desserts', name: 'Desserts', slug: 'desserts', description: 'Shahi Tukda, Gulab Jamun, and ice creams', display_order: 9 }
+      ];
+      await Promise.all(initialCats.map(c => apiPost('/api/categories', c)));
+      const fresh = await apiFetch('/api/categories');
+      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
+    }
+  } catch (e) { console.error('[D1] getStoredCategories:', e); }
+  return [];
 }
 
 export async function saveCategory(cat: MenuCategory): Promise<MenuCategory[]> {
@@ -246,8 +273,16 @@ export async function deleteCategory(id: string): Promise<MenuCategory[]> {
 //  MENU ITEMS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredMenuItems(): Promise<MenuItem[]> {
-  const res = await apiFetch('/api/menu');
-  return res.success && Array.isArray(res.data) ? res.data : INITIAL_MENU_ITEMS;
+  try {
+    const res = await apiFetch('/api/menu');
+    if (res.success && Array.isArray(res.data)) {
+      if (res.data.length > 0) return res.data;
+      await Promise.all(INITIAL_MENU_ITEMS.map(i => apiPost('/api/menu', i)));
+      const fresh = await apiFetch('/api/menu');
+      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
+    }
+  } catch (e) { console.error('[D1] getStoredMenuItems:', e); }
+  return INITIAL_MENU_ITEMS;
 }
 
 export async function saveMenuItem(item: MenuItem): Promise<MenuItem[]> {
@@ -270,8 +305,16 @@ export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
 //  BLOGS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredBlogs(): Promise<BlogPost[]> {
-  const res = await apiFetch('/api/blogs');
-  return res.success && Array.isArray(res.data) ? res.data : INITIAL_BLOGS;
+  try {
+    const res = await apiFetch('/api/blogs');
+    if (res.success && Array.isArray(res.data)) {
+      if (res.data.length > 0) return res.data;
+      await Promise.all(INITIAL_BLOGS.map(b => apiPost('/api/blogs', b)));
+      const fresh = await apiFetch('/api/blogs');
+      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
+    }
+  } catch (e) { console.error('[D1] getStoredBlogs:', e); }
+  return INITIAL_BLOGS;
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
@@ -370,8 +413,16 @@ export async function toggleEventBanner(id: string): Promise<EventBanner[]> {
 //  WATER SPORTS RIDES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredWaterSports(): Promise<RideTicket[]> {
-  const res = await apiFetch('/api/watersports');
-  return res.success && Array.isArray(res.data) ? res.data : WATER_SPORTS_RIDES;
+  try {
+    const res = await apiFetch('/api/watersports');
+    if (res.success && Array.isArray(res.data)) {
+      if (res.data.length > 0) return res.data;
+      await Promise.all(WATER_SPORTS_RIDES.map(r => apiPost('/api/watersports', r)));
+      const fresh = await apiFetch('/api/watersports');
+      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) return fresh.data;
+    }
+  } catch (e) { console.error('[D1] getStoredWaterSports:', e); }
+  return WATER_SPORTS_RIDES;
 }
 
 export async function saveWaterSports(ride: RideTicket): Promise<RideTicket[]> {
@@ -394,22 +445,43 @@ export async function deleteWaterSports(id: string): Promise<RideTicket[]> {
 //  MENU BOOKLET PAGES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
-  const res = await apiFetch('/api/menupages');
-  if (res.success && Array.isArray(res.data)) {
-    return res.data.map((item: any) => {
-      let cats = [];
-      if (typeof item.categories === 'string') {
-        try { cats = JSON.parse(item.categories); } catch (e) { cats = []; }
-      } else if (Array.isArray(item.categories)) {
-        cats = item.categories;
+  try {
+    const res = await apiFetch('/api/menupages');
+    if (res.success && Array.isArray(res.data)) {
+      if (res.data.length > 0) {
+        return res.data.map((item: any) => {
+          let cats = [];
+          if (typeof item.categories === 'string') {
+            try { cats = JSON.parse(item.categories); } catch (e) { cats = []; }
+          } else if (Array.isArray(item.categories)) {
+            cats = item.categories;
+          }
+          return {
+            ...item,
+            pageNumber: item.page_number ?? item.pageNumber,
+            categories: cats
+          };
+        });
       }
-      return {
-        ...item,
-        pageNumber: item.page_number ?? item.pageNumber,
-        categories: cats
-      };
-    });
-  }
+      await Promise.all(MENU_BOOKLET_PAGES.map(p => apiPost('/api/menupages', p)));
+      const fresh = await apiFetch('/api/menupages');
+      if (fresh.success && Array.isArray(fresh.data) && fresh.data.length > 0) {
+        return fresh.data.map((item: any) => {
+          let cats = [];
+          if (typeof item.categories === 'string') {
+            try { cats = JSON.parse(item.categories); } catch (e) { cats = []; }
+          } else if (Array.isArray(item.categories)) {
+            cats = item.categories;
+          }
+          return {
+            ...item,
+            pageNumber: item.page_number ?? item.pageNumber,
+            categories: cats
+          };
+        });
+      }
+    }
+  } catch (e) { console.error('[D1] getStoredMenuPages:', e); }
   return MENU_BOOKLET_PAGES;
 }
 
@@ -433,8 +505,18 @@ export async function deleteMenuPage(pageNumber: number): Promise<MenuPageDefini
 //  SITE SETTINGS & HERO
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredHeroSettings(): Promise<HeroSettings> {
-  const res = await apiFetch('/api/hero');
-  return res.success && res.data ? (res.data as HeroSettings) : DEFAULT_HERO_SETTINGS;
+  try {
+    const res = await apiFetch('/api/hero');
+    if (res.success && res.data && Object.keys(res.data).length > 0) {
+      return res.data as HeroSettings;
+    }
+    await apiPost('/api/hero', DEFAULT_HERO_SETTINGS);
+    const fresh = await apiFetch('/api/hero');
+    if (fresh.success && fresh.data && Object.keys(fresh.data).length > 0) {
+      return fresh.data as HeroSettings;
+    }
+  } catch (e) { console.error('[D1] getStoredHeroSettings:', e); }
+  return DEFAULT_HERO_SETTINGS;
 }
 
 export async function saveHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
