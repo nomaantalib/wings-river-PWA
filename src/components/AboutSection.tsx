@@ -48,35 +48,43 @@ export default function AboutSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
           {/* Left Grid: Images Collage & Circular Logo Accent */}
-          <div className="relative">
+          <div className="relative group">
+            {/* Glowing Backdrop Blur Ring */}
+            <div className="absolute -inset-2 bg-gradient-to-r from-mint-400 via-gold-400 to-mint-500 rounded-[2.5rem] blur-2xl opacity-40 group-hover:opacity-65 transition-opacity duration-700 pointer-events-none" />
+
             {/* Primary Main Image (River & Deck view) */}
-            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white group">
+            <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white/90 bg-dark-900">
               <img
                 src="/images/Screenshot_20260720-180544_Maps.png"
                 alt="Wings River Cafe Waterfront & Water Sports"
-                className="w-full h-[400px] object-cover transition-transform duration-700 group-hover:scale-105"
+                className="w-full h-[420px] object-cover transition-transform duration-700 group-hover:scale-105"
               />
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/70 via-transparent to-transparent" />
-              <div className="absolute bottom-4 left-4 right-4 text-white">
-                <span className="inline-block px-3 py-1 bg-mint-400 text-dark-950 text-xs font-bold rounded-full mb-1">
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/85 via-dark-950/20 to-transparent" />
+              <div className="absolute bottom-5 left-5 right-5 text-white">
+                <span className="inline-block px-3.5 py-1 bg-mint-400 text-dark-950 text-xs font-extrabold rounded-full mb-1.5 shadow-md">
                   Lucknow Water Sports & Café
                 </span>
-                <p className="font-serif font-bold text-lg">Laxman Mela Ground Waterfront</p>
+                <p className="font-serif font-bold text-xl text-white drop-shadow-md">Laxman Mela Ground Waterfront</p>
+                <p className="text-xs text-cream-200 mt-0.5">Gomti Riverfront Deck & Speedboat Dock</p>
               </div>
             </div>
 
             {/* Secondary Floating Overlapping Card (Evening Lights Canopy) */}
-            <div className="absolute -bottom-8 -right-4 sm:-right-8 w-3/5 rounded-2xl overflow-hidden shadow-2xl border-4 border-white hidden sm:block">
+            <div className="absolute -bottom-8 -right-4 sm:-right-8 w-3/5 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/90 hidden sm:block group/sub shadow-gold-500/20">
               <img
                 src="/images/Screenshot_20260720-180609_Maps.png"
                 alt="Evening Party Canopy at Wings River Cafe"
-                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-500"
+                className="w-full h-48 object-cover group-hover/sub:scale-110 transition-transform duration-700"
               />
+              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/70 via-transparent to-transparent" />
+              <div className="absolute bottom-2 left-3 text-[11px] font-bold text-gold-300">
+                ✨ Fairy Light Celebration Canopy
+              </div>
             </div>
 
             {/* Overlapping Floating Emblem */}
             <div className="absolute -top-6 -left-6 hidden sm:block">
-              <CircularLogo size={100} className="shadow-xl" />
+              <CircularLogo size={100} className="shadow-2xl shadow-mint-400/30" />
             </div>
           </div>
 

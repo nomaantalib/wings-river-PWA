@@ -62,24 +62,27 @@ export default function GallerySection() {
             <div
               key={item.id}
               onClick={() => setActivePhoto(item)}
-              className="break-inside-avoid relative rounded-3xl overflow-hidden group cursor-pointer border border-white/10 shadow-2xl bg-dark-900"
+              className="break-inside-avoid relative rounded-3xl overflow-hidden group cursor-pointer border border-white/15 hover:border-gold-400/70 shadow-2xl bg-dark-900 transition-all duration-500 hover:-translate-y-1 hover:shadow-gold-500/20"
             >
+              {/* Blurred Glow Background behind image on hover */}
+              <div className="absolute inset-0 bg-cover bg-center filter blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-700 pointer-events-none scale-125" style={{ backgroundImage: `url(${item.image_url})` }} />
+
               <img
                 src={item.image_url}
                 alt={item.title}
-                className="w-full h-auto object-cover group-hover:scale-110 transition-transform duration-700"
+                className="w-full h-auto object-cover group-hover:scale-105 transition-transform duration-700 relative z-10"
                 loading="lazy"
               />
 
-              {/* Hover Overlay */}
-              <div className="absolute inset-0 bg-gradient-to-t from-dark-950/90 via-dark-950/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6">
-                <span className="text-[10px] uppercase font-bold tracking-wider text-gold-400 mb-1">
+              {/* Hover Glassmorphism Overlay */}
+              <div className="absolute inset-0 z-20 bg-gradient-to-t from-dark-950/95 via-dark-950/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col justify-end p-6 backdrop-blur-[2px]">
+                <span className="text-[10px] uppercase font-extrabold tracking-widest text-gold-400 mb-1 bg-white/10 px-2.5 py-0.5 rounded-full w-max border border-gold-400/30">
                   {item.category}
                 </span>
-                <h4 className="font-serif font-bold text-lg text-white mb-2">{item.title}</h4>
-                <div className="inline-flex items-center space-x-1 text-mint-300 text-xs font-semibold">
-                  <ZoomIn className="w-4 h-4" />
-                  <span>Click to expand photo</span>
+                <h4 className="font-serif font-bold text-lg text-white mb-2 leading-snug">{item.title}</h4>
+                <div className="inline-flex items-center space-x-1.5 text-mint-300 text-xs font-semibold">
+                  <ZoomIn className="w-4 h-4 text-gold-400" />
+                  <span>Click to expand high-res photo</span>
                 </div>
               </div>
             </div>

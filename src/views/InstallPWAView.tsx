@@ -44,23 +44,23 @@ export default function InstallPWAView() {
 
   return (
     <>
-      {/* Floating Bottom PWA Install Banner */}
+      {/* Floating Top PWA Install Banner */}
       {!dismissed && (
-        <div className="fixed bottom-4 left-4 right-4 sm:left-auto sm:right-24 sm:max-w-md z-[90] animate-slide-up">
-          <div className="bg-gradient-to-r from-dark-950 via-dark-900 to-mint-950 text-white rounded-3xl p-4 sm:p-5 border-2 border-gold-400/40 shadow-2xl backdrop-blur-xl flex items-center justify-between gap-4">
+        <div className="fixed top-20 left-4 right-4 sm:left-auto sm:right-6 sm:max-w-md z-[80] animate-slide-down">
+          <div className="bg-dark-950/90 via-dark-900/90 to-mint-950/90 text-white rounded-3xl p-3.5 sm:p-4 border-2 border-gold-400/40 shadow-2xl backdrop-blur-2xl flex items-center justify-between gap-3">
             <div className="flex items-center space-x-3">
               <div className="shrink-0">
-                <CircularLogo size={48} className="shadow-lg" />
+                <CircularLogo size={44} className="shadow-lg" />
               </div>
               <div>
-                <div className="flex items-center space-x-1">
-                  <span className="font-serif font-extrabold text-white text-sm">Wings River App</span>
+                <div className="flex items-center space-x-1.5">
+                  <span className="font-serif font-extrabold text-white text-xs sm:text-sm">Wings River App</span>
                   <span className="px-2 py-0.5 rounded-full bg-gold-400 text-dark-950 text-[9px] font-extrabold uppercase">
-                    PWA
+                    Install App
                   </span>
                 </div>
-                <p className="text-xs text-cream-200 mt-0.5 line-clamp-1">
-                  Install for offline menu, instant booking & ride tokens!
+                <p className="text-[11px] text-cream-200 mt-0.5 line-clamp-1">
+                  Fast offline menu, instant booking & ticket access!
                 </p>
               </div>
             </div>
@@ -68,9 +68,9 @@ export default function InstallPWAView() {
             <div className="flex items-center space-x-2 shrink-0">
               <button
                 onClick={handleInstallClick}
-                className="flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-mint-300 via-mint-400 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-lg hover:scale-105 transition-transform"
+                className="flex items-center space-x-1 px-3.5 py-1.5 bg-gradient-to-r from-mint-300 via-mint-400 to-gold-400 text-dark-950 font-extrabold text-xs rounded-xl shadow-md hover:scale-105 transition-transform"
               >
-                <Download className="w-4 h-4" />
+                <Download className="w-3.5 h-3.5" />
                 <span>Install</span>
               </button>
               <button
@@ -78,7 +78,7 @@ export default function InstallPWAView() {
                 className="p-1.5 rounded-full bg-white/10 hover:bg-white/20 text-gray-300 transition-colors"
                 title="Dismiss"
               >
-                <X className="w-4 h-4" />
+                <X className="w-3.5 h-3.5" />
               </button>
             </div>
           </div>
