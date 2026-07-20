@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStoredBlogs, BlogPost } from '@/lib/db';
+import { getStoredBlogs, BlogPost, INITIAL_BLOGS } from '@/lib/db';
 import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, Sparkles, BookOpen } from 'lucide-react';
 
 interface BlogSectionProps {
@@ -9,7 +9,7 @@ interface BlogSectionProps {
 }
 
 export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
-  const [blogs, setBlogs] = useState<BlogPost[]>([]);
+  const [blogs, setBlogs] = useState<BlogPost[]>(INITIAL_BLOGS);
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeBlog, setActiveBlog] = useState<BlogPost | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);

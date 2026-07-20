@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem } from '@/lib/db';
+import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem, MENU_BOOKLET_PAGES, INITIAL_MENU_ITEMS } from '@/lib/db';
 import { ChevronLeft, ChevronRight, BookOpen, Grid, Maximize2, Download, Calendar, ZoomIn, X, Play, Pause } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -17,8 +17,8 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
 
   // Database client-side states to prevent hydration mismatch
-  const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>([]);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>(MENU_BOOKLET_PAGES);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
 
   useEffect(() => {
     const refreshData = () => {

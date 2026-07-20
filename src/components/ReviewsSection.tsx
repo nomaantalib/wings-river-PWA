@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStoredReviews, saveReview, Review } from '@/lib/db';
+import { getStoredReviews, saveReview, Review, INITIAL_REVIEWS } from '@/lib/db';
 import { Star, Quote, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
 
 export default function ReviewsSection() {
-  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [newReviewForm, setNewReviewForm] = useState(false);
   const [nameInput, setNameInput] = useState('');

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStoredGalleryItems, GalleryItem } from '@/lib/db';
+import { getStoredGalleryItems, GalleryItem, INITIAL_GALLERY } from '@/lib/db';
 import { X, ZoomIn, Camera, Play, Pause, ChevronLeft, ChevronRight, LayoutGrid, Sliders } from 'lucide-react';
 
 const GALLERY_CATEGORIES = [
@@ -15,7 +15,7 @@ const GALLERY_CATEGORIES = [
 ];
 
 export default function GallerySection() {
-  const [items, setItems] = useState<GalleryItem[]>([]);
+  const [items, setItems] = useState<GalleryItem[]>(INITIAL_GALLERY);
   const [selectedCat, setSelectedCat] = useState('All');
   const [activePhoto, setActivePhoto] = useState<GalleryItem | null>(null);
 

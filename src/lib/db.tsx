@@ -12,6 +12,7 @@ export { INITIAL_REVIEWS } from '@/models/ReviewModel';
 
 export type { EventBanner } from '@/controllers/StorageController';
 export type { RideTicket } from '@/models/WaterSportsModel';
+export { WATER_SPORTS_RIDES } from '@/models/WaterSportsModel';
 
 export type { HeroSlide, HeroSettings } from '@/models/HeroModel';
 export { DEFAULT_HERO_SETTINGS, DEFAULT_HERO_SLIDES } from '@/models/HeroModel';

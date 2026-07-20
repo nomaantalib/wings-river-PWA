@@ -6,7 +6,7 @@ import {
   ZoomIn, ZoomOut, X, Download, Maximize2, CheckCircle2,
   IndianRupee, AlertCircle, Clock
 } from 'lucide-react';
-import { getStoredWaterSports, RideTicket } from '@/lib/db';
+import { getStoredWaterSports, RideTicket, WATER_SPORTS_RIDES } from '@/lib/db';
 
 interface WaterSportsTicketsProps {
   onOpenBooking: (type?: string) => void;
@@ -17,7 +17,7 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
   const [showPosterModal, setShowPosterModal] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
   const [hoveredRide, setHoveredRide] = useState<string | null>(null);
-  const [rides, setRides] = useState<RideTicket[]>([]);
+  const [rides, setRides] = useState<RideTicket[]>(WATER_SPORTS_RIDES);
 
   useEffect(() => {
     const refreshData = () => { getStoredWaterSports().then(setRides); };
