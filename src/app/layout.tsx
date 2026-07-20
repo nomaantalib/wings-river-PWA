@@ -3,7 +3,7 @@ import './globals.css';
 import SEOStructuredData from '@/components/SEOStructuredData';
 
 export const metadata: Metadata = {
-  title: 'Wings River Café (विंग्स रिवर) | Premium Riverside Restaurant & Water Sports in Lucknow',
+  title: 'Wings River Café | Premium Riverside Restaurant & Water Sports in Lucknow',
   description: 'Wings River Café is Lucknow’s premier waterfront family restaurant at Laxman Mela Ground. Enjoy gourmet multicuisine food, birthday party canopies, scenic river sunset dining & Lucknow Water Sports speedboat rides. Call 07310008020.',
   keywords: [
     'Wings River Cafe',
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   ],
   authors: [{ name: 'Wings River Café' }],
   openGraph: {
-    title: 'Wings River Café (विंग्स रिवर) | Taste • Eat • Rides',
+    title: 'Wings River Café | Taste • Eat • Rides',
     description: 'Luxury waterfront restaurant, birthday party canopy & speedboat rides along Gomti River, Lucknow.',
     url: 'https://wings-river-cafe-blog.pages.dev',
     siteName: 'Wings River Café',
@@ -36,7 +36,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Wings River Café (विंग्स रिवर) Lucknow',
+    title: 'Wings River Café Lucknow',
     description: 'Taste • Eat • Rides at Laxman Jhula Park, Gomti Riverfront Lucknow.',
     images: ['https://wings-river-cafe-blog.pages.dev/images/Screenshot_20260720-180544_Maps.png'],
   },

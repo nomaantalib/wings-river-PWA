@@ -18,7 +18,7 @@ export default function Footer() {
                   Wings River <span className="text-gold-400">Café</span>
                 </span>
                 <span className="text-[10px] text-mint-300 font-semibold tracking-wider uppercase">
-                  विंग्स रिवर • Lucknow Water Sports
+                  Lucknow Water Sports & Café
                 </span>
               </div>
             </a>

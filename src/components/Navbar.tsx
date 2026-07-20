@@ -60,7 +60,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
                 scrolled ? 'text-mint-700' : 'text-mint-300'
               }`}
             >
-              विंग्स रिवर • Lucknow Water Sports
+              Lucknow Water Sports & Café
             </span>
           </div>
         </a>

@@ -7,7 +7,6 @@ export default function SEOStructuredData() {
     "@context": "https://schema.org",
     "@type": "Restaurant",
     "name": "Wings River Café",
-    "alternateName": "विंग्स रिवर",
     "image": [
       "https://wings-river-cafe-blog.pages.dev/images/Screenshot_20260720-180544_Maps.png",
       "https://wings-river-cafe-blog.pages.dev/images/Screenshot_20260720-180609_Maps.png"

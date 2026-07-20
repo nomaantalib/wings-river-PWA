@@ -26,7 +26,7 @@ export default function LoadingScreen() {
           Wings River Café
         </h2>
         <p className="mt-1 font-sans text-xs tracking-widest text-mint-300/80 uppercase">
-          विंग्स रिवर • Lucknow Water Sports
+          Lucknow Water Sports & Café
         </p>
 
         {/* Loading Spinner */}

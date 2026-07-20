@@ -93,7 +93,7 @@ export default function AboutSection() {
 
             <p className="font-sans text-gray-700 text-base sm:text-lg leading-relaxed mb-6">
               Located inside <strong>Laxman Mela Ground at Laxman Jhula Park</strong> along the scenic Gomti River in Lucknow, 
-              <strong> Wings River Café (विंग्स रिवर)</strong> is a premier destination where exquisite multicuisine gastronomy 
+              <strong> Wings River Café</strong> is a premier destination where exquisite multicuisine gastronomy 
               meets breathtaking riverside natural ambience and thrilling <strong>Lucknow Water Sports speedboat rides</strong>.
             </p>
 
