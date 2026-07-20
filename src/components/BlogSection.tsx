@@ -1,22 +1,15 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { INITIAL_BLOGS, BlogPost } from '@/lib/db';
-import { Calendar, User, Clock, ArrowRight, X, Sparkles, BookOpen } from 'lucide-react';
+import { getStoredBlogs, BlogPost } from '@/lib/db';
+import { Calendar, User, Clock, ArrowRight, X } from 'lucide-react';
 
 export default function BlogSection() {
-  const [blogs, setBlogs] = useState<BlogPost[]>(INITIAL_BLOGS);
+  const [blogs, setBlogs] = useState<BlogPost[]>([]);
   const [activeBlog, setActiveBlog] = useState<BlogPost | null>(null);
 
   useEffect(() => {
-    fetch('/api/blogs')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          setBlogs(data.data);
-        }
-      })
-      .catch(() => {});
+    setBlogs(getStoredBlogs());
   }, []);
 
   const featured = blogs[0];

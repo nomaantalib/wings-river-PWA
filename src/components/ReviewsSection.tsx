@@ -1,11 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { INITIAL_REVIEWS, Review } from '@/lib/db';
+import { getStoredReviews, saveReview, Review } from '@/lib/db';
 import { Star, Quote, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
 
 export default function ReviewsSection() {
-  const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
+  const [reviews, setReviews] = useState<Review[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [newReviewForm, setNewReviewForm] = useState(false);
   const [nameInput, setNameInput] = useState('');
@@ -13,38 +13,27 @@ export default function ReviewsSection() {
   const [commentInput, setCommentInput] = useState('');
 
   useEffect(() => {
-    fetch('/api/reviews')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          setReviews(data.data);
-        }
-      })
-      .catch(() => {});
+    setReviews(getStoredReviews());
   }, []);
 
-  const handleAddReview = async (e: React.FormEvent) => {
+  const handleAddReview = (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput || !commentInput) return;
 
-    try {
-      const res = await fetch('/api/reviews', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          author_name: nameInput,
-          rating: ratingInput,
-          review_text: commentInput
-        })
-      });
-      const data = await res.json();
-      if (data.success && data.review) {
-        setReviews([data.review, ...reviews]);
-        setNameInput('');
-        setCommentInput('');
-        setNewReviewForm(false);
-      }
-    } catch (err) {}
+    const newRev: Review = {
+      id: 'rev-' + Date.now(),
+      author_name: nameInput,
+      rating: Number(ratingInput) || 5,
+      review_text: commentInput,
+      date_str: 'Just now',
+      avatar_url: `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(nameInput)}`
+    };
+
+    saveReview(newRev);
+    setReviews([newRev, ...reviews]);
+    setNameInput('');
+    setCommentInput('');
+    setNewReviewForm(false);
   };
 
   const nextReview = () => setCurrentIndex((prev) => (prev + 1) % reviews.length);

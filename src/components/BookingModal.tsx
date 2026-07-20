@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Calendar, Clock, Users, User, Phone, Mail, Sparkles, Anchor, CheckCircle2, AlertCircle } from 'lucide-react';
+import { saveReservation, Reservation } from '@/lib/db';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -27,39 +28,41 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setErrorMsg('');
     setSuccessMsg('');
 
     try {
-      const res = await fetch('/api/bookings', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          booking_type: bookingType
-        })
-      });
+      const newBooking: Reservation = {
+        id: 'res-' + Date.now(),
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email || '',
+        booking_type: bookingType,
+        date: formData.date,
+        time: formData.time,
+        guests: Number(formData.guests) || 2,
+        special_requests: formData.special_requests || '',
+        status: 'pending',
+        created_at: new Date().toISOString()
+      };
 
-      const data = await res.json();
-      if (data.success) {
-        setSuccessMsg(data.message || 'Booking requested successfully!');
-        setFormData({
-          name: '',
-          phone: '',
-          email: '',
-          date: new Date().toISOString().split('T')[0],
-          time: '19:00',
-          guests: '2',
-          special_requests: ''
-        });
-      } else {
-        setErrorMsg(data.message || 'Failed to submit reservation request.');
-      }
+      saveReservation(newBooking);
+
+      setSuccessMsg('Your reservation request has been submitted successfully! Our team will call you to confirm.');
+      setFormData({
+        name: '',
+        phone: '',
+        email: '',
+        date: new Date().toISOString().split('T')[0],
+        time: '19:00',
+        guests: '2',
+        special_requests: ''
+      });
     } catch (err: any) {
-      setErrorMsg('Network error. Please call us directly at 07310008020');
+      setErrorMsg('Failed to submit reservation request. Please call us directly at 07310008020');
     } finally {
       setLoading(false);
     }

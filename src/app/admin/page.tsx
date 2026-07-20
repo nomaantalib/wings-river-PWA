@@ -1,15 +1,28 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Reservation, MenuItem, BlogPost, Review, ContactMessage } from '@/lib/db';
-import { Calendar, Utensils, BookOpen, Image as ImageIcon, Star, Mail, Settings, Lock, CheckCircle, Plus, Trash2, Edit3, ArrowLeft } from 'lucide-react';
-import CircularLogo from '@/components/CircularLogo';
+import {
+  getStoredReservations,
+  getStoredMenuItems,
+  getStoredBlogs,
+  getStoredReviews,
+  getStoredContactMessages,
+  saveMenuItem,
+  saveBlog,
+  Reservation,
+  MenuItem,
+  BlogPost,
+  Review,
+  ContactMessage
+} from '@/lib/db';
+import { Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Check, LogOut, ShieldAlert } from 'lucide-react';
 
-export default function AdminPage() {
+export default function AdminDashboard() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
-  const [authError, setAuthError] = useState('');
-  const [activeTab, setActiveTab] = useState('bookings');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const [activeTab, setActiveTab] = useState<'bookings' | 'menu' | 'blogs' | 'reviews' | 'contact'>('bookings');
 
   // Data states
   const [bookings, setBookings] = useState<Reservation[]>([]);
@@ -18,422 +31,366 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
 
-  // Modals for adding items
+  // Add Item Modals
   const [showAddMenuModal, setShowAddMenuModal] = useState(false);
+  const [showAddBlogModal, setShowAddBlogModal] = useState(false);
+
+  // New Menu Item State
   const [newMenuItem, setNewMenuItem] = useState({
     name: '',
     category: 'Starter',
     description: '',
     price: '',
     is_veg: true,
-    image_url: '/images/Screenshot_20260720-180724_Maps.png'
+    image_url: '/images/menu_page_1.png'
   });
 
-  const [showAddBlogModal, setShowAddBlogModal] = useState(false);
+  // New Blog State
   const [newBlog, setNewBlog] = useState({
     title: '',
+    category: 'Food & Dining',
     excerpt: '',
     content: '',
-    category: 'Riverside Experience',
-    cover_image: '/images/Screenshot_20260720-180544_Maps.png'
+    cover_image: '/images/menu_page_cover.png'
   });
 
   useEffect(() => {
-    if (isAuthenticated) {
+    const authStatus = localStorage.getItem('wings_admin_auth');
+    if (authStatus === 'true') {
+      setIsAuthenticated(true);
       fetchData();
     }
-  }, [isAuthenticated]);
+  }, []);
 
-  const fetchData = async () => {
-    try {
-      const [resBookings, resMenu, resBlogs, resReviews, resContact] = await Promise.all([
-        fetch('/api/bookings').then((r) => r.json()),
-        fetch('/api/menu').then((r) => r.json()),
-        fetch('/api/blogs').then((r) => r.json()),
-        fetch('/api/reviews').then((r) => r.json()),
-        fetch('/api/contact').then((r) => r.json())
-      ]);
-
-      if (resBookings.success) setBookings(resBookings.data || []);
-      if (resMenu.success) setMenuItems(resMenu.data || []);
-      if (resBlogs.success) setBlogs(resBlogs.data || []);
-      if (resReviews.success) setReviews(resReviews.data || []);
-      if (resContact.success) setMessages(resContact.data || []);
-    } catch (err) {}
+  const fetchData = () => {
+    setBookings(getStoredReservations());
+    setMenuItems(getStoredMenuItems());
+    setBlogs(getStoredBlogs());
+    setReviews(getStoredReviews());
+    setMessages(getStoredContactMessages());
   };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     if (passwordInput === 'wingsriver@2026' || passwordInput === 'admin') {
       setIsAuthenticated(true);
-      setAuthError('');
+      localStorage.setItem('wings_admin_auth', 'true');
+      setErrorMsg('');
+      fetchData();
     } else {
-      setAuthError('Invalid Admin Password. Check .env setting.');
+      setErrorMsg('Invalid admin password. Default pass: wingsriver@2026');
     }
   };
 
-  const handleAddMenuSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    try {
-      const res = await fetch('/api/menu', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newMenuItem)
-      });
-      const data = await res.json();
-      if (data.success && data.item) {
-        setMenuItems([data.item, ...menuItems]);
-        setShowAddMenuModal(false);
-        setNewMenuItem({
-          name: '',
-          category: 'Starter',
-          description: '',
-          price: '',
-          is_veg: true,
-          image_url: '/images/Screenshot_20260720-180724_Maps.png'
-        });
-      }
-    } catch (err) {}
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    localStorage.removeItem('wings_admin_auth');
   };
 
-  const handleAddBlogSubmit = async (e: React.FormEvent) => {
+  const handleCreateMenuItem = (e: React.FormEvent) => {
     e.preventDefault();
-    try {
-      const res = await fetch('/api/blogs', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newBlog)
-      });
-      const data = await res.json();
-      if (data.success && data.blog) {
-        setBlogs([data.blog, ...blogs]);
-        setShowAddBlogModal(false);
-        setNewBlog({
-          title: '',
-          excerpt: '',
-          content: '',
-          category: 'Riverside Experience',
-          cover_image: '/images/Screenshot_20260720-180544_Maps.png'
-        });
-      }
-    } catch (err) {}
+    if (!newMenuItem.name || !newMenuItem.price) return;
+    const item: MenuItem = {
+      id: 'm-' + Date.now(),
+      category: newMenuItem.category,
+      name: newMenuItem.name,
+      description: newMenuItem.description,
+      price: Number(newMenuItem.price),
+      is_veg: newMenuItem.is_veg,
+      image_url: newMenuItem.image_url || '/images/menu_page_1.png',
+      is_available: true
+    };
+    saveMenuItem(item);
+    setMenuItems([item, ...menuItems]);
+    setShowAddMenuModal(false);
+    setNewMenuItem({ name: '', category: 'Starter', description: '', price: '', is_veg: true, image_url: '/images/menu_page_1.png' });
+  };
+
+  const handleCreateBlog = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newBlog.title || !newBlog.content) return;
+    const blog: BlogPost = {
+      id: 'blog-' + Date.now(),
+      title: newBlog.title,
+      slug: newBlog.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''),
+      excerpt: newBlog.excerpt,
+      content: newBlog.content,
+      category: newBlog.category,
+      cover_image: newBlog.cover_image || '/images/menu_page_cover.png',
+      author: 'Wings River Team',
+      read_time: '4 min read',
+      created_at: new Date().toISOString().split('T')[0]
+    };
+    saveBlog(blog);
+    setBlogs([blog, ...blogs]);
+    setShowAddBlogModal(false);
+    setNewBlog({ title: '', category: 'Food & Dining', excerpt: '', content: '', cover_image: '/images/menu_page_cover.png' });
   };
 
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
-        <div className="w-full max-w-md bg-dark-900 border border-white/10 p-8 rounded-3xl shadow-2xl text-center space-y-6">
-          <CircularLogo size={100} className="mx-auto" />
-          <div>
-            <h1 className="font-serif font-bold text-2xl text-white">Admin CMS Portal</h1>
-            <p className="text-xs text-mint-300 mt-1">Wings River Café • Cloudflare D1 Backend</p>
+      <div className="min-h-screen bg-dark-950 flex items-center justify-center p-4">
+        <div className="w-full max-w-md bg-dark-900 border border-white/10 rounded-3xl p-8 shadow-2xl space-y-6">
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 bg-mint-500/20 text-mint-400 rounded-full flex items-center justify-center mx-auto border border-mint-500/30">
+              <Lock className="w-6 h-6" />
+            </div>
+            <h2 className="font-serif font-bold text-2xl text-white">Wings River Admin</h2>
+            <p className="text-xs text-gray-400">Enter secure password to access CMS Dashboard</p>
           </div>
 
           <form onSubmit={handleLogin} className="space-y-4">
-            {authError && (
-              <div className="p-3 bg-red-500/20 text-red-300 text-xs rounded-xl border border-red-500/30">
-                {authError}
+            {errorMsg && (
+              <div className="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-400 text-xs flex items-center space-x-2">
+                <ShieldAlert className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
               </div>
             )}
-            <div className="relative">
-              <Lock className="w-4 h-4 text-gray-400 absolute left-3.5 top-3.5" />
+
+            <div>
+              <label className="block text-xs font-semibold text-gray-400 mb-1">Admin Password</label>
               <input
                 type="password"
                 required
-                placeholder="Enter Admin Password"
+                placeholder="••••••••"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 text-sm rounded-xl bg-white/10 text-white border border-white/20 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                className="w-full px-4 py-3 text-sm bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none focus:ring-2 focus:ring-mint-400"
               />
             </div>
+
             <button
               type="submit"
-              className="w-full py-3.5 bg-gradient-to-r from-mint-400 to-gold-400 text-dark-950 font-bold text-sm rounded-xl shadow-lg hover:scale-102 transition-transform"
+              className="w-full py-3.5 bg-mint-500 text-dark-950 font-bold text-sm rounded-xl hover:bg-mint-400 transition-colors shadow-lg"
             >
               Access Dashboard
             </button>
           </form>
-
-          <a href="/" className="inline-flex items-center space-x-1 text-xs text-gray-400 hover:text-white">
-            <ArrowLeft className="w-3.5 h-3.5" />
-            <span>Return to Public Website</span>
-          </a>
         </div>
-      </main>
+      </div>
     );
   }
 
   return (
-    <main className="min-h-screen bg-cream-50 text-dark-900 flex flex-col">
-      {/* Top Header */}
-      <header className="bg-dark-950 text-white py-4 px-6 border-b border-white/10 flex items-center justify-between">
+    <div className="min-h-screen bg-dark-950 text-white flex flex-col">
+      {/* Top Navbar */}
+      <header className="bg-dark-900 border-b border-white/10 px-6 py-4 flex items-center justify-between">
         <div className="flex items-center space-x-3">
-          <CircularLogo size={46} />
+          <div className="w-9 h-9 rounded-full bg-mint-500/20 border border-mint-500/40 flex items-center justify-center text-mint-400 font-bold font-serif text-sm">
+            WR
+          </div>
           <div>
-            <h1 className="font-serif font-bold text-lg leading-tight">Wings River Café CMS</h1>
-            <span className="text-[10px] text-mint-300 font-mono">D1 DB: c2491a90-0f90-4a1e-8a4d-852e6588a68a</span>
+            <h1 className="font-serif font-bold text-lg text-white">Wings River CMS Panel</h1>
+            <p className="text-[10px] text-mint-400">Pure Client Architecture</p>
           </div>
         </div>
 
-        <div className="flex items-center space-x-4">
-          <a
-            href="/"
-            target="_blank"
-            className="px-3 py-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-xs font-semibold text-white transition-colors"
-          >
-            View Live Site ↗
-          </a>
-          <button
-            onClick={() => setIsAuthenticated(false)}
-            className="px-3 py-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 text-xs font-semibold"
-          >
-            Logout
-          </button>
-        </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center space-x-1 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-xs text-gray-300 transition-colors"
+        >
+          <LogOut className="w-3.5 h-3.5" />
+          <span>Logout</span>
+        </button>
       </header>
 
-      <div className="flex-1 max-w-7xl w-full mx-auto p-6 grid grid-cols-1 md:grid-cols-12 gap-6">
-        {/* Left Navigation Sidebar */}
-        <aside className="md:col-span-3 bg-white p-4 rounded-3xl shadow-lg border border-cream-200 h-fit space-y-2">
+      {/* Admin Content Body */}
+      <div className="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Navigation Tabs */}
+        <div className="flex items-center space-x-2 border-b border-white/10 pb-4 overflow-x-auto no-scrollbar">
           {[
             { id: 'bookings', label: 'Reservations', icon: Calendar, count: bookings.length },
-            { id: 'menu', label: 'Menu Management', icon: Utensils, count: menuItems.length },
-            { id: 'blogs', label: 'WordPress Blogs', icon: BookOpen, count: blogs.length },
+            { id: 'menu', label: 'Menu Items', icon: Utensils, count: menuItems.length },
+            { id: 'blogs', label: 'Blog Posts', icon: FileText, count: blogs.length },
             { id: 'reviews', label: 'Reviews', icon: Star, count: reviews.length },
-            { id: 'messages', label: 'Contact Queries', icon: Mail, count: messages.length },
+            { id: 'contact', label: 'Messages', icon: Mail, count: messages.length },
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`w-full flex items-center justify-between p-3 rounded-2xl text-xs font-bold transition-all ${
+              onClick={() => setActiveTab(tab.id as any)}
+              className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-bold transition-all whitespace-nowrap ${
                 activeTab === tab.id
                   ? 'bg-mint-500 text-dark-950 shadow-md'
-                  : 'text-gray-700 hover:bg-cream-100'
+                  : 'bg-dark-900 text-gray-400 hover:text-white border border-white/5'
               }`}
             >
-              <div className="flex items-center space-x-2.5">
-                <tab.icon className="w-4 h-4" />
-                <span>{tab.label}</span>
-              </div>
-              <span className="px-2 py-0.5 rounded-full bg-white/60 text-[10px]">
+              <tab.icon className="w-4 h-4" />
+              <span>{tab.label}</span>
+              <span className="px-2 py-0.5 rounded-full text-[10px] bg-dark-950/40 text-current">
                 {tab.count}
               </span>
             </button>
           ))}
-        </aside>
+        </div>
 
-        {/* Main Content Area */}
-        <section className="md:col-span-9 bg-white p-6 sm:p-8 rounded-3xl shadow-lg border border-cream-200">
-          {/* TAB 1: RESERVATIONS */}
-          {activeTab === 'bookings' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-serif font-bold text-2xl text-dark-900">Reservations & Bookings</h2>
-                  <p className="text-xs text-gray-500">Table Dining, Birthday Parties & Speedboat Rides</p>
-                </div>
-              </div>
-
+        {/* Tab 1: Bookings / Reservations */}
+        {activeTab === 'bookings' && (
+          <div className="space-y-4">
+            <h3 className="font-serif font-bold text-xl text-white">Table & Water Sports Reservations</h3>
+            <div className="bg-dark-900 rounded-2xl border border-white/10 overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-left border-collapse text-xs">
-                  <thead>
-                    <tr className="bg-cream-100 border-b border-gray-200 text-gray-700 uppercase font-bold text-[10px]">
-                      <th className="p-3">Customer</th>
-                      <th className="p-3">Phone</th>
-                      <th className="p-3">Booking Type</th>
-                      <th className="p-3">Date & Time</th>
-                      <th className="p-3">Guests</th>
-                      <th className="p-3">Special Requests</th>
+                <table className="w-full text-left text-xs text-gray-300">
+                  <thead className="bg-dark-950 text-gray-400 uppercase font-bold text-[10px] tracking-wider border-b border-white/10">
+                    <tr>
+                      <th className="p-4">Guest Name</th>
+                      <th className="p-4">Phone</th>
+                      <th className="p-4">Booking Type</th>
+                      <th className="p-4">Date & Time</th>
+                      <th className="p-4">Guests</th>
+                      <th className="p-4">Special Requests</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className="divide-y divide-white/5">
                     {bookings.map((b) => (
-                      <tr key={b.id} className="hover:bg-cream-50">
-                        <td className="p-3 font-bold text-dark-900">{b.name}</td>
-                        <td className="p-3 text-mint-700 font-semibold">{b.phone}</td>
-                        <td className="p-3">
-                          <span className="px-2.5 py-1 rounded-full bg-mint-100 text-mint-800 font-bold uppercase text-[9px]">
-                            {b.booking_type.replace('_', ' ')}
-                          </span>
-                        </td>
-                        <td className="p-3">{b.date} @ {b.time}</td>
-                        <td className="p-3 font-bold">{b.guests}</td>
-                        <td className="p-3 text-gray-500 max-w-xs truncate">{b.special_requests || 'N/A'}</td>
+                      <tr key={b.id} className="hover:bg-white/5">
+                        <td className="p-4 font-bold text-white">{b.name}</td>
+                        <td className="p-4 text-mint-400">{b.phone}</td>
+                        <td className="p-4 uppercase text-[10px] font-bold text-gold-400">{b.booking_type}</td>
+                        <td className="p-4">{b.date} at {b.time}</td>
+                        <td className="p-4">{b.guests} Guests</td>
+                        <td className="p-4 text-gray-400 italic">{b.special_requests || 'None'}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TAB 2: MENU MANAGEMENT */}
-          {activeTab === 'menu' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-serif font-bold text-2xl text-dark-900">Menu Items</h2>
-                  <p className="text-xs text-gray-500">Add, edit and manage category items</p>
+        {/* Tab 2: Menu Items */}
+        {activeTab === 'menu' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif font-bold text-xl text-white">Multicuisine Menu Items</h3>
+              <button
+                onClick={() => setShowAddMenuModal(true)}
+                className="flex items-center space-x-1 px-4 py-2 rounded-xl bg-mint-500 text-dark-950 font-bold text-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Dish</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {menuItems.map((item) => (
+                <div key={item.id} className="bg-dark-900 rounded-2xl p-4 border border-white/10 flex items-center space-x-4">
+                  <img src={item.image_url} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
+                  <div className="flex-1">
+                    <span className="text-[10px] text-mint-400 font-bold uppercase">{item.category}</span>
+                    <h4 className="font-bold text-white text-sm">{item.name}</h4>
+                    <p className="text-xs text-gold-400 font-bold">₹{item.price}</p>
+                  </div>
                 </div>
-                <button
-                  onClick={() => setShowAddMenuModal(true)}
-                  className="flex items-center space-x-1.5 px-4 py-2 bg-mint-500 text-dark-950 font-bold text-xs rounded-xl shadow-md"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add New Dish</span>
-                </button>
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {menuItems.map((item) => (
-                  <div key={item.id} className="p-4 rounded-2xl border border-cream-200 bg-cream-50 flex items-center space-x-4">
-                    <img src={item.image_url} alt={item.name} className="w-16 h-16 rounded-xl object-cover" />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[10px] font-bold uppercase text-mint-600">{item.category}</span>
-                        <span className="font-bold text-dark-900 text-sm">₹{item.price}</span>
-                      </div>
-                      <h4 className="font-bold text-sm text-dark-900">{item.name}</h4>
-                      <p className="text-xs text-gray-500 line-clamp-1">{item.description}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TAB 3: BLOGS */}
-          {activeTab === 'blogs' && (
-            <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="font-serif font-bold text-2xl text-dark-900">WordPress Style Blogs</h2>
-                  <p className="text-xs text-gray-500">Publish posts, food news and events</p>
+        {/* Tab 3: Blog Posts */}
+        {activeTab === 'blogs' && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif font-bold text-xl text-white">WordPress Blog Stories</h3>
+              <button
+                onClick={() => setShowAddBlogModal(true)}
+                className="flex items-center space-x-1 px-4 py-2 rounded-xl bg-mint-500 text-dark-950 font-bold text-xs"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Publish Post</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {blogs.map((blog) => (
+                <div key={blog.id} className="bg-dark-900 rounded-2xl p-5 border border-white/10 space-y-2">
+                  <span className="text-[10px] text-gold-400 font-bold uppercase">{blog.category}</span>
+                  <h4 className="font-serif font-bold text-base text-white">{blog.title}</h4>
+                  <p className="text-xs text-gray-400 line-clamp-2">{blog.excerpt}</p>
                 </div>
-                <button
-                  onClick={() => setShowAddBlogModal(true)}
-                  className="flex items-center space-x-1.5 px-4 py-2 bg-gold-400 text-dark-950 font-bold text-xs rounded-xl shadow-md"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Publish New Post</span>
-                </button>
-              </div>
-
-              <div className="space-y-4">
-                {blogs.map((blog) => (
-                  <div key={blog.id} className="p-4 rounded-2xl border border-cream-200 bg-cream-50 flex items-start space-x-4">
-                    <img src={blog.cover_image} alt={blog.title} className="w-24 h-20 rounded-xl object-cover" />
-                    <div className="flex-1">
-                      <span className="text-[10px] uppercase font-bold text-gold-600">{blog.category}</span>
-                      <h4 className="font-serif font-bold text-base text-dark-900">{blog.title}</h4>
-                      <p className="text-xs text-gray-600 line-clamp-2">{blog.excerpt}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TAB 4: REVIEWS */}
-          {activeTab === 'reviews' && (
-            <div className="space-y-4">
-              <h2 className="font-serif font-bold text-2xl text-dark-900">Customer Reviews</h2>
-              <div className="space-y-3">
-                {reviews.map((r) => (
-                  <div key={r.id} className="p-4 rounded-2xl border border-cream-200 bg-cream-50">
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="font-bold text-sm text-dark-900">{r.author_name}</span>
-                      <span className="text-gold-500 text-xs">{'★'.repeat(r.rating)}</span>
-                    </div>
-                    <p className="text-xs text-gray-600 italic">"{r.review_text}"</p>
+        {/* Tab 4: Reviews */}
+        {activeTab === 'reviews' && (
+          <div className="space-y-4">
+            <h3 className="font-serif font-bold text-xl text-white">Guest Reviews</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {reviews.map((rev) => (
+                <div key={rev.id} className="bg-dark-900 rounded-2xl p-5 border border-white/10 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-white text-sm">{rev.author_name}</h4>
+                    <span className="text-gold-400 text-xs">★ {rev.rating}/5</span>
                   </div>
-                ))}
-              </div>
+                  <p className="text-xs text-gray-300 italic">"{rev.review_text}"</p>
+                </div>
+              ))}
             </div>
-          )}
+          </div>
+        )}
 
-          {/* TAB 5: MESSAGES */}
-          {activeTab === 'messages' && (
-            <div className="space-y-4">
-              <h2 className="font-serif font-bold text-2xl text-dark-900">Contact Messages</h2>
-              {messages.length === 0 ? (
-                <p className="text-xs text-gray-500">No new contact messages received yet.</p>
-              ) : (
-                messages.map((m) => (
-                  <div key={m.id} className="p-4 rounded-2xl border border-cream-200 bg-cream-50 space-y-1">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-sm text-dark-900">{m.name}</span>
-                      <span className="text-mint-700 font-mono text-xs">{m.phone}</span>
-                    </div>
-                    <p className="text-xs text-gray-700">{m.message}</p>
+        {/* Tab 5: Contact Messages */}
+        {activeTab === 'contact' && (
+          <div className="space-y-4">
+            <h3 className="font-serif font-bold text-xl text-white">Inquiries & Contact Messages</h3>
+            <div className="space-y-3">
+              {messages.map((m) => (
+                <div key={m.id} className="bg-dark-900 rounded-2xl p-5 border border-white/10 space-y-1">
+                  <div className="flex items-center justify-between">
+                    <h4 className="font-bold text-white text-sm">{m.name} ({m.phone})</h4>
+                    <span className="text-[10px] text-gray-500">{m.created_at}</span>
                   </div>
-                ))
-              )}
+                  <p className="text-xs text-gray-300">{m.message}</p>
+                </div>
+              ))}
             </div>
-          )}
-        </section>
+          </div>
+        )}
       </div>
 
-      {/* Modal Add Menu Item */}
+      {/* Add Menu Item Modal */}
       {showAddMenuModal && (
-        <div className="fixed inset-0 z-50 bg-dark-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-3xl max-w-md w-full space-y-4 shadow-2xl">
-            <h3 className="font-serif font-bold text-xl text-dark-900">Add New Dish</h3>
-            <form onSubmit={handleAddMenuSubmit} className="space-y-3 text-xs">
+        <div className="fixed inset-0 z-50 bg-dark-950/80 flex items-center justify-center p-4">
+          <div className="bg-dark-900 rounded-3xl p-6 max-w-md w-full border border-white/10 space-y-4">
+            <h3 className="font-serif font-bold text-xl text-white">Add New Menu Dish</h3>
+            <form onSubmit={handleCreateMenuItem} className="space-y-3">
               <input
                 type="text"
                 required
                 placeholder="Dish Name"
                 value={newMenuItem.name}
                 onChange={(e) => setNewMenuItem({ ...newMenuItem, name: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-300"
+                className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
               />
-              <select
-                value={newMenuItem.category}
-                onChange={(e) => setNewMenuItem({ ...newMenuItem, category: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-300 bg-white"
-              >
-                {['Starter', 'Indian', 'Chinese', 'Italian', 'Pizza', 'Burger', 'Coffee', 'Desserts', 'Drinks'].map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
               <input
                 type="number"
                 required
-                placeholder="Price in INR (e.g. 350)"
+                placeholder="Price (₹)"
                 value={newMenuItem.price}
                 onChange={(e) => setNewMenuItem({ ...newMenuItem, price: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-300"
+                className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
               />
               <textarea
                 placeholder="Description"
                 value={newMenuItem.description}
                 onChange={(e) => setNewMenuItem({ ...newMenuItem, description: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-300"
+                className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
               />
               <div className="flex items-center space-x-2">
-                <input
-                  type="checkbox"
-                  id="is_veg"
-                  checked={newMenuItem.is_veg}
-                  onChange={(e) => setNewMenuItem({ ...newMenuItem, is_veg: e.target.checked })}
-                />
-                <label htmlFor="is_veg" className="font-bold">Is Vegetarian?</label>
-              </div>
-
-              <div className="flex space-x-2 pt-2">
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-mint-500 text-dark-950 font-bold text-xs rounded-xl"
+                >
+                  Save Dish
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowAddMenuModal(false)}
-                  className="w-1/2 py-2.5 bg-gray-200 text-dark-900 font-bold rounded-xl"
+                  className="w-full py-2.5 bg-white/10 text-white font-bold text-xs rounded-xl"
                 >
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-1/2 py-2.5 bg-mint-500 text-dark-950 font-bold rounded-xl"
-                >
-                  Save Dish
                 </button>
               </div>
             </form>
@@ -441,55 +398,55 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* Modal Add Blog */}
+      {/* Add Blog Post Modal */}
       {showAddBlogModal && (
-        <div className="fixed inset-0 z-50 bg-dark-950/80 backdrop-blur-md flex items-center justify-center p-4">
-          <div className="bg-white p-6 rounded-3xl max-w-lg w-full space-y-4 shadow-2xl">
-            <h3 className="font-serif font-bold text-xl text-dark-900">Publish New WordPress Article</h3>
-            <form onSubmit={handleAddBlogSubmit} className="space-y-3 text-xs">
+        <div className="fixed inset-0 z-50 bg-dark-950/80 flex items-center justify-center p-4">
+          <div className="bg-dark-900 rounded-3xl p-6 max-w-md w-full border border-white/10 space-y-4">
+            <h3 className="font-serif font-bold text-xl text-white">Publish Blog Post</h3>
+            <form onSubmit={handleCreateBlog} className="space-y-3">
               <input
                 type="text"
                 required
                 placeholder="Article Title"
                 value={newBlog.title}
                 onChange={(e) => setNewBlog({ ...newBlog, title: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-300"
+                className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
               />
               <input
                 type="text"
                 required
-                placeholder="Short Excerpt"
+                placeholder="Excerpt / Summary"
                 value={newBlog.excerpt}
                 onChange={(e) => setNewBlog({ ...newBlog, excerpt: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-300"
+                className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
               />
               <textarea
                 required
-                rows={5}
-                placeholder="Full Content Body..."
+                rows={4}
+                placeholder="Full Content"
                 value={newBlog.content}
                 onChange={(e) => setNewBlog({ ...newBlog, content: e.target.value })}
-                className="w-full p-2.5 rounded-xl border border-gray-300"
+                className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white"
               />
-              <div className="flex space-x-2 pt-2">
+              <div className="flex items-center space-x-2">
+                <button
+                  type="submit"
+                  className="w-full py-2.5 bg-mint-500 text-dark-950 font-bold text-xs rounded-xl"
+                >
+                  Publish Article
+                </button>
                 <button
                   type="button"
                   onClick={() => setShowAddBlogModal(false)}
-                  className="w-1/2 py-2.5 bg-gray-200 text-dark-900 font-bold rounded-xl"
+                  className="w-full py-2.5 bg-white/10 text-white font-bold text-xs rounded-xl"
                 >
                   Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="w-1/2 py-2.5 bg-gold-400 text-dark-950 font-bold rounded-xl"
-                >
-                  Publish Article
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
-    </main>
+    </div>
   );
 }

@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { INITIAL_MENU_ITEMS, MenuItem } from '@/lib/db';
-import { Search, Utensils, Leaf, Flame, Sparkles } from 'lucide-react';
+import { getStoredMenuItems, MenuItem } from '@/lib/db';
+import { Search, Utensils, Leaf, Flame } from 'lucide-react';
 
 interface FoodMenuSectionProps {
   onOpenBooking: () => void;
@@ -22,19 +22,12 @@ const CATEGORIES = [
 ];
 
 export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps) {
-  const [items, setItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
+  const [items, setItems] = useState<MenuItem[]>([]);
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    fetch('/api/menu')
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.success && data.data) {
-          setItems(data.data);
-        }
-      })
-      .catch(() => {});
+    setItems(getStoredMenuItems());
   }, []);
 
   const filteredItems = items.filter((item) => {
