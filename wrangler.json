@@ -1,0 +1,17 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "wings-river-cafe-blog",
+  "main": ".next/standalone/server.js",
+  "compatibility_date": "2024-09-23",
+  "compatibility_flags": [
+    "nodejs_compat"
+  ],
+  "pages_build_output_dir": ".vercel/output/static",
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "wings-river-cafe-db",
+      "database_id": "c2491a90-0f90-4a1e-8a4d-852e6588a68a"
+    }
+  ]
+}
