@@ -2,6 +2,7 @@
 -- Database ID: c2491a90-0f90-4a1e-8a4d-852e6588a68a
 
 -- Drop existing tables to ensure clean recreation during upgrade
+PRAGMA foreign_keys = OFF;
 DROP TABLE IF EXISTS audit_logs;
 DROP TABLE IF EXISTS settings;
 DROP TABLE IF EXISTS team_members;
@@ -288,3 +289,5 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   details TEXT DEFAULT '',
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
+
+PRAGMA foreign_keys = ON;
