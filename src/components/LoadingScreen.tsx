@@ -579,15 +579,22 @@ export default function LoadingScreen() {
       </div>
 
       {/* Progress bar at top */}
-      <div className="absolute top-0 left-0 right-0 h-0.5 bg-white/10 z-50">
+      <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 z-50">
         <div
-          className="h-full bg-gradient-to-r from-mint-400 via-gold-400 to-mint-300 transition-all"
+          className="h-full bg-gradient-to-r from-mint-400 via-gold-400 to-mint-300 transition-all duration-700 ease-out"
           style={{
             width: `${((sceneIndex + 1) / SCENES.length) * 100}%`,
-            transition: 'width 1s ease-out',
           }}
         />
       </div>
+
+      {/* Skip Intro Button */}
+      <button
+        onClick={() => { setFadeOut(true); setTimeout(() => setVisible(false), 500); }}
+        className="absolute top-5 right-5 z-50 px-4 py-1.5 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs font-bold transition-all hover:scale-105"
+      >
+        Skip Intro ➔
+      </button>
 
       {/* Scene dots indicator */}
       <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-50">

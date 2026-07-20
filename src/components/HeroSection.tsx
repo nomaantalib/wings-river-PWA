@@ -90,18 +90,18 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
         </div>
 
         {/* Dynamic Tagline Badge */}
-        <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-mint-300/30 text-mint-200 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 animate-fade-in">
+        <div key={`tag-${currentSlide}`} className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-mint-300/30 text-mint-200 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 animate-fade-in transition-all duration-700">
           <Sparkles className="w-3.5 h-3.5 text-gold-400 animate-spin" style={{ animationDuration: '8s' }} />
           <span>{activeSlide.tag || heroSettings.badgeText}</span>
         </div>
 
         {/* Dynamic Main Heading */}
-        <h1 className="font-serif font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-tight text-white drop-shadow-lg leading-tight mb-4 transition-all duration-700">
+        <h1 key={`title-${currentSlide}`} className="font-serif font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-tight text-white drop-shadow-lg leading-tight mb-4 transition-all duration-700 animate-fade-in-up">
           {activeSlide.title || heroSettings.mainHeadline}
         </h1>
 
         {/* Dynamic Subheading */}
-        <p className="font-sans text-lg sm:text-2xl text-cream-100 font-light tracking-wide max-w-2xl mb-8 drop-shadow-md transition-all duration-700">
+        <p key={`sub-${currentSlide}`} className="font-sans text-lg sm:text-2xl text-cream-100 font-light tracking-wide max-w-2xl mb-8 drop-shadow-md transition-all duration-700 animate-fade-in-up">
           {activeSlide.subtitle || heroSettings.subHeadline}
         </p>
 
