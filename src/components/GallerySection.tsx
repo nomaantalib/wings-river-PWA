@@ -157,17 +157,25 @@ export default function GallerySection() {
                       key={item.id}
                       className="w-full h-full flex-shrink-0 relative flex items-end min-h-[420px] sm:min-h-[520px] overflow-hidden"
                     >
-                      {/* Vignette Overlay Gradient */}
+                      {/* Ambient Background Blur */}
+                      <img
+                        src={item.image_url}
+                        alt=""
+                        aria-hidden="true"
+                        className="absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-50 scale-110"
+                      />
+
+                      {/* Dark Vignette Overlay Gradient */}
                       <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/40 to-transparent z-10" />
 
-                      {/* Main Focused Carousel Image with 3D zoom & blur on inactive */}
+                      {/* Main Focused Carousel Image (Full un-cropped display) */}
                       <img
                         src={item.image_url}
                         alt={item.title}
-                        className={`absolute inset-0 w-full h-full object-cover object-center transition-all duration-1000 ${
+                        className={`relative z-10 max-h-full max-w-full object-contain mx-auto my-auto p-4 drop-shadow-2xl transition-all duration-700 ${
                           isActive 
-                            ? 'scale-100 opacity-90 blur-0' 
-                            : 'scale-95 opacity-20 blur-[3px]'
+                            ? 'scale-100 opacity-100' 
+                            : 'scale-95 opacity-20'
                         }`}
                       />
 

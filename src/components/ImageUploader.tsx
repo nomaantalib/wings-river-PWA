@@ -214,35 +214,48 @@ export default function ImageUploader({
       {/* URL mode */}
       {mode === 'url' && (
         <div className="space-y-2">
-          {/* Preview if we have a value */}
-          {hasImage && (
-            <div className={`relative rounded-2xl overflow-hidden bg-dark-900 border border-white/10 ${previewHeight}`}>
-              <img src={value} alt="Preview" className="w-full h-full object-cover" onError={() => setError('Image URL is invalid or unreachable.')} />
-              <div className="absolute top-2 right-2">
-                <div className="flex items-center space-x-1 bg-green-500/90 backdrop-blur-sm text-white px-2 py-0.5 rounded-full text-[9px] font-bold">
-                  <Check className="w-2.5 h-2.5" /><span>Preview</span>
-                </div>
-              </div>
-            </div>
-          )}
           <div className="flex items-center space-x-2">
             <input
               type="text"
-              placeholder="/images/photo.jpg or https://example.com/image.jpg"
+              placeholder="Paste image URL (e.g. https://... or /images/...)"
               value={urlInput}
-              onChange={e => {
+              onChange={(e) => {
                 const val = e.target.value;
                 setUrlInput(val);
                 onChange(val.trim());
+                setError('');
               }}
-              onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); handleUrlApply(); } }}
-              className="flex-1 px-3 py-2.5 text-xs bg-dark-950 border border-white/15 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all"
+              onBlur={() => {
+                if (urlInput.trim()) onChange(urlInput.trim());
+              }}
+              className="flex-1 px-3.5 py-2.5 bg-dark-950/80 border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
             />
-            <button type="button" onClick={handleUrlApply}
-              className="px-3 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl transition-colors shadow-md whitespace-nowrap">
-              Apply URL
+            <button
+              type="button"
+              onClick={handleUrlApply}
+              className="px-4 py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl shadow-md transition-all shrink-0"
+            >
+              Apply
             </button>
           </div>
+          {hasImage && (
+            <div className={`relative ${previewHeight} rounded-2xl overflow-hidden bg-dark-950 flex items-center justify-center border border-white/10`}>
+              <img
+                src={value}
+                alt="URL Preview"
+                className="max-h-full max-w-full object-contain p-2"
+                onError={() => setError('Invalid image URL or unable to load image preview.')}
+              />
+              <button
+                type="button"
+                onClick={handleClear}
+                className="absolute top-2 right-2 p-1.5 rounded-full bg-rose-500/80 hover:bg-rose-500 text-white shadow-lg transition-colors"
+                title="Clear image"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+          )}
         </div>
       )}
 
@@ -251,14 +264,6 @@ export default function ImageUploader({
         <div className="flex items-center space-x-2 text-rose-400 text-[11px] bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">
           <X className="w-3.5 h-3.5 shrink-0" /><span>{error}</span>
         </div>
-      )}
-
-      {/* Clear button */}
-      {hasImage && (
-        <button type="button" onClick={handleClear}
-          className="flex items-center space-x-1.5 text-[11px] text-gray-500 hover:text-rose-400 transition-colors font-medium">
-          <X className="w-3 h-3" /><span>Clear image</span>
-        </button>
       )}
     </div>
   );
