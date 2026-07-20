@@ -4,8 +4,8 @@ import React from 'react';
 import { MapPin, Navigation, Clock, Phone, Compass, Anchor } from 'lucide-react';
 
 export default function LocationSection() {
-  const mapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3559.395724578135!2d80.9501509!3d26.8679093!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399bfd007c08a68b%3A0xb35a3a789ef51a70!2sLucknow%20water%20sports%20wings%20River!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin";
-  const directMapsLink = "https://www.google.com/maps/place/Lucknow+water+sports+wings+River,+Laxman+mela+ground,+Kala+Kankar+Colony,+Purana+Haidarabad,+sikandar+nagar,+Lucknow,+Uttar+Pradesh+226001/";
+  const mapEmbedUrl = "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1779.6997424578135!2d80.94902!3d26.85764!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x399bfd007c08a68b%3A0xb35a3a789ef51a70!2sLucknow%20water%20sports%20wings%20River!5e0!3m2!1sen!2sin!4v1711111111111!5m2!1sen!2sin";
+  const directMapsLink = "https://www.google.com/maps/place/26%C2%B051'27.5%22N+80%C2%B056'56.5%22E/@26.85764,80.94902,17z/data=!3m1!4b1!4m4!3m3!8m2!3d26.85764!4d80.94902";
 
   return (
     <section id="location" className="py-20 bg-dark-900 text-white relative">
