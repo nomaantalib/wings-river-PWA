@@ -76,8 +76,21 @@ export default function BackgroundMusic() {
     };
   }, []);
 
-  // Start music automatically on mount or first user interaction
+  // Start music automatically on mount or first user interaction (respecting user preference)
   useEffect(() => {
+    // Check user preference in localStorage
+    const savedMute = typeof window !== 'undefined' ? localStorage.getItem('wings_music_muted') : null;
+    const initialMute = savedMute === 'true';
+    if (savedMute !== null) {
+      setMuted(initialMute);
+      globalMuted = initialMute;
+    }
+
+    if (initialMute) {
+      // User explicitly turned off sound previously — do not auto-play
+      return;
+    }
+
     const startAudio = () => {
       if (globalAudio) {
         if (globalAudio.paused && !globalMuted) {
@@ -97,6 +110,7 @@ export default function BackgroundMusic() {
         }).catch(() => {
           // Autoplay blocked by browser policy — attach interaction listeners to start audio on first interaction
           const unlock = () => {
+            if (globalMuted) return;
             if (!globalAudio) {
               const a = new Audio('/audio/background.mp3');
               a.loop = true;
@@ -121,7 +135,7 @@ export default function BackgroundMusic() {
     startAudio();
 
     const onInteract = () => {
-      if (!globalAudio || (globalAudio.paused && !globalMuted)) {
+      if (!globalMuted && (!globalAudio || globalAudio.paused)) {
         startAudio();
       }
     };
@@ -140,17 +154,22 @@ export default function BackgroundMusic() {
     const newMuted = !muted;
     setMuted(newMuted);
     globalMuted = newMuted;
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wings_music_muted', newMuted ? 'true' : 'false');
+    }
 
     if (!globalAudio) {
-      try {
-        const audio = new Audio('/audio/background.mp3');
-        audio.loop = true;
-        audio.volume = volume;
-        audio.play().then(() => {
-          globalAudio = audio;
-          setStarted(true);
-        }).catch(() => {});
-      } catch {}
+      if (!newMuted) {
+        try {
+          const audio = new Audio('/audio/background.mp3');
+          audio.loop = true;
+          audio.volume = volume;
+          audio.play().then(() => {
+            globalAudio = audio;
+            setStarted(true);
+          }).catch(() => {});
+        } catch {}
+      }
       return;
     }
 
