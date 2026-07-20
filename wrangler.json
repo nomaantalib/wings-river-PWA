@@ -1,7 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wings-river-cafe-blog",
-  "main": ".next/standalone/server.js",
   "compatibility_date": "2024-09-23",
   "compatibility_flags": [
     "nodejs_compat"
