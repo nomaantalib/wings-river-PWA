@@ -116,7 +116,7 @@ export default function ContactSection() {
                       placeholder="e.g. Priyanshu Singh"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 text-sm rounded-xl bg-dark-950 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-mint-400"
+                      className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
                     />
                   </div>
 
@@ -128,7 +128,7 @@ export default function ContactSection() {
                       placeholder="e.g. 07310008020"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-3 text-sm rounded-xl bg-dark-950 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-mint-400"
+                      className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
                     />
                   </div>
                 </div>
@@ -140,7 +140,7 @@ export default function ContactSection() {
                     placeholder="name@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 text-sm rounded-xl bg-dark-950 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
                   />
                 </div>
 
@@ -152,7 +152,7 @@ export default function ContactSection() {
                     placeholder="Write your inquiry or party requirements..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-3 text-sm rounded-xl bg-dark-950 border border-white/10 text-white focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
                   />
                 </div>
 

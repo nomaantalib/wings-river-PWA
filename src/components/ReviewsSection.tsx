@@ -156,7 +156,7 @@ export default function ReviewsSection() {
                   placeholder="e.g. Sameer Verma"
                   value={nameInput}
                   onChange={(e) => setNameInput(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-300 text-black font-semibold bg-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
                 />
               </div>
 
@@ -165,11 +165,11 @@ export default function ReviewsSection() {
                 <select
                   value={ratingInput}
                   onChange={(e) => setRatingInput(Number(e.target.value))}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-300 bg-white"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-300 text-black font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-mint-400"
                 >
-                  <option value={5}>5 Stars ★★★★★ - Excellent</option>
-                  <option value={4}>4 Stars ★★★★☆ - Very Good</option>
-                  <option value={3}>3 Stars ★★★☆☆ - Good</option>
+                  <option value={5} className="text-black font-semibold">5 Stars ★★★★★ - Excellent</option>
+                  <option value={4} className="text-black font-semibold">4 Stars ★★★★☆ - Very Good</option>
+                  <option value={3} className="text-black font-semibold">3 Stars ★★★☆☆ - Good</option>
                 </select>
               </div>
 
@@ -181,7 +181,7 @@ export default function ReviewsSection() {
                   placeholder="Write your feedback..."
                   value={commentInput}
                   onChange={(e) => setCommentInput(e.target.value)}
-                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-300 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                  className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-300 text-black font-semibold bg-white placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
                 />
               </div>
 
