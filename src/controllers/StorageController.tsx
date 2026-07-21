@@ -647,7 +647,7 @@ export async function deletePage(id: string, hard: boolean = false): Promise<Sit
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  R2 MEDIA UPLOADER & SITE SETTINGS & STATS
+//  CLOUDINARY MEDIA UPLOADER & SITE SETTINGS & STATS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function uploadMediaFile(file: File, category: string = 'general', altText: string = ''): Promise<{ success: boolean; url?: string; media_id?: string; error?: string }> {
   try {

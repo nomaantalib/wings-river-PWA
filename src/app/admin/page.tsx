@@ -194,7 +194,7 @@ function ImageUploader({
             : 'bg-amber-500 hover:bg-amber-400 text-dark-950'
         }`}>
           <Upload className="w-4 h-4" />
-          <span>{isUploading ? 'Uploading…' : 'Upload to R2'}</span>
+          <span>{isUploading ? 'Uploading…' : 'Upload'}</span>
           <input
             type="file"
             accept="image/*"
@@ -220,7 +220,7 @@ function ImageUploader({
             <X className="w-3.5 h-3.5" />
           </button>
           <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-dark-950/80 text-[10px] text-amber-300 font-mono border border-white/10">
-            {value.startsWith('data:') ? 'Local Preview' : value.startsWith('https://r2.') || value.includes('/api/') ? 'R2 Cloud Storage' : 'External URL'}
+            {value.startsWith('data:') ? 'Local Preview' : value.includes('cloudinary') || value.includes('/api/') ? 'Cloudinary Storage' : 'External URL'}
           </span>
         </div>
       )}
@@ -2157,7 +2157,7 @@ export default function AdminPage() {
                 <input type="text" value={promoPageModal.subtitle || ''} onChange={(e) => setPromoPageModal({ ...promoPageModal, subtitle: e.target.value })} className={inputCls} placeholder="e.g. 20% off on all beverages this weekend" />
               </div>
               <ImageUploader
-                label="Promo Image (Upload to R2 or paste URL)"
+                label="Promo Image (Upload or paste URL)"
                 value={promoPageModal.image_url || ''}
                 onChange={(val) => setPromoPageModal({ ...promoPageModal, image_url: val })}
               />
