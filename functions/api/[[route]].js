@@ -135,6 +135,18 @@ app.get('/health', async (c) => {
   });
 });
 
+app.get('/', (c) => {
+  return c.json({
+    service: 'Wings River Café Cloudflare D1 Backend API Engine',
+    status: 'online',
+    type: 'PURE_REST_API_BACKEND',
+    message: 'Backend server dedicated for API communication only. Frontend application is hosted on Cloudflare Pages.',
+    frontend_url: 'https://wings-river-cafe-blog.pages.dev',
+    health_check: '/api/health',
+    version: '1.0.0'
+  });
+});
+
 app.get('/status', async (c) => {
   return c.redirect('/api/health');
 });
