@@ -324,15 +324,22 @@ export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
 export async function getStoredBlogs(): Promise<BlogPost[]> {
   try {
     const res = await apiFetch('/api/blogs');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+    if (res.success && Array.isArray(res.data)) {
+      // Return D1 data even if empty (real empty state), only fall back if API failed
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredBlogs:', e); }
+  // Only fall back to initial data when D1 is completely unreachable
   return INITIAL_BLOGS;
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
-  await apiPost('/api/blogs', blog);
+  const result = await apiPost('/api/blogs', blog);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to save blog post to D1');
+  }
+  // Small delay to let D1 commit the write before we re-read
+  await new Promise(r => setTimeout(r, 400));
   notifySync();
   return getStoredBlogs();
 }
@@ -343,6 +350,8 @@ export async function updateBlog(blog: BlogPost): Promise<BlogPost[]> {
 
 export async function deleteBlog(id: string): Promise<BlogPost[]> {
   await apiDelete(`/api/blogs/${id}`);
+  // Small delay for D1 soft-delete commit
+  await new Promise(r => setTimeout(r, 300));
   notifySync();
   return getStoredBlogs();
 }

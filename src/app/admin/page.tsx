@@ -304,6 +304,8 @@ export default function AdminPage() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const [isSavingBlog, setIsSavingBlog] = useState(false);
+  const [isSavingSettings, setIsSavingSettings] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -564,7 +566,7 @@ export default function AdminPage() {
   // Blog Posts Save
   const saveBlogPost = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!blogModal) return;
+    if (!blogModal || isSavingBlog) return;
     const blogToSave = {
       id: blogModal.id || `blog-${Date.now()}`,
       title: blogModal.title || '',
@@ -573,17 +575,32 @@ export default function AdminPage() {
       content: blogModal.content || '',
       category: blogModal.category || 'Riverside Experience',
       cover_image: blogModal.cover_image || '',
-      images: Array.isArray(blogModal.images) ? blogModal.images : [],
+      images: Array.isArray(blogModal.images) ? blogModal.images.filter((u: any) => typeof u === 'string' && u.trim()) : [],
       video_url: blogModal.video_url || '',
       author: blogModal.author || 'Wings River Team',
       read_time: blogModal.read_time || '4 min read',
       status: blogModal.status || 'published',
       is_published: blogModal.status !== 'draft'
     };
-    const fresh = await saveBlog(blogToSave);
-    setBlogs(fresh);
+    setIsSavingBlog(true);
+    // Optimistic update so the UI shows the change immediately without waiting for D1
+    setBlogs(prev => {
+      const idx = prev.findIndex(b => b.id === blogToSave.id);
+      if (idx >= 0) { const next = [...prev]; next[idx] = blogToSave as any; return next; }
+      return [blogToSave as any, ...prev];
+    });
     setBlogModal(null);
-    showToast('Blog story saved successfully!');
+    try {
+      const fresh = await saveBlog(blogToSave as any);
+      if (fresh && fresh.length > 0) setBlogs(fresh);
+      showToast('Blog story saved successfully!');
+    } catch (err: any) {
+      showToast(`Save failed: ${err?.message || 'Unknown error'}`);
+      // Reload to restore consistent state
+      getStoredBlogs().then(b => { if (b.length > 0) setBlogs(b); });
+    } finally {
+      setIsSavingBlog(false);
+    }
   };
 
   // Photo Gallery Save
@@ -751,10 +768,17 @@ export default function AdminPage() {
   // Site Settings Save
   const handleSiteSettingsSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!siteSettings) return;
-    const updated = await saveSiteSettings(siteSettings);
-    setSiteSettings(updated);
-    showToast('Site Settings saved to D1 successfully!');
+    if (!siteSettings || isSavingSettings) return;
+    setIsSavingSettings(true);
+    try {
+      const updated = await saveSiteSettings(siteSettings);
+      setSiteSettings(updated);
+      showToast('Site Settings saved to D1 successfully!');
+    } catch (err: any) {
+      showToast(`Save failed: ${err?.message || 'Unknown error'}`);
+    } finally {
+      setIsSavingSettings(false);
+    }
   };
 
   // Menu Booklet Page Save
@@ -1294,9 +1318,12 @@ export default function AdminPage() {
                     </div>
                   </div>
 
-                  <button type="submit" className={btnPrimary}>
-                    <Save className="w-4 h-4" />
-                    <span>Save All Site Settings to D1</span>
+                  <button type="submit" disabled={isSavingSettings} className={`${btnPrimary} ${isSavingSettings ? 'opacity-70 cursor-wait' : ''}`}>
+                    {isSavingSettings ? (
+                      <><svg className="animate-spin w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Saving Settings…</>
+                    ) : (
+                      <><Save className="w-4 h-4" /><span>Save All Site Settings to D1</span></>
+                    )}
                   </button>
                 </form>
               )}
@@ -2203,7 +2230,13 @@ export default function AdminPage() {
                 </div>
               </div>
 
-              <button type="submit" className={btnPrimary}><Save className="w-4 h-4" /> Save Blog Article</button>
+              <button type="submit" disabled={isSavingBlog} className={`${btnPrimary} ${isSavingBlog ? 'opacity-70 cursor-wait' : ''}`}>
+                {isSavingBlog ? (
+                  <><svg className="animate-spin w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Saving…</>
+                ) : (
+                  <><Save className="w-4 h-4" /> Save Blog Article</>
+                )}
+              </button>
             </form>
           </Modal>
         )}
