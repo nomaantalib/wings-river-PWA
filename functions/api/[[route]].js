@@ -7,6 +7,12 @@ const app = new Hono().basePath('/api');
 
 const JWT_SECRET = 'wings_river_cafe_jwt_secret_2026_super_secure';
 
+// Helper: Get D1 Database binding from env (supports DB, d1, DATABASE, D1, or custom binding names)
+function getDB(c) {
+  if (!c || !c.env) return null;
+  return c.env.DB || c.env.DB_BINDING || c.env.wings_river_cafe_reservations || c.env.d1 || c.env.DATABASE || c.env.D1 || null;
+}
+
 // CORS Middleware for pure API responses
 app.use('*', async (c, next) => {
   if (c.req.method === 'OPTIONS') {
@@ -132,7 +138,7 @@ async function sha256(message) {
 
 // ── 0. HEALTH & ENGINE API NOTICE ───────────────────────────────────────────
 app.get('/health', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   let d1Status = 'disconnected';
   let counts = {};
 
@@ -195,7 +201,7 @@ app.get('/status', async (c) => {
 
 // ── 1. AUTH / LOGIN ENDPOINT ────────────────────────────────────────────────
 app.post('/auth/login', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   try {
     const { username, password } = await c.req.json();
     if (!username || !password) {
@@ -230,7 +236,7 @@ app.post('/auth/login', async (c) => {
 
 // ── 2. MENU CATEGORIES ──────────────────────────────────────────────────────
 app.get('/categories', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -242,7 +248,7 @@ app.get('/categories', async (c) => {
 });
 
 app.post('/categories', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, message: 'Saved' });
   try {
     await ensureTables(db);
@@ -259,7 +265,7 @@ app.post('/categories', async (c) => {
 });
 
 app.delete('/categories/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE menu_categories SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -271,7 +277,7 @@ app.delete('/categories/:id', async (c) => {
 
 // ── 3. MENU ITEMS ───────────────────────────────────────────────────────────
 app.get('/menu', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -288,7 +294,7 @@ app.get('/menu', async (c) => {
 });
 
 app.post('/menu', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -309,7 +315,7 @@ app.post('/menu', async (c) => {
 });
 
 app.delete('/menu/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE menu_items SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -321,7 +327,7 @@ app.delete('/menu/:id', async (c) => {
 
 // ── 4. MENU BOOKLET PAGES ───────────────────────────────────────────────────
 app.get('/menupages', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -333,7 +339,7 @@ app.get('/menupages', async (c) => {
 });
 
 app.post('/menupages', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: false, error: 'Database not available' }, 503);
   try {
     await ensureTables(db);
@@ -355,7 +361,7 @@ app.post('/menupages', async (c) => {
 });
 
 app.delete('/menupages/:page_number', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE menu_pages SET is_deleted = 1 WHERE page_number = ?").bind(Number(c.req.param('page_number'))).run();
@@ -367,7 +373,7 @@ app.delete('/menupages/:page_number', async (c) => {
 
 // ── 5. BLOGS & STORIES ──────────────────────────────────────────────────────
 app.get('/blogs', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -384,7 +390,7 @@ app.get('/blogs', async (c) => {
 });
 
 app.post('/blogs', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -406,7 +412,7 @@ app.post('/blogs', async (c) => {
 });
 
 app.delete('/blogs/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE blogs SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -418,7 +424,7 @@ app.delete('/blogs/:id', async (c) => {
 
 // ── 6. PHOTO GALLERY ────────────────────────────────────────────────────────
 app.get('/gallery', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -431,7 +437,7 @@ app.get('/gallery', async (c) => {
 });
 
 app.post('/gallery', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -448,7 +454,7 @@ app.post('/gallery', async (c) => {
 });
 
 app.delete('/gallery/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE gallery SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -460,7 +466,7 @@ app.delete('/gallery/:id', async (c) => {
 
 // ── 7. WATER SPORTS RIDES ───────────────────────────────────────────────────
 app.get('/watersports', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -472,7 +478,7 @@ app.get('/watersports', async (c) => {
 });
 
 app.post('/watersports', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -492,7 +498,7 @@ app.post('/watersports', async (c) => {
 });
 
 app.delete('/watersports/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE water_sports SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -504,7 +510,7 @@ app.delete('/watersports/:id', async (c) => {
 
 // ── 8. TEAM MEMBERS ─────────────────────────────────────────────────────────
 app.get('/team', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -516,7 +522,7 @@ app.get('/team', async (c) => {
 });
 
 app.post('/team', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -533,7 +539,7 @@ app.post('/team', async (c) => {
 });
 
 app.delete('/team/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE team_members SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -545,7 +551,7 @@ app.delete('/team/:id', async (c) => {
 
 // ── 9. OFFERS & DISCOUNTS ───────────────────────────────────────────────────
 app.get('/offers', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -557,7 +563,7 @@ app.get('/offers', async (c) => {
 });
 
 app.post('/offers', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -574,7 +580,7 @@ app.post('/offers', async (c) => {
 });
 
 app.delete('/offers/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE offers_discounts SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -586,7 +592,7 @@ app.delete('/offers/:id', async (c) => {
 
 // ── 10. EVENT BANNERS & EVENTS ──────────────────────────────────────────────
 const handleGetBanners = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -599,7 +605,7 @@ const handleGetBanners = async (c) => {
 };
 
 const handlePostBanner = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -620,7 +626,7 @@ const handlePostBanner = async (c) => {
 };
 
 const handleDeleteBanner = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE event_banners SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -639,7 +645,7 @@ app.delete('/events/:id', handleDeleteBanner);
 
 // ── 11. FAQS ────────────────────────────────────────────────────────────────
 app.get('/faqs', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -651,7 +657,7 @@ app.get('/faqs', async (c) => {
 });
 
 app.post('/faqs', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -668,7 +674,7 @@ app.post('/faqs', async (c) => {
 });
 
 app.delete('/faqs/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE faqs SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -783,7 +789,7 @@ async function destroyCloudinaryAsset(publicId, c, db) {
 
 // POST /api/upload & POST /api/admin/images/upload
 const handleUpload = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) {
     console.error('[Upload Pipeline] ❌ D1 Database binding missing in Worker env');
     return c.json({ success: false, error: 'Database binding (D1) unconfigured or unavailable.' }, 500);
@@ -864,7 +870,7 @@ app.post('/admin/images/upload', handleUpload);
 
 // GET /api/media & GET /api/images
 const handleGetImages = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [] });
   try {
     await ensureTables(db);
@@ -887,7 +893,7 @@ app.get('/images', handleGetImages);
 
 // GET /api/media/:id & GET /api/images/:id
 const handleGetSingleImage = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
   try {
     await ensureTables(db);
@@ -905,7 +911,7 @@ app.get('/images/:id', handleGetSingleImage);
 
 // POST /media (Create / Record image metadata manually in D1)
 app.post('/media', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
   try {
     await ensureTables(db);
@@ -929,7 +935,7 @@ app.post('/media', async (c) => {
 
 // PUT /api/media/:id & PUT /api/admin/images/:id (Image Replacement & Metadata Update)
 const handleUpdateImage = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
   try {
     await ensureTables(db);
@@ -988,7 +994,7 @@ app.put('/admin/images/:id', handleUpdateImage);
 
 // DELETE /api/media/:id & DELETE /api/admin/images/:id (Deletes asset from Cloudinary & record from D1)
 const handleDeleteImage = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
   try {
     await ensureTables(db);
@@ -1009,7 +1015,7 @@ app.delete('/admin/images/:id', handleDeleteImage);
 
 // ── GLOBAL SITE SETTINGS & DASHBOARD STATS ──────────────────────────────────
 app.get('/settings', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: {} });
   try {
     await ensureTables(db);
@@ -1026,7 +1032,7 @@ app.get('/settings', async (c) => {
 });
 
 app.post('/settings', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -1047,7 +1053,7 @@ app.post('/settings', async (c) => {
 });
 
 app.get('/stats', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: {} });
   try {
     await ensureTables(db);
@@ -1092,7 +1098,7 @@ app.get('/stats', async (c) => {
 
 // ── 13. DYNAMIC PAGES ───────────────────────────────────────────────────────
 app.get('/pages', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -1104,7 +1110,7 @@ app.get('/pages', async (c) => {
 });
 
 app.post('/pages', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -1121,7 +1127,7 @@ app.post('/pages', async (c) => {
 });
 
 app.delete('/pages/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE pages SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -1133,7 +1139,7 @@ app.delete('/pages/:id', async (c) => {
 
 // ── 14. AUDIT LOGS ──────────────────────────────────────────────────────────
 app.get('/logs', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -1146,7 +1152,7 @@ app.get('/logs', async (c) => {
 
 // ── 15. HERO & SITE SETTINGS ────────────────────────────────────────────────
 app.get('/hero', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: null, d1_connected: false });
   try {
     await ensureTables(db);
@@ -1159,7 +1165,7 @@ app.get('/hero', async (c) => {
 });
 
 app.post('/hero', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -1173,7 +1179,7 @@ app.post('/hero', async (c) => {
 
 // ── 16. RESERVATIONS & BOOKINGS (WITH ALIASES) ──────────────────────────────
 const handleGetBookings = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -1185,7 +1191,7 @@ const handleGetBookings = async (c) => {
 };
 
 const handlePostBooking = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -1205,7 +1211,7 @@ const handlePostBooking = async (c) => {
 };
 
 const handleDeleteBooking = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE reservations SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -1224,7 +1230,7 @@ app.delete('/reservations/:id', handleDeleteBooking);
 
 // ── 17. REVIEWS & CONTACT MESSAGES (WITH ALIASES) ───────────────────────────
 const handleGetReviews = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -1236,7 +1242,7 @@ const handleGetReviews = async (c) => {
 };
 
 const handlePostReview = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
@@ -1253,7 +1259,7 @@ const handlePostReview = async (c) => {
 };
 
 const handleDeleteReview = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE reviews SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -1271,7 +1277,7 @@ app.delete('/reviews/:id', handleDeleteReview);
 app.delete('/testimonials/:id', handleDeleteReview);
 
 const handleGetContact = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -1283,7 +1289,7 @@ const handleGetContact = async (c) => {
 };
 
 const handlePostContact = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await ensureTables(db);
