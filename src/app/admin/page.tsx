@@ -275,6 +275,7 @@ function MultiImageUploader({
 
     setIsUploading(true);
     setUploadMsg(`Uploading ${fileList.length} image(s) together in parallel...`);
+    const errors: string[] = [];
 
     try {
       const uploadPromises = fileList.map(async (file) => {
@@ -283,8 +284,11 @@ function MultiImageUploader({
           const result = await uploadMediaFile(compressed, 'blog_gallery', compressed.name);
           if (result.success && result.url) {
             return result.url;
+          } else {
+            errors.push(`${file.name}: ${result.error || 'Failed'}`);
           }
-        } catch (err) {
+        } catch (err: any) {
+          errors.push(`${file.name}: ${err.message || 'Error'}`);
           console.error('[MultiUpload Error]:', file.name, err);
         }
         return null;
@@ -295,16 +299,20 @@ function MultiImageUploader({
 
       setIsUploading(false);
       if (successfulUrls.length > 0) {
-        setUploadMsg(`Uploaded ${successfulUrls.length} of ${fileList.length} image(s) successfully ✓`);
+        let msg = `Uploaded ${successfulUrls.length} of ${fileList.length} image(s) successfully ✓`;
+        if (errors.length > 0) {
+          msg += ` (${errors.length} failed)`;
+        }
+        setUploadMsg(msg);
         onUploadComplete(successfulUrls);
       } else {
-        setUploadMsg('Failed to upload selected images');
+        setUploadMsg(`Failed to upload images: ${errors.slice(0, 2).join('; ')}`);
       }
     } catch (e: any) {
       setIsUploading(false);
       setUploadMsg(`Upload error: ${e.message || 'Error occurred'}`);
     }
-    setTimeout(() => setUploadMsg(''), 5000);
+    setTimeout(() => setUploadMsg(''), 6000);
   };
 
   const handleAddUrl = () => {
