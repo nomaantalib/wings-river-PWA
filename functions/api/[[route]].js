@@ -53,7 +53,7 @@ async function ensureTables(db) {
     `CREATE TABLE IF NOT EXISTS team_members (id TEXT PRIMARY KEY, name TEXT, role TEXT, bio TEXT, image TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
     `CREATE TABLE IF NOT EXISTS reservations (id TEXT PRIMARY KEY, name TEXT, phone TEXT, email TEXT, booking_type TEXT, date TEXT, time TEXT, guests INTEGER DEFAULT 2, special_requests TEXT, status TEXT DEFAULT 'pending', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
     `CREATE TABLE IF NOT EXISTS pages (id TEXT PRIMARY KEY, title TEXT, slug TEXT UNIQUE, content TEXT, status TEXT DEFAULT 'draft', display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, published_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
-    `CREATE TABLE IF NOT EXISTS media_library (id TEXT PRIMARY KEY, public_id TEXT, secure_url TEXT NOT NULL, width INTEGER DEFAULT 0, height INTEGER DEFAULT 0, format TEXT DEFAULT 'jpg', alt_text TEXT DEFAULT '', category TEXT DEFAULT 'general', folder TEXT DEFAULT 'wings_river_cafe', tags TEXT DEFAULT '', file_size INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS media_library (id TEXT PRIMARY KEY, public_id TEXT, secure_url TEXT NOT NULL, url TEXT, width INTEGER DEFAULT 0, height INTEGER DEFAULT 0, format TEXT DEFAULT 'jpg', alt_text TEXT DEFAULT '', category TEXT DEFAULT 'general', folder TEXT DEFAULT 'wings_river_cafe', tags TEXT DEFAULT '', file_size INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
     `CREATE INDEX IF NOT EXISTS idx_media_public_id ON media_library(public_id);`,
     `CREATE INDEX IF NOT EXISTS idx_media_category ON media_library(category);`,
     `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`,
@@ -68,10 +68,11 @@ async function ensureTables(db) {
     }
   }
 
-  // Safe Column Migrations (Fixes SQLite "has no column named public_id" on existing D1 databases)
+  // Safe Column Migrations (Fixes SQLite "has no column named public_id" or "NOT NULL constraint failed: media_library.url")
   const columnsToAdd = [
     `ALTER TABLE media_library ADD COLUMN public_id TEXT;`,
     `ALTER TABLE media_library ADD COLUMN secure_url TEXT;`,
+    `ALTER TABLE media_library ADD COLUMN url TEXT;`,
     `ALTER TABLE media_library ADD COLUMN width INTEGER DEFAULT 0;`,
     `ALTER TABLE media_library ADD COLUMN height INTEGER DEFAULT 0;`,
     `ALTER TABLE media_library ADD COLUMN format TEXT DEFAULT 'jpg';`,
@@ -879,10 +880,10 @@ const handleUpload = async (c) => {
     await ensureTables(db);
 
     const d1Res = await db.prepare(`
-      INSERT INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      INSERT INTO media_library (id, public_id, secure_url, url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
     `).bind(
-      id, cloudResult.public_id, cloudResult.secure_url,
+      id, cloudResult.public_id, cloudResult.secure_url, cloudResult.secure_url,
       cloudResult.width, cloudResult.height, cloudResult.format,
       altText, category, folder, tags, cloudResult.bytes || file.size || 0
     ).run();
