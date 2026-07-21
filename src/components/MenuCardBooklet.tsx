@@ -201,29 +201,36 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                       else if (info.offset.x > 40) prevPage();
                     }}
                     initial={{
-                      rotateY: flipDirection === 'next' ? 85 : -85,
-                      opacity: 0.2,
-                      scale: 0.96
+                      rotateY: flipDirection === 'next' ? 115 : -115,
+                      rotateZ: flipDirection === 'next' ? 7 : -7,
+                      scale: 0.86,
+                      opacity: 0,
+                      boxShadow: flipDirection === 'next' ? '-30px 30px 60px rgba(0,0,0,0.6)' : '30px 30px 60px rgba(0,0,0,0.6)'
                     }}
                     animate={{
                       rotateY: 0,
+                      rotateZ: 0,
+                      scale: 1,
                       opacity: 1,
-                      scale: 1
+                      boxShadow: '0px 10px 30px rgba(0,0,0,0.3)'
                     }}
                     exit={{
-                      rotateY: flipDirection === 'next' ? -85 : 85,
-                      opacity: 0.2,
-                      scale: 0.96
+                      rotateY: flipDirection === 'next' ? -115 : 115,
+                      rotateZ: flipDirection === 'next' ? -7 : 7,
+                      scale: 0.86,
+                      opacity: 0,
+                      boxShadow: flipDirection === 'next' ? '30px 30px 60px rgba(0,0,0,0.6)' : '-30px 30px 60px rgba(0,0,0,0.6)'
                     }}
                     transition={{
                       type: 'spring',
-                      stiffness: 260,
-                      damping: 26,
-                      mass: 0.8
+                      stiffness: 220,
+                      damping: 24,
+                      mass: 0.7
                     }}
                     style={{
                       transformOrigin: flipDirection === 'next' ? 'left center' : 'right center',
-                      perspective: 1500,
+                      perspective: 2000,
+                      transformStyle: 'preserve-3d',
                       backfaceVisibility: 'hidden',
                       touchAction: 'pan-y',
                       userSelect: 'none',

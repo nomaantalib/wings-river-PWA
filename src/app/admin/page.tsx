@@ -31,8 +31,55 @@ import {
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
   Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen,
-  ChevronLeft, ChevronRight, Menu, ArrowLeft
+  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload
 } from 'lucide-react';
+
+function ImageUploader({
+  value,
+  onChange,
+  label = "Image URL or Upload from Device"
+}: {
+  value: string;
+  onChange: (val: string) => void;
+  label?: string;
+}) {
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        onChange(reader.result);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  return (
+    <div className="space-y-1.5">
+      <label className="block text-xs font-semibold text-gray-300">{label}</label>
+      <div className="flex items-center space-x-2">
+        <input
+          type="text"
+          placeholder="https://... or /images/..."
+          value={value || ''}
+          onChange={(e) => onChange(e.target.value)}
+          className="flex-1 px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
+        />
+        <label className="px-3 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-dark-950 font-bold text-xs rounded-xl cursor-pointer transition-all border border-amber-500/30 shrink-0 flex items-center space-x-1">
+          <Upload className="w-3.5 h-3.5" />
+          <span>Upload File</span>
+          <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+        </label>
+      </div>
+      {value && (
+        <div className="mt-1 relative w-24 h-16 rounded-xl overflow-hidden border border-white/10 bg-dark-950 p-0.5">
+          <img src={value} alt="Preview" className="w-full h-full object-contain" />
+        </div>
+      )}
+    </div>
+  );
+}
 
 // Tab Keys matching separate management modules
 type TabKey = 
@@ -778,15 +825,17 @@ export default function AdminPage() {
                       <label className={labelCls}>Second Paragraph Content</label>
                       <textarea rows={4} value={heroSettings.aboutParagraph2 || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutParagraph2: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400" />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
-                      <div>
-                        <label className={labelCls}>Primary Image URL</label>
-                        <input type="text" value={heroSettings.aboutPrimaryImage || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutPrimaryImage: e.target.value })} className={inputCls} />
-                      </div>
-                      <div>
-                        <label className={labelCls}>Secondary Image URL</label>
-                        <input type="text" value={heroSettings.aboutSecondaryImage || ''} onChange={(e) => setHeroSettings({ ...heroSettings, aboutSecondaryImage: e.target.value })} className={inputCls} />
-                      </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <ImageUploader
+                        label="Primary About Image (URL or Device Upload)"
+                        value={heroSettings.aboutPrimaryImage || ''}
+                        onChange={(val) => setHeroSettings({ ...heroSettings, aboutPrimaryImage: val })}
+                      />
+                      <ImageUploader
+                        label="Secondary About Image (URL or Device Upload)"
+                        value={heroSettings.aboutSecondaryImage || ''}
+                        onChange={(val) => setHeroSettings({ ...heroSettings, aboutSecondaryImage: val })}
+                      />
                     </div>
                   </div>
 
@@ -1252,10 +1301,11 @@ export default function AdminPage() {
                 <label className={labelCls}>Description</label>
                 <textarea rows={3} value={menuModal.description || ''} onChange={(e) => setMenuModal({ ...menuModal, description: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
               </div>
-              <div>
-                <label className={labelCls}>Image URL</label>
-                <input type="text" value={menuModal.image_url || ''} onChange={(e) => setMenuModal({ ...menuModal, image_url: e.target.value })} className={inputCls} />
-              </div>
+              <ImageUploader
+                label="Dish Photo / Graphic"
+                value={menuModal.image_url || ''}
+                onChange={(val) => setMenuModal({ ...menuModal, image_url: val })}
+              />
               <div className="flex space-x-4">
                 <label className="flex items-center space-x-2 text-xs text-white">
                   <input type="checkbox" checked={menuModal.is_veg !== false} onChange={(e) => setMenuModal({ ...menuModal, is_veg: e.target.checked })} />
@@ -1283,10 +1333,11 @@ export default function AdminPage() {
                 <label className={labelCls}>Category</label>
                 <input type="text" value={blogModal.category || ''} onChange={(e) => setBlogModal({ ...blogModal, category: e.target.value })} className={inputCls} />
               </div>
-              <div>
-                <label className={labelCls}>Cover Image URL</label>
-                <input type="text" placeholder="/images/cover.jpg" value={blogModal.cover_image || ''} onChange={(e) => setBlogModal({ ...blogModal, cover_image: e.target.value })} className={inputCls} />
-              </div>
+              <ImageUploader
+                label="Cover Image (URL or Upload File)"
+                value={blogModal.cover_image || ''}
+                onChange={(val) => setBlogModal({ ...blogModal, cover_image: val })}
+              />
               <div>
                 <label className={labelCls}>Additional Image URLs (Comma-separated)</label>
                 <input
@@ -1338,10 +1389,11 @@ export default function AdminPage() {
                 <label className={labelCls}>Category</label>
                 <input type="text" value={galleryModal.category || ''} onChange={(e) => setGalleryModal({ ...galleryModal, category: e.target.value })} className={inputCls} />
               </div>
-              <div>
-                <label className={labelCls}>Image URL</label>
-                <input type="text" required value={galleryModal.image_url || ''} onChange={(e) => setGalleryModal({ ...galleryModal, image_url: e.target.value })} className={inputCls} />
-              </div>
+              <ImageUploader
+                label="Photo Image (URL or Upload File)"
+                value={galleryModal.image_url || ''}
+                onChange={(val) => setGalleryModal({ ...galleryModal, image_url: val })}
+              />
               <div>
                 <label className="flex items-center space-x-2 text-xs text-white">
                   <input type="checkbox" checked={galleryModal.featured || false} onChange={(e) => setGalleryModal({ ...galleryModal, featured: e.target.checked })} />
@@ -1377,10 +1429,11 @@ export default function AdminPage() {
                 <label className={labelCls}>Badge Tag</label>
                 <input type="text" value={rideModal.badge || ''} onChange={(e) => setRideModal({ ...rideModal, badge: e.target.value })} className={inputCls} />
               </div>
-              <div>
-                <label className={labelCls}>Image URL</label>
-                <input type="text" value={rideModal.image || ''} onChange={(e) => setRideModal({ ...rideModal, image: e.target.value })} className={inputCls} />
-              </div>
+              <ImageUploader
+                label="Ride Ticket Graphic / Image (URL or Upload File)"
+                value={rideModal.image || ''}
+                onChange={(val) => setRideModal({ ...rideModal, image: val })}
+              />
               <button type="submit" className={btnPrimary}>Save Ride Ticket</button>
             </form>
           </Modal>
@@ -1419,10 +1472,11 @@ export default function AdminPage() {
                 <label className={labelCls}>Short Bio</label>
                 <input type="text" value={teamModal.bio || ''} onChange={(e) => setTeamModal({ ...teamModal, bio: e.target.value })} className={inputCls} />
               </div>
-              <div>
-                <label className={labelCls}>Image URL</label>
-                <input type="text" value={teamModal.image || ''} onChange={(e) => setTeamModal({ ...teamModal, image: e.target.value })} className={inputCls} />
-              </div>
+              <ImageUploader
+                label="Member Photo / Avatar (URL or Upload File)"
+                value={teamModal.image || ''}
+                onChange={(val) => setTeamModal({ ...teamModal, image: val })}
+              />
               <button type="submit" className={btnPrimary}>Save Team Member</button>
             </form>
           </Modal>
@@ -1460,10 +1514,11 @@ export default function AdminPage() {
         {mediaModal && (
           <Modal title="Upload File to Media Library" onClose={() => setMediaModal(null)}>
             <form onSubmit={handleMediaUpload} className="space-y-4">
-              <div>
-                <label className={labelCls}>File/Image URL</label>
-                <input type="text" required value={mediaModal.url || ''} onChange={(e) => setMediaModal({ ...mediaModal, url: e.target.value })} className={inputCls} />
-              </div>
+              <ImageUploader
+                label="File / Image URL (or Select Local File)"
+                value={mediaModal.url || ''}
+                onChange={(val) => setMediaModal({ ...mediaModal, url: val })}
+              />
               <div>
                 <label className={labelCls}>Alt Text</label>
                 <input type="text" value={mediaModal.alt_text || ''} onChange={(e) => setMediaModal({ ...mediaModal, alt_text: e.target.value })} className={inputCls} />
@@ -1518,10 +1573,11 @@ export default function AdminPage() {
                 <label className={labelCls}>Subtitle</label>
                 <input type="text" value={menuPageModal.subtitle || ''} onChange={(e) => setMenuPageModal({ ...menuPageModal, subtitle: e.target.value })} className={inputCls} />
               </div>
-              <div>
-                <label className={labelCls}>Image URL</label>
-                <input type="text" required value={menuPageModal.image || ''} onChange={(e) => setMenuPageModal({ ...menuPageModal, image: e.target.value })} className={inputCls} />
-              </div>
+              <ImageUploader
+                label="Page Image (URL or Upload File)"
+                value={menuPageModal.image || ''}
+                onChange={(val) => setMenuPageModal({ ...menuPageModal, image: val })}
+              />
               <button type="submit" className={btnPrimary}>Save Page</button>
             </form>
           </Modal>
