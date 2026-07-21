@@ -676,10 +676,24 @@ app.delete('/faqs/:id', async (c) => {
   }
 });
 
-// ── 12. MEDIA LIBRARY & R2 UPLOAD PIPELINE ─────────────────────────────────
+// Helper for Cloudinary SHA-1 signature calculation
+async function sha1(message) {
+  const msgBuffer = new TextEncoder().encode(message);
+  const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+// ── 12. MEDIA LIBRARY & CLOUDINARY / R2 UPLOAD PIPELINE ─────────────────────────────────
 app.post('/upload', async (c) => {
   const bucket = c.env?.BUCKET;
   const db = c.env?.DB;
+
+  // Cloudinary credentials (with user provided defaults)
+  const cloudName = c.env?.CLOUDINARY_CLOUD_NAME || 'vrgblmky';
+  const apiKey = c.env?.CLOUDINARY_API_KEY || '938174893659986';
+  const apiSecret = c.env?.CLOUDINARY_API_SECRET || 'FyD8S6x7JG4bXwK5WBz9n-O5jV4';
+
   try {
     const body = await c.req.parseBody();
     const file = body['file'];
@@ -689,19 +703,52 @@ app.post('/upload', async (c) => {
 
     const category = body['category'] || 'general';
     const altText = body['alt_text'] || file.name || '';
-    const ext = (file.name || 'image.png').split('.').pop() || 'png';
-    const key = `img-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-
     let publicUrl = '';
 
-    if (bucket) {
+    // 1. Primary Cloudinary Upload via Server-Signed API
+    if (cloudName && apiKey && apiSecret) {
+      try {
+        const timestamp = Math.floor(Date.now() / 1000).toString();
+        const folder = 'wings_river_cafe';
+        const strToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+        const signature = await sha1(strToSign);
+
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('api_key', apiKey);
+        formData.append('timestamp', timestamp);
+        formData.append('folder', folder);
+        formData.append('signature', signature);
+
+        const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+          method: 'POST',
+          body: formData,
+        });
+
+        const cloudData = await cloudRes.json();
+        if (cloudRes.ok && cloudData.secure_url) {
+          publicUrl = cloudData.secure_url;
+        } else {
+          console.error('Cloudinary API error response:', cloudData);
+        }
+      } catch (cErr) {
+        console.error('Cloudinary upload exception:', cErr);
+      }
+    }
+
+    // 2. Secondary R2 Bucket Fallback
+    if (!publicUrl && bucket) {
+      const ext = (file.name || 'image.png').split('.').pop() || 'png';
+      const key = `img-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
       const arrayBuffer = await file.arrayBuffer();
       await bucket.put(key, arrayBuffer, {
         httpMetadata: { contentType: file.type || 'image/png' }
       });
       publicUrl = `/api/media/file/${key}`;
-    } else {
-      return c.json({ success: false, error: 'Cloudflare R2 Bucket binding unconfigured' }, 500);
+    }
+
+    if (!publicUrl) {
+      return c.json({ success: false, error: 'Upload failed: Cloudinary API and R2 storage unconfigured or unreachable' }, 500);
     }
 
     const id = `med-${Date.now()}`;
@@ -713,7 +760,7 @@ app.post('/upload', async (c) => {
       `).bind(id, publicUrl, altText, '', category, file.size || 0, '').run();
     }
 
-    return c.json({ success: true, url: publicUrl, media_id: id, key });
+    return c.json({ success: true, url: publicUrl, media_id: id });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
