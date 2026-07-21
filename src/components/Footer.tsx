@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import CircularLogo from './CircularLogo';
-import { MapPin, Instagram, Phone, Heart, Facebook } from 'lucide-react';
+import { MapPin, Instagram, Phone, Heart, MessageCircle } from 'lucide-react';
 import { getSiteSettings, SiteSettings } from '@/lib/db';
 
 const DEFAULTS: SiteSettings = {
@@ -13,7 +13,6 @@ const DEFAULTS: SiteSettings = {
   address: 'Laxman Mela Ground, Gomti Riverfront, Lucknow',
   opening_hours: '11:00 AM – 11:59 PM (Open All 7 Days)',
   instagram_url: 'https://www.instagram.com/wingsriver',
-  facebook_url: 'https://facebook.com',
   google_maps_url: 'https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA',
 };
 
@@ -29,8 +28,9 @@ export default function Footer() {
   }, []);
 
   const phone        = settings.phone        || DEFAULTS.phone!;
+  const whatsappNum  = settings.whatsapp     || DEFAULTS.whatsapp || '917310008020';
+  const whatsappUrl  = `https://wa.me/${whatsappNum.replace(/[^0-9]/g, '')}?text=Hello%20Wings%20River%20Caf%C3%A9%2C%20I%20would%20like%20to%20reserve%20a%20table%20/%20know%20more!`;
   const instagram    = settings.instagram_url || DEFAULTS.instagram_url!;
-  const facebook     = settings.facebook_url  || DEFAULTS.facebook_url!;
   const mapsUrl      = settings.google_maps_url || DEFAULTS.google_maps_url!;
   const hours        = settings.opening_hours  || DEFAULTS.opening_hours!;
   const address      = settings.address        || DEFAULTS.address!;
@@ -80,14 +80,14 @@ export default function Footer() {
               </a>
 
               <a
-                href={facebook}
+                href={whatsappUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                title="Facebook"
-                aria-label="Facebook"
-                className="w-10 h-10 rounded-full bg-white/10 hover:bg-gold-500 hover:text-dark-950 flex items-center justify-center transition-colors text-white"
+                title="Chat on WhatsApp"
+                aria-label="Chat on WhatsApp"
+                className="w-10 h-10 rounded-full bg-emerald-600/30 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors text-emerald-400 border border-emerald-500/30"
               >
-                <Facebook className="w-4 h-4" />
+                <MessageCircle className="w-5 h-5" />
               </a>
 
               <a
