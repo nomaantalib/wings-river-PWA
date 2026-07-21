@@ -52,34 +52,102 @@ function ImageUploader({
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
 
+  const compressImage = (file: File, maxWidth: number = 1000, maxHeight: number = 1000, quality: number = 0.75): Promise<File> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const compressedFile = new File([blob], file.name.replace(/\.[^/.]+$/, "") + ".jpg", {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  });
+                  resolve(compressedFile);
+                } else {
+                  resolve(file);
+                }
+              },
+              'image/jpeg',
+              quality
+            );
+          } else {
+            resolve(file);
+          }
+        };
+        img.onerror = () => resolve(file);
+      };
+      reader.onerror = () => resolve(file);
+    });
+  };
+
   const handleFileUpload = async (file: File) => {
     if (!file) return;
     setIsUploading(true);
-    setUploadMsg('');
+    setUploadMsg('Compressing image...');
     try {
-      const result = await uploadMediaFile(file, 'cms', file.name);
+      // Compress the image before uploading to keep sizes lightweight (< 150kb)
+      const compressed = await compressImage(file);
+      
+      setUploadMsg('Uploading to R2...');
+      const result = await uploadMediaFile(compressed, 'cms', compressed.name);
       if (result.success && result.url) {
         onChange(result.url);
         setUploadMsg('Uploaded to R2 ✓');
       } else {
         // Fallback: base64 local preview if R2 upload fails
-        setUploadMsg(result.error || 'R2 unavailable – using local preview');
+        setUploadMsg('R2 unavailable – using optimized base64');
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') onChange(reader.result);
+        };
+        reader.readAsDataURL(compressed);
+      }
+    } catch (e: any) {
+      setUploadMsg('Upload failed – using optimized base64');
+      try {
+        const compressed = await compressImage(file);
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') onChange(reader.result);
+        };
+        reader.readAsDataURL(compressed);
+      } catch {
+        // Absolute fallback
         const reader = new FileReader();
         reader.onload = () => {
           if (typeof reader.result === 'string') onChange(reader.result);
         };
         reader.readAsDataURL(file);
       }
-    } catch {
-      setUploadMsg('Upload failed – using local preview');
-      const reader = new FileReader();
-      reader.onload = () => {
-        if (typeof reader.result === 'string') onChange(reader.result);
-      };
-      reader.readAsDataURL(file);
     } finally {
       setIsUploading(false);
-      setTimeout(() => setUploadMsg(''), 4000);
+      setTimeout(() => setUploadMsg(''), 5000);
     }
   };
 
