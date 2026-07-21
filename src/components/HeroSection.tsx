@@ -219,18 +219,18 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
       <div className="absolute bottom-4 left-0 right-0 z-20 pointer-events-none overflow-hidden h-28">
         <style>{`
           @keyframes jetskiMoveLeftToRight {
-            0% { transform: translateX(-350px) translateY(0px) rotate(-2deg); }
-            20% { transform: translateX(15vw) translateY(-8px) rotate(3deg); }
-            40% { transform: translateX(40vw) translateY(4px) rotate(-1deg); }
-            60% { transform: translateX(65vw) translateY(-10px) rotate(4deg); }
-            80% { transform: translateX(90vw) translateY(2px) rotate(-1deg); }
-            100% { transform: translateX(110vw) translateY(0px) rotate(-2deg); }
+            0% { transform: translateX(-380px) translateY(0px) rotate(-2deg); }
+            20% { transform: translateX(20vw) translateY(-8px) rotate(3deg); }
+            40% { transform: translateX(45vw) translateY(4px) rotate(-1deg); }
+            60% { transform: translateX(70vw) translateY(-10px) rotate(4deg); }
+            80% { transform: translateX(95vw) translateY(2px) rotate(-1deg); }
+            100% { transform: translateX(125vw) translateY(0px) rotate(-2deg); }
           }
         `}</style>
         <div
           className="absolute bottom-1 left-0 flex items-end"
           style={{
-            animation: 'jetskiMoveLeftToRight 12s linear infinite',
+            animation: 'jetskiMoveLeftToRight 10s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
             willChange: 'transform'
           }}
         >

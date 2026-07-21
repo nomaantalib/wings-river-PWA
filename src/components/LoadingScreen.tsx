@@ -79,8 +79,10 @@ function JetSkiScene({ active }: { active: boolean }) {
           <animateTransform
             attributeName="transform"
             type="translate"
-            values="-240,0; -100,-4; 150,2; 450,-6; 750,2; 980,0"
+            values="-340,0; -100,-5; 200,3; 500,-7; 800,3; 1120,0"
             keyTimes="0; 0.2; 0.45; 0.7; 0.88; 1"
+            calcMode="spline"
+            keySplines="0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1; 0.4 0 0.2 1"
             dur="3.2s"
             repeatCount="indefinite"
           />
