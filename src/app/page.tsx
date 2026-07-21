@@ -46,12 +46,14 @@ export default function Home() {
       <AboutSection />
       <FeaturesSection />
       
+      {/* Venue Gallery Section */}
+      <GallerySection key={`gallery-${syncKey}`} />
+      
       {/* Dynamic Interactive Menu & Water Sports Hub */}
       <MenuCardBooklet key={`booklet-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       <WaterSportsTickets key={`sports-${syncKey}`} onOpenBooking={handleOpenBooking} />
       <FoodMenuSection key={`foodmenu-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       
-      <GallerySection key={`gallery-${syncKey}`} />
       <ReviewsSection key={`reviews-${syncKey}`} />
       <BlogSection key={`blog-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       <LocationSection />
