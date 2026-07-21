@@ -81,16 +81,19 @@ async function ensureTables(db) {
     `ALTER TABLE media_library ADD COLUMN folder TEXT DEFAULT 'wings_river_cafe';`,
     `ALTER TABLE media_library ADD COLUMN tags TEXT DEFAULT '';`,
     `ALTER TABLE media_library ADD COLUMN file_size INTEGER DEFAULT 0;`,
-    `ALTER TABLE media_library ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;`,
-    `ALTER TABLE blogs ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP;`,
-    `ALTER TABLE blogs ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;`
+    `ALTER TABLE media_library ADD COLUMN updated_at DATETIME;`,
+    `ALTER TABLE blogs ADD COLUMN created_at DATETIME;`,
+    `ALTER TABLE blogs ADD COLUMN updated_at DATETIME;`
   ];
 
   for (const alterSql of columnsToAdd) {
     try {
       await db.prepare(alterSql).run();
     } catch (e) {
-      // Column already exists - ignore duplicate column error
+      // Ignore duplicate column errors, but log others
+      if (!e.message.includes('already exists') && !e.message.includes('duplicate column')) {
+        console.error('[D1 Alter Error]:', alterSql, e.message);
+      }
     }
   }
 
