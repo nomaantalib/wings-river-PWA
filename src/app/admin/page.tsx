@@ -2218,22 +2218,46 @@ export default function AdminPage() {
         )}
 
         {/* Offer Modal */}
+        {/* Offer Coupon Modal */}
         {offerModal && (
-          <Modal title={offerModal.id ? "Edit Coupon" : "Add Coupon"} onClose={() => setOfferModal(null)}>
+          <Modal title={offerModal.id ? "Edit Coupon & Offer" : "Add Coupon & Offer"} onClose={() => setOfferModal(null)}>
             <form onSubmit={saveOfferItem} className="space-y-4">
               <div>
                 <label className={labelCls}>Coupon Title</label>
-                <input type="text" required value={offerModal.title || ''} onChange={(e) => setOfferModal({ ...offerModal, title: e.target.value })} className={inputCls} />
+                <input type="text" required value={offerModal.title || ''} onChange={(e) => setOfferModal({ ...offerModal, title: e.target.value })} className={inputCls} placeholder="e.g. Monsoon Weekend Splash" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Coupon Code</label>
+                  <input type="text" required value={offerModal.code || ''} onChange={(e) => setOfferModal({ ...offerModal, code: e.target.value.toUpperCase() })} className={inputCls} placeholder="e.g. WINGS20" />
+                </div>
+                <div>
+                  <label className={labelCls}>Discount Value</label>
+                  <input type="number" required value={offerModal.discount_value || ''} onChange={(e) => setOfferModal({ ...offerModal, discount_value: parseFloat(e.target.value) })} className={inputCls} placeholder="e.g. 20" />
+                </div>
               </div>
               <div>
-                <label className={labelCls}>Discount Code</label>
-                <input type="text" required value={offerModal.code || ''} onChange={(e) => setOfferModal({ ...offerModal, code: e.target.value })} className={inputCls} />
+                <label className={labelCls}>Description</label>
+                <input type="text" value={offerModal.description || ''} onChange={(e) => setOfferModal({ ...offerModal, description: e.target.value })} className={inputCls} placeholder="e.g. Get 20% flat discount on all food & water sports" />
               </div>
-              <div>
-                <label className={labelCls}>Discount Value</label>
-                <input type="number" required value={offerModal.discount_value || ''} onChange={(e) => setOfferModal({ ...offerModal, discount_value: parseFloat(e.target.value) })} className={inputCls} />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Discount Type</label>
+                  <select value={offerModal.discount_type || 'percentage'} onChange={(e) => setOfferModal({ ...offerModal, discount_type: e.target.value as any })} className={inputCls}>
+                    <option value="percentage">Percentage (%)</option>
+                    <option value="flat">Flat Amount (₹)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Status</label>
+                  <select value={offerModal.status || 'active'} onChange={(e) => setOfferModal({ ...offerModal, status: e.target.value as any })} className={inputCls}>
+                    <option value="active">Active</option>
+                    <option value="draft">Draft / Inactive</option>
+                    <option value="expired">Expired</option>
+                  </select>
+                </div>
               </div>
-              <button type="submit" className={btnPrimary}>Save Coupon</button>
+              <button type="submit" className={btnPrimary}><Save className="w-4 h-4" /> Save Offer Coupon</button>
             </form>
           </Modal>
         )}
@@ -2311,6 +2335,45 @@ export default function AdminPage() {
                 </div>
               </div>
               <button type="submit" className={btnPrimary}><Save className="w-4 h-4" /> Save Promo Page</button>
+            </form>
+          </Modal>
+        )}
+
+        {/* Promo Banner Modal */}
+        {bannerModal && (
+          <Modal title={bannerModal.id ? "Edit Promo Banner" : "Add Promo Banner"} onClose={() => setBannerModal(null)}>
+            <form onSubmit={saveBannerItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Banner Title</label>
+                <input type="text" required value={bannerModal.title || ''} onChange={(e) => setBannerModal({ ...bannerModal, title: e.target.value })} className={inputCls} placeholder="e.g. Gomti Riverfront Sunset Dining" />
+              </div>
+              <div>
+                <label className={labelCls}>Subtitle</label>
+                <input type="text" value={bannerModal.subtitle || ''} onChange={(e) => setBannerModal({ ...bannerModal, subtitle: e.target.value })} className={inputCls} placeholder="e.g. 20% off on all mocktails & starters" />
+              </div>
+              <ImageUploader
+                label="Banner Image (URL or Upload File)"
+                value={bannerModal.image_url || ''}
+                onChange={(val) => setBannerModal({ ...bannerModal, image_url: val })}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>CTA Button Text</label>
+                  <input type="text" value={bannerModal.cta_text || ''} onChange={(e) => setBannerModal({ ...bannerModal, cta_text: e.target.value })} className={inputCls} placeholder="e.g. Reserve Canopy Table" />
+                </div>
+                <div>
+                  <label className={labelCls}>CTA Link</label>
+                  <input type="text" value={bannerModal.cta_link || ''} onChange={(e) => setBannerModal({ ...bannerModal, cta_link: e.target.value })} className={inputCls} placeholder="e.g. #reservations" />
+                </div>
+              </div>
+              <div>
+                <label className={labelCls}>Status</label>
+                <select value={bannerModal.is_active !== false ? 'active' : 'inactive'} onChange={(e) => setBannerModal({ ...bannerModal, is_active: e.target.value === 'active' })} className={inputCls}>
+                  <option value="active">Active (Visible)</option>
+                  <option value="inactive">Inactive (Hidden)</option>
+                </select>
+              </div>
+              <button type="submit" className={btnPrimary}><Save className="w-4 h-4" /> Save Banner</button>
             </form>
           </Modal>
         )}
