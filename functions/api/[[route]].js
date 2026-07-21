@@ -160,9 +160,9 @@ async function ensureTables(db) {
       ];
       for (const m of initialMedia) {
         await db.prepare(`
-          INSERT OR IGNORE INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
-          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-        `).bind(...m).run();
+          INSERT OR IGNORE INTO media_library (id, public_id, secure_url, url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `).bind(m[0], m[1], m[2], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10]).run();
       }
     }
   } catch (e) {
@@ -976,10 +976,10 @@ app.post('/media', async (c) => {
     const id = data.id || `med-${Date.now()}`;
     const secureUrl = data.secure_url || data.url || '';
     await db.prepare(`
-      INSERT OR REPLACE INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      INSERT OR REPLACE INTO media_library (id, public_id, secure_url, url, width, height, format, alt_text, category, folder, tags, file_size, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `).bind(
-      id, data.public_id || '', secureUrl, Number(data.width) || 0, Number(data.height) || 0,
+      id, data.public_id || '', secureUrl, secureUrl, Number(data.width) || 0, Number(data.height) || 0,
       data.format || 'jpg', data.alt_text || '', data.category || 'general',
       data.folder || 'wings_river_cafe', data.tags || '', Number(data.file_size) || 0
     ).run();
@@ -1033,9 +1033,9 @@ const handleUpdateImage = async (c) => {
 
     await db.prepare(`
       UPDATE media_library
-      SET public_id = ?, secure_url = ?, width = ?, height = ?, format = ?, alt_text = ?, category = ?, tags = ?, file_size = ?, updated_at = CURRENT_TIMESTAMP
+      SET public_id = ?, secure_url = ?, url = ?, width = ?, height = ?, format = ?, alt_text = ?, category = ?, tags = ?, file_size = ?, updated_at = CURRENT_TIMESTAMP
       WHERE id = ? OR public_id = ?
-    `).bind(publicId, secureUrl, width, height, format, altText, category, tags, fileSize, id, id).run();
+    `).bind(publicId, secureUrl, secureUrl, width, height, format, altText, category, tags, fileSize, id, id).run();
 
     const updatedRecord = await db.prepare("SELECT * FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).first();
     console.log('[Image Replacement] ✓ D1 update successful');
