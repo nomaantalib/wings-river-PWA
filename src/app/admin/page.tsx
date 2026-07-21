@@ -392,7 +392,7 @@ export default function AdminPage() {
 
     if (authStatus === 'true' && token) {
       setIsAuthenticated(true);
-      loadAll();
+      loadAll(true);
       checkHealth();
     } else {
       setIsLoading(false);
@@ -404,7 +404,7 @@ export default function AdminPage() {
     let pollInterval: any = null;
     const handleSync = () => {
       if (isAuthenticated) {
-        loadAll();
+        loadAll(false);
         checkHealth();
       }
     };
@@ -412,9 +412,9 @@ export default function AdminPage() {
     if (isAuthenticated) {
       window.addEventListener('wings_db_sync', handleSync);
       pollInterval = setInterval(() => {
-        loadAll();
+        loadAll(false);
         checkHealth();
-      }, 10000); // 10s live poll for user form entries
+      }, 10000); // 10s silent live poll for user form entries
     }
 
     return () => {
@@ -423,8 +423,8 @@ export default function AdminPage() {
     };
   }, [isAuthenticated]);
 
-  const loadAll = async () => {
-    setIsLoading(true);
+  const loadAll = async (isInitial: boolean = false) => {
+    if (isInitial) setIsLoading(true);
     try {
       const [
         resBookings, resMenu, resCategories, resBlogs, resGallery,
@@ -467,7 +467,7 @@ export default function AdminPage() {
     } catch (e) {
       console.error('Error fetching data:', e);
     } finally {
-      setIsLoading(false);
+      if (isInitial) setIsLoading(false);
     }
   };
 
@@ -1066,7 +1066,7 @@ export default function AdminPage() {
             </div>
 
             <span className="hidden md:inline-block text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-500/30">D1 Connected</span>
-            <button onClick={loadAll} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-mono transition-colors">Reload</button>
+            <button onClick={() => loadAll(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-mono transition-colors">Reload</button>
             <a
               href="/"
               className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 hover:text-dark-950 text-amber-300 text-xs font-bold transition-all border border-amber-500/20"
@@ -1088,9 +1088,22 @@ export default function AdminPage() {
 
         <div className="p-8 space-y-6">
           {isLoading ? (
-            <div className="space-y-4">
-              <div className="h-8 bg-white/5 rounded-lg animate-pulse w-1/4" />
-              <div className="h-40 bg-white/5 rounded-2xl animate-pulse" />
+            <div className="min-h-[500px] flex flex-col items-center justify-center p-12 space-y-6 text-center">
+              <div className="relative">
+                <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl animate-pulse">
+                  <Sparkles className="w-10 h-10 animate-spin" />
+                </div>
+                <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-dark-900 flex items-center justify-center text-[10px] text-dark-950 font-bold">
+                  ✓
+                </div>
+              </div>
+              <div className="space-y-2 max-w-sm">
+                <h3 className="font-serif font-bold text-lg text-white">Initializing Wings River CMS</h3>
+                <p className="text-xs text-gray-400 font-mono">Synchronizing Cloudflare D1 SQL & Cloudinary Storage...</p>
+              </div>
+              <div className="w-48 h-1.5 bg-dark-950 rounded-full overflow-hidden border border-white/10">
+                <div className="w-full h-full bg-gradient-to-r from-amber-500 via-emerald-400 to-amber-500 animate-pulse" />
+              </div>
             </div>
           ) : (
             <>
