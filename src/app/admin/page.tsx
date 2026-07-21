@@ -31,7 +31,7 @@ import {
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
   Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen,
-  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload
+  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check
 } from 'lucide-react';
 
 function ImageUploader({
@@ -43,8 +43,9 @@ function ImageUploader({
   onChange: (val: string) => void;
   label?: string;
 }) {
-  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
+  const [copied, setCopied] = useState(false);
+
+  const handleFileUpload = (file: File) => {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
@@ -55,26 +56,77 @@ function ImageUploader({
     reader.readAsDataURL(file);
   };
 
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    const file = e.dataTransfer.files?.[0];
+    if (file) handleFileUpload(file);
+  };
+
+  const copyToClipboard = () => {
+    if (!value) return;
+    navigator.clipboard.writeText(value);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
   return (
-    <div className="space-y-1.5">
-      <label className="block text-xs font-semibold text-gray-300">{label}</label>
-      <div className="flex items-center space-x-2">
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-semibold text-gray-300">{label}</label>
+        {value && (
+          <button
+            type="button"
+            onClick={copyToClipboard}
+            className="text-[10px] text-amber-400 hover:text-amber-300 flex items-center space-x-1 font-mono transition-colors"
+          >
+            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+            <span>{copied ? 'Copied Link!' : 'Copy Image Data'}</span>
+          </button>
+        )}
+      </div>
+
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={handleDrop}
+        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 bg-dark-950 border border-dashed border-white/20 rounded-2xl hover:border-amber-400/60 transition-all group"
+      >
         <input
           type="text"
-          placeholder="https://... or /images/..."
+          placeholder="Paste Image URL or Drag & Drop File Here..."
           value={value || ''}
           onChange={(e) => onChange(e.target.value)}
-          className="flex-1 px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
+          className="flex-1 px-3 py-2 text-xs bg-transparent text-white placeholder-gray-500 focus:outline-none"
         />
-        <label className="px-3 py-2 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-dark-950 font-bold text-xs rounded-xl cursor-pointer transition-all border border-amber-500/30 shrink-0 flex items-center space-x-1">
-          <Upload className="w-3.5 h-3.5" />
+
+        <label className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md shrink-0 flex items-center justify-center space-x-1.5">
+          <Upload className="w-4 h-4" />
           <span>Upload File</span>
-          <input type="file" accept="image/*" onChange={handleFileUpload} className="hidden" />
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => {
+              const f = e.target.files?.[0];
+              if (f) handleFileUpload(f);
+            }}
+            className="hidden"
+          />
         </label>
       </div>
+
       {value && (
-        <div className="mt-1 relative w-24 h-16 rounded-xl overflow-hidden border border-white/10 bg-dark-950 p-0.5">
-          <img src={value} alt="Preview" className="w-full h-full object-contain" />
+        <div className="relative w-full h-32 rounded-2xl overflow-hidden border border-amber-500/30 bg-black/40 group p-1 flex items-center justify-center">
+          <img src={value} alt="Preview" className="max-h-full max-w-full object-contain drop-shadow-md" />
+          <button
+            type="button"
+            onClick={() => onChange('')}
+            className="absolute top-2 right-2 p-1.5 rounded-xl bg-rose-500/80 hover:bg-rose-500 text-white shadow-md opacity-80 group-hover:opacity-100 transition-opacity"
+            title="Clear Image"
+          >
+            <X className="w-3.5 h-3.5" />
+          </button>
+          <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-dark-950/80 text-[10px] text-amber-300 font-mono border border-white/10">
+            {value.startsWith('data:') ? 'Local Device Upload' : 'Web Image'}
+          </span>
         </div>
       )}
     </div>
@@ -153,6 +205,13 @@ export default function AdminPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
 
   // Core CMS state
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -190,7 +249,6 @@ export default function AdminPage() {
   const [deleteTarget, setDeleteTarget] = useState<{ label: string; action: () => void } | null>(null);
 
   // Search, Filter & Sort options
-  const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortBy, setSortBy] = useState('display_order');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
@@ -518,6 +576,7 @@ export default function AdminPage() {
     if (!heroSettings) return;
     const updated = await saveHeroSettings(heroSettings);
     setHeroSettings(updated);
+    showToast('Hero & About CMS Settings saved successfully!');
   };
 
   // Menu Booklet Page Save
@@ -713,6 +772,23 @@ export default function AdminPage() {
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Live Search Box */}
+            <div className="hidden sm:flex items-center space-x-2 bg-dark-950 border border-white/10 px-3 py-1.5 rounded-xl">
+              <Search className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              <input
+                type="text"
+                placeholder="Search CMS items..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="bg-transparent text-xs text-white placeholder-gray-500 focus:outline-none w-32 md:w-48"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery('')} className="text-gray-400 hover:text-white">
+                  <X className="w-3 h-3" />
+                </button>
+              )}
+            </div>
+
             <span className="hidden md:inline-block text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-500/30">D1 Connected</span>
             <button onClick={loadAll} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-mono transition-colors">Reload</button>
             <a
@@ -725,6 +801,14 @@ export default function AdminPage() {
             </a>
           </div>
         </header>
+
+        {/* Floating Toast Notification */}
+        {toastMsg && (
+          <div className="fixed top-5 right-5 z-[400] px-4 py-3 rounded-2xl bg-emerald-500 text-dark-950 font-extrabold text-xs shadow-2xl flex items-center space-x-2 animate-fade-in border border-emerald-400">
+            <CheckCircle className="w-4 h-4 text-dark-950 shrink-0" />
+            <span>{toastMsg}</span>
+          </div>
+        )}
 
         <div className="p-8 space-y-6">
           {isLoading ? (
@@ -805,6 +889,98 @@ export default function AdminPage() {
                       <label className={labelCls}>Contact Phone number</label>
                       <input type="text" value={heroSettings.contactPhone || ''} onChange={(e) => setHeroSettings({ ...heroSettings, contactPhone: e.target.value })} className={inputCls} />
                     </div>
+                  </div>
+
+                  <h3 className="font-serif font-bold text-base text-amber-400 pt-6 border-t border-white/10 flex items-center justify-between">
+                    <span>Hero Carousel Slides ({heroSettings.slides?.length || 0} Slides)</span>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newSlide = {
+                          id: `hs-${Date.now()}`,
+                          image: '/images/Screenshot_20260720-180544_Maps.png',
+                          title: 'New Hero Slide Title',
+                          subtitle: 'Slide Subtitle Narrative',
+                          tag: 'Highlight Tag'
+                        };
+                        setHeroSettings({ ...heroSettings, slides: [...(heroSettings.slides || []), newSlide] });
+                      }}
+                      className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-dark-950 font-bold text-xs rounded-xl transition-all border border-amber-500/30 flex items-center space-x-1"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>Add New Slide</span>
+                    </button>
+                  </h3>
+
+                  <div className="space-y-4">
+                    {(heroSettings.slides || []).map((slide, idx) => (
+                      <div key={slide.id || idx} className="bg-dark-950 border border-white/10 rounded-2xl p-4 space-y-3 relative group">
+                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
+                          <span className="text-xs font-bold text-amber-400 font-mono">Slide #{idx + 1}</span>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updatedSlides = (heroSettings.slides || []).filter((_, i) => i !== idx);
+                              setHeroSettings({ ...heroSettings, slides: updatedSlides });
+                            }}
+                            className="text-rose-400 hover:text-rose-500 p-1 rounded-lg hover:bg-rose-500/10 transition-colors"
+                            title="Remove Slide"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                        <ImageUploader
+                          label={`Slide #${idx + 1} Image (URL or Upload File)`}
+                          value={slide.image || ''}
+                          onChange={(val) => {
+                            const updated = [...(heroSettings.slides || [])];
+                            updated[idx] = { ...updated[idx], image: val };
+                            setHeroSettings({ ...heroSettings, slides: updated });
+                          }}
+                        />
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
+                          <div>
+                            <label className="block text-[10px] font-semibold text-gray-400">Headline</label>
+                            <input
+                              type="text"
+                              value={slide.title || ''}
+                              onChange={(e) => {
+                                const updated = [...(heroSettings.slides || [])];
+                                updated[idx] = { ...updated[idx], title: e.target.value };
+                                setHeroSettings({ ...heroSettings, slides: updated });
+                              }}
+                              className={inputCls}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-semibold text-gray-400">Subtitle</label>
+                            <input
+                              type="text"
+                              value={slide.subtitle || ''}
+                              onChange={(e) => {
+                                const updated = [...(heroSettings.slides || [])];
+                                updated[idx] = { ...updated[idx], subtitle: e.target.value };
+                                setHeroSettings({ ...heroSettings, slides: updated });
+                              }}
+                              className={inputCls}
+                            />
+                          </div>
+                          <div>
+                            <label className="block text-[10px] font-semibold text-gray-400">Badge Tag</label>
+                            <input
+                              type="text"
+                              value={slide.tag || ''}
+                              onChange={(e) => {
+                                const updated = [...(heroSettings.slides || [])];
+                                updated[idx] = { ...updated[idx], tag: e.target.value };
+                                setHeroSettings({ ...heroSettings, slides: updated });
+                              }}
+                              className={inputCls}
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
 
                   <h3 className="font-serif font-bold text-base text-amber-400 pt-6 border-t border-white/10">About Section Narrative</h3>
