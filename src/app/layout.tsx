@@ -25,19 +25,20 @@ export const metadata: Metadata = {
   manifest: '/manifest.json',
   icons: {
     icon: [
-      { url: '/logo-rounded.svg', type: 'image/svg+xml', sizes: 'any' },
+      { url: '/favicon.ico', sizes: '32x32' },
+      { url: '/logo.png', type: 'image/png', sizes: '512x512' },
     ],
     apple: [
-      { url: '/logo-rounded.svg', sizes: '180x180' },
+      { url: '/apple-touch-icon.png', sizes: '180x180' },
     ],
-    shortcut: '/logo-rounded.svg',
+    shortcut: '/favicon.ico',
   },
   openGraph: {
     title: 'Wings River Café | Taste • Eat • Rides',
     description: 'Luxury waterfront restaurant, birthday party canopy & speedboat rides along Gomti River, Lucknow.',
     url: 'https://wings-river-cafe-blog.pages.dev',
     siteName: 'Wings River Café',
-    images: [{ url: 'https://wings-river-cafe-blog.pages.dev/logo-rounded.svg', width: 512, height: 512, alt: 'Wings River Café Logo' }],
+    images: [{ url: 'https://wings-river-cafe-blog.pages.dev/logo.png', width: 512, height: 512, alt: 'Wings River Café Logo' }],
     locale: 'en_IN',
     type: 'website',
   },
@@ -45,7 +46,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     title: 'Wings River Café Lucknow',
     description: 'Taste • Eat • Rides at Laxman Jhula Park, Gomti Riverfront Lucknow.',
-    images: ['https://wings-river-cafe-blog.pages.dev/logo-rounded.svg'],
+    images: ['https://wings-river-cafe-blog.pages.dev/logo.png'],
   },
   robots: { index: true, follow: true },
 };
@@ -54,10 +55,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="scroll-smooth">
       <head>
-        {/* Favicon — use logo-rounded.svg with 20% border radius */}
-        <link rel="icon" href="/logo-rounded.svg" type="image/svg+xml" />
-        <link rel="shortcut icon" href="/logo-rounded.svg" type="image/svg+xml" />
-        <link rel="apple-touch-icon" href="/logo-rounded.svg" sizes="180x180" />
+        {/* Favicon — Wings River Cafe Logo */}
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+        <link rel="icon" href="/logo.png" type="image/png" sizes="512x512" />
+        <link rel="shortcut icon" href="/favicon.ico" />
+        <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
         <link rel="manifest" href="/manifest.json" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />

@@ -89,21 +89,38 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
           <CircularLogo size={130} className="shadow-2xl shadow-mint-400/20" />
         </div>
 
-        {/* Dynamic Tagline Badge */}
-        <div key={`tag-${currentSlide}`} className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-mint-300/30 text-mint-200 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 animate-fade-in transition-all duration-700">
-          <Sparkles className="w-3.5 h-3.5 text-gold-400 animate-spin" style={{ animationDuration: '8s' }} />
-          <span>{activeSlide.tag || heroSettings.badgeText}</span>
+        {/* Smooth Transitioning Hero Headlines & Subtitles for Each Slide */}
+        <div className="relative w-full min-h-[220px] sm:min-h-[260px] flex items-center justify-center my-2">
+          {slides.map((slide, idx) => {
+            const isActive = idx === currentSlide;
+            return (
+              <div
+                key={slide.id || idx}
+                className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out ${
+                  isActive
+                    ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto z-10'
+                    : 'opacity-0 scale-95 -translate-y-4 pointer-events-none z-0'
+                }`}
+              >
+                {/* Dynamic Tagline Badge */}
+                <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-mint-300/30 text-mint-200 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 shadow-lg">
+                  <Sparkles className="w-3.5 h-3.5 text-gold-400 animate-spin" style={{ animationDuration: '8s' }} />
+                  <span>{slide.tag || heroSettings.badgeText}</span>
+                </div>
+
+                {/* Dynamic Main Heading */}
+                <h1 className="font-serif font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-tight text-white drop-shadow-lg leading-tight mb-4 text-center">
+                  {slide.title || heroSettings.mainHeadline}
+                </h1>
+
+                {/* Dynamic Subheading */}
+                <p className="font-sans text-lg sm:text-2xl text-cream-100 font-light tracking-wide max-w-2xl drop-shadow-md text-center">
+                  {slide.subtitle || heroSettings.subHeadline}
+                </p>
+              </div>
+            );
+          })}
         </div>
-
-        {/* Dynamic Main Heading */}
-        <h1 key={`title-${currentSlide}`} className="font-serif font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-tight text-white drop-shadow-lg leading-tight mb-4 transition-all duration-700 animate-fade-in-up">
-          {activeSlide.title || heroSettings.mainHeadline}
-        </h1>
-
-        {/* Dynamic Subheading */}
-        <p key={`sub-${currentSlide}`} className="font-sans text-lg sm:text-2xl text-cream-100 font-light tracking-wide max-w-2xl mb-8 drop-shadow-md transition-all duration-700 animate-fade-in-up">
-          {activeSlide.subtitle || heroSettings.subHeadline}
-        </p>
 
         {/* CTA Button Group */}
         <div className="flex flex-wrap items-center justify-center gap-4 mb-10">
