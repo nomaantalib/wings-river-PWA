@@ -6,6 +6,7 @@ export interface Review {
   review_text: string;
   date_str: string;
   avatar_url?: string;
+  status?: string;
 }
 
 export interface ContactMessage {
@@ -15,6 +16,7 @@ export interface ContactMessage {
   email?: string;
   message: string;
   created_at?: string;
+  status?: string;
 }
 
 export const INITIAL_REVIEWS: Review[] = [
