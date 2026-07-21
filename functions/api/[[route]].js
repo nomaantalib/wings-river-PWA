@@ -68,6 +68,29 @@ async function ensureTables(db) {
     }
   }
 
+  // Safe Column Migrations (Fixes SQLite "has no column named public_id" on existing D1 databases)
+  const columnsToAdd = [
+    `ALTER TABLE media_library ADD COLUMN public_id TEXT;`,
+    `ALTER TABLE media_library ADD COLUMN secure_url TEXT;`,
+    `ALTER TABLE media_library ADD COLUMN width INTEGER DEFAULT 0;`,
+    `ALTER TABLE media_library ADD COLUMN height INTEGER DEFAULT 0;`,
+    `ALTER TABLE media_library ADD COLUMN format TEXT DEFAULT 'jpg';`,
+    `ALTER TABLE media_library ADD COLUMN alt_text TEXT DEFAULT '';`,
+    `ALTER TABLE media_library ADD COLUMN category TEXT DEFAULT 'general';`,
+    `ALTER TABLE media_library ADD COLUMN folder TEXT DEFAULT 'wings_river_cafe';`,
+    `ALTER TABLE media_library ADD COLUMN tags TEXT DEFAULT '';`,
+    `ALTER TABLE media_library ADD COLUMN file_size INTEGER DEFAULT 0;`,
+    `ALTER TABLE media_library ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;`
+  ];
+
+  for (const alterSql of columnsToAdd) {
+    try {
+      await db.prepare(alterSql).run();
+    } catch (e) {
+      // Column already exists - ignore duplicate column error
+    }
+  }
+
   try {
     // 1. Ensure site_settings exists
     const settingsCheck = await db.prepare("SELECT value FROM settings WHERE key = ?").bind('site_settings').first();
@@ -833,9 +856,11 @@ const handleUpload = async (c) => {
       return c.json({ success: false, error: 'No valid file provided' }, 400);
     }
 
-    // MIME type validation
+    // MIME & File Extension type validation (Mobile iOS Safari HEIC/HEIF & camera photos support)
     const type = file.type || '';
-    if (type && !type.startsWith('image/')) {
+    const name = file.name || '';
+    const isImage = !type || type.startsWith('image/') || type.includes('heic') || type.includes('heif') || /\.(jpg|jpeg|png|webp|gif|heic|heif)$/i.test(name);
+    if (!isImage) {
       return c.json({ success: false, error: 'Unsupported file type. Only image files allowed.' }, 400);
     }
 

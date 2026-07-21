@@ -20,8 +20,8 @@ export default function ImageUploader({
   label = 'Image',
   className = '',
   previewHeight = 'h-48',
-  accept = 'image/*',
-  maxSizeMB = 5,
+  accept = 'image/*,image/heic,image/heif,.heic,.heif,.jpg,.jpeg,.png,.webp,.gif',
+  maxSizeMB = 15,
 }: ImageUploaderProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const safeValue = value || '';
@@ -43,8 +43,10 @@ export default function ImageUploader({
 
   const processFile = (file: File) => {
     setError('');
-    if (!file.type.startsWith('image/')) {
-      setError('Please select a valid image file (JPG, PNG, WEBP, GIF).');
+    // Mobile file type check: Mobile cameras/galleries can send empty file.type or heic/heif
+    const isImage = file.type ? (file.type.startsWith('image/') || file.type.includes('heic') || file.type.includes('heif')) : true;
+    if (!isImage) {
+      setError('Please select a valid image file (JPG, PNG, WEBP, GIF, HEIC).');
       return;
     }
     if (file.size > maxSizeMB * 1024 * 1024) {

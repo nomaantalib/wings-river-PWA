@@ -651,10 +651,11 @@ export async function deletePage(id: string, hard: boolean = false): Promise<Sit
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function uploadMediaFile(file: File, category: string = 'general', altText: string = ''): Promise<{ success: boolean; url?: string; media_id?: string; error?: string }> {
   try {
+    const fileName = (file.name && file.name.trim()) ? file.name : `upload_${Date.now()}.jpg`;
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', file, fileName);
     formData.append('category', category);
-    formData.append('alt_text', altText || file.name);
+    formData.append('alt_text', altText || fileName);
 
     const token = typeof window !== 'undefined' ? localStorage.getItem('wings_admin_jwt') : null;
     const headers: Record<string, string> = {};
