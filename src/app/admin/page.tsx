@@ -1747,7 +1747,7 @@ export default function AdminPage() {
                       <h3 className="font-serif font-bold text-base">Blogs, News & River Stories</h3>
                       <p className="text-xs text-gray-400">Manage published articles, gallery images, and content stories</p>
                     </div>
-                    <button onClick={() => setBlogModal({ images: [] })} className={btnPrimary}>
+                    <button onClick={() => setBlogModal({ title: '', category: 'Riverside Experience', images: [], created_at: new Date().toISOString() })} className={btnPrimary}>
                       <Plus className="w-4 h-4" /> <span>Create Blog Story</span>
                     </button>
                   </div>
@@ -1799,7 +1799,7 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-gray-400 font-mono">
                               <span>By {b.author || 'Admin'} • {b.read_time || '3 min read'}</span>
                               <div className="flex items-center space-x-1.5">
-                                <button onClick={() => setBlogModal({ ...b, images: Array.isArray(b.images) ? b.images : [] })} className={btnEdit} title="Edit Article">
+                                <button onClick={() => setBlogModal({ ...b, images: normalizeImages(b.images) })} className={btnEdit} title="Edit Article">
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
                                 <button onClick={() => setDeleteTarget({ label: b.title, action: async () => { await deleteBlog(b.id); loadAll(); } })} className={btnDanger} title="Delete Article">

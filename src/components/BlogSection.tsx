@@ -418,9 +418,8 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 </div>
               )}
 
-              {/* Article Paragraphs */}
               <div className="space-y-4 text-gray-700 font-sans text-sm sm:text-base leading-relaxed">
-                {activeBlog.content.split('\n\n').map((paragraph, idx) => (
+                {(activeBlog.content || '').split('\n').filter(Boolean).map((paragraph, idx) => (
                   <p key={idx}>{paragraph}</p>
                 ))}
               </div>
