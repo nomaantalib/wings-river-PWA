@@ -2,6 +2,7 @@
 
 import React, { useRef, useState } from 'react';
 import { Upload, Link2, X, ImageIcon, Loader2, Check } from 'lucide-react';
+import { uploadMediaFile } from '@/controllers/StorageController';
 
 interface ImageUploaderProps {
   value: string;                          // current image URL or base64
@@ -87,21 +88,23 @@ export default function ImageUploader({
     };
 
     setLoading(true);
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const result = e.target?.result as string;
-      compressAndResize(result, (compressed) => {
-        onChange(compressed);
+    uploadMediaFile(file, 'cms', file.name)
+      .then((res) => {
+        if (res.success && res.url) {
+          onChange(res.url);
+          setUrlInput(res.url);
+          setUploadSuccess(true);
+          setTimeout(() => setUploadSuccess(false), 2500);
+        } else {
+          setError(res.error || 'Upload failed to save to Cloudinary and D1.');
+        }
+      })
+      .catch((err) => {
+        setError(err.message || 'Upload connection failed.');
+      })
+      .finally(() => {
         setLoading(false);
-        setUploadSuccess(true);
-        setTimeout(() => setUploadSuccess(false), 2500);
       });
-    };
-    reader.onerror = () => {
-      setError('Failed to read image file. Please try again.');
-      setLoading(false);
-    };
-    reader.readAsDataURL(file);
   };
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {

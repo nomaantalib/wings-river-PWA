@@ -784,7 +784,12 @@ async function destroyCloudinaryAsset(publicId, c, db) {
 // POST /api/upload & POST /api/admin/images/upload
 const handleUpload = async (c) => {
   const db = c.env?.DB;
+  if (!db) {
+    console.error('[Upload Pipeline] ❌ D1 Database binding missing in Worker env');
+    return c.json({ success: false, error: 'Database binding (D1) unconfigured or unavailable.' }, 500);
+  }
   try {
+    console.log('[Upload Pipeline] ✓ Upload started');
     const body = await c.req.parseBody();
     const file = body['file'];
     if (!file || typeof file === 'string') {
@@ -794,7 +799,7 @@ const handleUpload = async (c) => {
     // MIME type validation
     const type = file.type || '';
     if (type && !type.startsWith('image/')) {
-      return c.json({ success: false, error: 'Unsupported file type. Only images allowed.' }, 400);
+      return c.json({ success: false, error: 'Unsupported file type. Only image files allowed.' }, 400);
     }
 
     const category = body['category'] || 'general';
@@ -802,33 +807,55 @@ const handleUpload = async (c) => {
     const folder = body['folder'] || 'wings_river_cafe';
     const tags = body['tags'] || '';
 
+    // 1. Upload to Cloudinary API
     const cloudResult = await uploadToCloudinary(file, folder, c, db);
+    console.log(`[Upload Pipeline] ✓ Cloudinary upload successful: ${cloudResult.secure_url}`);
 
+    // 2. Persist directly to Cloudflare D1 SQL database
     const id = `med-${Date.now()}`;
-    if (db) {
-      await ensureTables(db);
-      await db.prepare(`
-        INSERT INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
-      `).bind(
-        id, cloudResult.public_id, cloudResult.secure_url,
-        cloudResult.width, cloudResult.height, cloudResult.format,
-        altText, category, folder, tags, cloudResult.bytes || file.size || 0
-      ).run();
+    console.log('[Upload Pipeline] ✓ Writing image metadata into Cloudflare D1 database...');
+    await ensureTables(db);
+
+    const d1Res = await db.prepare(`
+      INSERT INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+    `).bind(
+      id, cloudResult.public_id, cloudResult.secure_url,
+      cloudResult.width, cloudResult.height, cloudResult.format,
+      altText, category, folder, tags, cloudResult.bytes || file.size || 0
+    ).run();
+
+    if (d1Res && d1Res.success === false) {
+      console.error('[Upload Pipeline] ❌ D1 SQL Insert Error:', d1Res);
+      return c.json({ success: false, error: 'Failed to write image metadata into D1 database.' }, 500);
     }
+    console.log('[Upload Pipeline] ✓ D1 SQL insert/update successful');
+
+    // 3. Fetch newly inserted record from D1 to verify single source of truth
+    const savedRecord = await db.prepare("SELECT * FROM media_library WHERE id = ?").bind(id).first();
+    console.log('[Upload Pipeline] ✓ Returning updated D1 record to client');
 
     return c.json({
       success: true,
-      id,
-      url: cloudResult.secure_url,
-      secure_url: cloudResult.secure_url,
-      public_id: cloudResult.public_id,
-      width: cloudResult.width,
-      height: cloudResult.height,
-      format: cloudResult.format
+      url: savedRecord ? savedRecord.secure_url : cloudResult.secure_url,
+      media_id: id,
+      image: savedRecord || {
+        id,
+        public_id: cloudResult.public_id,
+        secure_url: cloudResult.secure_url,
+        width: cloudResult.width,
+        height: cloudResult.height,
+        format: cloudResult.format,
+        alt_text: altText,
+        category,
+        folder,
+        tags,
+        file_size: cloudResult.bytes || file.size || 0
+      }
     });
   } catch (e) {
-    return c.json({ success: false, error: e.message }, 500);
+    console.error('[Upload Pipeline] ❌ Exception during upload/D1 sync:', e);
+    return c.json({ success: false, error: e.message || 'Upload & D1 persistence failed' }, 500);
   }
 };
 
@@ -867,7 +894,7 @@ const handleGetSingleImage = async (c) => {
     const id = c.req.param('id');
     const item = await db.prepare("SELECT * FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).first();
     if (!item) return c.json({ success: false, error: 'Image not found' }, 404);
-    return c.json({ success: true, data: item });
+    return c.json({ success: true, data: item, image: item });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
@@ -879,7 +906,7 @@ app.get('/images/:id', handleGetSingleImage);
 // POST /media (Create / Record image metadata manually in D1)
 app.post('/media', async (c) => {
   const db = c.env?.DB;
-  if (!db) return c.json({ success: true });
+  if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
   try {
     await ensureTables(db);
     const data = await c.req.json();
@@ -893,7 +920,8 @@ app.post('/media', async (c) => {
       data.format || 'jpg', data.alt_text || '', data.category || 'general',
       data.folder || 'wings_river_cafe', data.tags || '', Number(data.file_size) || 0
     ).run();
-    return c.json({ success: true, id, secure_url: secureUrl });
+    const saved = await db.prepare("SELECT * FROM media_library WHERE id = ?").bind(id).first();
+    return c.json({ success: true, id, secure_url: secureUrl, image: saved });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
@@ -907,7 +935,7 @@ const handleUpdateImage = async (c) => {
     await ensureTables(db);
     const id = c.req.param('id');
     const item = await db.prepare("SELECT * FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).first();
-    if (!item) return c.json({ success: false, error: 'Image not found' }, 404);
+    if (!item) return c.json({ success: false, error: 'Image not found in D1' }, 404);
 
     let body = {};
     try { body = await c.req.parseBody(); } catch { body = await c.req.json(); }
@@ -922,8 +950,10 @@ const handleUpdateImage = async (c) => {
 
     // Replacement logic: Upload new asset to Cloudinary, destroy old Cloudinary asset
     if (newFile && typeof newFile !== 'string') {
+      console.log(`[Image Replacement] Uploading new image file to Cloudinary for ID ${id}...`);
       const cloudResult = await uploadToCloudinary(newFile, item.folder || 'wings_river_cafe', c, db);
       if (item.public_id) {
+        console.log(`[Image Replacement] Destroying old Cloudinary asset ${item.public_id}...`);
         await destroyCloudinaryAsset(item.public_id, c, db);
       }
       publicId = cloudResult.public_id;
@@ -944,7 +974,10 @@ const handleUpdateImage = async (c) => {
       WHERE id = ? OR public_id = ?
     `).bind(publicId, secureUrl, width, height, format, altText, category, tags, fileSize, id, id).run();
 
-    return c.json({ success: true, id, secure_url: secureUrl, public_id: publicId });
+    const updatedRecord = await db.prepare("SELECT * FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).first();
+    console.log('[Image Replacement] ✓ D1 update successful');
+
+    return c.json({ success: true, id, secure_url: secureUrl, public_id: publicId, image: updatedRecord });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }

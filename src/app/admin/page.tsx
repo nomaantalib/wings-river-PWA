@@ -111,55 +111,20 @@ function ImageUploader({
     setIsUploading(true);
     setUploadMsg('Compressing image...');
     try {
-      // Compress the image before uploading to keep sizes lightweight (< 150kb)
+      // Compress the image before uploading to keep payload light (< 150kb)
       const compressed = await compressImage(file);
 
-      // Check if client-side Unsigned Cloudinary is configured
-      const currentSettings = await getSiteSettings().catch(() => ({} as SiteSettings));
-      const cCloudName = currentSettings?.cloudinary_cloud_name?.trim();
-      const cPreset = currentSettings?.cloudinary_upload_preset?.trim();
-
-      if (cCloudName && cPreset) {
-        setUploadMsg('Uploading to Cloudinary...');
-        const cResult = await uploadCloudinaryFile(compressed, cCloudName, cPreset);
-        if (cResult.success && cResult.url) {
-          onChange(cResult.url);
-          setUploadMsg('Uploaded to Cloudinary ✓');
-          return;
-        }
-      }
-      
-      // Default: Upload via Worker API (uses server-signed Cloudinary pipeline + logs to D1 SQL)
-      setUploadMsg('Uploading to Cloudinary...');
+      // ALWAYS Upload via Worker API (Cloudinary SHA-1 Signed API + Immediate D1 SQL Write)
+      setUploadMsg('Uploading to Cloudinary & D1...');
       const result = await uploadMediaFile(compressed, 'cms', compressed.name);
       if (result.success && result.url) {
         onChange(result.url);
-        setUploadMsg(result.url.includes('cloudinary') ? 'Uploaded to Cloudinary ✓' : 'Uploaded to Storage ✓');
+        setUploadMsg('Uploaded to Cloudinary & Saved in D1 ✓');
       } else {
-        // Fallback: base64 preview if backend unavailable
-        setUploadMsg('Using optimized image');
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') onChange(reader.result);
-        };
-        reader.readAsDataURL(compressed);
+        setUploadMsg(`Error: ${result.error || 'Upload to Cloudinary & D1 failed'}`);
       }
     } catch (e: any) {
-      setUploadMsg('Using optimized image');
-      try {
-        const compressed = await compressImage(file);
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') onChange(reader.result);
-        };
-        reader.readAsDataURL(compressed);
-      } catch {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') onChange(reader.result);
-        };
-        reader.readAsDataURL(file);
-      }
+      setUploadMsg(`Error: ${e.message || 'Upload error'}`);
     } finally {
       setIsUploading(false);
       setTimeout(() => setUploadMsg(''), 5000);
