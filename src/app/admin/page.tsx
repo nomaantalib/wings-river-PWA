@@ -115,6 +115,21 @@ function normalizeImages(imgs: any): string[] {
   return [];
 }
 
+const formatDateTimeForInput = (isoString: string): string => {
+  try {
+    const d = new Date(isoString);
+    if (isNaN(d.getTime())) return '';
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    const hours = String(d.getHours()).padStart(2, '0');
+    const minutes = String(d.getMinutes()).padStart(2, '0');
+    return `${year}-${month}-${day}T${hours}:${minutes}`;
+  } catch {
+    return '';
+  }
+};
+
 function ImageUploader({
   value,
   onChange,
@@ -259,30 +274,35 @@ function MultiImageUploader({
     if (fileList.length === 0) return;
 
     setIsUploading(true);
-    const uploadedUrls: string[] = [];
-    let successCount = 0;
+    setUploadMsg(`Uploading ${fileList.length} image(s) together in parallel...`);
 
-    for (let i = 0; i < fileList.length; i++) {
-      const file = fileList[i];
-      setUploadMsg(`Uploading image ${i + 1} of ${fileList.length}...`);
-      try {
-        const compressed = await compressImage(file);
-        const result = await uploadMediaFile(compressed, 'blog_gallery', compressed.name);
-        if (result.success && result.url) {
-          uploadedUrls.push(result.url);
-          successCount++;
+    try {
+      const uploadPromises = fileList.map(async (file) => {
+        try {
+          const compressed = await compressImage(file);
+          const result = await uploadMediaFile(compressed, 'blog_gallery', compressed.name);
+          if (result.success && result.url) {
+            return result.url;
+          }
+        } catch (err) {
+          console.error('[MultiUpload Error]:', file.name, err);
         }
-      } catch (err) {
-        console.error('[MultiUpload Error]:', file.name, err);
-      }
-    }
+        return null;
+      });
 
-    setIsUploading(false);
-    if (uploadedUrls.length > 0) {
-      setUploadMsg(`Uploaded ${successCount} image(s) to Cloudinary & D1 ✓`);
-      onUploadComplete(uploadedUrls);
-    } else {
-      setUploadMsg('Failed to upload selected images');
+      const urls = await Promise.all(uploadPromises);
+      const successfulUrls = urls.filter((url): url is string => typeof url === 'string' && !!url.trim());
+
+      setIsUploading(false);
+      if (successfulUrls.length > 0) {
+        setUploadMsg(`Uploaded ${successfulUrls.length} of ${fileList.length} image(s) successfully ✓`);
+        onUploadComplete(successfulUrls);
+      } else {
+        setUploadMsg('Failed to upload selected images');
+      }
+    } catch (e: any) {
+      setIsUploading(false);
+      setUploadMsg(`Upload error: ${e.message || 'Error occurred'}`);
     }
     setTimeout(() => setUploadMsg(''), 5000);
   };
@@ -714,7 +734,8 @@ export default function AdminPage() {
       author: blogModal.author || 'Wings River Team',
       read_time: blogModal.read_time || '4 min read',
       status: blogModal.status || 'published',
-      is_published: blogModal.status !== 'draft'
+      is_published: blogModal.status !== 'draft',
+      created_at: blogModal.created_at || new Date().toISOString()
     };
     setIsSavingBlog(true);
     // Optimistic update so the UI shows the change immediately without waiting for D1
@@ -2391,6 +2412,22 @@ export default function AdminPage() {
                     className={inputCls}
                   />
                 </div>
+              </div>
+
+              <div>
+                <label className={labelCls}>Publication Timeline / Date & Time</label>
+                <input
+                  type="datetime-local"
+                  value={blogModal.created_at ? formatDateTimeForInput(blogModal.created_at) : ''}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setBlogModal({ 
+                      ...blogModal, 
+                      created_at: val ? new Date(val).toISOString() : new Date().toISOString() 
+                    });
+                  }}
+                  className={inputCls}
+                />
               </div>
 
               <button type="submit" disabled={isSavingBlog} className={`${btnPrimary} ${isSavingBlog ? 'opacity-70 cursor-wait' : ''}`}>

@@ -452,13 +452,14 @@ app.post('/blogs', async (c) => {
     const data = await c.req.json();
     const id = data.id || `blog-${Date.now()}`;
     const imagesStr = Array.isArray(data.images) ? JSON.stringify(data.images) : '[]';
+    const createdAtVal = data.created_at || new Date().toISOString();
     await db.prepare(`
-      INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, images, video_url, author, read_time, status, version, is_deleted, published_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, images, video_url, author, read_time, status, version, is_deleted, published_at, created_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `).bind(
       id, data.title || '', data.slug || id, data.excerpt || '', data.content || '', data.category || 'Food & Dining',
       data.cover_image || '', imagesStr, data.video_url || '', data.author || 'Wings River Team', data.read_time || '4 min read',
-      data.status || 'published', Number(data.version) || 1, Number(data.is_deleted) || 0, data.published_at || null
+      data.status || 'published', Number(data.version) || 1, Number(data.is_deleted) || 0, data.published_at || null, createdAtVal
     ).run();
     return c.json({ success: true, id });
   } catch (e) {

@@ -41,6 +41,17 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
     return clean.length > 0 ? clean : [coverImage].filter(Boolean);
   };
 
+  const formatBlogDate = (dateStr: any) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return String(dateStr);
+      return d.toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
+    } catch {
+      return String(dateStr);
+    }
+  };
+
   const openBlogReader = (blog: BlogPost) => {
     setActiveBlog(blog);
     setActiveImageIndex(0);
@@ -178,7 +189,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                     <div className="flex items-center space-x-3 text-[11px] text-gray-500 mb-2">
                       <span className="flex items-center space-x-1">
                         <Calendar className="w-3 h-3 text-amber-600" />
-                        <span>{post.created_at}</span>
+                        <span>{formatBlogDate(post.created_at)}</span>
                       </span>
                       <span>•</span>
                       <span className="flex items-center space-x-1">
@@ -370,7 +381,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                   </span>
                   <span className="flex items-center space-x-1.5 font-medium">
                     <Calendar className="w-4 h-4 text-amber-600" />
-                    <span>{activeBlog.created_at}</span>
+                    <span>{formatBlogDate(activeBlog.created_at)}</span>
                   </span>
                   <span className="flex items-center space-x-1.5 font-medium">
                     <Clock className="w-4 h-4 text-amber-600" />
