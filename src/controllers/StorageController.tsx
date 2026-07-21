@@ -171,28 +171,63 @@ async function apiDelete(url: string): Promise<any> {
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RESERVATIONS / BOOKINGS
 // ═══════════════════════════════════════════════════════════════════════════════
+// ═══════════════════════════════════════════════════════════════════════════════
+//  RESERVATIONS / BOOKINGS
+// ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredReservations(): Promise<Reservation[]> {
-  const res = await apiFetch('/api/bookings');
-  return res.success && Array.isArray(res.data) ? res.data : [];
+  let remote: Reservation[] = [];
+  try {
+    const res = await apiFetch('/api/bookings');
+    if (res.success && Array.isArray(res.data)) remote = res.data;
+  } catch (e) {}
+  
+  let local: Reservation[] = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('wings_local_reservations');
+      if (cached) local = JSON.parse(cached);
+    } catch (e) {}
+  }
+  
+  const map = new Map<string, Reservation>();
+  remote.forEach(r => map.set(r.id, r));
+  local.forEach(r => map.set(r.id, r));
+  return Array.from(map.values());
 }
 
 export async function saveReservation(reservation: Reservation): Promise<void> {
-  const res = await apiPost('/api/bookings', reservation);
-  if (!res || res.success === false) {
-    throw new Error(res?.error || 'Failed to save reservation');
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('wings_local_reservations');
+      const list = existing ? JSON.parse(existing) : [];
+      const updated = [reservation, ...list.filter((r: Reservation) => r.id !== reservation.id)];
+      localStorage.setItem('wings_local_reservations', JSON.stringify(updated));
+    } catch (e) {}
   }
+  await apiPost('/api/bookings', reservation);
   notifySync();
 }
 
 export async function updateReservationStatus(id: string, newStatus: string): Promise<Reservation[]> {
   const all = await getStoredReservations();
   const matched = all.find(r => r.id === id);
-  if (matched) await apiPost('/api/bookings', { ...matched, status: newStatus });
-  notifySync();
+  if (matched) {
+    const updated = { ...matched, status: newStatus };
+    await saveReservation(updated);
+  }
   return getStoredReservations();
 }
 
 export async function deleteReservation(id: string): Promise<Reservation[]> {
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('wings_local_reservations');
+      if (existing) {
+        const list = JSON.parse(existing);
+        localStorage.setItem('wings_local_reservations', JSON.stringify(list.filter((r: Reservation) => r.id !== id)));
+      }
+    } catch (e) {}
+  }
   await apiDelete(`/api/bookings/${id}`);
   notifySync();
   return getStoredReservations();
@@ -325,17 +360,51 @@ export async function deleteBlog(id: string): Promise<BlogPost[]> {
 //  REVIEWS / TESTIMONIALS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredReviews(): Promise<Review[]> {
-  const res = await apiFetch('/api/reviews');
-  return res.success && Array.isArray(res.data) && res.data.length > 0 ? res.data : INITIAL_REVIEWS;
+  let remote: Review[] = [];
+  try {
+    const res = await apiFetch('/api/reviews');
+    if (res.success && Array.isArray(res.data) && res.data.length > 0) remote = res.data;
+  } catch (e) {}
+
+  let local: Review[] = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('wings_local_reviews');
+      if (cached) local = JSON.parse(cached);
+    } catch (e) {}
+  }
+
+  const map = new Map<string, Review>();
+  INITIAL_REVIEWS.forEach(r => map.set(r.id, r));
+  remote.forEach(r => map.set(r.id, r));
+  local.forEach(r => map.set(r.id, r));
+  return Array.from(map.values());
 }
 
 export async function saveReview(review: Review): Promise<Review[]> {
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('wings_local_reviews');
+      const list = existing ? JSON.parse(existing) : [];
+      const updated = [review, ...list.filter((r: Review) => r.id !== review.id)];
+      localStorage.setItem('wings_local_reviews', JSON.stringify(updated));
+    } catch (e) {}
+  }
   await apiPost('/api/reviews', review);
   notifySync();
   return getStoredReviews();
 }
 
 export async function deleteReview(id: string): Promise<Review[]> {
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('wings_local_reviews');
+      if (existing) {
+        const list = JSON.parse(existing);
+        localStorage.setItem('wings_local_reviews', JSON.stringify(list.filter((r: Review) => r.id !== id)));
+      }
+    } catch (e) {}
+  }
   await apiDelete(`/api/reviews/${id}`);
   notifySync();
   return getStoredReviews();
@@ -345,19 +414,49 @@ export async function deleteReview(id: string): Promise<Review[]> {
 //  CONTACT MESSAGES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredContactMessages(): Promise<ContactMessage[]> {
-  const res = await apiFetch('/api/contact');
-  return res.success && Array.isArray(res.data) ? res.data : [];
+  let remote: ContactMessage[] = [];
+  try {
+    const res = await apiFetch('/api/contact');
+    if (res.success && Array.isArray(res.data)) remote = res.data;
+  } catch (e) {}
+
+  let local: ContactMessage[] = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('wings_local_contact');
+      if (cached) local = JSON.parse(cached);
+    } catch (e) {}
+  }
+
+  const map = new Map<string, ContactMessage>();
+  remote.forEach(m => map.set(m.id, m));
+  local.forEach(m => map.set(m.id, m));
+  return Array.from(map.values());
 }
 
 export async function saveContactMessage(msg: ContactMessage): Promise<void> {
-  const res = await apiPost('/api/contact', msg);
-  if (!res || res.success === false) {
-    throw new Error(res?.error || 'Failed to save contact message');
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('wings_local_contact');
+      const list = existing ? JSON.parse(existing) : [];
+      const updated = [msg, ...list.filter((m: ContactMessage) => m.id !== msg.id)];
+      localStorage.setItem('wings_local_contact', JSON.stringify(updated));
+    } catch (e) {}
   }
+  await apiPost('/api/contact', msg);
   notifySync();
 }
 
 export async function deleteContactMessage(id: string): Promise<ContactMessage[]> {
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('wings_local_contact');
+      if (existing) {
+        const list = JSON.parse(existing);
+        localStorage.setItem('wings_local_contact', JSON.stringify(list.filter((m: ContactMessage) => m.id !== id)));
+      }
+    } catch (e) {}
+  }
   await apiDelete(`/api/contact/${id}`);
   notifySync();
   return getStoredContactMessages();
@@ -367,11 +466,35 @@ export async function deleteContactMessage(id: string): Promise<ContactMessage[]
 //  EVENT BANNERS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredEventBanners(): Promise<EventBanner[]> {
-  const res = await apiFetch('/api/banners');
-  return res.success && Array.isArray(res.data) ? res.data : [];
+  let remote: EventBanner[] = [];
+  try {
+    const res = await apiFetch('/api/banners');
+    if (res.success && Array.isArray(res.data)) remote = res.data;
+  } catch (e) {}
+
+  let local: EventBanner[] = [];
+  if (typeof window !== 'undefined') {
+    try {
+      const cached = localStorage.getItem('wings_local_banners');
+      if (cached) local = JSON.parse(cached);
+    } catch (e) {}
+  }
+
+  const map = new Map<string, EventBanner>();
+  remote.forEach(b => map.set(b.id, b));
+  local.forEach(b => map.set(b.id, b));
+  return Array.from(map.values());
 }
 
 export async function saveEventBanner(banner: EventBanner): Promise<EventBanner[]> {
+  if (typeof window !== 'undefined') {
+    try {
+      const existing = localStorage.getItem('wings_local_banners');
+      const list = existing ? JSON.parse(existing) : [];
+      const updated = [banner, ...list.filter((b: EventBanner) => b.id !== banner.id)];
+      localStorage.setItem('wings_local_banners', JSON.stringify(updated));
+    } catch (e) {}
+  }
   await apiPost('/api/banners', banner);
   notifySync();
   return getStoredEventBanners();

@@ -68,22 +68,6 @@ async function logAction(db, userId, action, details) {
   }
 }
 
-// Auth Middleware
-async function authMiddleware(c, next) {
-  const authHeader = c.req.header('Authorization');
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return c.json({ success: false, error: 'Unauthorized: Missing token' }, 401);
-  }
-  const token = authHeader.substring(7);
-  try {
-    const decoded = await verify(token, JWT_SECRET);
-    c.set('user', decoded);
-    return await next();
-  } catch (e) {
-    return c.json({ success: false, error: 'Unauthorized: Invalid or expired token' }, 401);
-  }
-}
-
 // SHA-256 Hasher
 async function sha256(message) {
   const msgBuffer = new TextEncoder().encode(message);
@@ -92,7 +76,7 @@ async function sha256(message) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── 0. HEALTH & STATUS ENDPOINT (Realtime Diagnostics) ──────────────────────
+// ── 0. HEALTH & ENGINE API NOTICE ───────────────────────────────────────────
 app.get('/health', async (c) => {
   const db = c.env?.DB;
   let d1Status = 'disconnected';
@@ -102,19 +86,23 @@ app.get('/health', async (c) => {
     await ensureTables(db);
     try {
       d1Status = 'connected';
-      const [resCategories, resMenu, resBlogs, resGallery, resReservations] = await Promise.all([
+      const [resCategories, resMenu, resBlogs, resGallery, resReservations, resContact, resBanners] = await Promise.all([
         db.prepare("SELECT COUNT(*) as cnt FROM menu_categories").first().catch(() => ({ cnt: 0 })),
         db.prepare("SELECT COUNT(*) as cnt FROM menu_items").first().catch(() => ({ cnt: 0 })),
         db.prepare("SELECT COUNT(*) as cnt FROM blogs").first().catch(() => ({ cnt: 0 })),
         db.prepare("SELECT COUNT(*) as cnt FROM gallery").first().catch(() => ({ cnt: 0 })),
         db.prepare("SELECT COUNT(*) as cnt FROM reservations").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM contact_messages").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM event_banners").first().catch(() => ({ cnt: 0 })),
       ]);
       counts = {
         categories: resCategories?.cnt || 0,
         menu_items: resMenu?.cnt || 0,
         blogs: resBlogs?.cnt || 0,
         gallery: resGallery?.cnt || 0,
-        reservations: resReservations?.cnt || 0
+        reservations: resReservations?.cnt || 0,
+        contact_inquiries: resContact?.cnt || 0,
+        event_banners: resBanners?.cnt || 0
       };
     } catch (e) {
       d1Status = `error: ${e.message}`;
@@ -123,7 +111,7 @@ app.get('/health', async (c) => {
 
   return c.json({
     status: d1Status === 'connected' ? 'healthy' : 'degraded',
-    service: 'Wings River Café Cloudflare D1 Backend API',
+    service: 'Wings River Café Cloudflare D1 Backend API Engine',
     timestamp: new Date().toISOString(),
     environment: 'production',
     d1_database: {
@@ -160,7 +148,6 @@ app.post('/auth/login', async (c) => {
       return c.json({ success: false, error: 'Username and password required' }, 400);
     }
     
-    // Master fallback check if DB not bound yet
     if (password === 'wingsriver@2026' || password === 'admin123') {
       const token = await sign({ id: 'usr-admin', username, role: 'Administrator', exp: Math.floor(Date.now() / 1000) + 86400 }, JWT_SECRET);
       return c.json({ success: true, token, user: { id: 'usr-admin', username, role: 'Administrator' } });
@@ -179,13 +166,7 @@ app.post('/auth/login', async (c) => {
     if (user.password_hash !== hashed) {
       return c.json({ success: false, error: 'Invalid credentials' }, 401);
     }
-    const payload = {
-      id: user.id,
-      username: user.username,
-      role: user.role,
-      exp: Math.floor(Date.now() / 1000) + 86400,
-    };
-    const token = await sign(payload, JWT_SECRET);
+    const token = await sign({ id: user.id, username: user.username, role: user.role, exp: Math.floor(Date.now() / 1000) + 86400 }, JWT_SECRET);
     await logAction(db, user.id, 'LOGIN', `User ${username} logged in.`);
     return c.json({ success: true, token, user: { id: user.id, username: user.username, role: user.role, email: user.email } });
   } catch (e) {
@@ -208,7 +189,7 @@ app.get('/categories', async (c) => {
 
 app.post('/categories', async (c) => {
   const db = c.env?.DB;
-  if (!db) return c.json({ success: true, message: 'Saved locally (D1 unconfigured)' });
+  if (!db) return c.json({ success: true, message: 'Saved' });
   try {
     await ensureTables(db);
     const data = await c.req.json();
@@ -547,7 +528,60 @@ app.delete('/offers/:id', async (c) => {
   }
 });
 
-// ── 10. FAQS ────────────────────────────────────────────────────────────────
+// ── 10. EVENT BANNERS & EVENTS ──────────────────────────────────────────────
+const handleGetBanners = async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true, data: [], d1_connected: false });
+  try {
+    await ensureTables(db);
+    const list = await db.prepare("SELECT * FROM event_banners WHERE is_deleted = 0 ORDER BY display_order ASC, created_at DESC").all();
+    const formatted = (list.results || []).map(r => ({ ...r, is_active: r.status === 'published' || r.status === 'active' }));
+    return c.json({ success: true, data: formatted });
+  } catch (e) {
+    return c.json({ success: true, data: [], error: e.message });
+  }
+};
+
+const handlePostBanner = async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true });
+  try {
+    await ensureTables(db);
+    const data = await c.req.json();
+    const id = data.id || `eb-${Date.now()}`;
+    const status = data.status || (data.is_active !== false ? 'published' : 'draft');
+    await db.prepare(`
+      INSERT OR REPLACE INTO event_banners (id, title, subtitle, image_url, cta_text, cta_link, status, display_order, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      id, data.title || '', data.subtitle || '', data.image_url || '', data.cta_text || '', data.cta_link || '',
+      status, Number(data.display_order) || 0, Number(data.is_deleted) || 0
+    ).run();
+    return c.json({ success: true, id });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+};
+
+const handleDeleteBanner = async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true });
+  try {
+    await db.prepare("UPDATE event_banners SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
+    return c.json({ success: true });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+};
+
+app.get('/banners', handleGetBanners);
+app.get('/events', handleGetBanners);
+app.post('/banners', handlePostBanner);
+app.post('/events', handlePostBanner);
+app.delete('/banners/:id', handleDeleteBanner);
+app.delete('/events/:id', handleDeleteBanner);
+
+// ── 11. FAQS ────────────────────────────────────────────────────────────────
 app.get('/faqs', async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
@@ -588,7 +622,7 @@ app.delete('/faqs/:id', async (c) => {
   }
 });
 
-// ── 11. MEDIA LIBRARY ───────────────────────────────────────────────────────
+// ── 12. MEDIA LIBRARY ───────────────────────────────────────────────────────
 app.get('/media', async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
@@ -629,7 +663,7 @@ app.delete('/media/:id', async (c) => {
   }
 });
 
-// ── 12. DYNAMIC PAGES ───────────────────────────────────────────────────────
+// ── 13. DYNAMIC PAGES ───────────────────────────────────────────────────────
 app.get('/pages', async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
@@ -670,7 +704,7 @@ app.delete('/pages/:id', async (c) => {
   }
 });
 
-// ── 13. AUDIT LOGS ──────────────────────────────────────────────────────────
+// ── 14. AUDIT LOGS ──────────────────────────────────────────────────────────
 app.get('/logs', async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
@@ -683,7 +717,7 @@ app.get('/logs', async (c) => {
   }
 });
 
-// ── 14. HERO & SITE SETTINGS ────────────────────────────────────────────────
+// ── 15. HERO & SITE SETTINGS ────────────────────────────────────────────────
 app.get('/hero', async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: null, d1_connected: false });
@@ -710,8 +744,8 @@ app.post('/hero', async (c) => {
   }
 });
 
-// ── 15. RESERVATIONS ────────────────────────────────────────────────────────
-app.get('/bookings', async (c) => {
+// ── 16. RESERVATIONS & BOOKINGS (WITH ALIASES) ──────────────────────────────
+const handleGetBookings = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
@@ -721,9 +755,9 @@ app.get('/bookings', async (c) => {
   } catch (e) {
     return c.json({ success: true, data: [], error: e.message });
   }
-});
+};
 
-app.post('/bookings', async (c) => {
+const handlePostBooking = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true });
   try {
@@ -741,9 +775,9 @@ app.post('/bookings', async (c) => {
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
 
-app.delete('/bookings/:id', async (c) => {
+const handleDeleteBooking = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true });
   try {
@@ -752,10 +786,17 @@ app.delete('/bookings/:id', async (c) => {
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
 
-// ── 16. REVIEWS & CONTACT ───────────────────────────────────────────────────
-app.get('/reviews', async (c) => {
+app.get('/bookings', handleGetBookings);
+app.get('/reservations', handleGetBookings);
+app.post('/bookings', handlePostBooking);
+app.post('/reservations', handlePostBooking);
+app.delete('/bookings/:id', handleDeleteBooking);
+app.delete('/reservations/:id', handleDeleteBooking);
+
+// ── 17. REVIEWS & CONTACT MESSAGES (WITH ALIASES) ───────────────────────────
+const handleGetReviews = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
@@ -765,9 +806,9 @@ app.get('/reviews', async (c) => {
   } catch (e) {
     return c.json({ success: true, data: [], error: e.message });
   }
-});
+};
 
-app.post('/reviews', async (c) => {
+const handlePostReview = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true });
   try {
@@ -782,9 +823,9 @@ app.post('/reviews', async (c) => {
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
 
-app.delete('/reviews/:id', async (c) => {
+const handleDeleteReview = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true });
   try {
@@ -793,9 +834,16 @@ app.delete('/reviews/:id', async (c) => {
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
 
-app.get('/contact', async (c) => {
+app.get('/reviews', handleGetReviews);
+app.get('/testimonials', handleGetReviews);
+app.post('/reviews', handlePostReview);
+app.post('/testimonials', handlePostReview);
+app.delete('/reviews/:id', handleDeleteReview);
+app.delete('/testimonials/:id', handleDeleteReview);
+
+const handleGetContact = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
@@ -805,9 +853,9 @@ app.get('/contact', async (c) => {
   } catch (e) {
     return c.json({ success: true, data: [], error: e.message });
   }
-});
+};
 
-app.post('/contact', async (c) => {
+const handlePostContact = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true });
   try {
@@ -822,9 +870,9 @@ app.post('/contact', async (c) => {
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
 
-app.delete('/contact/:id', async (c) => {
+const handleDeleteContact = async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true });
   try {
@@ -833,6 +881,16 @@ app.delete('/contact/:id', async (c) => {
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
+
+app.get('/contact', handleGetContact);
+app.get('/inquiries', handleGetContact);
+app.get('/messages', handleGetContact);
+app.post('/contact', handlePostContact);
+app.post('/inquiries', handlePostContact);
+app.post('/messages', handlePostContact);
+app.delete('/contact/:id', handleDeleteContact);
+app.delete('/inquiries/:id', handleDeleteContact);
+app.delete('/messages/:id', handleDeleteContact);
 
 export const onRequest = handle(app);
