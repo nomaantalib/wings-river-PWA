@@ -114,7 +114,7 @@ function ImageUploader({
       // Compress the image before uploading to keep sizes lightweight (< 150kb)
       const compressed = await compressImage(file);
 
-      // Check Cloudinary settings in siteSettings
+      // Check if client-side Unsigned Cloudinary is configured
       const currentSettings = await getSiteSettings().catch(() => ({} as SiteSettings));
       const cCloudName = currentSettings?.cloudinary_cloud_name?.trim();
       const cPreset = currentSettings?.cloudinary_upload_preset?.trim();
@@ -129,13 +129,14 @@ function ImageUploader({
         }
       }
       
-      setUploadMsg('Uploading to Storage...');
+      // Default: Upload via Worker API (uses server-signed Cloudinary pipeline + logs to D1 SQL)
+      setUploadMsg('Uploading to Cloudinary...');
       const result = await uploadMediaFile(compressed, 'cms', compressed.name);
       if (result.success && result.url) {
         onChange(result.url);
-        setUploadMsg('Uploaded to R2 ✓');
+        setUploadMsg(result.url.includes('cloudinary') ? 'Uploaded to Cloudinary ✓' : 'Uploaded to Storage ✓');
       } else {
-        // Fallback: base64 local preview if R2 upload fails
+        // Fallback: base64 preview if backend unavailable
         setUploadMsg('Using optimized image');
         const reader = new FileReader();
         reader.onload = () => {

@@ -689,21 +689,30 @@ app.post('/upload', async (c) => {
   const bucket = c.env?.BUCKET;
   const db = c.env?.DB;
 
-  // Cloudinary credentials (read strictly from environment variables)
-  const cloudName = c.env?.CLOUDINARY_CLOUD_NAME;
-  const apiKey = c.env?.CLOUDINARY_API_KEY;
-  const apiSecret = c.env?.CLOUDINARY_API_SECRET;
+    // Cloudinary credentials (resolve from env vars, D1 site settings, or account defaults)
+    let cloudName = c.env?.CLOUDINARY_CLOUD_NAME;
+    let apiKey = c.env?.CLOUDINARY_API_KEY;
+    let apiSecret = c.env?.CLOUDINARY_API_SECRET;
 
-  try {
-    const body = await c.req.parseBody();
-    const file = body['file'];
-    if (!file || typeof file === 'string') {
-      return c.json({ success: false, error: 'No valid file provided' }, 400);
+    if (!cloudName || !apiKey || !apiSecret) {
+      if (db) {
+        try {
+          await ensureTables(db);
+          const sRow = await db.prepare("SELECT value FROM settings WHERE key = ?").bind('site_settings').first();
+          if (sRow && sRow.value) {
+            const parsed = JSON.parse(sRow.value);
+            if (!cloudName) cloudName = parsed.cloudinary_cloud_name;
+            if (!apiKey) apiKey = parsed.cloudinary_api_key;
+            if (!apiSecret) apiSecret = parsed.cloudinary_api_secret;
+          }
+        } catch (e) {}
+      }
     }
 
-    const category = body['category'] || 'general';
-    const altText = body['alt_text'] || file.name || '';
-    let publicUrl = '';
+    // Default fallback to user's Cloudinary credentials
+    if (!cloudName) cloudName = 'vrgblmky';
+    if (!apiKey) apiKey = '938174893659986';
+    if (!apiSecret) apiSecret = 'FyD8S6x7JG4bXwK5WBz9n-O5jV4';
 
     // 1. Primary Cloudinary Upload via Server-Signed API
     if (cloudName && apiKey && apiSecret) {
