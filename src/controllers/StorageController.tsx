@@ -152,12 +152,13 @@ async function apiFetch(url: string): Promise<any> {
       headers: getHeaders(),
       cache: 'no-store'
     });
+    const result = await res.json().catch(() => null);
     if (!res.ok) {
-      return { success: false, data: [] };
+      return { success: false, data: [], error: result?.error || `HTTP error ${res.status}` };
     }
-    return await res.json();
-  } catch (err) {
-    return { success: false, data: [] };
+    return result || { success: true, data: [] };
+  } catch (err: any) {
+    return { success: false, data: [], error: err?.message || 'Network error' };
   }
 }
 
@@ -168,12 +169,13 @@ async function apiPost(url: string, data: any): Promise<any> {
       headers: getHeaders(),
       body: JSON.stringify(data),
     });
+    const result = await res.json().catch(() => null);
     if (!res.ok) {
-      return { success: false };
+      return { success: false, error: result?.error || `HTTP error ${res.status}` };
     }
-    return await res.json();
-  } catch (err) {
-    return { success: false };
+    return result || { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Network error' };
   }
 }
 
@@ -183,12 +185,13 @@ async function apiDelete(url: string): Promise<any> {
       method: 'DELETE',
       headers: getHeaders()
     });
+    const result = await res.json().catch(() => null);
     if (!res.ok) {
-      return { success: false };
+      return { success: false, error: result?.error || `HTTP error ${res.status}` };
     }
-    return await res.json();
-  } catch (err) {
-    return { success: false };
+    return result || { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Network error' };
   }
 }
 
