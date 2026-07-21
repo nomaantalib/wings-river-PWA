@@ -689,10 +689,10 @@ app.post('/upload', async (c) => {
   const bucket = c.env?.BUCKET;
   const db = c.env?.DB;
 
-  // Cloudinary credentials (with user provided defaults)
-  const cloudName = c.env?.CLOUDINARY_CLOUD_NAME || 'vrgblmky';
-  const apiKey = c.env?.CLOUDINARY_API_KEY || '938174893659986';
-  const apiSecret = c.env?.CLOUDINARY_API_SECRET || 'FyD8S6x7JG4bXwK5WBz9n-O5jV4';
+  // Cloudinary credentials (read strictly from environment variables)
+  const cloudName = c.env?.CLOUDINARY_CLOUD_NAME;
+  const apiKey = c.env?.CLOUDINARY_API_KEY;
+  const apiSecret = c.env?.CLOUDINARY_API_SECRET;
 
   try {
     const body = await c.req.parseBody();

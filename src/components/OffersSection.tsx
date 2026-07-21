@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Tag, Sparkles, Copy, Check, Megaphone, ArrowRight, Gift, Flame, Percent } from 'lucide-react';
-import { getStoredOffers, getStoredEventBanners, OfferDiscount, EventBanner } from '@/controllers/StorageController';
+import { getStoredOffers, getStoredEventBanners, getStoredPromoPages, OfferDiscount, EventBanner, PromoPage } from '@/controllers/StorageController';
 
 interface OffersSectionProps {
   onOpenBooking: (type?: string) => void;
@@ -11,17 +11,20 @@ interface OffersSectionProps {
 export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
   const [offers, setOffers] = useState<OfferDiscount[]>([]);
   const [banners, setBanners] = useState<EventBanner[]>([]);
+  const [promoPages, setPromoPages] = useState<PromoPage[]>([]);
   const [copiedCode, setCopiedCode] = useState<string | null>(null);
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
 
   const loadData = async () => {
     try {
-      const [offData, banData] = await Promise.all([
+      const [offData, banData, promoData] = await Promise.all([
         getStoredOffers(),
-        getStoredEventBanners()
+        getStoredEventBanners(),
+        getStoredPromoPages()
       ]);
       setOffers(offData.filter(o => o.status === 'active' || (o.status as string) === 'published'));
       setBanners(banData.filter(b => b.is_active !== false && b.status !== 'draft'));
+      setPromoPages(promoData.filter(p => p.status === 'active'));
     } catch (e) {
       console.error('OffersSection load error:', e);
     }
@@ -135,7 +138,59 @@ export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
           </div>
         )}
 
-        {/* ── 2. OFFERS & DISCOUNT COUPON CARDS GRID ─────────────────────────── */}
+        {/* ── 2. PROMO PAGES SHOWCASE GRID ───────────────────────────────────── */}
+        {promoPages.length > 0 && (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="font-serif font-bold text-2xl text-white">Special Promo Highlights</h3>
+              <span className="text-xs text-amber-400 font-mono font-semibold">Featured Highlights</span>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {promoPages.map((promo) => (
+                <div
+                  key={promo.id}
+                  className="bg-dark-900/90 border border-white/10 hover:border-amber-500/40 rounded-3xl overflow-hidden group transition-all duration-300 hover:-translate-y-1 shadow-xl flex flex-col justify-between"
+                >
+                  {promo.image_url && (
+                    <div className="h-48 overflow-hidden relative">
+                      <img
+                        src={promo.image_url}
+                        alt={promo.title}
+                        className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                      />
+                      <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-transparent opacity-80" />
+                    </div>
+                  )}
+                  <div className="p-6 space-y-3 flex-1 flex flex-col justify-between">
+                    <div>
+                      <h4 className="font-serif font-bold text-lg text-white group-hover:text-amber-400 transition-colors">
+                        {promo.title}
+                      </h4>
+                      {promo.subtitle && (
+                        <p className="text-xs text-gray-300 mt-1.5 leading-relaxed">
+                          {promo.subtitle}
+                        </p>
+                      )}
+                    </div>
+                    {promo.cta_text && (
+                      <div className="pt-3">
+                        <button
+                          onClick={() => onOpenBooking('table_booking')}
+                          className="w-full py-2.5 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center space-x-1.5"
+                        >
+                          <span>{promo.cta_text}</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── 3. OFFERS & DISCOUNT COUPON CARDS GRID ─────────────────────────── */}
         {offers.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {offers.map((offer) => (
