@@ -20,7 +20,7 @@ export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
         getStoredOffers(),
         getStoredEventBanners()
       ]);
-      setOffers(offData.filter(o => o.status === 'active' || o.status === 'published'));
+      setOffers(offData.filter(o => o.status === 'active' || (o.status as string) === 'published'));
       setBanners(banData.filter(b => b.is_active !== false && b.status !== 'draft'));
     } catch (e) {
       console.error('OffersSection load error:', e);
