@@ -47,13 +47,30 @@ export interface TeamMember {
 
 export interface MediaItem {
   id: string;
-  url: string;
-  alt_text: string;
-  caption: string;
-  category: string;
-  file_size: number;
-  dimensions: string;
+  public_id?: string;
+  secure_url: string;
+  url?: string;
+  width?: number;
+  height?: number;
+  format?: string;
+  alt_text?: string;
+  caption?: string;
+  category?: string;
+  folder?: string;
+  tags?: string;
+  file_size?: number;
   created_at?: string;
+  updated_at?: string;
+}
+
+export function getCloudinaryOptimizedUrl(url: string, width?: number, quality: string = 'auto'): string {
+  if (!url || !url.includes('res.cloudinary.com')) return url;
+  const parts = url.split('/upload/');
+  if (parts.length === 2) {
+    const transform = width ? `f_auto,q_${quality},w_${width}` : `f_auto,q_${quality}`;
+    return `${parts[0]}/upload/${transform}/${parts[1]}`;
+  }
+  return url;
 }
 
 export interface SitePage {
@@ -570,12 +587,11 @@ export async function deleteOffer(id: string): Promise<OfferDiscount[]> {
   return getStoredOffers();
 }
 
-// ═══════════════════════════════════════════════════════════════════════════════
-//  MEDIA LIBRARY
-// ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredMedia(): Promise<MediaItem[]> {
-  const res = await apiFetch('/api/media');
-  return res.success && Array.isArray(res.data) ? res.data : [];
+  const res = await apiFetch('/api/images');
+  if (res.success && Array.isArray(res.data)) return res.data;
+  const fallback = await apiFetch('/api/media');
+  return fallback.success && Array.isArray(fallback.data) ? fallback.data : [];
 }
 
 export async function saveMediaItem(media: MediaItem): Promise<MediaItem[]> {
@@ -584,8 +600,20 @@ export async function saveMediaItem(media: MediaItem): Promise<MediaItem[]> {
   return getStoredMedia();
 }
 
+export async function updateMediaItem(id: string, fileOrData: File | Partial<MediaItem>): Promise<MediaItem[]> {
+  if (fileOrData instanceof File) {
+    const formData = new FormData();
+    formData.append('file', fileOrData);
+    await apiPost(`/api/admin/images/${id}`, formData);
+  } else {
+    await apiPost(`/api/media/${id}`, fileOrData);
+  }
+  notifySync();
+  return getStoredMedia();
+}
+
 export async function deleteMediaItem(id: string): Promise<MediaItem[]> {
-  await apiDelete(`/api/media/${id}`);
+  await apiDelete(`/api/admin/images/${id}`);
   notifySync();
   return getStoredMedia();
 }
@@ -632,7 +660,7 @@ export async function uploadMediaFile(file: File, category: string = 'general', 
     const headers: Record<string, string> = {};
     if (token) headers['Authorization'] = `Bearer ${token}`;
 
-    const res = await fetch(getApiUrl('/api/upload'), {
+    const res = await fetch(getApiUrl('/api/admin/images/upload'), {
       method: 'POST',
       headers,
       body: formData,

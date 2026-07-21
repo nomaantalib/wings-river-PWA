@@ -47,7 +47,9 @@ async function ensureTables(db) {
       db.prepare(`CREATE TABLE IF NOT EXISTS team_members (id TEXT PRIMARY KEY, name TEXT, role TEXT, bio TEXT, image TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS reservations (id TEXT PRIMARY KEY, name TEXT, phone TEXT, email TEXT, booking_type TEXT, date TEXT, time TEXT, guests INTEGER DEFAULT 2, special_requests TEXT, status TEXT DEFAULT 'pending', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS pages (id TEXT PRIMARY KEY, title TEXT, slug TEXT UNIQUE, content TEXT, status TEXT DEFAULT 'draft', display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, published_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS media_library (id TEXT PRIMARY KEY, url TEXT, alt_text TEXT, caption TEXT, category TEXT, file_size INTEGER DEFAULT 0, dimensions TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS media_library (id TEXT PRIMARY KEY, public_id TEXT, secure_url TEXT NOT NULL, width INTEGER DEFAULT 0, height INTEGER DEFAULT 0, format TEXT DEFAULT 'jpg', alt_text TEXT DEFAULT '', category TEXT DEFAULT 'general', folder TEXT DEFAULT 'wings_river_cafe', tags TEXT DEFAULT '', file_size INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
+      db.prepare(`CREATE INDEX IF NOT EXISTS idx_media_public_id ON media_library(public_id);`),
+      db.prepare(`CREATE INDEX IF NOT EXISTS idx_media_category ON media_library(category);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`)
     ]);
@@ -676,7 +678,9 @@ app.delete('/faqs/:id', async (c) => {
   }
 });
 
-// Helper for Cloudinary SHA-1 signature calculation
+// ── 12. CLOUDINARY SERVICE & MEDIA LIBRARY D1 PIPELINE ──────────────────
+
+// SHA-1 Helper for Cloudinary signed requests
 async function sha1(message) {
   const msgBuffer = new TextEncoder().encode(message);
   const hashBuffer = await crypto.subtle.digest('SHA-1', msgBuffer);
@@ -684,125 +688,195 @@ async function sha1(message) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
-// ── 12. MEDIA LIBRARY & CLOUDINARY / R2 UPLOAD PIPELINE ─────────────────────────────────
-app.post('/upload', async (c) => {
-  const bucket = c.env?.BUCKET;
-  const db = c.env?.DB;
+// Get active Cloudinary credentials (from env vars, D1 site_settings, or account defaults)
+async function getCloudinaryCreds(c, db) {
+  let cloudName = c.env?.CLOUDINARY_CLOUD_NAME;
+  let apiKey = c.env?.CLOUDINARY_API_KEY;
+  let apiSecret = c.env?.CLOUDINARY_API_SECRET;
 
-    // Cloudinary credentials (resolve from env vars, D1 site settings, or account defaults)
-    let cloudName = c.env?.CLOUDINARY_CLOUD_NAME;
-    let apiKey = c.env?.CLOUDINARY_API_KEY;
-    let apiSecret = c.env?.CLOUDINARY_API_SECRET;
-
-    if (!cloudName || !apiKey || !apiSecret) {
-      if (db) {
-        try {
-          await ensureTables(db);
-          const sRow = await db.prepare("SELECT value FROM settings WHERE key = ?").bind('site_settings').first();
-          if (sRow && sRow.value) {
-            const parsed = JSON.parse(sRow.value);
-            if (!cloudName) cloudName = parsed.cloudinary_cloud_name;
-            if (!apiKey) apiKey = parsed.cloudinary_api_key;
-            if (!apiSecret) apiSecret = parsed.cloudinary_api_secret;
-          }
-        } catch (e) {}
-      }
-    }
-
-    // Default fallback to user's Cloudinary credentials
-    if (!cloudName) cloudName = 'vrgblmky';
-    if (!apiKey) apiKey = '938174893659986';
-    if (!apiSecret) apiSecret = 'FyD8S6x7JG4bXwK5WBz9n-O5jV4';
-
-    // 1. Primary Cloudinary Upload via Server-Signed API
-    if (cloudName && apiKey && apiSecret) {
+  if (!cloudName || !apiKey || !apiSecret) {
+    if (db) {
       try {
-        const timestamp = Math.floor(Date.now() / 1000).toString();
-        const folder = 'wings_river_cafe';
-        const strToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
-        const signature = await sha1(strToSign);
-
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('api_key', apiKey);
-        formData.append('timestamp', timestamp);
-        formData.append('folder', folder);
-        formData.append('signature', signature);
-
-        const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
-          method: 'POST',
-          body: formData,
-        });
-
-        const cloudData = await cloudRes.json();
-        if (cloudRes.ok && cloudData.secure_url) {
-          publicUrl = cloudData.secure_url;
-        } else {
-          console.error('Cloudinary API error response:', cloudData);
+        await ensureTables(db);
+        const sRow = await db.prepare("SELECT value FROM settings WHERE key = ?").bind('site_settings').first();
+        if (sRow && sRow.value) {
+          const parsed = JSON.parse(sRow.value);
+          if (!cloudName) cloudName = parsed.cloudinary_cloud_name;
+          if (!apiKey) apiKey = parsed.cloudinary_api_key;
+          if (!apiSecret) apiSecret = parsed.cloudinary_api_secret;
         }
-      } catch (cErr) {
-        console.error('Cloudinary upload exception:', cErr);
-      }
+      } catch (e) {}
+    }
+  }
+
+  if (!cloudName) cloudName = 'vrgblmky';
+  if (!apiKey) apiKey = '938174893659986';
+  if (!apiSecret) apiSecret = 'FyD8S6x7JG4bXwK5WBz9n-O5jV4';
+
+  return { cloudName, apiKey, apiSecret };
+}
+
+// Upload file directly to Cloudinary API with SHA-1 signature
+async function uploadToCloudinary(file, folderName, c, db) {
+  const { cloudName, apiKey, apiSecret } = await getCloudinaryCreds(c, db);
+  const timestamp = Math.floor(Date.now() / 1000).toString();
+  const folder = folderName || 'wings_river_cafe';
+  const strToSign = `folder=${folder}&timestamp=${timestamp}${apiSecret}`;
+  const signature = await sha1(strToSign);
+
+  const formData = new FormData();
+  formData.append('file', file);
+  formData.append('api_key', apiKey);
+  formData.append('timestamp', timestamp);
+  formData.append('folder', folder);
+  formData.append('signature', signature);
+
+  const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+    method: 'POST',
+    body: formData,
+  });
+
+  const cloudData = await cloudRes.json();
+  if (cloudRes.ok && cloudData.secure_url) {
+    return {
+      success: true,
+      public_id: cloudData.public_id,
+      secure_url: cloudData.secure_url,
+      width: cloudData.width || 0,
+      height: cloudData.height || 0,
+      format: cloudData.format || 'jpg',
+      bytes: cloudData.bytes || 0,
+      folder: folder
+    };
+  }
+  throw new Error(cloudData.error?.message || 'Cloudinary upload failed');
+}
+
+// Destroy asset from Cloudinary storage
+async function destroyCloudinaryAsset(publicId, c, db) {
+  if (!publicId) return true;
+  try {
+    const { cloudName, apiKey, apiSecret } = await getCloudinaryCreds(c, db);
+    const timestamp = Math.floor(Date.now() / 1000).toString();
+    const strToSign = `public_id=${publicId}&timestamp=${timestamp}${apiSecret}`;
+    const signature = await sha1(strToSign);
+
+    const formData = new FormData();
+    formData.append('public_id', publicId);
+    formData.append('api_key', apiKey);
+    formData.append('timestamp', timestamp);
+    formData.append('signature', signature);
+
+    const cloudRes = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/destroy`, {
+      method: 'POST',
+      body: formData,
+    });
+    const data = await cloudRes.json();
+    return data.result === 'ok' || data.result === 'not found';
+  } catch (e) {
+    console.error('Cloudinary destroy exception:', e);
+    return false;
+  }
+}
+
+// ── REST API ENDPOINTS ───────────────────────────────────────────────────
+
+// POST /api/upload & POST /api/admin/images/upload
+const handleUpload = async (c) => {
+  const db = c.env?.DB;
+  try {
+    const body = await c.req.parseBody();
+    const file = body['file'];
+    if (!file || typeof file === 'string') {
+      return c.json({ success: false, error: 'No valid file provided' }, 400);
     }
 
-    // 2. Secondary R2 Bucket Fallback
-    if (!publicUrl && bucket) {
-      const ext = (file.name || 'image.png').split('.').pop() || 'png';
-      const key = `img-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
-      const arrayBuffer = await file.arrayBuffer();
-      await bucket.put(key, arrayBuffer, {
-        httpMetadata: { contentType: file.type || 'image/png' }
-      });
-      publicUrl = `/api/media/file/${key}`;
+    // MIME type validation
+    const type = file.type || '';
+    if (type && !type.startsWith('image/')) {
+      return c.json({ success: false, error: 'Unsupported file type. Only images allowed.' }, 400);
     }
 
-    if (!publicUrl) {
-      return c.json({ success: false, error: 'Upload failed: Cloudinary API and R2 storage unconfigured or unreachable' }, 500);
-    }
+    const category = body['category'] || 'general';
+    const altText = body['alt_text'] || file.name || '';
+    const folder = body['folder'] || 'wings_river_cafe';
+    const tags = body['tags'] || '';
+
+    const cloudResult = await uploadToCloudinary(file, folder, c, db);
 
     const id = `med-${Date.now()}`;
     if (db) {
       await ensureTables(db);
       await db.prepare(`
-        INSERT INTO media_library (id, url, alt_text, caption, category, file_size, dimensions)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
-      `).bind(id, publicUrl, altText, '', category, file.size || 0, '').run();
+        INSERT INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `).bind(
+        id, cloudResult.public_id, cloudResult.secure_url,
+        cloudResult.width, cloudResult.height, cloudResult.format,
+        altText, category, folder, tags, cloudResult.bytes || file.size || 0
+      ).run();
     }
 
-    return c.json({ success: true, url: publicUrl, media_id: id });
+    return c.json({
+      success: true,
+      id,
+      url: cloudResult.secure_url,
+      secure_url: cloudResult.secure_url,
+      public_id: cloudResult.public_id,
+      width: cloudResult.width,
+      height: cloudResult.height,
+      format: cloudResult.format
+    });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
 
-app.get('/media/file/:key', async (c) => {
-  const key = c.req.param('key');
-  const bucket = c.env?.BUCKET;
-  if (!bucket) return c.text('R2 Bucket unconfigured', 500);
+app.post('/upload', handleUpload);
+app.post('/admin/images/upload', handleUpload);
 
-  const object = await bucket.get(key);
-  if (!object) return c.text('File Not Found', 404);
-
-  const headers = new Headers();
-  object.writeHttpMetadata(headers);
-  if (object.httpEtag) headers.set('etag', object.httpEtag);
-  headers.set('Cache-Control', 'public, max-age=31536000');
-
-  return new Response(object.body, { headers });
-});
-
-app.get('/media', async (c) => {
+// GET /api/media & GET /api/images
+const handleGetImages = async (c) => {
   const db = c.env?.DB;
-  if (!db) return c.json({ success: true, data: [], d1_connected: false });
+  if (!db) return c.json({ success: true, data: [] });
   try {
     await ensureTables(db);
-    const list = await db.prepare("SELECT * FROM media_library ORDER BY created_at DESC").all();
+    const category = c.req.query('category');
+    let query = "SELECT * FROM media_library ORDER BY created_at DESC";
+    let params = [];
+    if (category) {
+      query = "SELECT * FROM media_library WHERE category = ? ORDER BY created_at DESC";
+      params = [category];
+    }
+    const list = await db.prepare(query).bind(...params).all();
     return c.json({ success: true, data: list.results || [] });
   } catch (e) {
     return c.json({ success: true, data: [], error: e.message });
   }
-});
+};
 
+app.get('/media', handleGetImages);
+app.get('/images', handleGetImages);
+
+// GET /api/media/:id & GET /api/images/:id
+const handleGetSingleImage = async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
+  try {
+    await ensureTables(db);
+    const id = c.req.param('id');
+    const item = await db.prepare("SELECT * FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).first();
+    if (!item) return c.json({ success: false, error: 'Image not found' }, 404);
+    return c.json({ success: true, data: item });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+};
+
+app.get('/media/:id', handleGetSingleImage);
+app.get('/images/:id', handleGetSingleImage);
+
+// POST /media (Create / Record image metadata manually in D1)
 app.post('/media', async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true });
@@ -810,34 +884,95 @@ app.post('/media', async (c) => {
     await ensureTables(db);
     const data = await c.req.json();
     const id = data.id || `med-${Date.now()}`;
+    const secureUrl = data.secure_url || data.url || '';
     await db.prepare(`
-      INSERT OR REPLACE INTO media_library (id, url, alt_text, caption, category, file_size, dimensions)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(id, data.url || '', data.alt_text || '', data.caption || '', data.category || 'general', Number(data.file_size) || 0, data.dimensions || '').run();
-    return c.json({ success: true, id });
+      INSERT OR REPLACE INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(
+      id, data.public_id || '', secureUrl, Number(data.width) || 0, Number(data.height) || 0,
+      data.format || 'jpg', data.alt_text || '', data.category || 'general',
+      data.folder || 'wings_river_cafe', data.tags || '', Number(data.file_size) || 0
+    ).run();
+    return c.json({ success: true, id, secure_url: secureUrl });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
 });
 
-app.delete('/media/:id', async (c) => {
+// PUT /api/media/:id & PUT /api/admin/images/:id (Image Replacement & Metadata Update)
+const handleUpdateImage = async (c) => {
   const db = c.env?.DB;
-  const bucket = c.env?.BUCKET;
-  if (!db) return c.json({ success: true });
+  if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
   try {
-    const mediaItem = await db.prepare("SELECT * FROM media_library WHERE id = ?").bind(c.req.param('id')).first();
-    if (mediaItem && mediaItem.url && mediaItem.url.startsWith('/api/media/file/')) {
-      const key = mediaItem.url.replace('/api/media/file/', '');
-      if (bucket) {
-        await bucket.delete(key).catch(() => {});
+    await ensureTables(db);
+    const id = c.req.param('id');
+    const item = await db.prepare("SELECT * FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).first();
+    if (!item) return c.json({ success: false, error: 'Image not found' }, 404);
+
+    let body = {};
+    try { body = await c.req.parseBody(); } catch { body = await c.req.json(); }
+
+    const newFile = body['file'];
+    let publicId = item.public_id;
+    let secureUrl = item.secure_url;
+    let width = item.width;
+    let height = item.height;
+    let format = item.format;
+    let fileSize = item.file_size;
+
+    // Replacement logic: Upload new asset to Cloudinary, destroy old Cloudinary asset
+    if (newFile && typeof newFile !== 'string') {
+      const cloudResult = await uploadToCloudinary(newFile, item.folder || 'wings_river_cafe', c, db);
+      if (item.public_id) {
+        await destroyCloudinaryAsset(item.public_id, c, db);
       }
+      publicId = cloudResult.public_id;
+      secureUrl = cloudResult.secure_url;
+      width = cloudResult.width;
+      height = cloudResult.height;
+      format = cloudResult.format;
+      fileSize = cloudResult.bytes || newFile.size || 0;
     }
-    await db.prepare("DELETE FROM media_library WHERE id = ?").bind(c.req.param('id')).run();
-    return c.json({ success: true });
+
+    const altText = body['alt_text'] ?? item.alt_text;
+    const category = body['category'] ?? item.category;
+    const tags = body['tags'] ?? item.tags;
+
+    await db.prepare(`
+      UPDATE media_library
+      SET public_id = ?, secure_url = ?, width = ?, height = ?, format = ?, alt_text = ?, category = ?, tags = ?, file_size = ?, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ? OR public_id = ?
+    `).bind(publicId, secureUrl, width, height, format, altText, category, tags, fileSize, id, id).run();
+
+    return c.json({ success: true, id, secure_url: secureUrl, public_id: publicId });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
-});
+};
+
+app.put('/media/:id', handleUpdateImage);
+app.put('/admin/images/:id', handleUpdateImage);
+
+// DELETE /api/media/:id & DELETE /api/admin/images/:id (Deletes asset from Cloudinary & record from D1)
+const handleDeleteImage = async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: false, error: 'Database unavailable' }, 503);
+  try {
+    await ensureTables(db);
+    const id = c.req.param('id');
+    const item = await db.prepare("SELECT * FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).first();
+    if (item && item.public_id) {
+      await destroyCloudinaryAsset(item.public_id, c, db);
+    }
+    await db.prepare("DELETE FROM media_library WHERE id = ? OR public_id = ?").bind(id, id).run();
+    return c.json({ success: true, message: 'Image deleted from Cloudinary and D1' });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+};
+
+app.delete('/media/:id', handleDeleteImage);
+app.delete('/admin/images/:id', handleDeleteImage);
 
 // ── GLOBAL SITE SETTINGS & DASHBOARD STATS ──────────────────────────────────
 app.get('/settings', async (c) => {

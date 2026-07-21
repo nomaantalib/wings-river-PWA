@@ -98,6 +98,8 @@ export {
   getDashboardStats,
   uploadMediaFile,
   uploadCloudinaryFile,
+  updateMediaItem,
+  getCloudinaryOptimizedUrl,
   // Promo Pages
   getStoredPromoPages,
   savePromoPage,

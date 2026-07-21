@@ -693,18 +693,21 @@ export default function AdminPage() {
     showToast('Static page saved successfully!');
   };
 
-  // Media Library Upload
+  // Media Library Upload & Save
   const handleMediaUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!mediaModal) return;
+    const secureUrl = mediaModal.secure_url || mediaModal.url || '';
     const itemToSave = {
       id: mediaModal.id || `med-${Date.now()}`,
-      url: mediaModal.url || '',
+      public_id: mediaModal.public_id || '',
+      secure_url: secureUrl,
+      url: secureUrl,
       alt_text: mediaModal.alt_text || '',
-      caption: mediaModal.caption || '',
       category: mediaModal.category || 'general',
-      file_size: Number(mediaModal.file_size) || 0,
-      dimensions: mediaModal.dimensions || ''
+      folder: mediaModal.folder || 'wings_river_cafe',
+      tags: mediaModal.tags || '',
+      file_size: Number(mediaModal.file_size) || 0
     };
     const fresh = await saveMediaItem(itemToSave);
     setMedia(fresh);
@@ -1639,33 +1642,48 @@ export default function AdminPage() {
               {activeTab === 'media' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-serif font-bold text-base">Media Library Files</h3>
-                    <button onClick={() => setMediaModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Upload Media</span></button>
+                    <h3 className="font-serif font-bold text-base flex items-center space-x-2">
+                      <span>Cloudinary Media Library</span>
+                      <span className="text-[10px] bg-sky-500/20 text-sky-400 px-2.5 py-0.5 rounded-full font-mono font-normal">D1 Synced</span>
+                    </h3>
+                    <button onClick={() => setMediaModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Upload New Image</span></button>
                   </div>
+                  {media.length === 0 && (
+                    <div className="text-center py-16 text-gray-500 text-sm">
+                      <FolderOpen className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                      <p>No media files uploaded yet. Upload your first Cloudinary image!</p>
+                    </div>
+                  )}
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {media.map((m) => (
-                      <div key={m.id} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
-                        <img src={m.url} alt={m.alt_text} className="w-full h-32 object-cover" />
-                        <div className="p-3">
-                          <h4 className="font-bold text-xs text-white truncate">{m.alt_text || 'No Alt Text'}</h4>
-                          <p className="text-[10px] text-gray-400">{m.category}</p>
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-                            <button
-                              onClick={() => { navigator.clipboard.writeText(m.url); showToast('Copied media URL!'); }}
-                              className="text-[9px] text-amber-400 hover:text-amber-300 flex items-center space-x-1 font-mono"
-                              title="Copy URL"
-                            >
-                              <Copy className="w-3 h-3" />
-                              <span>Copy Link</span>
-                            </button>
-                            <div className="flex items-center space-x-1">
-                              <button onClick={() => setMediaModal(m)} className={btnEdit} title="Edit Media Details"><Edit3 className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => setDeleteTarget({ label: m.alt_text || 'Media Item', action: async () => { await deleteMediaItem(m.id); loadAll(); } })} className={btnDanger} title="Delete Media Item"><Trash2 className="w-3.5 h-3.5" /></button>
+                    {media.map((m) => {
+                      const imgUrl = m.secure_url || m.url || '';
+                      return (
+                        <div key={m.id} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
+                          <img src={imgUrl} alt={m.alt_text || 'Media'} className="w-full h-32 object-cover" />
+                          <div className="p-3">
+                            <h4 className="font-bold text-xs text-white truncate">{m.alt_text || m.public_id || 'Image'}</h4>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="text-[10px] text-gray-400 truncate">{m.category || 'general'}</span>
+                              <span className="text-[9px] text-sky-400 font-mono">Cloudinary</span>
+                            </div>
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                              <button
+                                onClick={() => { navigator.clipboard.writeText(imgUrl); showToast('Copied Cloudinary URL!'); }}
+                                className="text-[9px] text-amber-400 hover:text-amber-300 flex items-center space-x-1 font-mono"
+                                title="Copy URL"
+                              >
+                                <Copy className="w-3 h-3" />
+                                <span>Copy Link</span>
+                              </button>
+                              <div className="flex items-center space-x-1">
+                                <button onClick={() => setMediaModal(m)} className={btnEdit} title="Edit / Replace Image"><Edit3 className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => setDeleteTarget({ label: m.alt_text || m.public_id || 'Media Item', action: async () => { await deleteMediaItem(m.id); loadAll(); } })} className={btnDanger} title="Delete Image from Cloudinary & D1"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
                             </div>
                           </div>
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               )}
