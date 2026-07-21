@@ -571,14 +571,14 @@ export default function AdminPage() {
       slug: blogModal.slug || (blogModal.title || '').toLowerCase().replace(/[^a-z0-9]+/g, '-'),
       excerpt: blogModal.excerpt || '',
       content: blogModal.content || '',
-      category: blogModal.category || 'Food & Dining',
+      category: blogModal.category || 'Riverside Experience',
       cover_image: blogModal.cover_image || '',
-      images: Array.isArray(blogModal.images) ? blogModal.images : (typeof blogModal.images === 'string' ? (blogModal.images as string).split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+      images: Array.isArray(blogModal.images) ? blogModal.images : [],
       video_url: blogModal.video_url || '',
       author: blogModal.author || 'Wings River Team',
       read_time: blogModal.read_time || '4 min read',
-      status: blogModal.status || 'draft',
-      is_published: blogModal.status === 'published'
+      status: blogModal.status || 'published',
+      is_published: blogModal.status !== 'draft'
     };
     const fresh = await saveBlog(blogToSave);
     setBlogs(fresh);
@@ -1546,23 +1546,76 @@ export default function AdminPage() {
               {activeTab === 'blogs' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
-                    <h3 className="font-serif font-bold text-base">Blogs & Stories</h3>
-                    <button onClick={() => setBlogModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Create Blog</span></button>
+                    <div>
+                      <h3 className="font-serif font-bold text-base">Blogs, News & River Stories</h3>
+                      <p className="text-xs text-gray-400">Manage published articles, gallery images, and content stories</p>
+                    </div>
+                    <button onClick={() => setBlogModal({ images: [] })} className={btnPrimary}>
+                      <Plus className="w-4 h-4" /> <span>Create Blog Story</span>
+                    </button>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {blogs.map((b) => (
-                      <div key={b.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold text-sm text-white">{b.title}</h4>
-                          <p className="text-[10px] text-gray-400">/{b.slug} • Author: {b.author} • status: {b.status}</p>
+
+                  {blogs.length === 0 ? (
+                    <div className="text-center py-16 text-gray-500 text-sm bg-dark-900 border border-white/5 rounded-2xl">
+                      <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                      <p>No blog posts found. Click "Create Blog Story" to add your first article!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      {blogs.map((b) => (
+                        <div key={b.id} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden flex flex-col justify-between group">
+                          <div className="relative">
+                            {b.cover_image ? (
+                              <img src={b.cover_image} alt={b.title} className="w-full h-44 object-cover" />
+                            ) : (
+                              <div className="w-full h-44 bg-white/5 flex items-center justify-center text-gray-500 text-xs">No Cover Image</div>
+                            )}
+                            <span className={`absolute top-3 right-3 px-2.5 py-1 text-[10px] font-bold rounded-full border backdrop-blur-md ${
+                              b.status === 'published' || b.is_published
+                                ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                            }`}>
+                              {b.status === 'published' || b.is_published ? 'Published' : 'Draft'}
+                            </span>
+                            <span className="absolute bottom-3 left-3 px-2 py-0.5 text-[9px] font-bold rounded bg-black/60 text-amber-400 font-mono">
+                              {b.category || 'Story'}
+                            </span>
+                          </div>
+
+                          <div className="p-4 flex-1 flex flex-col justify-between space-y-3">
+                            <div>
+                              <h4 className="font-bold text-sm text-white group-hover:text-amber-400 transition-colors line-clamp-1">{b.title}</h4>
+                              <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{b.excerpt || b.content}</p>
+                            </div>
+
+                            {/* Gallery Images Strip */}
+                            {Array.isArray(b.images) && b.images.length > 0 && (
+                              <div className="space-y-1 pt-2 border-t border-white/5">
+                                <span className="text-[10px] text-gray-400 font-mono">{b.images.length} Gallery Images:</span>
+                                <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 custom-scrollbar">
+                                  {b.images.map((img, idx) => (
+                                    <img key={idx} src={img} alt={`Gallery ${idx}`} className="w-10 h-10 object-cover rounded-lg border border-white/10 shrink-0" />
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+
+                            <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-gray-400 font-mono">
+                              <span>By {b.author || 'Admin'} • {b.read_time || '3 min read'}</span>
+                              <div className="flex items-center space-x-1.5">
+                                <button onClick={() => setBlogModal({ ...b, images: Array.isArray(b.images) ? b.images : [] })} className={btnEdit} title="Edit Article">
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={() => setDeleteTarget({ label: b.title, action: async () => { await deleteBlog(b.id); loadAll(); } })} className={btnDanger} title="Delete Article">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </div>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <button onClick={() => setBlogModal(b)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
-                          <button onClick={() => setDeleteTarget({ label: b.title, action: async () => { await deleteBlog(b.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -2004,33 +2057,98 @@ export default function AdminPage() {
 
         {/* Blog Modal */}
         {blogModal && (
-          <Modal title={blogModal.id ? "Edit Blog Post" : "Create Blog Post"} onClose={() => setBlogModal(null)}>
-            <form onSubmit={saveBlogPost} className="space-y-4">
+          <Modal title={blogModal.id ? "Edit Blog Story & Gallery" : "Create Blog Story & Gallery"} onClose={() => setBlogModal(null)}>
+            <form onSubmit={saveBlogPost} className="space-y-4 max-h-[80vh] overflow-y-auto custom-scrollbar pr-1">
               <div>
-                <label className={labelCls}>Blog Title</label>
-                <input type="text" required value={blogModal.title || ''} onChange={(e) => setBlogModal({ ...blogModal, title: e.target.value })} className={inputCls} />
+                <label className={labelCls}>Blog Article Title</label>
+                <input
+                  type="text"
+                  required
+                  value={blogModal.title || ''}
+                  onChange={(e) => setBlogModal({ ...blogModal, title: e.target.value })}
+                  className={inputCls}
+                  placeholder="e.g. Experience Lucknow’s Finest Riverside Dining & Speedboat Rides"
+                />
               </div>
-              <div>
-                <label className={labelCls}>Category</label>
-                <input type="text" value={blogModal.category || ''} onChange={(e) => setBlogModal({ ...blogModal, category: e.target.value })} className={inputCls} />
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Category</label>
+                  <input
+                    type="text"
+                    value={blogModal.category || ''}
+                    onChange={(e) => setBlogModal({ ...blogModal, category: e.target.value })}
+                    className={inputCls}
+                    placeholder="e.g. Riverside Experience"
+                  />
+                </div>
+                <div>
+                  <label className={labelCls}>Author Name</label>
+                  <input
+                    type="text"
+                    value={blogModal.author || ''}
+                    onChange={(e) => setBlogModal({ ...blogModal, author: e.target.value })}
+                    className={inputCls}
+                    placeholder="e.g. Wings River Team"
+                  />
+                </div>
               </div>
+
               <ImageUploader
-                label="Cover Image (URL or Upload File)"
+                label="Cover Image (Primary Featured Image)"
                 value={blogModal.cover_image || ''}
                 onChange={(val) => setBlogModal({ ...blogModal, cover_image: val })}
               />
-              <div>
-                <label className={labelCls}>Additional Image URLs (Comma-separated)</label>
-                <input
-                  type="text"
-                  placeholder="/images/img1.jpg, /images/img2.jpg"
-                  value={Array.isArray(blogModal.images) ? blogModal.images.join(', ') : (blogModal.images || '')}
-                  onChange={(e) => setBlogModal({ ...blogModal, images: e.target.value as any })}
-                  className={inputCls}
-                />
+
+              {/* Multiple Gallery Images Uploading One by One */}
+              <div className="p-3.5 bg-dark-950 border border-white/10 rounded-xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <label className={labelCls}>Blog Gallery Images ({Array.isArray(blogModal.images) ? blogModal.images.length : 0})</label>
+                  <span className="text-[10px] text-amber-400 font-mono">Upload images one by one</span>
+                </div>
+
+                {/* Thumbnail list of uploaded images with delete button */}
+                {Array.isArray(blogModal.images) && blogModal.images.length > 0 ? (
+                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
+                    {blogModal.images.map((imgUrl, idx) => (
+                      <div key={idx} className="relative group rounded-lg overflow-hidden border border-white/10 bg-black/40">
+                        <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-16 object-cover" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const updated = (blogModal.images || []).filter((_: any, i: number) => i !== idx);
+                            setBlogModal({ ...blogModal, images: updated });
+                          }}
+                          className="absolute top-1 right-1 p-1 bg-rose-600/90 text-white rounded-full hover:bg-rose-500 transition-colors shadow-md"
+                          title="Remove Image"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-[11px] text-gray-500 italic">No gallery images added yet. Upload images below one by one.</p>
+                )}
+
+                {/* Single Image Uploader Component to append to Gallery */}
+                <div className="pt-2 border-t border-white/5 space-y-2">
+                  <ImageUploader
+                    label="Upload Next Gallery Image (One by One)"
+                    value=""
+                    onChange={(newUrl) => {
+                      if (newUrl) {
+                        const currentImages = Array.isArray(blogModal.images) ? blogModal.images : [];
+                        setBlogModal({ ...blogModal, images: [...currentImages, newUrl] });
+                        showToast('Image added to blog gallery!');
+                      }
+                    }}
+                  />
+                </div>
               </div>
+
               <div>
-                <label className={labelCls}>Glimpse Video URL (MP4 Link or YouTube Embed)</label>
+                <label className={labelCls}>Glimpse Video URL (Optional MP4 link or YouTube embed)</label>
                 <input
                   type="text"
                   placeholder="https://www.youtube.com/watch?v=... or /videos/glimpse.mp4"
@@ -2039,21 +2157,53 @@ export default function AdminPage() {
                   className={inputCls}
                 />
               </div>
+
               <div>
-                <label className={labelCls}>Excerpt Summary</label>
-                <input type="text" value={blogModal.excerpt || ''} onChange={(e) => setBlogModal({ ...blogModal, excerpt: e.target.value })} className={inputCls} />
+                <label className={labelCls}>Short Excerpt Summary</label>
+                <input
+                  type="text"
+                  value={blogModal.excerpt || ''}
+                  onChange={(e) => setBlogModal({ ...blogModal, excerpt: e.target.value })}
+                  className={inputCls}
+                  placeholder="Brief summary of the article..."
+                />
               </div>
+
               <div>
-                <label className={labelCls}>Content Narrative (Full Text / Markdown)</label>
-                <textarea rows={6} value={blogModal.content || ''} onChange={(e) => setBlogModal({ ...blogModal, content: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
+                <label className={labelCls}>Blog Article Narrative Content (Full Text / Markdown)</label>
+                <textarea
+                  rows={6}
+                  value={blogModal.content || ''}
+                  onChange={(e) => setBlogModal({ ...blogModal, content: e.target.value })}
+                  className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-amber-500 custom-scrollbar"
+                  placeholder="Write complete blog article content here..."
+                />
               </div>
-              <div>
-                <label className="flex items-center space-x-2 text-xs text-white">
-                  <input type="checkbox" checked={blogModal.status === 'published'} onChange={(e) => setBlogModal({ ...blogModal, status: e.target.checked ? 'published' : 'draft' })} />
-                  <span>Publish Instantly</span>
-                </label>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Publication Status</label>
+                  <select
+                    value={blogModal.status || 'published'}
+                    onChange={(e) => setBlogModal({ ...blogModal, status: e.target.value as any })}
+                    className={inputCls}
+                  >
+                    <option value="published">Published (Live on Site)</option>
+                    <option value="draft">Draft (Hidden)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Estimated Read Time</label>
+                  <input
+                    type="text"
+                    value={blogModal.read_time || '4 min read'}
+                    onChange={(e) => setBlogModal({ ...blogModal, read_time: e.target.value })}
+                    className={inputCls}
+                  />
+                </div>
               </div>
-              <button type="submit" className={btnPrimary}>Save Blog Post</button>
+
+              <button type="submit" className={btnPrimary}><Save className="w-4 h-4" /> Save Blog Article</button>
             </form>
           </Modal>
         )}
