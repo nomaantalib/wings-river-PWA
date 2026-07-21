@@ -26,7 +26,7 @@ app.use('*', async (c, next) => {
   c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
 
-// Helper: Auto-Initialize D1 Tables if missing
+// Helper: Auto-Initialize & Seed D1 Tables if missing
 async function ensureTables(db) {
   if (!db) return;
   try {
@@ -50,6 +50,33 @@ async function ensureTables(db) {
       db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`)
     ]);
+
+    // Auto-seed Categories if table is empty
+    const catCheck = await db.prepare("SELECT COUNT(*) as cnt FROM menu_categories").first();
+    if (!catCheck || catCheck.cnt === 0) {
+      await db.batch([
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-beverages', 'Beverages', 'beverages', 'Hot teas, fresh lime, and soft drinks', 1),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-breakfast', 'Breakfast', 'breakfast', 'Parathas, Jalebi, and Bun Makkhan', 2),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-chaat', 'Chaat & Starters', 'chaat-starters', 'Lucknowi basket chaat, Agra bhalla, and golgappe', 3),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-drinks', 'Coolers & Mocktails', 'coolers-mocktails', 'Mojitos, iced teas, and pina colada', 4),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-coffee', 'Coffee & Shakes', 'coffee-shakes', 'Cold brew, espresso, and chocolate cookie shakes', 5),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-indian', 'Indian Main Course', 'indian-main-course', 'Dal Makhani, Paneer Lababdar, and deluxe thalis', 6),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-pizza', 'Pizza & Burgers', 'pizza-burgers', 'Wood-fired pizzas and gourmet cottage cheese burgers', 7),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-chinese', 'Chinese Wok & Waffles', 'chinese-wok-waffles', 'Hakka noodles, chilli paneer, and continental sizzlers', 8),
+        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-desserts', 'Desserts', 'desserts', 'Shahi Tukda, Gulab Jamun, and ice creams', 9)
+      ]);
+    }
+
+    // Auto-seed Water Sports if table is empty
+    const rideCheck = await db.prepare("SELECT COUNT(*) as cnt FROM water_sports").first();
+    if (!rideCheck || rideCheck.cnt === 0) {
+      await db.batch([
+        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-1', 'Speedboat Rush', 'High Speed', 500, 'Per Person', 'High-speed thrilling ride on the Gomti Riverfront with certified safety gear.', 'Most Popular', 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=600&q=80', '🛥️', 1),
+        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-2', 'Jet Ski Adventure', 'Solo Ride', 800, 'Per 10 Mins', 'Feel the adrenaline wave splashing along the Lucknow riverfront skyline.', 'Thrill Seeker', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80', '🏄', 2),
+        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-3', 'Banana Boat Ride', 'Group Fun', 400, 'Per Person', 'Perfect group fun ride for families & friends with full safety life jackets.', 'Family Choice', 'https://images.unsplash.com/photo-1520255870062-bd79d3865de7?auto=format&fit=crop&w=600&q=80', '🍌', 3),
+        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-4', 'Ringo Towable Ride', 'Splash Ride', 450, 'Per Person', 'Twist, spin, and bounce over river waves on our high-energy inflatables.', 'Super Fun', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80', '⭕', 4)
+      ]);
+    }
   } catch (e) {
     console.error('D1 Table Init Warning:', e);
   }
