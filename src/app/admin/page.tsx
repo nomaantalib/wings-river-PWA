@@ -630,7 +630,15 @@ export default function AdminPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div className="space-y-1">
               <label className={labelCls}>Administrator Password</label>
-              <input type="password" placeholder="••••••••••••" value={passwordInput} onChange={(e) => setPasswordInput(e.target.value)} className={inputCls} required />
+              <input
+                type="password"
+                placeholder="••••••••••••"
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                className={inputCls}
+                autoComplete="current-password"
+                required
+              />
             </div>
             <button type="submit" className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl shadow-lg hover:shadow-amber-500/20 transition-all">Sign In</button>
           </form>
