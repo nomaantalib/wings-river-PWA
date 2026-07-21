@@ -35,32 +35,41 @@ app.use('*', async (c, next) => {
 // Helper: Auto-Initialize & Seed D1 Tables if missing
 async function ensureTables(db) {
   if (!db) return;
-  try {
-    await db.batch([
-      db.prepare(`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password_hash TEXT, email TEXT, role TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS menu_categories (id TEXT PRIMARY KEY, name TEXT, slug TEXT, description TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, category_id TEXT, name TEXT, description TEXT, price REAL, is_veg INTEGER DEFAULT 1, image_url TEXT, is_available INTEGER DEFAULT 1, is_bestseller INTEGER DEFAULT 0, badge TEXT DEFAULT '', display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS menu_pages (page_number INTEGER PRIMARY KEY, title TEXT, subtitle TEXT, image TEXT, categories TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS promo_pages (id TEXT PRIMARY KEY, title TEXT, subtitle TEXT, image_url TEXT, cta_text TEXT, cta_link TEXT, status TEXT DEFAULT 'active', display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS blogs (id TEXT PRIMARY KEY, title TEXT, slug TEXT, excerpt TEXT, content TEXT, category TEXT, cover_image TEXT, images TEXT, video_url TEXT, author TEXT, read_time TEXT, status TEXT DEFAULT 'draft', version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, published_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS gallery (id TEXT PRIMARY KEY, title TEXT, category TEXT, image_url TEXT, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS reviews (id TEXT PRIMARY KEY, author_name TEXT, rating INTEGER DEFAULT 5, review_text TEXT, date_str TEXT, avatar_url TEXT, status TEXT DEFAULT 'approved', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS contact_messages (id TEXT PRIMARY KEY, name TEXT, phone TEXT, email TEXT, message TEXT, status TEXT DEFAULT 'unread', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS event_banners (id TEXT PRIMARY KEY, title TEXT, subtitle TEXT, image_url TEXT, cta_text TEXT, cta_link TEXT, status TEXT DEFAULT 'published', display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS water_sports (id TEXT PRIMARY KEY, name TEXT, category TEXT, price REAL, unit TEXT, description TEXT, badge TEXT, image TEXT, emoji TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS offers_discounts (id TEXT PRIMARY KEY, title TEXT, code TEXT UNIQUE, description TEXT, discount_value REAL, discount_type TEXT, status TEXT DEFAULT 'active', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS faqs (id TEXT PRIMARY KEY, question TEXT, answer TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS team_members (id TEXT PRIMARY KEY, name TEXT, role TEXT, bio TEXT, image TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS reservations (id TEXT PRIMARY KEY, name TEXT, phone TEXT, email TEXT, booking_type TEXT, date TEXT, time TEXT, guests INTEGER DEFAULT 2, special_requests TEXT, status TEXT DEFAULT 'pending', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS pages (id TEXT PRIMARY KEY, title TEXT, slug TEXT UNIQUE, content TEXT, status TEXT DEFAULT 'draft', display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, published_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS media_library (id TEXT PRIMARY KEY, public_id TEXT, secure_url TEXT NOT NULL, width INTEGER DEFAULT 0, height INTEGER DEFAULT 0, format TEXT DEFAULT 'jpg', alt_text TEXT DEFAULT '', category TEXT DEFAULT 'general', folder TEXT DEFAULT 'wings_river_cafe', tags TEXT DEFAULT '', file_size INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE INDEX IF NOT EXISTS idx_media_public_id ON media_library(public_id);`),
-      db.prepare(`CREATE INDEX IF NOT EXISTS idx_media_category ON media_library(category);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`)
-    ]);
+  
+  const tables = [
+    `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password_hash TEXT, email TEXT, role TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS menu_categories (id TEXT PRIMARY KEY, name TEXT, slug TEXT, description TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, category_id TEXT, name TEXT, description TEXT, price REAL, is_veg INTEGER DEFAULT 1, image_url TEXT, is_available INTEGER DEFAULT 1, is_bestseller INTEGER DEFAULT 0, badge TEXT DEFAULT '', display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS menu_pages (page_number INTEGER PRIMARY KEY, title TEXT, subtitle TEXT, image TEXT, categories TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS promo_pages (id TEXT PRIMARY KEY, title TEXT, subtitle TEXT, image_url TEXT, cta_text TEXT, cta_link TEXT, status TEXT DEFAULT 'active', display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS blogs (id TEXT PRIMARY KEY, title TEXT, slug TEXT, excerpt TEXT, content TEXT, category TEXT, cover_image TEXT, images TEXT, video_url TEXT, author TEXT, read_time TEXT, status TEXT DEFAULT 'draft', version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, published_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS gallery (id TEXT PRIMARY KEY, title TEXT, category TEXT, image_url TEXT, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS reviews (id TEXT PRIMARY KEY, author_name TEXT, rating INTEGER DEFAULT 5, review_text TEXT, date_str TEXT, avatar_url TEXT, status TEXT DEFAULT 'approved', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS contact_messages (id TEXT PRIMARY KEY, name TEXT, phone TEXT, email TEXT, message TEXT, status TEXT DEFAULT 'unread', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS event_banners (id TEXT PRIMARY KEY, title TEXT, subtitle TEXT, image_url TEXT, cta_text TEXT, cta_link TEXT, status TEXT DEFAULT 'published', display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS water_sports (id TEXT PRIMARY KEY, name TEXT, category TEXT, price REAL, unit TEXT, description TEXT, badge TEXT, image TEXT, emoji TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS offers_discounts (id TEXT PRIMARY KEY, title TEXT, code TEXT UNIQUE, description TEXT, discount_value REAL, discount_type TEXT, status TEXT DEFAULT 'active', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS faqs (id TEXT PRIMARY KEY, question TEXT, answer TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS team_members (id TEXT PRIMARY KEY, name TEXT, role TEXT, bio TEXT, image TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS reservations (id TEXT PRIMARY KEY, name TEXT, phone TEXT, email TEXT, booking_type TEXT, date TEXT, time TEXT, guests INTEGER DEFAULT 2, special_requests TEXT, status TEXT DEFAULT 'pending', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS pages (id TEXT PRIMARY KEY, title TEXT, slug TEXT UNIQUE, content TEXT, status TEXT DEFAULT 'draft', display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, published_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS media_library (id TEXT PRIMARY KEY, public_id TEXT, secure_url TEXT NOT NULL, width INTEGER DEFAULT 0, height INTEGER DEFAULT 0, format TEXT DEFAULT 'jpg', alt_text TEXT DEFAULT '', category TEXT DEFAULT 'general', folder TEXT DEFAULT 'wings_river_cafe', tags TEXT DEFAULT '', file_size INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE INDEX IF NOT EXISTS idx_media_public_id ON media_library(public_id);`,
+    `CREATE INDEX IF NOT EXISTS idx_media_category ON media_library(category);`,
+    `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`,
+    `CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`
+  ];
 
-    // Ensure site_settings exists in settings table
+  for (const sql of tables) {
+    try {
+      await db.prepare(sql).run();
+    } catch (e) {
+      console.warn('[D1 Table Setup]', sql.substring(0, 45), e.message);
+    }
+  }
+
+  try {
+    // 1. Ensure site_settings exists
     const settingsCheck = await db.prepare("SELECT value FROM settings WHERE key = ?").bind('site_settings').first();
     if (!settingsCheck) {
       const defaultSettings = {
@@ -74,44 +83,66 @@ async function ensureTables(db) {
         address: "Lucknow Water Sports, Laxman Mela Ground, Gomti Riverfront, Lucknow",
         opening_hours: "11:00 AM – 11:59 PM (Open All 7 Days)",
         instagram_url: "https://www.instagram.com/wingsriver",
-        facebook_url: "https://facebook.com",
         google_maps_url: "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA",
-        hero_bg_image: "/images/Screenshot_20260720-180621_Maps.png",
-        menu_booklet_cover: "/images/food_menu_collage.jpg",
+        hero_bg_image: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80",
+        menu_booklet_cover: "https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80",
         seo_meta_title: "Wings River Café | Multicuisine Restaurant & Water Sports Lucknow",
         seo_meta_description: "Lucknow's premier riverside café offering gourmet food, live music, and thrilling Gomti riverfront water sports rides."
       };
       await db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind('site_settings', JSON.stringify(defaultSettings)).run();
     }
 
-    // Auto-seed Categories if table is empty
+    // 2. Auto-seed Categories if empty
     const catCheck = await db.prepare("SELECT COUNT(*) as cnt FROM menu_categories").first();
     if (!catCheck || catCheck.cnt === 0) {
-      await db.batch([
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-beverages', 'Beverages', 'beverages', 'Hot teas, fresh lime, and soft drinks', 1),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-breakfast', 'Breakfast', 'breakfast', 'Parathas, Jalebi, and Bun Makkhan', 2),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-chaat', 'Chaat & Starters', 'chaat-starters', 'Lucknowi basket chaat, Agra bhalla, and golgappe', 3),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-drinks', 'Coolers & Mocktails', 'coolers-mocktails', 'Mojitos, iced teas, and pina colada', 4),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-coffee', 'Coffee & Shakes', 'coffee-shakes', 'Cold brew, espresso, and chocolate cookie shakes', 5),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-indian', 'Indian Main Course', 'indian-main-course', 'Dal Makhani, Paneer Lababdar, and deluxe thalis', 6),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-pizza', 'Pizza & Burgers', 'pizza-burgers', 'Wood-fired pizzas and gourmet cottage cheese burgers', 7),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-chinese', 'Chinese Wok & Waffles', 'chinese-wok-waffles', 'Hakka noodles, chilli paneer, and continental sizzlers', 8),
-        db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind('cat-desserts', 'Desserts', 'desserts', 'Shahi Tukda, Gulab Jamun, and ice creams', 9)
-      ]);
+      const cats = [
+        ['cat-beverages', 'Beverages', 'beverages', 'Hot teas, fresh lime, and soft drinks', 1],
+        ['cat-breakfast', 'Breakfast', 'breakfast', 'Parathas, Jalebi, and Bun Makkhan', 2],
+        ['cat-chaat', 'Chaat & Starters', 'chaat-starters', 'Lucknowi basket chaat, Agra bhalla, and golgappe', 3],
+        ['cat-drinks', 'Coolers & Mocktails', 'coolers-mocktails', 'Mojitos, iced teas, and pina colada', 4],
+        ['cat-coffee', 'Coffee & Shakes', 'coffee-shakes', 'Cold brew, espresso, and chocolate cookie shakes', 5],
+        ['cat-indian', 'Indian Main Course', 'indian-main-course', 'Dal Makhani, Paneer Lababdar, and deluxe thalis', 6],
+        ['cat-pizza', 'Pizza & Burgers', 'pizza-burgers', 'Wood-fired pizzas and gourmet cottage cheese burgers', 7],
+        ['cat-chinese', 'Chinese Wok & Waffles', 'chinese-wok-waffles', 'Hakka noodles, chilli paneer, and continental sizzlers', 8],
+        ['cat-desserts', 'Desserts', 'desserts', 'Shahi Tukda, Gulab Jamun, and ice creams', 9]
+      ];
+      for (const c of cats) {
+        await db.prepare("INSERT OR IGNORE INTO menu_categories (id, name, slug, description, display_order) VALUES (?, ?, ?, ?, ?)").bind(...c).run();
+      }
     }
 
-    // Auto-seed Water Sports if table is empty
+    // 3. Auto-seed Water Sports if empty
     const rideCheck = await db.prepare("SELECT COUNT(*) as cnt FROM water_sports").first();
     if (!rideCheck || rideCheck.cnt === 0) {
-      await db.batch([
-        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-1', 'Speedboat Rush', 'High Speed', 500, 'Per Person', 'High-speed thrilling ride on the Gomti Riverfront with certified safety gear.', 'Most Popular', 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=600&q=80', '🛥️', 1),
-        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-2', 'Jet Ski Adventure', 'Solo Ride', 800, 'Per 10 Mins', 'Feel the adrenaline wave splashing along the Lucknow riverfront skyline.', 'Thrill Seeker', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80', '🏄', 2),
-        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-3', 'Banana Boat Ride', 'Group Fun', 400, 'Per Person', 'Perfect group fun ride for families & friends with full safety life jackets.', 'Family Choice', 'https://images.unsplash.com/photo-1520255870062-bd79d3865de7?auto=format&fit=crop&w=600&q=80', '🍌', 3),
-        db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind('ride-4', 'Ringo Towable Ride', 'Splash Ride', 450, 'Per Person', 'Twist, spin, and bounce over river waves on our high-energy inflatables.', 'Super Fun', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80', '⭕', 4)
-      ]);
+      const rides = [
+        ['ride-1', 'Speedboat Rush', 'High Speed', 500, 'Per Person', 'High-speed thrilling ride on the Gomti Riverfront with certified safety gear.', 'Most Popular', 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=600&q=80', '🛥️', 1],
+        ['ride-2', 'Jet Ski Adventure', 'Solo Ride', 800, 'Per 10 Mins', 'Feel the adrenaline wave splashing along the Lucknow riverfront skyline.', 'Thrill Seeker', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80', '🏄', 2],
+        ['ride-3', 'Banana Boat Ride', 'Group Fun', 400, 'Per Person', 'Perfect group fun ride for families & friends with full safety life jackets.', 'Family Choice', 'https://images.unsplash.com/photo-1520255870062-bd79d3865de7?auto=format&fit=crop&w=600&q=80', '🍌', 3],
+        ['ride-4', 'Ringo Towable Ride', 'Splash Ride', 450, 'Per Person', 'Twist, spin, and bounce over river waves on our high-energy inflatables.', 'Super Fun', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80', '⭕', 4]
+      ];
+      for (const r of rides) {
+        await db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(...r).run();
+      }
+    }
+
+    // 4. Auto-seed Media Library if empty with Cloudinary URLs
+    const mediaCheck = await db.prepare("SELECT COUNT(*) as cnt FROM media_library").first();
+    if (!mediaCheck || mediaCheck.cnt === 0) {
+      const initialMedia = [
+        ['med-hero-1', 'wings_river_cafe/hero_bg', 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1400&q=80', 1400, 900, 'jpg', 'Wings River Cafe Dining Atmosphere', 'hero', 'wings_river_cafe', '', 180000],
+        ['med-menu-cover', 'wings_river_cafe/menu_cover', 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1200&q=80', 1200, 800, 'jpg', 'Food Menu Booklet Cover', 'menu', 'wings_river_cafe', '', 150000],
+        ['med-ride-1', 'wings_river_cafe/speedboat_rush', 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=800&q=80', 800, 600, 'jpg', 'Speedboat Rush Ride', 'watersports', 'wings_river_cafe', '', 120000],
+        ['med-ride-2', 'wings_river_cafe/jetski_adventure', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=800&q=80', 800, 600, 'jpg', 'Jet Ski Adventure', 'watersports', 'wings_river_cafe', '', 120000]
+      ];
+      for (const m of initialMedia) {
+        await db.prepare(`
+          INSERT OR IGNORE INTO media_library (id, public_id, secure_url, width, height, format, alt_text, category, folder, tags, file_size, created_at, updated_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+        `).bind(...m).run();
+      }
     }
   } catch (e) {
-    console.error('D1 Table Init Warning:', e);
+    console.error('[D1 Seed Error]', e);
   }
 }
 
