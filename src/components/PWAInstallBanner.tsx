@@ -2,55 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { Smartphone, Download, X, Sparkles, CheckCircle2 } from 'lucide-react';
+import { usePWAInstaller } from '@/controllers/PWAController';
 
 export default function PWAInstallBanner() {
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
-  const [showBanner, setShowBanner] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [installed, setInstalled] = useState(false);
+  const { isInstallable, isIOS, isStandalone, triggerInstall } = usePWAInstaller();
+  const [dismissed, setDismissed] = useState(false);
 
   useEffect(() => {
-    // Detect iOS
-    const ua = window.navigator.userAgent;
-    const ios = /iphone|ipad|ipod/i.test(ua);
-    setIsIOS(ios);
-
-    // Detect standalone mode
-    const isStandalone = window.matchMedia('(display-mode: standalone)').matches || (window.navigator as any).standalone;
-    if (isStandalone) {
-      setInstalled(true);
-      return;
+    if (typeof window !== 'undefined') {
+      const sessionDismissed = sessionStorage.getItem('wings_pwa_dismissed');
+      if (sessionDismissed === 'true') {
+        setDismissed(true);
+      }
     }
-
-    // Listen for PWA beforeinstallprompt event
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
-      setShowBanner(true);
-    };
-
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-
-    // Show banner on visit if not dismissed this session
-    const sessionDismissed = sessionStorage.getItem('wings_pwa_dismissed');
-    if (!sessionDismissed && !isStandalone) {
-      setShowBanner(true);
-    }
-
-    return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    };
   }, []);
 
   const handleInstallClick = async () => {
-    if (deferredPrompt) {
-      deferredPrompt.prompt();
-      const { outcome } = await deferredPrompt.userChoice;
-      if (outcome === 'accepted') {
-        setInstalled(true);
-        setShowBanner(false);
+    if (isInstallable) {
+      const installed = await triggerInstall();
+      if (installed) {
+        setDismissed(true);
       }
-      setDeferredPrompt(null);
     } else if (isIOS) {
       alert('To install Wings River App on iOS:\n1. Tap the Share button (⎋) at the bottom of Safari.\n2. Select "Add to Home Screen" (+).');
     } else {
@@ -59,11 +31,12 @@ export default function PWAInstallBanner() {
   };
 
   const handleDismiss = () => {
-    setShowBanner(false);
+    setDismissed(true);
     sessionStorage.setItem('wings_pwa_dismissed', 'true');
   };
 
-  if (!showBanner || installed) return null;
+  // Only show if it's installable or iOS AND not in standalone mode and not dismissed
+  if (isStandalone || dismissed || (!isInstallable && !isIOS)) return null;
 
   return (
     <div className="fixed bottom-4 left-4 right-4 md:left-auto md:right-4 md:max-w-md z-[150] animate-bounce-in">

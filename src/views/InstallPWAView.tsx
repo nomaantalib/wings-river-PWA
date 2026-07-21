@@ -39,8 +39,8 @@ export default function InstallPWAView() {
     }
   };
 
-  // Don't show if already in standalone app mode or user dismissed
-  if (isStandalone || (dismissed && !showIOSModal)) return null;
+  // Don't show if already in standalone app mode or user dismissed, or if not installable and not iOS
+  if (isStandalone || (dismissed && !showIOSModal) || (!isInstallable && !isIOS)) return null;
 
   return (
     <>
