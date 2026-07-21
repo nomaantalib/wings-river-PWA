@@ -83,7 +83,12 @@ async function ensureTables(db) {
     `ALTER TABLE media_library ADD COLUMN file_size INTEGER DEFAULT 0;`,
     `ALTER TABLE media_library ADD COLUMN updated_at DATETIME;`,
     `ALTER TABLE blogs ADD COLUMN created_at DATETIME;`,
-    `ALTER TABLE blogs ADD COLUMN updated_at DATETIME;`
+    `ALTER TABLE blogs ADD COLUMN updated_at DATETIME;`,
+    `ALTER TABLE blogs ADD COLUMN published_at DATETIME;`,
+    `ALTER TABLE blogs ADD COLUMN video_url TEXT;`,
+    `ALTER TABLE blogs ADD COLUMN version INTEGER DEFAULT 1;`,
+    `ALTER TABLE blogs ADD COLUMN is_deleted INTEGER DEFAULT 0;`,
+    `ALTER TABLE blogs ADD COLUMN images TEXT DEFAULT '[]';`
   ];
 
   for (const alterSql of columnsToAdd) {
