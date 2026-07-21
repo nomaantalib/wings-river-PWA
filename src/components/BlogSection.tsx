@@ -31,10 +31,20 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
     ? blogs
     : blogs.filter(b => b.category === selectedCategory);
 
+  const safeImages = (rawImgs: any, coverImage: string): string[] => {
+    let arr: string[] = [];
+    if (Array.isArray(rawImgs)) arr = rawImgs;
+    else if (typeof rawImgs === 'string' && rawImgs.trim()) {
+      try { const p = JSON.parse(rawImgs); if (Array.isArray(p)) arr = p; } catch { arr = [rawImgs.trim()]; }
+    }
+    const clean = arr.filter(x => typeof x === 'string' && x.trim());
+    return clean.length > 0 ? clean : [coverImage].filter(Boolean);
+  };
+
   const openBlogReader = (blog: BlogPost) => {
     setActiveBlog(blog);
     setActiveImageIndex(0);
-    const imgs = blog.images && blog.images.length > 0 ? blog.images : [blog.cover_image];
+    const imgs = safeImages(blog.images, blog.cover_image);
     setActiveBlogImages(imgs);
   };
 
@@ -116,7 +126,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
         {/* Blog Cards Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredBlogs.map((post) => {
-            const postImages = post.images && post.images.length > 0 ? post.images : [post.cover_image];
+            const postImages = safeImages(post.images, post.cover_image);
             const isExpanded = expandedCardId === post.id;
 
             return (

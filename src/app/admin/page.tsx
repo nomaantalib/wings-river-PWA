@@ -39,6 +39,82 @@ import {
   ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell
 } from 'lucide-react';
 
+// ── Image Compression & Array Normalization Helpers ─────────────────────────────
+const compressImage = (file: File, maxWidth: number = 1000, maxHeight: number = 1000, quality: number = 0.75): Promise<File> => {
+  return new Promise((resolve) => {
+    const timer = setTimeout(() => resolve(file), 2500);
+    try {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = (event) => {
+        const img = new Image();
+        img.src = event.target?.result as string;
+        img.onload = () => {
+          clearTimeout(timer);
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > height) {
+            if (width > maxWidth) {
+              height = Math.round((height * maxWidth) / width);
+              width = maxWidth;
+            }
+          } else {
+            if (height > maxHeight) {
+              width = Math.round((width * maxHeight) / height);
+              height = maxHeight;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob(
+              (blob) => {
+                if (blob) {
+                  const safeName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
+                  const compressedFile = new File([blob], safeName, {
+                    type: 'image/jpeg',
+                    lastModified: Date.now()
+                  });
+                  resolve(compressedFile);
+                } else {
+                  resolve(file);
+                }
+              },
+              'image/jpeg',
+              quality
+            );
+          } else {
+            resolve(file);
+          }
+        };
+        img.onerror = () => { clearTimeout(timer); resolve(file); };
+      };
+      reader.onerror = () => { clearTimeout(timer); resolve(file); };
+    } catch {
+      clearTimeout(timer);
+      resolve(file);
+    }
+  });
+};
+
+function normalizeImages(imgs: any): string[] {
+  if (Array.isArray(imgs)) return imgs.filter((x: any) => typeof x === 'string' && x.trim());
+  if (typeof imgs === 'string' && imgs.trim()) {
+    try {
+      const parsed = JSON.parse(imgs);
+      if (Array.isArray(parsed)) return parsed.filter((x: any) => typeof x === 'string' && x.trim());
+    } catch {
+      return [imgs.trim()];
+    }
+  }
+  return [];
+}
+
 function ImageUploader({
   value,
   onChange,
@@ -51,70 +127,6 @@ function ImageUploader({
   const [copied, setCopied] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadMsg, setUploadMsg] = useState('');
-
-  const compressImage = (file: File, maxWidth: number = 1000, maxHeight: number = 1000, quality: number = 0.75): Promise<File> => {
-    return new Promise((resolve) => {
-      // Mobile Safari timeout fallback: if canvas hangs, resolve original file after 2.5s
-      const timer = setTimeout(() => resolve(file), 2500);
-
-      try {
-        const reader = new FileReader();
-        reader.readAsDataURL(file);
-        reader.onload = (event) => {
-          const img = new Image();
-          img.src = event.target?.result as string;
-          img.onload = () => {
-            clearTimeout(timer);
-            const canvas = document.createElement('canvas');
-            let width = img.width;
-            let height = img.height;
-
-            if (width > height) {
-              if (width > maxWidth) {
-                height = Math.round((height * maxWidth) / width);
-                width = maxWidth;
-              }
-            } else {
-              if (height > maxHeight) {
-                width = Math.round((width * maxHeight) / height);
-                height = maxHeight;
-              }
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            const ctx = canvas.getContext('2d');
-            if (ctx) {
-              ctx.drawImage(img, 0, 0, width, height);
-              canvas.toBlob(
-                (blob) => {
-                  if (blob) {
-                    const safeName = (file.name || 'image').replace(/\.[^/.]+$/, "") + ".jpg";
-                    const compressedFile = new File([blob], safeName, {
-                      type: 'image/jpeg',
-                      lastModified: Date.now()
-                    });
-                    resolve(compressedFile);
-                  } else {
-                    resolve(file);
-                  }
-                },
-                'image/jpeg',
-                quality
-              );
-            } else {
-              resolve(file);
-            }
-          };
-          img.onerror = () => { clearTimeout(timer); resolve(file); };
-        };
-        reader.onerror = () => { clearTimeout(timer); resolve(file); };
-      } catch {
-        clearTimeout(timer);
-        resolve(file);
-      }
-    });
-  };
 
   const handleFileUpload = async (file: File) => {
     if (!file) return;
@@ -224,6 +236,127 @@ function ImageUploader({
           </span>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Multi-Image Batch Uploader Component ──────────────────────────────────────
+function MultiImageUploader({
+  label = "Upload Gallery Images (Select Multiple Files or Paste URL)",
+  onUploadComplete
+}: {
+  label?: string;
+  onUploadComplete: (urls: string[]) => void;
+}) {
+  const [urlInput, setUrlInput] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState('');
+
+  const handleMultipleFiles = async (files: FileList | File[]) => {
+    const fileList = Array.from(files).filter(f => 
+      !f.type || f.type.startsWith('image/') || f.type.includes('heic') || f.type.includes('heif') || /\.(jpg|jpeg|png|webp|gif|heic|heif)$/i.test(f.name)
+    );
+    if (fileList.length === 0) return;
+
+    setIsUploading(true);
+    const uploadedUrls: string[] = [];
+    let successCount = 0;
+
+    for (let i = 0; i < fileList.length; i++) {
+      const file = fileList[i];
+      setUploadMsg(`Uploading image ${i + 1} of ${fileList.length}...`);
+      try {
+        const compressed = await compressImage(file);
+        const result = await uploadMediaFile(compressed, 'blog_gallery', compressed.name);
+        if (result.success && result.url) {
+          uploadedUrls.push(result.url);
+          successCount++;
+        }
+      } catch (err) {
+        console.error('[MultiUpload Error]:', file.name, err);
+      }
+    }
+
+    setIsUploading(false);
+    if (uploadedUrls.length > 0) {
+      setUploadMsg(`Uploaded ${successCount} image(s) to Cloudinary & D1 ✓`);
+      onUploadComplete(uploadedUrls);
+    } else {
+      setUploadMsg('Failed to upload selected images');
+    }
+    setTimeout(() => setUploadMsg(''), 5000);
+  };
+
+  const handleAddUrl = () => {
+    if (!urlInput.trim()) return;
+    onUploadComplete([urlInput.trim()]);
+    setUrlInput('');
+    setUploadMsg('Added image URL ✓');
+    setTimeout(() => setUploadMsg(''), 3000);
+  };
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <label className="block text-xs font-semibold text-gray-300">{label}</label>
+        {uploadMsg && (
+          <span className={`text-[10px] font-mono ${uploadMsg.includes('✓') ? 'text-emerald-400' : 'text-amber-400'}`}>
+            {uploadMsg}
+          </span>
+        )}
+      </div>
+
+      <div
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+            handleMultipleFiles(e.dataTransfer.files);
+          }
+        }}
+        className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 p-2 bg-dark-950 border border-dashed border-amber-500/30 rounded-2xl hover:border-amber-400 transition-all group"
+      >
+        <div className="flex-1 flex items-center space-x-2">
+          <input
+            type="text"
+            placeholder="Paste single Image URL or Drag & Drop Multiple Files Here..."
+            value={urlInput}
+            onChange={(e) => setUrlInput(e.target.value)}
+            className="flex-1 px-3 py-2 text-xs bg-transparent text-white placeholder-gray-500 focus:outline-none"
+          />
+          {urlInput.trim() && (
+            <button
+              type="button"
+              onClick={handleAddUrl}
+              className="px-3 py-2 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl shadow transition-all shrink-0"
+            >
+              Add URL
+            </button>
+          )}
+        </div>
+
+        <label className={`px-4 py-2 font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md shrink-0 flex items-center justify-center space-x-1.5 ${
+          isUploading
+            ? 'bg-amber-500/50 text-dark-950 cursor-wait'
+            : 'bg-amber-500 hover:bg-amber-400 text-dark-950'
+        }`}>
+          <Upload className="w-4 h-4" />
+          <span>{isUploading ? 'Uploading Batch…' : 'Upload Multiple Files'}</span>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            disabled={isUploading}
+            onChange={(e) => {
+              if (e.target.files && e.target.files.length > 0) {
+                handleMultipleFiles(e.target.files);
+                e.target.value = '';
+              }
+            }}
+            className="hidden"
+          />
+        </label>
+      </div>
     </div>
   );
 }
@@ -1615,12 +1748,11 @@ export default function AdminPage() {
                               <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">{b.excerpt || b.content}</p>
                             </div>
 
-                            {/* Gallery Images Strip */}
-                            {Array.isArray(b.images) && b.images.length > 0 && (
+                            {normalizeImages(b.images).length > 0 && (
                               <div className="space-y-1 pt-2 border-t border-white/5">
-                                <span className="text-[10px] text-gray-400 font-mono">{b.images.length} Gallery Images:</span>
+                                <span className="text-[10px] text-gray-400 font-mono">{normalizeImages(b.images).length} Gallery Images:</span>
                                 <div className="flex items-center space-x-1.5 overflow-x-auto pb-1 custom-scrollbar">
-                                  {b.images.map((img, idx) => (
+                                  {normalizeImages(b.images).map((img, idx) => (
                                     <img key={idx} src={img} alt={`Gallery ${idx}`} className="w-10 h-10 object-cover rounded-lg border border-white/10 shrink-0" />
                                   ))}
                                 </div>
@@ -2127,48 +2259,63 @@ export default function AdminPage() {
                 onChange={(val) => setBlogModal({ ...blogModal, cover_image: val })}
               />
 
-              {/* Multiple Gallery Images Uploading One by One */}
-              <div className="p-3.5 bg-dark-950 border border-white/10 rounded-xl space-y-3">
+              {/* Multiple Gallery Images Uploading */}
+              <div className="p-4 bg-dark-950 border border-white/10 rounded-2xl space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className={labelCls}>Blog Gallery Images ({Array.isArray(blogModal.images) ? blogModal.images.length : 0})</label>
-                  <span className="text-[10px] text-amber-400 font-mono">Upload images one by one</span>
+                  <label className={labelCls}>Blog Gallery Images ({normalizeImages(blogModal.images).length})</label>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-[10px] text-amber-400 font-mono">Upload multiple photos at once</span>
+                    {normalizeImages(blogModal.images).length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => setBlogModal({ ...blogModal, images: [] })}
+                        className="text-[10px] text-rose-400 hover:text-rose-300 font-mono underline"
+                      >
+                        Clear All
+                      </button>
+                    )}
+                  </div>
                 </div>
 
                 {/* Thumbnail list of uploaded images with delete button */}
-                {Array.isArray(blogModal.images) && blogModal.images.length > 0 ? (
-                  <div className="grid grid-cols-3 sm:grid-cols-4 gap-2">
-                    {blogModal.images.map((imgUrl, idx) => (
-                      <div key={idx} className="relative group rounded-lg overflow-hidden border border-white/10 bg-black/40">
-                        <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-16 object-cover" />
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updated = (blogModal.images || []).filter((_: any, i: number) => i !== idx);
-                            setBlogModal({ ...blogModal, images: updated });
-                          }}
-                          className="absolute top-1 right-1 p-1 bg-rose-600/90 text-white rounded-full hover:bg-rose-500 transition-colors shadow-md"
-                          title="Remove Image"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
+                {normalizeImages(blogModal.images).length > 0 ? (
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 max-h-56 overflow-y-auto custom-scrollbar p-1">
+                    {normalizeImages(blogModal.images).map((imgUrl, idx) => (
+                      <div key={idx} className="relative group rounded-xl overflow-hidden border border-white/10 bg-black/40 h-24 flex items-center justify-center">
+                        <img src={imgUrl} alt={`Gallery ${idx + 1}`} className="w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center space-x-1.5">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const current = normalizeImages(blogModal.images);
+                              const updated = current.filter((_, i) => i !== idx);
+                              setBlogModal({ ...blogModal, images: updated });
+                            }}
+                            className="px-2 py-1 bg-rose-600 hover:bg-rose-500 text-white rounded-lg text-[10px] font-bold transition-colors shadow-md flex items-center space-x-1"
+                            title="Remove Image"
+                          >
+                            <Trash2 className="w-3 h-3" />
+                            <span>Remove</span>
+                          </button>
+                        </div>
+                        <span className="absolute bottom-1 left-1 px-1.5 py-0.5 rounded bg-black/80 text-[9px] text-amber-400 font-mono font-bold">#{idx + 1}</span>
                       </div>
                     ))}
                   </div>
                 ) : (
-                  <p className="text-[11px] text-gray-500 italic">No gallery images added yet. Upload images below one by one.</p>
+                  <div className="text-center py-4 text-xs text-gray-500 border border-dashed border-white/10 rounded-xl">
+                    No gallery images added yet. Click &apos;Upload Multiple Files&apos; below to select multi-photos.
+                  </div>
                 )}
 
-                {/* Single Image Uploader Component to append to Gallery */}
-                <div className="pt-2 border-t border-white/5 space-y-2">
-                  <ImageUploader
-                    label="Upload Next Gallery Image (One by One)"
-                    value=""
-                    onChange={(newUrl) => {
-                      if (newUrl) {
-                        const currentImages = Array.isArray(blogModal.images) ? blogModal.images : [];
-                        setBlogModal({ ...blogModal, images: [...currentImages, newUrl] });
-                        showToast('Image added to blog gallery!');
-                      }
+                {/* Multi-Image Uploader Component */}
+                <div className="pt-2 border-t border-white/5">
+                  <MultiImageUploader
+                    label="Upload Photos to Blog Gallery (Select multiple files at once)"
+                    onUploadComplete={(newUrls) => {
+                      const currentImages = normalizeImages(blogModal.images);
+                      setBlogModal({ ...blogModal, images: [...currentImages, ...newUrls] });
+                      showToast(`${newUrls.length} image(s) added to blog gallery!`);
                     }}
                   />
                 </div>
