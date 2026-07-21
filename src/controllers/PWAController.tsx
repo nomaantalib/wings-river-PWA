@@ -26,14 +26,30 @@ export function usePWAInstaller() {
 
     // Check Standalone Mode (Already installed)
     const isStandaloneMode =
-      window.matchMedia('(display-mode: standalone)').matches ||
-      (window.navigator as any).standalone === true;
+      typeof window !== 'undefined' &&
+      (window.matchMedia('(display-mode: standalone)').matches ||
+       (window.navigator as any).standalone === true);
     setIsStandalone(isStandaloneMode);
 
     // Detect iOS
-    const userAgent = window.navigator.userAgent.toLowerCase();
+    const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent.toLowerCase() : '';
     const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
     setIsIOS(isIosDevice && !isStandaloneMode);
+
+    // Load globally captured deferred prompt if it fired early
+    if (typeof window !== 'undefined') {
+      const globalPrompt = (window as any).deferredInstallPrompt;
+      if (globalPrompt) {
+        setDeferredPrompt(globalPrompt);
+        setIsInstallable(true);
+      }
+
+      // Listen for prompt ready callback if fired mid-load
+      (window as any).onBeforeInstallPromptReady = (e: BeforeInstallPromptEvent) => {
+        setDeferredPrompt(e);
+        setIsInstallable(true);
+      };
+    }
 
     // Catch Chrome/Android install prompt
     const handleBeforeInstallPrompt = (e: Event) => {
@@ -46,6 +62,9 @@ export function usePWAInstaller() {
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+      if (typeof window !== 'undefined') {
+        delete (window as any).onBeforeInstallPromptReady;
+      }
     };
   }, []);
 

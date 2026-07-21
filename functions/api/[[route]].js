@@ -81,7 +81,9 @@ async function ensureTables(db) {
     `ALTER TABLE media_library ADD COLUMN folder TEXT DEFAULT 'wings_river_cafe';`,
     `ALTER TABLE media_library ADD COLUMN tags TEXT DEFAULT '';`,
     `ALTER TABLE media_library ADD COLUMN file_size INTEGER DEFAULT 0;`,
-    `ALTER TABLE media_library ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;`
+    `ALTER TABLE media_library ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;`,
+    `ALTER TABLE blogs ADD COLUMN created_at DATETIME DEFAULT CURRENT_TIMESTAMP;`,
+    `ALTER TABLE blogs ADD COLUMN updated_at DATETIME DEFAULT CURRENT_TIMESTAMP;`
   ];
 
   for (const alterSql of columnsToAdd) {

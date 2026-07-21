@@ -68,6 +68,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         {/* Auto-reload window on ChunkLoadError or script asset 404 failures (e.g. after new deploys) */}
         <script dangerouslySetInnerHTML={{
           __html: `
+            window.addEventListener('beforeinstallprompt', function(e) {
+              e.preventDefault();
+              window.deferredInstallPrompt = e;
+              if (typeof window.onBeforeInstallPromptReady === 'function') {
+                window.onBeforeInstallPromptReady(e);
+              }
+            });
             window.addEventListener('error', function(e) {
               var msg = e.message || '';
               var target = e.target || {};
