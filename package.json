@@ -13,7 +13,8 @@
     "db:schema": "wrangler d1 execute DB --remote --file=schema.sql",
     "db:seed": "wrangler d1 execute DB --remote --file=seed.sql",
     "db:setup": "wrangler d1 execute DB --remote --file=schema.sql && wrangler d1 execute DB --remote --file=seed.sql",
-    "db:setup:local": "wrangler d1 execute DB --local --file=schema.sql && wrangler d1 execute DB --local --file=seed.sql"
+    "db:setup:local": "wrangler d1 execute DB --local --file=schema.sql && wrangler d1 execute DB --local --file=seed.sql",
+    "db:patch-blogs": "wrangler d1 execute DB --remote --command=\"ALTER TABLE blogs ADD COLUMN created_at DATETIME; ALTER TABLE blogs ADD COLUMN updated_at DATETIME;\""
   },
   "dependencies": {
     "clsx": "^2.1.1",
