@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import LoadingScreen from '@/components/LoadingScreen';
-import BackgroundMusic from '@/components/BackgroundMusic';
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
@@ -63,7 +62,6 @@ export default function Home() {
       <FloatingActions />
       <PWAInstallBanner />
       <InstallPWAView />
-      <BackgroundMusic />
 
       <BookingModal
         isOpen={isBookingOpen}

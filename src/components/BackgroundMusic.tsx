@@ -204,11 +204,11 @@ export default function BackgroundMusic() {
   const isPlaying = started && !muted;
 
   return (
-    <div className="fixed bottom-20 right-4 z-[90] flex flex-col items-end space-y-2">
+    <div className="relative flex flex-col items-end space-y-2">
       {/* Volume slider (popover) */}
       {showVolume && (
-        <div className="flex items-center space-x-2 px-3 py-2 rounded-2xl border border-white/10 shadow-xl backdrop-blur-xl animate-fade-in"
-          style={{ background: 'rgba(10,6,4,0.88)' }}>
+        <div className="absolute bottom-full mb-2 flex items-center space-x-2 px-3 py-2 rounded-2xl border border-white/10 shadow-xl backdrop-blur-xl animate-fade-in"
+          style={{ background: 'rgba(10,6,4,0.92)' }}>
           <VolumeX className="w-3 h-3 text-gray-500" />
           <input type="range" min="0" max="0.6" step="0.01" value={volume}
             onChange={handleVolumeChange}
@@ -224,20 +224,19 @@ export default function BackgroundMusic() {
         onClick={toggleMute}
         onContextMenu={e => { e.preventDefault(); setShowVolume(v => !v); }}
         title={`${muted ? 'Turn On' : 'Mute'} background music (right-click for volume)`}
-        className={`flex items-center space-x-2 px-3.5 py-2.5 rounded-2xl border transition-all duration-500 cursor-pointer backdrop-blur-xl group shadow-lg ${
+        className={`flex items-center space-x-2 px-3 py-2.5 rounded-full border transition-all duration-500 cursor-pointer backdrop-blur-xl group shadow-xl ${
           isPlaying
-            ? 'bg-gradient-to-r from-mint-500/80 to-gold-500/80 border-mint-400/40 shadow-mint-500/10 scale-105 animate-pulse'
-            : 'bg-dark-950/80 border-white/10 hover:border-mint-400/40'
+            ? 'bg-gradient-to-r from-mint-500 via-emerald-400 to-gold-400 text-dark-950 border-mint-300 shadow-mint-500/20 scale-105 animate-pulse'
+            : 'bg-dark-950/90 text-gray-300 border-white/20 hover:border-mint-400/60'
         }`}
-        style={{ minWidth: '90px' }}
       >
         {/* Wave bars visualizer */}
         <div className="flex items-end space-x-0.5 h-4 shrink-0">
-          {waveHeights.slice(0, 6).map((h, i) => (
+          {waveHeights.slice(0, 5).map((h, i) => (
             <div key={i} className="w-0.5 rounded-full transition-all duration-75"
               style={{
                 height: `${h}px`,
-                background: muted ? 'rgba(156,163,175,0.5)' : 'linear-gradient(to top, #6ee7b7, #fbbf24)',
+                background: muted ? 'rgba(156,163,175,0.5)' : 'linear-gradient(to top, #042f2e, #78350f)',
                 boxShadow: muted ? 'none' : '0 0 3px rgba(110,231,183,0.6)',
               }}
             />
@@ -246,11 +245,11 @@ export default function BackgroundMusic() {
         
         {/* Icon */}
         <div className={`transition-colors duration-300 ${isPlaying ? 'text-dark-950' : 'text-mint-400 group-hover:text-mint-300'}`}>
-          {muted ? <VolumeX className="w-3.5 h-3.5 text-gray-500" /> : <Volume2 className="w-3.5 h-3.5" />}
+          {muted ? <VolumeX className="w-4 h-4 text-rose-400" /> : <Volume2 className="w-4 h-4" />}
         </div>
 
-        <span className={`text-[9px] font-extrabold uppercase tracking-wider hidden sm:block ${isPlaying ? 'text-dark-950' : 'text-gray-400 group-hover:text-white'}`}>
-          {muted ? 'Off' : 'On'}
+        <span className={`text-[10px] font-extrabold uppercase tracking-wider ${isPlaying ? 'text-dark-950' : 'text-gray-300 group-hover:text-white'}`}>
+          {muted ? 'Sound Off' : 'Sound On'}
         </span>
       </button>
     </div>
