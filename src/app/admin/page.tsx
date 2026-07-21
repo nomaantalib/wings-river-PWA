@@ -439,6 +439,7 @@ export default function AdminPage() {
   const [toastMsg, setToastMsg] = useState<string | null>(null);
   const [isSavingBlog, setIsSavingBlog] = useState(false);
   const [isSavingSettings, setIsSavingSettings] = useState(false);
+  const [isSavingGallery, setIsSavingGallery] = useState(false);
 
   const showToast = (msg: string) => {
     setToastMsg(msg);
@@ -739,7 +740,7 @@ export default function AdminPage() {
   // Photo Gallery Save
   const saveGalleryPhoto = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!galleryModal) return;
+    if (!galleryModal || isSavingGallery) return;
     const photoToSave = {
       id: galleryModal.id || `gal-${Date.now()}`,
       title: galleryModal.title || '',
@@ -748,10 +749,25 @@ export default function AdminPage() {
       featured: galleryModal.featured || false,
       display_order: Number(galleryModal.display_order) || 0
     };
-    const fresh = await saveGalleryItem(photoToSave);
-    setGallery(fresh);
+    setIsSavingGallery(true);
+    // Optimistic UI update
+    setGallery(prev => {
+      const idx = prev.findIndex(p => p.id === photoToSave.id);
+      if (idx >= 0) { const next = [...prev]; next[idx] = photoToSave as any; return next; }
+      return [...prev, photoToSave as any];
+    });
     setGalleryModal(null);
-    showToast('Gallery photo saved successfully!');
+    try {
+      const fresh = await saveGalleryItem(photoToSave as any);
+      if (fresh && fresh.length > 0) setGallery(fresh);
+      showToast('Gallery photo saved successfully!');
+    } catch (err: any) {
+      showToast(`Save failed: ${err?.message || 'Unknown error'}`);
+      // Re-read to restore state consistency
+      getStoredGalleryItems().then(g => { if (g.length > 0) setGallery(g); });
+    } finally {
+      setIsSavingGallery(false);
+    }
   };
 
   // Water Sports Save
@@ -2411,7 +2427,13 @@ export default function AdminPage() {
                   <span>Feature on Homepage Gallery</span>
                 </label>
               </div>
-              <button type="submit" className={btnPrimary}>Save Photo</button>
+              <button type="submit" disabled={isSavingGallery} className={`${btnPrimary} ${isSavingGallery ? 'opacity-70 cursor-wait' : ''}`}>
+                {isSavingGallery ? (
+                  <><svg className="animate-spin w-4 h-4 mr-1.5" fill="none" viewBox="0 0 24 24"><circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/><path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8z"/></svg>Saving Photo…</>
+                ) : (
+                  <span>Save Photo</span>
+                )}
+              </button>
             </form>
           </Modal>
         )}

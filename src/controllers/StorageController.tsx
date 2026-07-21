@@ -230,7 +230,7 @@ export async function deleteReservation(id: string): Promise<Reservation[]> {
 export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
   try {
     const res = await apiFetch('/api/gallery');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+    if (res.success && Array.isArray(res.data)) {
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredGalleryItems:', e); }
@@ -238,7 +238,12 @@ export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
-  await apiPost('/api/gallery', item);
+  const result = await apiPost('/api/gallery', item);
+  if (!result.success) {
+    throw new Error(result.error || 'Failed to save gallery photo to D1');
+  }
+  // Wait for D1 write propagation
+  await new Promise(r => setTimeout(r, 400));
   notifySync();
   return getStoredGalleryItems();
 }
@@ -249,6 +254,8 @@ export async function updateGalleryItem(item: GalleryItem): Promise<GalleryItem[
 
 export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
   await apiDelete(`/api/gallery/${id}`);
+  // Wait for D1 delete propagation
+  await new Promise(r => setTimeout(r, 300));
   notifySync();
   return getStoredGalleryItems();
 }
