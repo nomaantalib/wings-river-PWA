@@ -10,7 +10,6 @@ export { INITIAL_BLOGS } from '@/models/BlogModel';
 export { INITIAL_GALLERY } from '@/models/GalleryModel';
 export { INITIAL_REVIEWS } from '@/models/ReviewModel';
 
-export type { EventBanner } from '@/controllers/StorageController';
 export type { RideTicket } from '@/models/WaterSportsModel';
 export { WATER_SPORTS_RIDES } from '@/models/WaterSportsModel';
 
@@ -93,6 +92,15 @@ export {
   deletePage,
   // Helper
   getApiUrl,
+  // Site Settings & Dashboard
+  getSiteSettings,
+  saveSiteSettings,
+  getDashboardStats,
+  uploadMediaFile,
+  // Promo Pages
+  getStoredPromoPages,
+  savePromoPage,
+  deletePromoPage,
 } from '@/controllers/StorageController';
 
 export type {
@@ -103,4 +111,7 @@ export type {
   MediaItem,
   SitePage,
   AuditLog,
+  EventBanner,
+  SiteSettings,
+  PromoPage,
 } from '@/controllers/StorageController';

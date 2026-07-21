@@ -9,6 +9,10 @@ binding = "DB"
 database_name = "wings_river_cafe_reservations"
 database_id = "c2491a90-0f90-4a1e-8a4d-852e6588a68a"
 
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "wings-river-cafe-media"
+
 [vars]
 ADMIN_SECRET_KEY = "wings_river_cafe_admin_secret_2026"
 NEXT_PUBLIC_PHONE = "07310008020"

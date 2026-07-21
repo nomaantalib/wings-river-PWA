@@ -76,6 +76,19 @@ export interface AuditLog {
   created_at: string;
 }
 
+export interface PromoPage {
+  id: string;
+  title: string;
+  subtitle: string;
+  image_url: string;
+  cta_text: string;
+  cta_link: string;
+  status: 'active' | 'inactive';
+  display_order: number;
+  is_deleted?: number;
+  created_at?: string;
+}
+
 export interface EventBanner {
   id: string;
   title: string;
@@ -98,12 +111,6 @@ function notifySync() {
 
 // ── Core API Path Mapping ────────────────────────────────────────────────────
 export function getApiUrl(url: string): string {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return `https://wings-river-cafe-blog.pages.dev${url}`;
-    }
-  }
   return url;
 }
 
@@ -171,39 +178,15 @@ async function apiDelete(url: string): Promise<any> {
 // ═══════════════════════════════════════════════════════════════════════════════
 //  RESERVATIONS / BOOKINGS
 // ═══════════════════════════════════════════════════════════════════════════════
-// ═══════════════════════════════════════════════════════════════════════════════
-//  RESERVATIONS / BOOKINGS
-// ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredReservations(): Promise<Reservation[]> {
-  let remote: Reservation[] = [];
   try {
     const res = await apiFetch('/api/bookings');
-    if (res.success && Array.isArray(res.data)) remote = res.data;
+    if (res.success && Array.isArray(res.data)) return res.data;
   } catch (e) {}
-  
-  let local: Reservation[] = [];
-  if (typeof window !== 'undefined') {
-    try {
-      const cached = localStorage.getItem('wings_local_reservations');
-      if (cached) local = JSON.parse(cached);
-    } catch (e) {}
-  }
-  
-  const map = new Map<string, Reservation>();
-  remote.forEach(r => map.set(r.id, r));
-  local.forEach(r => map.set(r.id, r));
-  return Array.from(map.values());
+  return [];
 }
 
 export async function saveReservation(reservation: Reservation): Promise<void> {
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = localStorage.getItem('wings_local_reservations');
-      const list = existing ? JSON.parse(existing) : [];
-      const updated = [reservation, ...list.filter((r: Reservation) => r.id !== reservation.id)];
-      localStorage.setItem('wings_local_reservations', JSON.stringify(updated));
-    } catch (e) {}
-  }
   await apiPost('/api/bookings', reservation);
   notifySync();
 }
@@ -219,15 +202,6 @@ export async function updateReservationStatus(id: string, newStatus: string): Pr
 }
 
 export async function deleteReservation(id: string): Promise<Reservation[]> {
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = localStorage.getItem('wings_local_reservations');
-      if (existing) {
-        const list = JSON.parse(existing);
-        localStorage.setItem('wings_local_reservations', JSON.stringify(list.filter((r: Reservation) => r.id !== id)));
-      }
-    } catch (e) {}
-  }
   await apiDelete(`/api/bookings/${id}`);
   notifySync();
   return getStoredReservations();
@@ -360,51 +334,20 @@ export async function deleteBlog(id: string): Promise<BlogPost[]> {
 //  REVIEWS / TESTIMONIALS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredReviews(): Promise<Review[]> {
-  let remote: Review[] = [];
   try {
     const res = await apiFetch('/api/reviews');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) remote = res.data;
+    if (res.success && Array.isArray(res.data) && res.data.length > 0) return res.data;
   } catch (e) {}
-
-  let local: Review[] = [];
-  if (typeof window !== 'undefined') {
-    try {
-      const cached = localStorage.getItem('wings_local_reviews');
-      if (cached) local = JSON.parse(cached);
-    } catch (e) {}
-  }
-
-  const map = new Map<string, Review>();
-  INITIAL_REVIEWS.forEach(r => map.set(r.id, r));
-  remote.forEach(r => map.set(r.id, r));
-  local.forEach(r => map.set(r.id, r));
-  return Array.from(map.values());
+  return INITIAL_REVIEWS;
 }
 
 export async function saveReview(review: Review): Promise<Review[]> {
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = localStorage.getItem('wings_local_reviews');
-      const list = existing ? JSON.parse(existing) : [];
-      const updated = [review, ...list.filter((r: Review) => r.id !== review.id)];
-      localStorage.setItem('wings_local_reviews', JSON.stringify(updated));
-    } catch (e) {}
-  }
   await apiPost('/api/reviews', review);
   notifySync();
   return getStoredReviews();
 }
 
 export async function deleteReview(id: string): Promise<Review[]> {
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = localStorage.getItem('wings_local_reviews');
-      if (existing) {
-        const list = JSON.parse(existing);
-        localStorage.setItem('wings_local_reviews', JSON.stringify(list.filter((r: Review) => r.id !== id)));
-      }
-    } catch (e) {}
-  }
   await apiDelete(`/api/reviews/${id}`);
   notifySync();
   return getStoredReviews();
@@ -414,49 +357,19 @@ export async function deleteReview(id: string): Promise<Review[]> {
 //  CONTACT MESSAGES
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredContactMessages(): Promise<ContactMessage[]> {
-  let remote: ContactMessage[] = [];
   try {
     const res = await apiFetch('/api/contact');
-    if (res.success && Array.isArray(res.data)) remote = res.data;
+    if (res.success && Array.isArray(res.data)) return res.data;
   } catch (e) {}
-
-  let local: ContactMessage[] = [];
-  if (typeof window !== 'undefined') {
-    try {
-      const cached = localStorage.getItem('wings_local_contact');
-      if (cached) local = JSON.parse(cached);
-    } catch (e) {}
-  }
-
-  const map = new Map<string, ContactMessage>();
-  remote.forEach(m => map.set(m.id, m));
-  local.forEach(m => map.set(m.id, m));
-  return Array.from(map.values());
+  return [];
 }
 
 export async function saveContactMessage(msg: ContactMessage): Promise<void> {
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = localStorage.getItem('wings_local_contact');
-      const list = existing ? JSON.parse(existing) : [];
-      const updated = [msg, ...list.filter((m: ContactMessage) => m.id !== msg.id)];
-      localStorage.setItem('wings_local_contact', JSON.stringify(updated));
-    } catch (e) {}
-  }
   await apiPost('/api/contact', msg);
   notifySync();
 }
 
 export async function deleteContactMessage(id: string): Promise<ContactMessage[]> {
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = localStorage.getItem('wings_local_contact');
-      if (existing) {
-        const list = JSON.parse(existing);
-        localStorage.setItem('wings_local_contact', JSON.stringify(list.filter((m: ContactMessage) => m.id !== id)));
-      }
-    } catch (e) {}
-  }
   await apiDelete(`/api/contact/${id}`);
   notifySync();
   return getStoredContactMessages();
@@ -466,35 +379,14 @@ export async function deleteContactMessage(id: string): Promise<ContactMessage[]
 //  EVENT BANNERS
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function getStoredEventBanners(): Promise<EventBanner[]> {
-  let remote: EventBanner[] = [];
   try {
     const res = await apiFetch('/api/banners');
-    if (res.success && Array.isArray(res.data)) remote = res.data;
+    if (res.success && Array.isArray(res.data)) return res.data;
   } catch (e) {}
-
-  let local: EventBanner[] = [];
-  if (typeof window !== 'undefined') {
-    try {
-      const cached = localStorage.getItem('wings_local_banners');
-      if (cached) local = JSON.parse(cached);
-    } catch (e) {}
-  }
-
-  const map = new Map<string, EventBanner>();
-  remote.forEach(b => map.set(b.id, b));
-  local.forEach(b => map.set(b.id, b));
-  return Array.from(map.values());
+  return [];
 }
 
 export async function saveEventBanner(banner: EventBanner): Promise<EventBanner[]> {
-  if (typeof window !== 'undefined') {
-    try {
-      const existing = localStorage.getItem('wings_local_banners');
-      const list = existing ? JSON.parse(existing) : [];
-      const updated = [banner, ...list.filter((b: EventBanner) => b.id !== banner.id)];
-      localStorage.setItem('wings_local_banners', JSON.stringify(updated));
-    } catch (e) {}
-  }
   await apiPost('/api/banners', banner);
   notifySync();
   return getStoredEventBanners();
@@ -575,7 +467,16 @@ export async function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
 }
 
 export async function saveMenuPage(page: MenuPageDefinition): Promise<MenuPageDefinition[]> {
-  await apiPost('/api/menupages', page);
+  // Normalize page_number from either snake_case or camelCase field
+  const payload = {
+    ...page,
+    page_number: Number(page.page_number ?? page.pageNumber) || 1,
+    display_order: Number(page.display_order ?? page.pageNumber ?? page.page_number) || 1,
+  };
+  const res = await apiPost('/api/menupages', payload);
+  if (!res.success) {
+    console.error('[D1] saveMenuPage failed:', res.error);
+  }
   notifySync();
   return getStoredMenuPages();
 }
@@ -718,8 +619,134 @@ export async function deletePage(id: string, hard: boolean = false): Promise<Sit
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  SYNC
+//  R2 MEDIA UPLOADER & SITE SETTINGS & STATS
 // ═══════════════════════════════════════════════════════════════════════════════
+export async function uploadMediaFile(file: File, category: string = 'general', altText: string = ''): Promise<{ success: boolean; url?: string; media_id?: string; error?: string }> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('category', category);
+    formData.append('alt_text', altText || file.name);
+
+    const token = typeof window !== 'undefined' ? localStorage.getItem('wings_admin_jwt') : null;
+    const headers: Record<string, string> = {};
+    if (token) headers['Authorization'] = `Bearer ${token}`;
+
+    const res = await fetch(getApiUrl('/api/upload'), {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      return { success: false, error: err.error || 'Upload failed' };
+    }
+    const data = await res.json();
+    notifySync();
+    return data;
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Upload error' };
+  }
+}
+
+export interface SiteSettings {
+  site_title?: string;
+  slogan?: string;
+  logo_url?: string;
+  favicon_url?: string;
+  phone?: string;
+  whatsapp?: string;
+  email?: string;
+  address?: string;
+  opening_hours?: string;
+  instagram_url?: string;
+  facebook_url?: string;
+  google_maps_url?: string;
+  hero_bg_image?: string;
+  menu_booklet_cover?: string;
+  seo_meta_title?: string;
+  seo_meta_description?: string;
+  [key: string]: any;
+}
+
+export async function getSiteSettings(): Promise<SiteSettings> {
+  try {
+    const res = await apiFetch('/api/settings');
+    if (res.success && res.data && res.data.site_settings) {
+      return res.data.site_settings;
+    }
+  } catch (e) {}
+  return {
+    site_title: "Wings River Café",
+    slogan: "Taste • Eat • Rides",
+    logo_url: "/logo.png",
+    favicon_url: "/favicon.ico",
+    phone: "07310008020",
+    whatsapp: "917310008020",
+    email: "wingsrivercafe@gmail.com",
+    address: "Lucknow Water Sports, Laxman Mela Ground, Gomti Riverfront, Lucknow",
+    opening_hours: "11:00 AM – 11:59 PM (Open All 7 Days)",
+    instagram_url: "https://www.instagram.com/wingsriver",
+    facebook_url: "https://facebook.com",
+    google_maps_url: "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA",
+    hero_bg_image: "/images/Screenshot_20260720-180621_Maps.png",
+    menu_booklet_cover: "/images/food_menu_collage.jpg",
+    seo_meta_title: "Wings River Café | Multicuisine Restaurant & Water Sports Lucknow",
+    seo_meta_description: "Lucknow's premier riverside café offering gourmet food, live music, and thrilling Gomti riverfront water sports rides."
+  };
+}
+
+export async function saveSiteSettings(settings: SiteSettings): Promise<SiteSettings> {
+  await apiPost('/api/settings', { key: 'site_settings', value: settings });
+  notifySync();
+  return getSiteSettings();
+}
+
+export async function getDashboardStats(): Promise<any> {
+  try {
+    const res = await apiFetch('/api/stats');
+    if (res.success && res.data) return res.data;
+  } catch (e) {}
+  return {
+    total_bookings: 0,
+    today_bookings: 0,
+    menu_items: 0,
+    gallery_images: 0,
+    feedback_count: 0,
+    offers_count: 0,
+    reviews_count: 0,
+    blogs_count: 0
+  };
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  PROMO PAGES
+// ══════════════════════════════════════════════════════════════════════════════
+export async function getStoredPromoPages(): Promise<PromoPage[]> {
+  try {
+    const res = await apiFetch('/api/promopages');
+    if (res.success && Array.isArray(res.data)) return res.data;
+  } catch (e) { console.error('[D1] getStoredPromoPages:', e); }
+  return [];
+}
+
+export async function savePromoPage(page: PromoPage): Promise<PromoPage[]> {
+  const payload = { ...page, id: page.id || `promo-${Date.now()}` };
+  const res = await apiPost('/api/promopages', payload);
+  if (!res.success) console.error('[D1] savePromoPage failed:', res.error);
+  notifySync();
+  return getStoredPromoPages();
+}
+
+export async function deletePromoPage(id: string): Promise<PromoPage[]> {
+  await apiDelete(`/api/promopages/${id}`);
+  notifySync();
+  return getStoredPromoPages();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  SYNC
+// ══════════════════════════════════════════════════════════════════════════════
 export async function syncDatabase(): Promise<void> {
   notifySync();
 }

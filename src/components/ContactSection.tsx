@@ -1,14 +1,34 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Phone, MapPin, Clock, Mail, Send, CheckCircle2 } from 'lucide-react';
-import { saveContactMessage, ContactMessage } from '@/lib/db';
+import { saveContactMessage, ContactMessage, getSiteSettings, SiteSettings } from '@/lib/db';
+
+const DEFAULTS: Partial<SiteSettings> = {
+  phone: '07310008020',
+  opening_hours: '11:00 AM – 11:59 PM (Open Daily)',
+  address: 'Laxman Mela Ground, Laxman Jhula Park, Gomti River Front, Hazratganj, Lucknow, UP 226001',
+  email: 'wingsrivercafe@gmail.com',
+};
 
 export default function ContactSection() {
   const [formData, setFormData] = useState({ name: '', phone: '', email: '', message: '' });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [siteCfg, setSiteCfg] = useState<Partial<SiteSettings>>(DEFAULTS);
+
+  useEffect(() => {
+    let active = true;
+    getSiteSettings().then((s) => { if (active && s) setSiteCfg(s); });
+    const onSync = () => getSiteSettings().then((s) => { if (active && s) setSiteCfg(s); });
+    window.addEventListener('wings_db_sync', onSync);
+    return () => { active = false; window.removeEventListener('wings_db_sync', onSync); };
+  }, []);
+
+  const phone        = siteCfg.phone        || DEFAULTS.phone!;
+  const hours        = siteCfg.opening_hours || DEFAULTS.opening_hours!;
+  const address      = siteCfg.address       || DEFAULTS.address!;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -28,7 +48,7 @@ export default function ContactSection() {
       setSuccess(true);
       setFormData({ name: '', phone: '', email: '', message: '' });
     } catch (err: any) {
-      setError(err?.message || 'Failed to send message. Please call us directly at 07310008020');
+      setError(err?.message || `Failed to send message. Please call us directly at ${phone}`);
     } finally {
       setLoading(false);
     }
@@ -57,8 +77,8 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-white">Direct Phone Call</h4>
-                  <a href="tel:07310008020" className="text-sm text-mint-400 font-semibold hover:underline">
-                    07310008020
+                  <a href={`tel:${phone}`} className="text-sm text-mint-400 font-semibold hover:underline">
+                    {phone}
                   </a>
                 </div>
               </div>
@@ -69,7 +89,7 @@ export default function ContactSection() {
                 </div>
                 <div>
                   <h4 className="font-bold text-sm text-white">Opening Hours</h4>
-                  <p className="text-sm text-gray-400">11:00 AM – 11:59 PM (Open Daily)</p>
+                  <p className="text-sm text-gray-400">{hours.split('(')[0].trim()}</p>
                 </div>
               </div>
 
@@ -78,10 +98,8 @@ export default function ContactSection() {
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-white">Location & Address</h4>
-                  <p className="text-sm text-gray-400">
-                    Laxman Mela Ground, Laxman Jhula Park, Gomti River Front, Hazratganj, Lucknow, UP 226001
-                  </p>
+                  <h4 className="font-bold text-sm text-white">Location &amp; Address</h4>
+                  <p className="text-sm text-gray-400">{address}</p>
                 </div>
               </div>
             </div>

@@ -90,6 +90,8 @@ CREATE TABLE IF NOT EXISTS menu_items (
   is_veg INTEGER DEFAULT 1,
   image_url TEXT DEFAULT '',
   is_available INTEGER DEFAULT 1,
+  is_bestseller INTEGER DEFAULT 0,
+  badge TEXT DEFAULT '',
   display_order INTEGER DEFAULT 0,
   version INTEGER DEFAULT 1,
   is_deleted INTEGER DEFAULT 0,

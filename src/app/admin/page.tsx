@@ -21,10 +21,15 @@ import {
   getStoredAuditLogs,
   getStoredPages, savePage, deletePage,
   getApiUrl,
+  // Site Settings & Dashboard
+  getSiteSettings, saveSiteSettings, getDashboardStats, uploadMediaFile,
+  // Promo Pages
+  getStoredPromoPages, savePromoPage, deletePromoPage,
   // Types
   Reservation, MenuItem, BlogPost, GalleryItem, Review, ContactMessage, EventBanner,
   RideTicket, MenuPageDefinition, HeroSettings,
-  MenuCategory, OfferDiscount, FaqItem, TeamMember, MediaItem, SitePage, AuditLog
+  MenuCategory, OfferDiscount, FaqItem, TeamMember, MediaItem, SitePage, AuditLog,
+  SiteSettings, PromoPage,
 } from '@/lib/db';
 import {
   Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Trash2, Edit3,
@@ -44,16 +49,38 @@ function ImageUploader({
   label?: string;
 }) {
   const [copied, setCopied] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadMsg, setUploadMsg] = useState('');
 
-  const handleFileUpload = (file: File) => {
+  const handleFileUpload = async (file: File) => {
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        onChange(reader.result);
+    setIsUploading(true);
+    setUploadMsg('');
+    try {
+      const result = await uploadMediaFile(file, 'cms', file.name);
+      if (result.success && result.url) {
+        onChange(result.url);
+        setUploadMsg('Uploaded to R2 ✓');
+      } else {
+        // Fallback: base64 local preview if R2 upload fails
+        setUploadMsg(result.error || 'R2 unavailable – using local preview');
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') onChange(reader.result);
+        };
+        reader.readAsDataURL(file);
       }
-    };
-    reader.readAsDataURL(file);
+    } catch {
+      setUploadMsg('Upload failed – using local preview');
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (typeof reader.result === 'string') onChange(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } finally {
+      setIsUploading(false);
+      setTimeout(() => setUploadMsg(''), 4000);
+    }
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -73,16 +100,21 @@ function ImageUploader({
     <div className="space-y-2">
       <div className="flex items-center justify-between">
         <label className="block text-xs font-semibold text-gray-300">{label}</label>
-        {value && (
-          <button
-            type="button"
-            onClick={copyToClipboard}
-            className="text-[10px] text-amber-400 hover:text-amber-300 flex items-center space-x-1 font-mono transition-colors"
-          >
-            {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
-            <span>{copied ? 'Copied Link!' : 'Copy Image Data'}</span>
-          </button>
-        )}
+        <div className="flex items-center space-x-2">
+          {uploadMsg && (
+            <span className={`text-[10px] font-mono ${uploadMsg.includes('✓') ? 'text-emerald-400' : 'text-amber-400'}`}>{uploadMsg}</span>
+          )}
+          {value && (
+            <button
+              type="button"
+              onClick={copyToClipboard}
+              className="text-[10px] text-amber-400 hover:text-amber-300 flex items-center space-x-1 font-mono transition-colors"
+            >
+              {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3" />}
+              <span>{copied ? 'Copied!' : 'Copy URL'}</span>
+            </button>
+          )}
+        </div>
       </div>
 
       <div
@@ -98,12 +130,17 @@ function ImageUploader({
           className="flex-1 px-3 py-2 text-xs bg-transparent text-white placeholder-gray-500 focus:outline-none"
         />
 
-        <label className="px-4 py-2 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md shrink-0 flex items-center justify-center space-x-1.5">
+        <label className={`px-4 py-2 font-bold text-xs rounded-xl cursor-pointer transition-all shadow-md shrink-0 flex items-center justify-center space-x-1.5 ${
+          isUploading
+            ? 'bg-amber-500/50 text-dark-950 cursor-wait'
+            : 'bg-amber-500 hover:bg-amber-400 text-dark-950'
+        }`}>
           <Upload className="w-4 h-4" />
-          <span>Upload File</span>
+          <span>{isUploading ? 'Uploading…' : 'Upload to R2'}</span>
           <input
             type="file"
             accept="image/*"
+            disabled={isUploading}
             onChange={(e) => {
               const f = e.target.files?.[0];
               if (f) handleFileUpload(f);
@@ -125,7 +162,7 @@ function ImageUploader({
             <X className="w-3.5 h-3.5" />
           </button>
           <span className="absolute bottom-2 left-2 px-2 py-0.5 rounded-md bg-dark-950/80 text-[10px] text-amber-300 font-mono border border-white/10">
-            {value.startsWith('data:') ? 'Local Device Upload' : 'Web Image'}
+            {value.startsWith('data:') ? 'Local Preview' : value.startsWith('https://r2.') || value.includes('/api/') ? 'R2 Cloud Storage' : 'External URL'}
           </span>
         </div>
       )}
@@ -136,11 +173,13 @@ function ImageUploader({
 // Tab Keys matching separate management modules
 type TabKey = 
   | 'dashboard'
+  | 'settings'
   | 'hero' 
   | 'pages'
   | 'categories' 
   | 'menu' 
   | 'menupages' 
+  | 'promopages'
   | 'blogs' 
   | 'gallery' 
   | 'rides' 
@@ -224,6 +263,7 @@ export default function AdminPage() {
   const [banners, setBanners] = useState<EventBanner[]>([]);
   const [rides, setRides] = useState<RideTicket[]>([]);
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>([]);
+  const [promoPages, setPromoPages] = useState<PromoPage[]>([]);
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
   const [team, setTeam] = useState<TeamMember[]>([]);
   const [offers, setOffers] = useState<OfferDiscount[]>([]);
@@ -231,6 +271,8 @@ export default function AdminPage() {
   const [pages, setPages] = useState<SitePage[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [heroSettings, setHeroSettings] = useState<HeroSettings | null>(null);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [dashboardStats, setDashboardStats] = useState<any>(null);
 
   // Edit / Creation modals state
   const [categoryModal, setCategoryModal] = useState<Partial<MenuCategory> | null>(null);
@@ -245,6 +287,7 @@ export default function AdminPage() {
   const [pageModal, setPageModal] = useState<Partial<SitePage> | null>(null);
   const [mediaModal, setMediaModal] = useState<Partial<MediaItem> | null>(null);
   const [menuPageModal, setMenuPageModal] = useState<Partial<MenuPageDefinition> | null>(null);
+  const [promoPageModal, setPromoPageModal] = useState<Partial<PromoPage> | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<{ label: string; action: () => void } | null>(null);
 
@@ -279,13 +322,15 @@ export default function AdminPage() {
       const [
         resBookings, resMenu, resCategories, resBlogs, resGallery,
         resReviews, resMessages, resBanners, resRides, resMenuPages,
-        resFaqs, resTeam, resOffers, resMedia, resPages, resHero
+        resFaqs, resTeam, resOffers, resMedia, resPages, resHero,
+        resSiteSettings, resStats, resPromoPages
       ] = await Promise.all([
         getStoredReservations(), getStoredMenuItems(), getStoredCategories(),
         getStoredBlogs(), getStoredGalleryItems(), getStoredReviews(),
         getStoredContactMessages(), getStoredEventBanners(), getStoredWaterSports(),
         getStoredMenuPages(), getStoredFaqs(), getStoredTeamMembers(),
-        getStoredOffers(), getStoredMedia(), getStoredPages(), getStoredHeroSettings()
+        getStoredOffers(), getStoredMedia(), getStoredPages(), getStoredHeroSettings(),
+        getSiteSettings(), getDashboardStats(), getStoredPromoPages()
       ]);
 
       setReservations(resBookings);
@@ -298,12 +343,15 @@ export default function AdminPage() {
       setBanners(resBanners);
       setRides(resRides);
       setMenuPages(resMenuPages);
+      setPromoPages(resPromoPages);
       setFaqs(resFaqs);
       setTeam(resTeam);
       setOffers(resOffers);
       setMedia(resMedia);
       setPages(resPages);
       setHeroSettings(resHero);
+      setSiteSettings(resSiteSettings);
+      setDashboardStats(resStats);
 
       // Audit logs (auth protected)
       const logs = await getStoredAuditLogs();
@@ -590,22 +638,54 @@ export default function AdminPage() {
     showToast('Hero & About CMS Settings saved successfully!');
   };
 
+  // Site Settings Save
+  const handleSiteSettingsSave = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!siteSettings) return;
+    const updated = await saveSiteSettings(siteSettings);
+    setSiteSettings(updated);
+    showToast('Site Settings saved to D1 successfully!');
+  };
+
   // Menu Booklet Page Save
   const saveMenuPageItem = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!menuPageModal) return;
+    // Normalize page_number — handles both D1 rows (page_number) and fallback pages (pageNumber)
+    const resolvedPageNum = Number(menuPageModal.page_number ?? menuPageModal.pageNumber) || 1;
     const pageToSave = {
-      page_number: Number(menuPageModal.page_number) || 1,
+      page_number: resolvedPageNum,
+      pageNumber: resolvedPageNum, // keep both in sync
       title: menuPageModal.title || '',
       subtitle: menuPageModal.subtitle || '',
       image: menuPageModal.image || '',
       categories: Array.isArray(menuPageModal.categories) ? menuPageModal.categories : [],
-      display_order: Number(menuPageModal.display_order) || 0
+      display_order: resolvedPageNum,
     };
     const fresh = await saveMenuPage(pageToSave);
     setMenuPages(fresh);
     setMenuPageModal(null);
-    showToast('Menu booklet page saved successfully!');
+    showToast(`Menu booklet page ${resolvedPageNum} saved to D1!`);
+  };
+
+  // Promo Page Save
+  const savePromoPageItem = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!promoPageModal) return;
+    const pageToSave: PromoPage = {
+      id: promoPageModal.id || `promo-${Date.now()}`,
+      title: promoPageModal.title || '',
+      subtitle: promoPageModal.subtitle || '',
+      image_url: promoPageModal.image_url || '',
+      cta_text: promoPageModal.cta_text || '',
+      cta_link: promoPageModal.cta_link || '',
+      status: (promoPageModal.status as 'active' | 'inactive') || 'active',
+      display_order: Number(promoPageModal.display_order) || 0,
+    };
+    const fresh = await savePromoPage(pageToSave);
+    setPromoPages(fresh);
+    setPromoPageModal(null);
+    showToast('Promo page saved to D1!');
   };
 
   // ─── LOGIN PANEL ───────────────────────────────────────────────────────────
@@ -655,11 +735,13 @@ export default function AdminPage() {
 
   const navTabs: { id: TabKey; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard',  label: 'Dashboard Overview', icon: <Home className="w-4 h-4 shrink-0" /> },
-    { id: 'hero',       label: 'Hero & About CMS',   icon: <Settings className="w-4 h-4 shrink-0" /> },
+    { id: 'settings',   label: 'Site Settings',       icon: <Settings className="w-4 h-4 shrink-0" /> },
+    { id: 'hero',       label: 'Hero & About CMS',   icon: <Sparkles className="w-4 h-4 shrink-0" /> },
     { id: 'pages',      label: 'Dynamic Pages',      icon: <FileText className="w-4 h-4 shrink-0" /> },
     { id: 'categories', label: 'Menu Categories',    icon: <Layers className="w-4 h-4 shrink-0" /> },
     { id: 'menu',       label: 'Menu Items',         icon: <Utensils className="w-4 h-4 shrink-0" /> },
     { id: 'menupages',  label: 'Booklet Pages',      icon: <BookOpen className="w-4 h-4 shrink-0" /> },
+    { id: 'promopages', label: 'Promo Pages',         icon: <Sparkles className="w-4 h-4 shrink-0" /> },
     { id: 'blogs',      label: 'Blogs & News',       icon: <FileText className="w-4 h-4 shrink-0" /> },
     { id: 'gallery',    label: 'Photo Gallery',      icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
     { id: 'rides',      label: 'Water Sports Rides', icon: <Waves className="w-4 h-4 shrink-0" /> },
@@ -841,23 +923,42 @@ export default function AdminPage() {
               {/* TAB 1: DASHBOARD OVERVIEW */}
               {activeTab === 'dashboard' && (
                 <div className="space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-4 gap-5">
-                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
-                      <div className="text-gray-400 text-xs">Total Reservations</div>
-                      <div className="text-2xl font-bold">{reservations.length}</div>
-                    </div>
-                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
-                      <div className="text-gray-400 text-xs">Menu Items</div>
-                      <div className="text-2xl font-bold">{menuItems.length}</div>
-                    </div>
-                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
-                      <div className="text-gray-400 text-xs">Blogs & News</div>
-                      <div className="text-2xl font-bold">{blogs.length}</div>
-                    </div>
-                    <div className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-2">
-                      <div className="text-gray-400 text-xs">Media Library</div>
-                      <div className="text-2xl font-bold">{media.length} items</div>
-                    </div>
+                  {/* Real D1 Stats from /api/stats */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-5">
+                    {[
+                      { label: 'Total Bookings', value: dashboardStats?.total_bookings ?? reservations.length, color: 'text-amber-400', sub: `${dashboardStats?.today_bookings ?? 0} today` },
+                      { label: 'Menu Items', value: dashboardStats?.menu_items ?? menuItems.length, color: 'text-emerald-400', sub: `${categories.length} categories` },
+                      { label: 'Blogs & Stories', value: dashboardStats?.blogs_count ?? blogs.length, color: 'text-blue-400', sub: `${reviews.length} reviews` },
+                      { label: 'Media Library', value: dashboardStats?.gallery_images ?? gallery.length, color: 'text-purple-400', sub: `${media.length} files` },
+                      { label: 'Customer Reviews', value: dashboardStats?.reviews_count ?? reviews.length, color: 'text-pink-400', sub: 'from D1' },
+                      { label: 'Offers & Coupons', value: dashboardStats?.offers_count ?? offers.length, color: 'text-orange-400', sub: 'active offers' },
+                      { label: 'Contact Inquiries', value: dashboardStats?.feedback_count ?? messages.length, color: 'text-cyan-400', sub: 'unread msgs' },
+                      { label: 'Water Sports Rides', value: rides.length, color: 'text-teal-400', sub: `${banners.length} banners` },
+                    ].map((stat, i) => (
+                      <div key={i} className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-1 hover:border-white/10 transition-colors">
+                        <div className="text-gray-400 text-[11px] uppercase tracking-wide">{stat.label}</div>
+                        <div className={`text-3xl font-bold ${stat.color}`}>{stat.value}</div>
+                        <div className="text-[10px] text-gray-500 font-mono">{stat.sub}</div>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* Quick Actions */}
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                    {[
+                      { label: 'Add Menu Item', tab: 'menu' as TabKey },
+                      { label: 'New Booking',   tab: 'bookings' as TabKey },
+                      { label: 'Upload Media',  tab: 'media' as TabKey },
+                      { label: 'Site Settings', tab: 'settings' as TabKey },
+                    ].map((qa) => (
+                      <button
+                        key={qa.tab}
+                        onClick={() => setActiveTab(qa.tab)}
+                        className="px-4 py-3 bg-amber-500/10 hover:bg-amber-500 hover:text-dark-950 border border-amber-500/20 text-amber-300 rounded-xl text-xs font-bold transition-all"
+                      >
+                        {qa.label}
+                      </button>
+                    ))}
                   </div>
 
                   <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-4">
@@ -881,11 +982,107 @@ export default function AdminPage() {
                               <td className="py-2.5 text-gray-400">{new Date(l.created_at).toLocaleString()}</td>
                             </tr>
                           ))}
+                          {auditLogs.length === 0 && (
+                            <tr><td colSpan={4} className="py-6 text-center text-gray-500 text-xs">No audit logs found. Actions will appear here.</td></tr>
+                          )}
                         </tbody>
                       </table>
                     </div>
                   </div>
                 </div>
+              )}
+
+              {/* TAB: SITE SETTINGS */}
+              {activeTab === 'settings' && siteSettings && (
+                <form onSubmit={handleSiteSettingsSave} className="space-y-6 max-w-2xl">
+                  <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-5">
+                    <h3 className="font-serif font-bold text-base text-amber-400">Business Identity</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelCls}>Site Title</label>
+                        <input type="text" value={siteSettings.site_title || ''} onChange={(e) => setSiteSettings({ ...siteSettings, site_title: e.target.value })} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Slogan / Tagline</label>
+                        <input type="text" value={siteSettings.slogan || ''} onChange={(e) => setSiteSettings({ ...siteSettings, slogan: e.target.value })} className={inputCls} />
+                      </div>
+                    </div>
+                    <ImageUploader label="Logo Image URL or Upload" value={siteSettings.logo_url || ''} onChange={(v) => setSiteSettings({ ...siteSettings, logo_url: v })} />
+                    <ImageUploader label="Favicon URL or Upload" value={siteSettings.favicon_url || ''} onChange={(v) => setSiteSettings({ ...siteSettings, favicon_url: v })} />
+                  </div>
+
+                  <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-4">
+                    <h3 className="font-serif font-bold text-base text-amber-400">Contact & Location</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelCls}>Phone Number</label>
+                        <input type="text" value={siteSettings.phone || ''} onChange={(e) => setSiteSettings({ ...siteSettings, phone: e.target.value })} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>WhatsApp Number</label>
+                        <input type="text" value={siteSettings.whatsapp || ''} onChange={(e) => setSiteSettings({ ...siteSettings, whatsapp: e.target.value })} className={inputCls} placeholder="91XXXXXXXXXX" />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Email Address</label>
+                        <input type="email" value={siteSettings.email || ''} onChange={(e) => setSiteSettings({ ...siteSettings, email: e.target.value })} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Opening Hours</label>
+                        <input type="text" value={siteSettings.opening_hours || ''} onChange={(e) => setSiteSettings({ ...siteSettings, opening_hours: e.target.value })} className={inputCls} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className={labelCls}>Full Address</label>
+                      <textarea rows={2} value={siteSettings.address || ''} onChange={(e) => setSiteSettings({ ...siteSettings, address: e.target.value })} className={`${inputCls} resize-none`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Google Maps URL</label>
+                      <input type="url" value={siteSettings.google_maps_url || ''} onChange={(e) => setSiteSettings({ ...siteSettings, google_maps_url: e.target.value })} className={inputCls} />
+                    </div>
+                  </div>
+
+                  <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-4">
+                    <h3 className="font-serif font-bold text-base text-amber-400">Social Media Links</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className={labelCls}>Instagram URL</label>
+                        <input type="url" value={siteSettings.instagram_url || ''} onChange={(e) => setSiteSettings({ ...siteSettings, instagram_url: e.target.value })} className={inputCls} />
+                      </div>
+                      <div>
+                        <label className={labelCls}>Facebook URL</label>
+                        <input type="url" value={siteSettings.facebook_url || ''} onChange={(e) => setSiteSettings({ ...siteSettings, facebook_url: e.target.value })} className={inputCls} />
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-4">
+                    <h3 className="font-serif font-bold text-base text-amber-400">SEO & Meta Tags</h3>
+                    <div>
+                      <label className={labelCls}>SEO Meta Title</label>
+                      <input type="text" value={siteSettings.seo_meta_title || ''} onChange={(e) => setSiteSettings({ ...siteSettings, seo_meta_title: e.target.value })} className={inputCls} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>SEO Meta Description</label>
+                      <textarea rows={3} value={siteSettings.seo_meta_description || ''} onChange={(e) => setSiteSettings({ ...siteSettings, seo_meta_description: e.target.value })} className={`${inputCls} resize-none`} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Hero Background Image URL</label>
+                      <ImageUploader label="Hero Background Image" value={siteSettings.hero_bg_image || ''} onChange={(v) => setSiteSettings({ ...siteSettings, hero_bg_image: v })} />
+                    </div>
+                    <div>
+                      <label className={labelCls}>Menu Booklet Cover Image</label>
+                      <ImageUploader label="Menu Booklet Cover" value={siteSettings.menu_booklet_cover || ''} onChange={(v) => setSiteSettings({ ...siteSettings, menu_booklet_cover: v })} />
+                    </div>
+                  </div>
+
+                  <button type="submit" className={btnPrimary}>
+                    <Save className="w-4 h-4" />
+                    <span>Save All Site Settings to D1</span>
+                  </button>
+                </form>
+              )}
+              {activeTab === 'settings' && !siteSettings && (
+                <div className="text-center py-12 text-gray-400 text-sm">Loading site settings from D1…</div>
               )}
 
               {/* TAB 2: HERO & ABOUT CMS */}
@@ -1388,18 +1585,55 @@ export default function AdminPage() {
                     <button onClick={() => setMenuPageModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Menu Page</span></button>
                   </div>
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {menuPages.map((mp) => (
-                      <div key={mp.page_number} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
-                        <img src={mp.image} alt={mp.title} className="w-full h-32 object-cover" />
-                        <div className="p-3">
-                          <h4 className="font-bold text-xs text-white">Page {mp.page_number}</h4>
-                          <p className="text-[10px] text-gray-400 truncate">{mp.title}</p>
-                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-                            <span className="text-[9px] text-amber-400 font-mono">Booklet</span>
-                            <div className="flex items-center space-x-1">
-                              <button onClick={() => setMenuPageModal(mp)} className={btnEdit} title="Edit Page"><Edit3 className="w-3.5 h-3.5" /></button>
-                              <button onClick={() => setDeleteTarget({ label: `Page ${mp.page_number}`, action: async () => { await deleteMenuPage(mp.page_number!); loadAll(); } })} className={btnDanger} title="Delete Page"><Trash2 className="w-3.5 h-3.5" /></button>
+                    {menuPages.map((mp) => {
+                      const pageNum = mp.page_number ?? mp.pageNumber ?? 0;
+                      return (
+                        <div key={pageNum} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
+                          <img src={mp.image} alt={mp.title} className="w-full h-32 object-cover" />
+                          <div className="p-3">
+                            <h4 className="font-bold text-xs text-white">Page {pageNum}</h4>
+                            <p className="text-[10px] text-gray-400 truncate">{mp.title}</p>
+                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                              <span className="text-[9px] text-amber-400 font-mono">Booklet</span>
+                              <div className="flex items-center space-x-1">
+                                <button onClick={() => setMenuPageModal({ ...mp, page_number: pageNum, pageNumber: pageNum })} className={btnEdit} title="Edit Page"><Edit3 className="w-3.5 h-3.5" /></button>
+                                <button onClick={() => setDeleteTarget({ label: `Page ${pageNum}`, action: async () => { await deleteMenuPage(pageNum as number); loadAll(); } })} className={btnDanger} title="Delete Page"><Trash2 className="w-3.5 h-3.5" /></button>
+                              </div>
                             </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {activeTab === 'promopages' && (
+                <div className="space-y-4">
+                  <div className="flex items-center justify-between">
+                    <h3 className="font-serif font-bold text-base">Promo Pages</h3>
+                    <button onClick={() => setPromoPageModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Promo Page</span></button>
+                  </div>
+                  {promoPages.length === 0 && (
+                    <div className="text-center py-16 text-gray-500 text-sm">
+                      <Sparkles className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                      <p>No promo pages yet. Add your first promotional page!</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {promoPages.map((pp) => (
+                      <div key={pp.id} className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden relative group">
+                        {pp.image_url && <img src={pp.image_url} alt={pp.title} className="w-full h-40 object-cover" />}
+                        <div className="p-4">
+                          <div className="flex items-center justify-between mb-1">
+                            <h4 className="font-bold text-sm text-white truncate">{pp.title}</h4>
+                            <span className={`text-[9px] px-2 py-0.5 rounded-full font-bold ${pp.status === 'active' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-gray-500/20 text-gray-400'}`}>{pp.status}</span>
+                          </div>
+                          <p className="text-[11px] text-gray-400 truncate mb-2">{pp.subtitle}</p>
+                          {pp.cta_text && <p className="text-[10px] text-amber-400 font-mono truncate">CTA: {pp.cta_text}</p>}
+                          <div className="flex items-center justify-end space-x-1 mt-3 pt-3 border-t border-white/5">
+                            <button onClick={() => setPromoPageModal(pp)} className={btnEdit} title="Edit"><Edit3 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => setDeleteTarget({ label: pp.title, action: async () => { await deletePromoPage(pp.id); loadAll(); } })} className={btnDanger} title="Delete"><Trash2 className="w-3.5 h-3.5" /></button>
                           </div>
                         </div>
                       </div>
@@ -1772,11 +2006,17 @@ export default function AdminPage() {
 
         {/* Menu Booklet Page Modal */}
         {menuPageModal && (
-          <Modal title="Add Menu Booklet Page" onClose={() => setMenuPageModal(null)}>
+          <Modal title={(menuPageModal.page_number ?? menuPageModal.pageNumber) ? `Edit Page ${menuPageModal.page_number ?? menuPageModal.pageNumber}` : 'Add Menu Booklet Page'} onClose={() => setMenuPageModal(null)}>
             <form onSubmit={saveMenuPageItem} className="space-y-4">
               <div>
                 <label className={labelCls}>Page Number</label>
-                <input type="number" required value={menuPageModal.page_number || ''} onChange={(e) => setMenuPageModal({ ...menuPageModal, page_number: parseInt(e.target.value) })} className={inputCls} />
+                <input
+                  type="number" required
+                  value={menuPageModal.page_number ?? menuPageModal.pageNumber ?? ''}
+                  onChange={(e) => setMenuPageModal({ ...menuPageModal, page_number: parseInt(e.target.value), pageNumber: parseInt(e.target.value) })}
+                  className={inputCls}
+                  placeholder="e.g. 1, 2, 3..."
+                />
               </div>
               <div>
                 <label className={labelCls}>Title</label>
@@ -1792,6 +2032,51 @@ export default function AdminPage() {
                 onChange={(val) => setMenuPageModal({ ...menuPageModal, image: val })}
               />
               <button type="submit" className={btnPrimary}>Save Page</button>
+            </form>
+          </Modal>
+        )}
+
+        {/* Promo Page Modal */}
+        {promoPageModal && (
+          <Modal title={promoPageModal.id ? 'Edit Promo Page' : 'Add Promo Page'} onClose={() => setPromoPageModal(null)}>
+            <form onSubmit={savePromoPageItem} className="space-y-4">
+              <div>
+                <label className={labelCls}>Title</label>
+                <input type="text" required value={promoPageModal.title || ''} onChange={(e) => setPromoPageModal({ ...promoPageModal, title: e.target.value })} className={inputCls} placeholder="e.g. Summer Special Offer" />
+              </div>
+              <div>
+                <label className={labelCls}>Subtitle / Description</label>
+                <input type="text" value={promoPageModal.subtitle || ''} onChange={(e) => setPromoPageModal({ ...promoPageModal, subtitle: e.target.value })} className={inputCls} placeholder="e.g. 20% off on all beverages this weekend" />
+              </div>
+              <ImageUploader
+                label="Promo Image (Upload to R2 or paste URL)"
+                value={promoPageModal.image_url || ''}
+                onChange={(val) => setPromoPageModal({ ...promoPageModal, image_url: val })}
+              />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>CTA Button Text</label>
+                  <input type="text" value={promoPageModal.cta_text || ''} onChange={(e) => setPromoPageModal({ ...promoPageModal, cta_text: e.target.value })} className={inputCls} placeholder="e.g. Book Now" />
+                </div>
+                <div>
+                  <label className={labelCls}>CTA Link</label>
+                  <input type="text" value={promoPageModal.cta_link || ''} onChange={(e) => setPromoPageModal({ ...promoPageModal, cta_link: e.target.value })} className={inputCls} placeholder="e.g. /booking" />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className={labelCls}>Status</label>
+                  <select value={promoPageModal.status || 'active'} onChange={(e) => setPromoPageModal({ ...promoPageModal, status: e.target.value as 'active' | 'inactive' })} className={inputCls}>
+                    <option value="active">Active (Visible)</option>
+                    <option value="inactive">Inactive (Hidden)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className={labelCls}>Display Order</label>
+                  <input type="number" value={promoPageModal.display_order || 0} onChange={(e) => setPromoPageModal({ ...promoPageModal, display_order: parseInt(e.target.value) })} className={inputCls} />
+                </div>
+              </div>
+              <button type="submit" className={btnPrimary}><Save className="w-4 h-4" /> Save Promo Page</button>
             </form>
           </Modal>
         )}

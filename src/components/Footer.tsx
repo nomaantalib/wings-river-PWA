@@ -1,10 +1,40 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import CircularLogo from './CircularLogo';
-import { MapPin, Instagram, Phone, Heart } from 'lucide-react';
+import { MapPin, Instagram, Phone, Heart, Facebook } from 'lucide-react';
+import { getSiteSettings, SiteSettings } from '@/lib/db';
+
+const DEFAULTS: SiteSettings = {
+  site_title: 'Wings River Café',
+  phone: '07310008020',
+  whatsapp: '917310008020',
+  email: 'wingsrivercafe@gmail.com',
+  address: 'Laxman Mela Ground, Gomti Riverfront, Lucknow',
+  opening_hours: '11:00 AM – 11:59 PM (Open All 7 Days)',
+  instagram_url: 'https://www.instagram.com/wingsriver',
+  facebook_url: 'https://facebook.com',
+  google_maps_url: 'https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA',
+};
 
 export default function Footer() {
+  const [settings, setSettings] = useState<SiteSettings>(DEFAULTS);
+
+  useEffect(() => {
+    let active = true;
+    getSiteSettings().then((s) => { if (active && s) setSettings(s); });
+    const onSync = () => getSiteSettings().then((s) => { if (active && s) setSettings(s); });
+    window.addEventListener('wings_db_sync', onSync);
+    return () => { active = false; window.removeEventListener('wings_db_sync', onSync); };
+  }, []);
+
+  const phone        = settings.phone        || DEFAULTS.phone!;
+  const instagram    = settings.instagram_url || DEFAULTS.instagram_url!;
+  const facebook     = settings.facebook_url  || DEFAULTS.facebook_url!;
+  const mapsUrl      = settings.google_maps_url || DEFAULTS.google_maps_url!;
+  const hours        = settings.opening_hours  || DEFAULTS.opening_hours!;
+  const address      = settings.address        || DEFAULTS.address!;
+
   return (
     <footer className="bg-dark-950 text-white pt-16 pb-8 border-t border-white/10 relative overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -18,18 +48,17 @@ export default function Footer() {
                   Wings River <span className="text-gold-400">Café</span>
                 </span>
                 <span className="text-[10px] text-mint-300 font-semibold tracking-wider uppercase">
-                  Lucknow Water Sports & Café
+                  Lucknow Water Sports &amp; Café
                 </span>
               </div>
             </a>
             <p className="font-sans text-xs text-gray-400 leading-relaxed">
-              Lucknow’s premier riverside family restaurant offering gourmet multicuisine delicacies, fairy light party canopies, and thrilling speedboat water sports rides.
+              Lucknow's premier riverside family restaurant offering gourmet multicuisine delicacies, fairy light party canopies, and thrilling speedboat water sports rides.
             </p>
 
-            {/* SOCIAL ICONS ONLY (No text beside icons) */}
             <div className="flex items-center space-x-3 pt-2">
               <a
-                href="https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
+                href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Google Maps"
@@ -40,7 +69,7 @@ export default function Footer() {
               </a>
 
               <a
-                href="https://www.instagram.com/wingsriver"
+                href={instagram}
                 target="_blank"
                 rel="noopener noreferrer"
                 title="Instagram"
@@ -51,9 +80,20 @@ export default function Footer() {
               </a>
 
               <a
-                href="tel:07310008020"
-                title="Call 07310008020"
-                aria-label="Call 07310008020"
+                href={facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                title="Facebook"
+                aria-label="Facebook"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-gold-500 hover:text-dark-950 flex items-center justify-center transition-colors text-white"
+              >
+                <Facebook className="w-4 h-4" />
+              </a>
+
+              <a
+                href={`tel:${phone}`}
+                title={`Call ${phone}`}
+                aria-label={`Call ${phone}`}
                 className="w-10 h-10 rounded-full bg-gold-400 hover:bg-gold-500 text-dark-950 flex items-center justify-center transition-colors font-bold"
               >
                 <Phone className="w-4 h-4" />
@@ -72,7 +112,7 @@ export default function Footer() {
               <li><a href="#menu-card" className="hover:text-mint-300 transition-colors">Food Menu</a></li>
               <li><a href="#gallery" className="hover:text-mint-300 transition-colors">Photo Gallery</a></li>
               <li><a href="#reviews" className="hover:text-mint-300 transition-colors">Customer Reviews</a></li>
-              <li><a href="#blog" className="hover:text-mint-300 transition-colors">WordPress Blog</a></li>
+              <li><a href="#blog" className="hover:text-mint-300 transition-colors">Blog &amp; News</a></li>
               <li><a href="/admin" className="hover:text-gold-400 transition-colors font-semibold">Admin CMS Panel</a></li>
             </ul>
           </div>
@@ -84,7 +124,7 @@ export default function Footer() {
             </h4>
             <div className="space-y-2 text-xs text-gray-300">
               <p><strong className="text-white">Monday – Sunday:</strong></p>
-              <p className="text-mint-300 font-semibold text-sm">11:00 AM – 11:59 PM</p>
+              <p className="text-mint-300 font-semibold text-sm">{hours.split('(')[0].trim()}</p>
               <p className="text-gray-400 pt-2">Lunch • Sunset Snacks • Late Dinner</p>
               <p className="text-gray-400">Speedboat Rides available daily during daylight hours.</p>
             </div>
@@ -95,12 +135,23 @@ export default function Footer() {
             <h4 className="font-serif font-bold text-base text-gold-400 mb-4 uppercase tracking-wider">
               Location
             </h4>
-            <address className="not-italic text-xs text-gray-300 space-y-2 leading-relaxed">
-              <p>Laxman Jhula Park, River Front</p>
-              <p>Inside Laxman Mela Ground</p>
-              <p>Kala Kankar Colony, Purana Haidarabad</p>
-              <p>Hazratganj, Lucknow, UP 226001</p>
-              <p className="pt-2 text-gold-400 font-bold">Tel: 07310008020</p>
+            <address className="not-italic text-xs text-gray-300 space-y-1.5 leading-relaxed">
+              <p>{address}</p>
+              <p className="pt-2 text-gold-400 font-bold">Tel: {phone}</p>
+              {settings.email && (
+                <p>
+                  <a href={`mailto:${settings.email}`} className="text-mint-400 hover:underline">{settings.email}</a>
+                </p>
+              )}
+              <a
+                href={mapsUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center space-x-1 text-amber-400 hover:text-amber-300 pt-1 text-[11px] font-semibold"
+              >
+                <MapPin className="w-3 h-3" />
+                <span>View on Google Maps</span>
+              </a>
             </address>
           </div>
         </div>

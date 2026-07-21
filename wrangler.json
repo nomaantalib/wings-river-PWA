@@ -13,6 +13,12 @@
       "database_id": "c2491a90-0f90-4a1e-8a4d-852e6588a68a"
     }
   ],
+  "r2_buckets": [
+    {
+      "binding": "BUCKET",
+      "bucket_name": "wings-river-cafe-media"
+    }
+  ],
   "vars": {
     "ADMIN_SECRET_KEY": "wings_river_cafe_admin_secret_2026",
     "CLOUDFLARE_ACCOUNT_ID": "6440ee23c8295bb44d8c61f748345f3f",

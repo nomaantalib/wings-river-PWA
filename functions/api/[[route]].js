@@ -33,8 +33,9 @@ async function ensureTables(db) {
     await db.batch([
       db.prepare(`CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password_hash TEXT, email TEXT, role TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS menu_categories (id TEXT PRIMARY KEY, name TEXT, slug TEXT, description TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
-      db.prepare(`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, category_id TEXT, name TEXT, description TEXT, price REAL, is_veg INTEGER DEFAULT 1, image_url TEXT, is_available INTEGER DEFAULT 1, display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS menu_items (id TEXT PRIMARY KEY, category_id TEXT, name TEXT, description TEXT, price REAL, is_veg INTEGER DEFAULT 1, image_url TEXT, is_available INTEGER DEFAULT 1, is_bestseller INTEGER DEFAULT 0, badge TEXT DEFAULT '', display_order INTEGER DEFAULT 0, version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS menu_pages (page_number INTEGER PRIMARY KEY, title TEXT, subtitle TEXT, image TEXT, categories TEXT, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
+      db.prepare(`CREATE TABLE IF NOT EXISTS promo_pages (id TEXT PRIMARY KEY, title TEXT, subtitle TEXT, image_url TEXT, cta_text TEXT, cta_link TEXT, status TEXT DEFAULT 'active', display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS blogs (id TEXT PRIMARY KEY, title TEXT, slug TEXT, excerpt TEXT, content TEXT, category TEXT, cover_image TEXT, images TEXT, video_url TEXT, author TEXT, read_time TEXT, status TEXT DEFAULT 'draft', version INTEGER DEFAULT 1, is_deleted INTEGER DEFAULT 0, published_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS gallery (id TEXT PRIMARY KEY, title TEXT, category TEXT, image_url TEXT, featured INTEGER DEFAULT 0, display_order INTEGER DEFAULT 0, is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS reviews (id TEXT PRIMARY KEY, author_name TEXT, rating INTEGER DEFAULT 5, review_text TEXT, date_str TEXT, avatar_url TEXT, status TEXT DEFAULT 'approved', is_deleted INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`),
@@ -50,6 +51,30 @@ async function ensureTables(db) {
       db.prepare(`CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`),
       db.prepare(`CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`)
     ]);
+
+    // Ensure site_settings exists in settings table
+    const settingsCheck = await db.prepare("SELECT value FROM settings WHERE key = ?").bind('site_settings').first();
+    if (!settingsCheck) {
+      const defaultSettings = {
+        site_title: "Wings River Café",
+        slogan: "Taste • Eat • Rides",
+        logo_url: "/logo.png",
+        favicon_url: "/favicon.ico",
+        phone: "07310008020",
+        whatsapp: "917310008020",
+        email: "wingsrivercafe@gmail.com",
+        address: "Lucknow Water Sports, Laxman Mela Ground, Gomti Riverfront, Lucknow",
+        opening_hours: "11:00 AM – 11:59 PM (Open All 7 Days)",
+        instagram_url: "https://www.instagram.com/wingsriver",
+        facebook_url: "https://facebook.com",
+        google_maps_url: "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA",
+        hero_bg_image: "/images/Screenshot_20260720-180621_Maps.png",
+        menu_booklet_cover: "/images/food_menu_collage.jpg",
+        seo_meta_title: "Wings River Café | Multicuisine Restaurant & Water Sports Lucknow",
+        seo_meta_description: "Lucknow's premier riverside café offering gourmet food, live music, and thrilling Gomti riverfront water sports rides."
+      };
+      await db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind('site_settings', JSON.stringify(defaultSettings)).run();
+    }
 
     // Auto-seed Categories if table is empty
     const catCheck = await db.prepare("SELECT COUNT(*) as cnt FROM menu_categories").first();
@@ -307,19 +332,21 @@ app.get('/menupages', async (c) => {
 
 app.post('/menupages', async (c) => {
   const db = c.env?.DB;
-  if (!db) return c.json({ success: true });
+  if (!db) return c.json({ success: false, error: 'Database not available' }, 503);
   try {
     await ensureTables(db);
     const data = await c.req.json();
-    const categoriesStr = Array.isArray(data.categories) ? JSON.stringify(data.categories) : '[]';
+    // Accept both snake_case and camelCase page number fields
+    const pageNum = Number(data.page_number ?? data.pageNumber) || 1;
+    const categoriesStr = Array.isArray(data.categories) ? JSON.stringify(data.categories) : (typeof data.categories === 'string' ? data.categories : '[]');
     await db.prepare(`
       INSERT OR REPLACE INTO menu_pages (page_number, title, subtitle, image, categories, display_order, is_deleted, updated_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `).bind(
-      Number(data.page_number) || 1, data.title || '', data.subtitle || '', data.image || '', categoriesStr,
-      Number(data.display_order) || 0, Number(data.is_deleted) || 0
+      pageNum, data.title || '', data.subtitle || '', data.image || '', categoriesStr,
+      Number(data.display_order ?? data.pageNumber ?? pageNum) || pageNum, Number(data.is_deleted) || 0
     ).run();
-    return c.json({ success: true });
+    return c.json({ success: true, page_number: pageNum });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
@@ -649,7 +676,65 @@ app.delete('/faqs/:id', async (c) => {
   }
 });
 
-// ── 12. MEDIA LIBRARY ───────────────────────────────────────────────────────
+// ── 12. MEDIA LIBRARY & R2 UPLOAD PIPELINE ─────────────────────────────────
+app.post('/upload', async (c) => {
+  const bucket = c.env?.BUCKET;
+  const db = c.env?.DB;
+  try {
+    const body = await c.req.parseBody();
+    const file = body['file'];
+    if (!file || typeof file === 'string') {
+      return c.json({ success: false, error: 'No valid file provided' }, 400);
+    }
+
+    const category = body['category'] || 'general';
+    const altText = body['alt_text'] || file.name || '';
+    const ext = (file.name || 'image.png').split('.').pop() || 'png';
+    const key = `img-${Date.now()}-${Math.random().toString(36).substring(2, 8)}.${ext}`;
+
+    let publicUrl = '';
+
+    if (bucket) {
+      const arrayBuffer = await file.arrayBuffer();
+      await bucket.put(key, arrayBuffer, {
+        httpMetadata: { contentType: file.type || 'image/png' }
+      });
+      publicUrl = `/api/media/file/${key}`;
+    } else {
+      return c.json({ success: false, error: 'Cloudflare R2 Bucket binding unconfigured' }, 500);
+    }
+
+    const id = `med-${Date.now()}`;
+    if (db) {
+      await ensureTables(db);
+      await db.prepare(`
+        INSERT INTO media_library (id, url, alt_text, caption, category, file_size, dimensions)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).bind(id, publicUrl, altText, '', category, file.size || 0, '').run();
+    }
+
+    return c.json({ success: true, url: publicUrl, media_id: id, key });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+app.get('/media/file/:key', async (c) => {
+  const key = c.req.param('key');
+  const bucket = c.env?.BUCKET;
+  if (!bucket) return c.text('R2 Bucket unconfigured', 500);
+
+  const object = await bucket.get(key);
+  if (!object) return c.text('File Not Found', 404);
+
+  const headers = new Headers();
+  object.writeHttpMetadata(headers);
+  if (object.httpEtag) headers.set('etag', object.httpEtag);
+  headers.set('Cache-Control', 'public, max-age=31536000');
+
+  return new Response(object.body, { headers });
+});
+
 app.get('/media', async (c) => {
   const db = c.env?.DB;
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
@@ -681,10 +766,101 @@ app.post('/media', async (c) => {
 
 app.delete('/media/:id', async (c) => {
   const db = c.env?.DB;
+  const bucket = c.env?.BUCKET;
   if (!db) return c.json({ success: true });
   try {
+    const mediaItem = await db.prepare("SELECT * FROM media_library WHERE id = ?").bind(c.req.param('id')).first();
+    if (mediaItem && mediaItem.url && mediaItem.url.startsWith('/api/media/file/')) {
+      const key = mediaItem.url.replace('/api/media/file/', '');
+      if (bucket) {
+        await bucket.delete(key).catch(() => {});
+      }
+    }
     await db.prepare("DELETE FROM media_library WHERE id = ?").bind(c.req.param('id')).run();
     return c.json({ success: true });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+// ── GLOBAL SITE SETTINGS & DASHBOARD STATS ──────────────────────────────────
+app.get('/settings', async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true, data: {} });
+  try {
+    await ensureTables(db);
+    const list = await db.prepare("SELECT * FROM settings").all();
+    const settingsMap = {};
+    (list.results || []).forEach(r => {
+      try { settingsMap[r.key] = JSON.parse(r.value); }
+      catch (e) { settingsMap[r.key] = r.value; }
+    });
+    return c.json({ success: true, data: settingsMap });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+app.post('/settings', async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true });
+  try {
+    await ensureTables(db);
+    const body = await c.req.json();
+    if (body.key && body.value !== undefined) {
+      const valStr = typeof body.value === 'object' ? JSON.stringify(body.value) : String(body.value);
+      await db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind(body.key, valStr).run();
+    } else {
+      for (const [k, v] of Object.entries(body)) {
+        const valStr = typeof v === 'object' ? JSON.stringify(v) : String(v);
+        await db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").bind(k, valStr).run();
+      }
+    }
+    return c.json({ success: true });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+app.get('/stats', async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true, data: {} });
+  try {
+    await ensureTables(db);
+    const today = new Date().toISOString().split('T')[0];
+    const [
+      resTotalBookings,
+      resTodayBookings,
+      resMenuItems,
+      resGallery,
+      resFeedback,
+      resOffers,
+      resReviews,
+      resBlogs
+    ] = await Promise.all([
+      db.prepare("SELECT COUNT(*) as cnt FROM reservations WHERE is_deleted = 0").first(),
+      db.prepare("SELECT COUNT(*) as cnt FROM reservations WHERE is_deleted = 0 AND date LIKE ?").bind(`${today}%`).first(),
+      db.prepare("SELECT COUNT(*) as cnt FROM menu_items WHERE is_deleted = 0").first(),
+      db.prepare("SELECT COUNT(*) as cnt FROM gallery WHERE is_deleted = 0").first(),
+      db.prepare("SELECT COUNT(*) as cnt FROM contact_messages WHERE is_deleted = 0").first(),
+      db.prepare("SELECT COUNT(*) as cnt FROM offers_discounts WHERE is_deleted = 0").first(),
+      db.prepare("SELECT COUNT(*) as cnt FROM reviews WHERE is_deleted = 0").first(),
+      db.prepare("SELECT COUNT(*) as cnt FROM blogs WHERE is_deleted = 0").first()
+    ]);
+
+    return c.json({
+      success: true,
+      data: {
+        total_bookings: resTotalBookings?.cnt || 0,
+        today_bookings: resTodayBookings?.cnt || 0,
+        menu_items: resMenuItems?.cnt || 0,
+        gallery_images: resGallery?.cnt || 0,
+        feedback_count: resFeedback?.cnt || 0,
+        offers_count: resOffers?.cnt || 0,
+        reviews_count: resReviews?.cnt || 0,
+        blogs_count: resBlogs?.cnt || 0
+      }
+    });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
@@ -919,5 +1095,50 @@ app.post('/messages', handlePostContact);
 app.delete('/contact/:id', handleDeleteContact);
 app.delete('/inquiries/:id', handleDeleteContact);
 app.delete('/messages/:id', handleDeleteContact);
+
+// ── 19. PROMO PAGES ─────────────────────────────────────────────────────────
+app.get('/promopages', async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true, data: [], d1_connected: false });
+  try {
+    await ensureTables(db);
+    const list = await db.prepare("SELECT * FROM promo_pages WHERE is_deleted = 0 ORDER BY display_order ASC, created_at DESC").all();
+    return c.json({ success: true, data: list.results || [] });
+  } catch (e) {
+    return c.json({ success: true, data: [], error: e.message });
+  }
+});
+
+app.post('/promopages', async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: false, error: 'Database not available' }, 503);
+  try {
+    await ensureTables(db);
+    const data = await c.req.json();
+    const id = data.id || `promo-${Date.now()}`;
+    await db.prepare(`
+      INSERT OR REPLACE INTO promo_pages (id, title, subtitle, image_url, cta_text, cta_link, status, display_order, is_deleted, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+    `).bind(
+      id, data.title || '', data.subtitle || '', data.image_url || '',
+      data.cta_text || '', data.cta_link || '',
+      data.status || 'active', Number(data.display_order) || 0, Number(data.is_deleted) || 0
+    ).run();
+    return c.json({ success: true, id });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+app.delete('/promopages/:id', async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: false, error: 'Database not available' }, 503);
+  try {
+    await db.prepare("UPDATE promo_pages SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
+    return c.json({ success: true });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
 
 export const onRequest = handle(app);
