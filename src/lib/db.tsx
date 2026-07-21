@@ -91,6 +91,8 @@ export {
   getStoredPages,
   savePage,
   deletePage,
+  // Helper
+  getApiUrl,
 } from '@/controllers/StorageController';
 
 export type {
