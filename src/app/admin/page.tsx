@@ -380,6 +380,7 @@ export default function AdminPage() {
     const fresh = await saveCategory(catToSave);
     setCategories(fresh);
     setCategoryModal(null);
+    showToast('Category saved successfully!');
   };
 
   // Menu Items Save
@@ -402,6 +403,7 @@ export default function AdminPage() {
     const fresh = await saveMenuItem(itemToSave);
     setMenuItems(fresh);
     setMenuModal(null);
+    showToast('Menu dish saved successfully!');
   };
 
   // Blog Posts Save
@@ -426,6 +428,7 @@ export default function AdminPage() {
     const fresh = await saveBlog(blogToSave);
     setBlogs(fresh);
     setBlogModal(null);
+    showToast('Blog story saved successfully!');
   };
 
   // Photo Gallery Save
@@ -443,6 +446,7 @@ export default function AdminPage() {
     const fresh = await saveGalleryItem(photoToSave);
     setGallery(fresh);
     setGalleryModal(null);
+    showToast('Gallery photo saved successfully!');
   };
 
   // Water Sports Save
@@ -464,6 +468,7 @@ export default function AdminPage() {
     const fresh = await saveWaterSports(rideToSave);
     setRides(fresh);
     setRideModal(null);
+    showToast('Water sports ride saved successfully!');
   };
 
   // Event Banner Save
@@ -482,6 +487,7 @@ export default function AdminPage() {
     const fresh = await saveEventBanner(bannerToSave);
     setBanners(fresh);
     setBannerModal(null);
+    showToast('Promo banner saved successfully!');
   };
 
   // Offers Save
@@ -500,6 +506,7 @@ export default function AdminPage() {
     const fresh = await saveOffer(offerToSave);
     setOffers(fresh);
     setOfferModal(null);
+    showToast('Offer coupon saved successfully!');
   };
 
   // FAQs Save
@@ -515,6 +522,7 @@ export default function AdminPage() {
     const fresh = await saveFaq(faqToSave);
     setFaqs(fresh);
     setFaqModal(null);
+    showToast('FAQ item saved successfully!');
   };
 
   // Team Members Save
@@ -532,6 +540,7 @@ export default function AdminPage() {
     const fresh = await saveTeamMember(tmToSave);
     setTeam(fresh);
     setTeamModal(null);
+    showToast('Team member saved successfully!');
   };
 
   // Dynamic Pages Save
@@ -550,6 +559,7 @@ export default function AdminPage() {
     const fresh = await savePage(pageToSave);
     setPages(fresh);
     setPageModal(null);
+    showToast('Static page saved successfully!');
   };
 
   // Media Library Upload
@@ -568,6 +578,7 @@ export default function AdminPage() {
     const fresh = await saveMediaItem(itemToSave);
     setMedia(fresh);
     setMediaModal(null);
+    showToast('Media file saved successfully!');
   };
 
   // Hero Section Settings Save
@@ -594,6 +605,7 @@ export default function AdminPage() {
     const fresh = await saveMenuPage(pageToSave);
     setMenuPages(fresh);
     setMenuPageModal(null);
+    showToast('Menu booklet page saved successfully!');
   };
 
   // ─── LOGIN PANEL ───────────────────────────────────────────────────────────
@@ -1145,7 +1157,10 @@ export default function AdminPage() {
                           <p className="text-[10px] text-gray-400">{g.category}</p>
                           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
                             <span className="text-[9px] bg-amber-500/20 text-amber-400 px-1.5 py-0.5 rounded">{g.featured ? 'Featured' : 'Standard'}</span>
-                            <button onClick={() => setDeleteTarget({ label: g.title, action: async () => { await deleteGalleryItem(g.id); loadAll(); } })} className="text-rose-400 hover:text-rose-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <div className="flex items-center space-x-1.5">
+                              <button onClick={() => setGalleryModal(g)} className={btnEdit} title="Edit Photo"><Edit3 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => setDeleteTarget({ label: g.title, action: async () => { await deleteGalleryItem(g.id); loadAll(); } })} className={btnDanger} title="Delete Photo"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1315,8 +1330,18 @@ export default function AdminPage() {
                           <h4 className="font-bold text-xs text-white truncate">{m.alt_text || 'No Alt Text'}</h4>
                           <p className="text-[10px] text-gray-400">{m.category}</p>
                           <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
-                            <span className="text-[9px] text-gray-500">{m.dimensions}</span>
-                            <button onClick={() => setDeleteTarget({ label: m.alt_text || 'Media Item', action: async () => { await deleteMediaItem(m.id); loadAll(); } })} className="text-rose-400 hover:text-rose-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <button
+                              onClick={() => { navigator.clipboard.writeText(m.url); showToast('Copied media URL!'); }}
+                              className="text-[9px] text-amber-400 hover:text-amber-300 flex items-center space-x-1 font-mono"
+                              title="Copy URL"
+                            >
+                              <Copy className="w-3 h-3" />
+                              <span>Copy Link</span>
+                            </button>
+                            <div className="flex items-center space-x-1">
+                              <button onClick={() => setMediaModal(m)} className={btnEdit} title="Edit Media Details"><Edit3 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => setDeleteTarget({ label: m.alt_text || 'Media Item', action: async () => { await deleteMediaItem(m.id); loadAll(); } })} className={btnDanger} title="Delete Media Item"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -1361,8 +1386,12 @@ export default function AdminPage() {
                         <div className="p-3">
                           <h4 className="font-bold text-xs text-white">Page {mp.page_number}</h4>
                           <p className="text-[10px] text-gray-400 truncate">{mp.title}</p>
-                          <div className="flex items-center justify-end mt-2 pt-2 border-t border-white/5">
-                            <button onClick={() => setDeleteTarget({ label: `Page ${mp.page_number}`, action: async () => { await deleteMenuPage(mp.page_number!); loadAll(); } })} className="text-rose-400 hover:text-rose-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                          <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/5">
+                            <span className="text-[9px] text-amber-400 font-mono">Booklet</span>
+                            <div className="flex items-center space-x-1">
+                              <button onClick={() => setMenuPageModal(mp)} className={btnEdit} title="Edit Page"><Edit3 className="w-3.5 h-3.5" /></button>
+                              <button onClick={() => setDeleteTarget({ label: `Page ${mp.page_number}`, action: async () => { await deleteMenuPage(mp.page_number!); loadAll(); } })} className={btnDanger} title="Delete Page"><Trash2 className="w-3.5 h-3.5" /></button>
+                            </div>
                           </div>
                         </div>
                       </div>
