@@ -649,6 +649,31 @@ export async function uploadMediaFile(file: File, category: string = 'general', 
   }
 }
 
+export async function uploadCloudinaryFile(
+  file: File,
+  cloudName: string,
+  uploadPreset: string
+): Promise<{ success: boolean; url?: string; error?: string }> {
+  try {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('upload_preset', uploadPreset);
+
+    const res = await fetch(`https://api.cloudinary.com/v1_1/${cloudName}/image/upload`, {
+      method: 'POST',
+      body: formData,
+    });
+
+    const data = await res.json();
+    if (res.ok && data.secure_url) {
+      return { success: true, url: data.secure_url };
+    }
+    return { success: false, error: data.error?.message || 'Cloudinary upload failed' };
+  } catch (e: any) {
+    return { success: false, error: e.message || 'Upload connection error' };
+  }
+}
+
 export interface SiteSettings {
   site_title?: string;
   slogan?: string;

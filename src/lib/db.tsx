@@ -97,6 +97,7 @@ export {
   saveSiteSettings,
   getDashboardStats,
   uploadMediaFile,
+  uploadCloudinaryFile,
   // Promo Pages
   getStoredPromoPages,
   savePromoPage,
