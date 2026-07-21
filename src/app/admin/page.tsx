@@ -30,7 +30,8 @@ import {
   Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Trash2, Edit3,
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
-  Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen
+  Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen,
+  ChevronLeft, ChevronRight, Menu, ArrowLeft
 } from 'lucide-react';
 
 // Tab Keys matching separate management modules
@@ -103,6 +104,8 @@ export default function AdminPage() {
   const [errorMsg, setErrorMsg] = useState('');
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Core CMS state
   const [reservations, setReservations] = useState<Reservation[]>([]);
@@ -512,95 +515,166 @@ export default function AdminPage() {
             </div>
             <button type="submit" className="w-full py-3 bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs rounded-xl shadow-lg hover:shadow-amber-500/20 transition-all">Sign In</button>
           </form>
+          <div className="pt-2 border-t border-white/10 text-center">
+            <a href="/" className="inline-flex items-center justify-center space-x-2 w-full py-2.5 bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white font-bold text-xs rounded-xl transition-all border border-white/10">
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Home Screen</span>
+            </a>
+          </div>
         </div>
       </main>
     );
   }
 
+  const navTabs: { id: TabKey; label: string; icon: React.ReactNode }[] = [
+    { id: 'dashboard',  label: 'Dashboard Overview', icon: <Home className="w-4 h-4 shrink-0" /> },
+    { id: 'hero',       label: 'Hero & About CMS',   icon: <Settings className="w-4 h-4 shrink-0" /> },
+    { id: 'pages',      label: 'Dynamic Pages',      icon: <FileText className="w-4 h-4 shrink-0" /> },
+    { id: 'categories', label: 'Menu Categories',    icon: <Layers className="w-4 h-4 shrink-0" /> },
+    { id: 'menu',       label: 'Menu Items',         icon: <Utensils className="w-4 h-4 shrink-0" /> },
+    { id: 'menupages',  label: 'Booklet Pages',      icon: <BookOpen className="w-4 h-4 shrink-0" /> },
+    { id: 'blogs',      label: 'Blogs & News',       icon: <FileText className="w-4 h-4 shrink-0" /> },
+    { id: 'gallery',    label: 'Photo Gallery',      icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
+    { id: 'rides',      label: 'Water Sports Rides', icon: <Waves className="w-4 h-4 shrink-0" /> },
+    { id: 'banners',    label: 'Promo Banners',      icon: <Megaphone className="w-4 h-4 shrink-0" /> },
+    { id: 'offers',     label: 'Offers & Discounts', icon: <Tag className="w-4 h-4 shrink-0" /> },
+    { id: 'faqs',       label: 'FAQs Management',    icon: <HelpCircle className="w-4 h-4 shrink-0" /> },
+    { id: 'team',       label: 'Team Members',       icon: <Users className="w-4 h-4 shrink-0" /> },
+    { id: 'bookings',   label: 'Reservations',       icon: <Calendar className="w-4 h-4 shrink-0" /> },
+    { id: 'reviews',    label: 'Customer Reviews',   icon: <Star className="w-4 h-4 shrink-0" /> },
+    { id: 'contact',    label: 'Inquiries & Messages',icon:<Mail className="w-4 h-4 shrink-0" /> },
+    { id: 'media',      label: 'Media Library',      icon: <FolderOpen className="w-4 h-4 shrink-0" /> },
+    { id: 'audit',      label: 'Security Audit Logs',icon: <Database className="w-4 h-4 shrink-0" /> },
+  ];
+
   // ─── MAIN ADMIN WORKSPACE ──────────────────────────────────────────────────
   return (
-    <main className="min-h-screen bg-dark-950 text-white font-sans flex">
+    <main className="min-h-screen bg-dark-950 text-white font-sans flex relative overflow-x-hidden">
+      {/* Mobile Backdrop Overlay */}
+      {isMobileMenuOpen && (
+        <div
+          onClick={() => setIsMobileMenuOpen(false)}
+          className="fixed inset-0 z-40 bg-black/70 backdrop-blur-sm lg:hidden transition-opacity"
+        />
+      )}
+
       {/* Sidebar Navigation */}
-      <aside className="w-64 bg-dark-900 border-r border-white/10 flex flex-col shrink-0">
-        <div className="p-6 border-b border-white/10 flex items-center space-x-2">
-          <div className="w-8 h-8 rounded-lg bg-amber-500 text-dark-950 flex items-center justify-center font-bold">W</div>
-          <div>
-            <h1 className="font-serif font-bold text-sm leading-tight">Wings River CMS</h1>
-            <p className="text-[10px] text-amber-400 font-mono">D1 Production Storage</p>
+      <aside
+        className={`fixed lg:static inset-y-0 left-0 z-50 bg-dark-900 border-r border-white/10 flex flex-col shrink-0 transition-all duration-300 ease-in-out ${
+          isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        } ${isSidebarCollapsed ? 'lg:w-20' : 'lg:w-64'} w-64`}
+      >
+        {/* Sidebar Header */}
+        <div className="p-4 border-b border-white/10 flex items-center justify-between min-h-[64px]">
+          <div className="flex items-center space-x-2.5 overflow-hidden">
+            <div className="w-8 h-8 rounded-xl bg-amber-500 text-dark-950 flex items-center justify-center font-bold text-sm shrink-0 shadow-md">W</div>
+            {!isSidebarCollapsed && (
+              <div className="truncate">
+                <h1 className="font-serif font-bold text-sm leading-tight truncate text-white">Wings River CMS</h1>
+                <p className="text-[10px] text-amber-400 font-mono truncate">D1 Storage</p>
+              </div>
+            )}
           </div>
+
+          {/* Desktop Toggle Button */}
+          <button
+            onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+            className="hidden lg:flex p-1.5 rounded-xl bg-white/5 hover:bg-white/15 text-gray-300 hover:text-white transition-colors"
+            title={isSidebarCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+          >
+            {isSidebarCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+          </button>
+
+          {/* Mobile Close Button */}
+          <button
+            onClick={() => setIsMobileMenuOpen(false)}
+            className="lg:hidden p-1.5 rounded-xl bg-white/5 text-gray-300 hover:text-white"
+          >
+            <X className="w-4 h-4" />
+          </button>
         </div>
 
-        <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
-          <button onClick={() => setActiveTab('dashboard')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'dashboard' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Home className="w-4 h-4" /> <span>Dashboard Overview</span>
-          </button>
-          <button onClick={() => setActiveTab('hero')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'hero' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Settings className="w-4 h-4" /> <span>Hero & About CMS</span>
-          </button>
-          <button onClick={() => setActiveTab('pages')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'pages' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <FileText className="w-4 h-4" /> <span>Dynamic Pages</span>
-          </button>
-          <button onClick={() => setActiveTab('categories')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'categories' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Layers className="w-4 h-4" /> <span>Menu Categories</span>
-          </button>
-          <button onClick={() => setActiveTab('menu')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'menu' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Utensils className="w-4 h-4" /> <span>Menu Items</span>
-          </button>
-          <button onClick={() => setActiveTab('menupages')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'menupages' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <BookOpen className="w-4 h-4" /> <span>Booklet Pages</span>
-          </button>
-          <button onClick={() => setActiveTab('blogs')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'blogs' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <FileText className="w-4 h-4" /> <span>Blogs & News</span>
-          </button>
-          <button onClick={() => setActiveTab('gallery')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'gallery' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <ImageIcon className="w-4 h-4" /> <span>Photo Gallery</span>
-          </button>
-          <button onClick={() => setActiveTab('rides')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'rides' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Waves className="w-4 h-4" /> <span>Water Sports Rides</span>
-          </button>
-          <button onClick={() => setActiveTab('banners')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'banners' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Megaphone className="w-4 h-4" /> <span>Promo Banners</span>
-          </button>
-          <button onClick={() => setActiveTab('offers')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'offers' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Tag className="w-4 h-4" /> <span>Offers & Discounts</span>
-          </button>
-          <button onClick={() => setActiveTab('faqs')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'faqs' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <HelpCircle className="w-4 h-4" /> <span>FAQs Management</span>
-          </button>
-          <button onClick={() => setActiveTab('team')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'team' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Users className="w-4 h-4" /> <span>Team Members</span>
-          </button>
-          <button onClick={() => setActiveTab('bookings')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'bookings' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Calendar className="w-4 h-4" /> <span>Reservations</span>
-          </button>
-          <button onClick={() => setActiveTab('reviews')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'reviews' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Star className="w-4 h-4" /> <span>Customer Reviews</span>
-          </button>
-          <button onClick={() => setActiveTab('contact')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'contact' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Mail className="w-4 h-4" /> <span>Inquiries & Messages</span>
-          </button>
-          <button onClick={() => setActiveTab('media')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'media' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <FolderOpen className="w-4 h-4" /> <span>Media Library</span>
-          </button>
-          <button onClick={() => setActiveTab('audit')} className={`w-full flex items-center space-x-2.5 px-3 py-2.5 rounded-xl text-xs font-bold transition-all ${activeTab === 'audit' ? 'bg-amber-500 text-dark-950' : 'text-gray-400 hover:bg-white/5 hover:text-white'}`}>
-            <Database className="w-4 h-4" /> <span>Security Audit Logs</span>
-          </button>
+        {/* Sidebar Navigation Items */}
+        <nav className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
+          {navTabs.map((t) => {
+            const isActive = activeTab === t.id;
+            return (
+              <button
+                key={t.id}
+                title={t.label}
+                onClick={() => {
+                  setActiveTab(t.id);
+                  setIsMobileMenuOpen(false);
+                }}
+                className={`w-full flex items-center ${
+                  isSidebarCollapsed ? 'justify-center px-0' : 'space-x-3 px-3'
+                } py-2.5 rounded-xl text-xs font-bold transition-all ${
+                  isActive
+                    ? 'bg-amber-500 text-dark-950 shadow-md scale-[1.02]'
+                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                {t.icon}
+                {!isSidebarCollapsed && <span className="truncate">{t.label}</span>}
+              </button>
+            );
+          })}
         </nav>
 
-        <div className="p-4 border-t border-white/10">
-          <button onClick={handleLogout} className="w-full flex items-center justify-center space-x-2 py-2.5 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 rounded-xl text-xs font-bold transition-all">
-            <LogOut className="w-4 h-4" /> <span>Log Out</span>
+        {/* Sidebar Footer */}
+        <div className="p-3 border-t border-white/10 space-y-2">
+          {/* Back to Home Button */}
+          <a
+            href="/"
+            title="Back to Home Screen"
+            className={`w-full flex items-center ${
+              isSidebarCollapsed ? 'justify-center px-0' : 'space-x-2.5 px-3'
+            } py-2 bg-amber-500/10 hover:bg-amber-500 hover:text-dark-950 text-amber-300 rounded-xl text-xs font-bold transition-all border border-amber-500/20`}
+          >
+            <ArrowLeft className="w-4 h-4 shrink-0" />
+            {!isSidebarCollapsed && <span>Back to Home</span>}
+          </a>
+
+          {/* Logout Button */}
+          <button
+            onClick={handleLogout}
+            title="Log Out"
+            className={`w-full flex items-center ${
+              isSidebarCollapsed ? 'justify-center px-0' : 'space-x-2.5 px-3'
+            } py-2 bg-rose-500/10 hover:bg-rose-500 hover:text-white text-rose-400 rounded-xl text-xs font-bold transition-all`}
+          >
+            <LogOut className="w-4 h-4 shrink-0" />
+            {!isSidebarCollapsed && <span>Log Out</span>}
           </button>
         </div>
       </aside>
 
       {/* Main Content Workspace */}
       <section className="flex-1 flex flex-col min-w-0 overflow-y-auto">
-        <header className="px-8 py-5 border-b border-white/10 flex items-center justify-between">
-          <h2 className="font-serif font-bold text-xl uppercase tracking-wider text-amber-400">{activeTab} Section</h2>
-          <div className="flex items-center space-x-4">
-            <span className="text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-500/30">D1 Storage Connected</span>
-            <button onClick={loadAll} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 rounded-lg text-[10px] font-mono transition-colors">Reload Data</button>
+        <header className="px-6 py-4 border-b border-white/10 flex items-center justify-between min-h-[64px]">
+          <div className="flex items-center space-x-3">
+            {/* Mobile Open Drawer Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(true)}
+              className="lg:hidden p-2 rounded-xl bg-white/10 hover:bg-white/20 text-white transition-colors"
+              title="Open Navigation Menu"
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+            <h2 className="font-serif font-bold text-xl uppercase tracking-wider text-amber-400">{activeTab} Section</h2>
+          </div>
+
+          <div className="flex items-center space-x-3">
+            <span className="hidden md:inline-block text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-500/30">D1 Connected</span>
+            <button onClick={loadAll} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-mono transition-colors">Reload</button>
+            <a
+              href="/"
+              className="flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 hover:text-dark-950 text-amber-300 text-xs font-bold transition-all border border-amber-500/20"
+              title="Return to Wings River Café Website"
+            >
+              <ArrowLeft className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Back to Home</span>
+            </a>
           </div>
         </header>
 
