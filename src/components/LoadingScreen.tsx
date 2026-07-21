@@ -547,11 +547,31 @@ export default function LoadingScreen() {
     }
   };
 
+  const [isFastIntro, setIsFastIntro] = useState(false);
+
   useEffect(() => {
-    // Play ambient sound
+    const hasSeen = typeof window !== 'undefined' ? sessionStorage.getItem('wings_intro_seen') : null;
+    
+    if (hasSeen) {
+      // Fast 700ms branding reveal for returning navigation in same session
+      setIsFastIntro(true);
+      setSceneIndex(3);
+      const fTimer = setTimeout(() => setFadeOut(true), 600);
+      const uTimer = setTimeout(() => setVisible(false), 1200);
+      return () => {
+        clearTimeout(fTimer);
+        clearTimeout(uTimer);
+      };
+    }
+
+    // Mark intro seen for current session
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('wings_intro_seen', 'true');
+    }
+
+    // Play full ambient sound and scene progression
     playWaterSound();
 
-    // Scene progression
     let elapsed = 0;
     const timers: ReturnType<typeof setTimeout>[] = [];
 
@@ -563,9 +583,9 @@ export default function LoadingScreen() {
       elapsed += scene.duration;
     });
 
-    // Fade out and unmount
+    // Fade out and unmount with 60fps ease
     const fadeTimer = setTimeout(() => setFadeOut(true), TOTAL_DURATION);
-    const unmountTimer = setTimeout(() => setVisible(false), TOTAL_DURATION + 700);
+    const unmountTimer = setTimeout(() => setVisible(false), TOTAL_DURATION + 800);
     timers.push(fadeTimer, unmountTimer);
 
     return () => {
@@ -578,10 +598,13 @@ export default function LoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[300] transition-all duration-900 ease-in-out backdrop-blur-3xl ${
-        fadeOut ? 'opacity-0 scale-105 pointer-events-none' : 'opacity-100 scale-100'
+      className={`fixed inset-0 z-[300] transition-all duration-700 gpu-accelerated ${
+        fadeOut ? 'opacity-0 scale-105 blur-sm pointer-events-none' : 'opacity-100 scale-100 blur-0'
       }`}
-      style={{ background: '#000' }}
+      style={{
+        background: '#000',
+        transitionTimingFunction: 'cubic-bezier(0.16, 1, 0.3, 1)'
+      }}
     >
       {/* Scene 0: Jet Ski */}
       <div className={`absolute inset-0 bg-gradient-to-br ${SCENES[0].bg} transition-opacity duration-500 ${sceneIndex === 0 ? 'opacity-100' : 'opacity-0'}`}>
@@ -604,34 +627,40 @@ export default function LoadingScreen() {
       </div>
 
       {/* Progress bar at top */}
-      <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 z-50">
-        <div
-          className="h-full bg-gradient-to-r from-mint-400 via-gold-400 to-mint-300 transition-all duration-700 ease-out"
-          style={{
-            width: `${((sceneIndex + 1) / SCENES.length) * 100}%`,
-          }}
-        />
-      </div>
+      {!isFastIntro && (
+        <div className="absolute top-0 left-0 right-0 h-1 bg-white/10 z-50">
+          <div
+            className="h-full bg-gradient-to-r from-mint-400 via-gold-400 to-mint-300 transition-all duration-700 ease-out"
+            style={{
+              width: `${((sceneIndex + 1) / SCENES.length) * 100}%`,
+            }}
+          />
+        </div>
+      )}
 
       {/* Skip Intro Button */}
-      <button
-        onClick={() => { setFadeOut(true); setTimeout(() => setVisible(false), 500); }}
-        className="absolute top-5 right-5 z-50 px-4 py-1.5 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs font-bold transition-all hover:scale-105"
-      >
-        Skip Intro ➔
-      </button>
+      {!isFastIntro && (
+        <button
+          onClick={() => { setFadeOut(true); setTimeout(() => setVisible(false), 500); }}
+          className="absolute top-5 right-5 z-50 px-4 py-1.5 rounded-full bg-black/40 hover:bg-black/70 backdrop-blur-md border border-white/20 text-white/90 text-xs font-bold transition-all hover:scale-105 active:scale-95"
+        >
+          Skip Intro ➔
+        </button>
+      )}
 
       {/* Scene dots indicator */}
-      <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-50">
-        {SCENES.map((_, i) => (
-          <div
-            key={i}
-            className={`rounded-full transition-all duration-500 ${
-              i === sceneIndex ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30'
-            }`}
-          />
-        ))}
-      </div>
+      {!isFastIntro && (
+        <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex space-x-2 z-50">
+          {SCENES.map((_, i) => (
+            <div
+              key={i}
+              className={`rounded-full transition-all duration-500 ${
+                i === sceneIndex ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/30'
+              }`}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }
