@@ -6,6 +6,7 @@ import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
 import FeaturesSection from '@/components/FeaturesSection';
+import OffersSection from '@/components/OffersSection';
 import MenuCardBooklet from '@/components/MenuCardBooklet';
 import FoodMenuSection from '@/components/FoodMenuSection';
 import WaterSportsTickets from '@/components/WaterSportsTickets';
@@ -45,6 +46,9 @@ export default function Home() {
       <AboutSection />
       <FeaturesSection />
       
+      {/* Exclusive Deals & Promo Banners Section */}
+      <OffersSection key={`offers-${syncKey}`} onOpenBooking={handleOpenBooking} />
+
       {/* Venue Gallery Section */}
       <GallerySection key={`gallery-${syncKey}`} />
       
