@@ -74,35 +74,58 @@ function JetSkiScene({ active }: { active: boolean }) {
             <animate attributeName="d" values="M0,240 Q100,230 200,240 Q300,250 400,240 Q500,230 600,240 Q700,250 800,240;M0,245 Q100,255 200,245 Q300,235 400,245 Q500,255 600,245 Q700,235 800,245;M0,240 Q100,230 200,240 Q300,250 400,240 Q500,230 600,240 Q700,250 800,240" dur="2.5s" repeatCount="indefinite" />
           </path>
         </g>
-        {/* Jet Ski body */}
+        {/* Realistic Animated Jet Ski moving across whole screen from left to right end */}
         <g>
-          <animateTransform attributeName="transform" type="translate" values="-180,0;20,0;20,-6;20,0" keyTimes="0;0.5;0.7;1" dur="1.2s" begin="0.2s" fill="freeze" />
-          <ellipse cx="200" cy="255" rx="90" ry="18" fill="#ffd700" />
-          <ellipse cx="200" cy="250" rx="70" ry="14" fill="#ff8c00" />
-          <rect x="155" y="232" width="60" height="18" rx="6" fill="#ffcc00" />
-          {/* Rider */}
-          <circle cx="205" cy="225" r="10" fill="#f5cba7" />
-          <rect x="195" y="235" width="20" height="16" rx="3" fill="#e74c3c" />
-          {/* Helmet */}
-          <ellipse cx="205" cy="222" rx="11" ry="10" fill="#2c3e50" />
-          <ellipse cx="205" cy="222" rx="8" ry="6" fill="#3498db" opacity="0.7" />
-          {/* Life jacket arm */}
-          <line x1="195" y1="238" x2="185" y2="248" stroke="#e74c3c" strokeWidth="4" strokeLinecap="round" />
-          <line x1="215" y1="238" x2="228" y2="246" stroke="#e74c3c" strokeWidth="4" strokeLinecap="round" />
+          <animateTransform
+            attributeName="transform"
+            type="translate"
+            values="-240,0; -100,-4; 150,2; 450,-6; 750,2; 980,0"
+            keyTimes="0; 0.2; 0.45; 0.7; 0.88; 1"
+            dur="3.2s"
+            repeatCount="indefinite"
+          />
+
+          {/* Trailing Water Spray & Wake Foam (Behind on the left) */}
+          <g>
+            <path d="M 0 258 C 30 240, 70 270, 110 254" fill="none" stroke="#e0f2fe" strokeWidth="4" opacity="0.9" />
+            <path d="M 20 256 C 50 244, 90 266, 120 252" fill="none" stroke="#38bdf8" strokeWidth="2.5" opacity="0.8" />
+            <circle cx="40" cy="248" r="5" fill="#ffffff" opacity="0.95">
+              <animate attributeName="r" values="3;6;3" dur="0.4s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="70" cy="245" r="4" fill="#bae6fd" opacity="0.85">
+              <animate attributeName="r" values="2;5;2" dur="0.5s" repeatCount="indefinite" />
+            </circle>
+            <circle cx="95" cy="250" r="6" fill="#ffffff" opacity="0.9">
+              <animate attributeName="r" values="4;7;4" dur="0.3s" repeatCount="indefinite" />
+            </circle>
+          </g>
+
+          {/* Jet Ski Craft Hull (Realistic Water Sports Craft) */}
+          <g filter="drop-shadow(0px 8px 10px rgba(0,0,0,0.5))">
+            {/* Water spray arc under nose */}
+            <path d="M 200 255 Q 230 268 265 250" stroke="#bae6fd" strokeWidth="3" fill="none" />
+            {/* Bottom Hull */}
+            <path d="M 110 254 L 140 254 L 235 248 L 265 244 L 255 255 L 150 258 Z" fill="#F59E0B" stroke="#78350F" strokeWidth="1.5" />
+            {/* Upper Deck Body */}
+            <path d="M 135 254 L 165 240 L 225 238 L 250 244 L 225 248 Z" fill="#111827" />
+            {/* Glossy Yellow Side Panel */}
+            <path d="M 145 252 L 180 242 L 230 241 L 242 245 L 210 251 Z" fill="#FBBF24" />
+            {/* Front Tinted Windshield Visor */}
+            <path d="M 215 238 L 230 230 L 245 243 Z" fill="#38BDF8" opacity="0.8" />
+            {/* Handlebars */}
+            <line x1="200" y1="230" x2="215" y2="228" stroke="#D1D5DB" strokeWidth="3.5" strokeLinecap="round" />
+
+            {/* Rider */}
+            {/* Life Vest Body */}
+            <path d="M 175 228 C 170 215, 195 210, 205 228 Z" fill="#EF4444" />
+            <path d="M 182 216 L 202 216" stroke="#FEF08A" strokeWidth="2" />
+            {/* Arms holding handlebars */}
+            <path d="M 190 220 L 208 227" stroke="#EF4444" strokeWidth="4" strokeLinecap="round" />
+            {/* Helmet & Visor */}
+            <circle cx="188" cy="208" r="10" fill="#1E293B" />
+            <path d="M 190 204 Q 198 208 195 212" stroke="#38BDF8" strokeWidth="3" fill="none" strokeLinecap="round" />
+          </g>
         </g>
-        {/* Water splash */}
-        <g opacity="0">
-          <animate attributeName="opacity" values="0;0;0.9;0.6;0" keyTimes="0;0.4;0.6;0.8;1" dur="1.2s" begin="0.6s" repeatCount="indefinite" />
-          <path d="M90,255 Q110,235 130,255 Q150,275 170,255" fill="none" stroke="#a8e4f0" strokeWidth="3" strokeLinecap="round" />
-          <circle cx="100" cy="250" r="4" fill="#a8e4f0" opacity="0.8" />
-          <circle cx="120" cy="245" r="3" fill="#a8e4f0" opacity="0.7" />
-          <circle cx="140" cy="252" r="5" fill="#a8e4f0" opacity="0.9" />
-          <circle cx="160" cy="248" r="3" fill="#a8e4f0" opacity="0.6" />
-        </g>
-        {/* Spray line */}
-        <path d="M110,258 L50,252" stroke="#a8e4f0" strokeWidth="2" opacity="0" strokeLinecap="round">
-          <animate attributeName="opacity" values="0;0;0.7;0" keyTimes="0;0.5;0.7;1" dur="1.1s" begin="0.6s" repeatCount="indefinite" />
-        </path>
       </svg>
 
       {/* Text overlay */}

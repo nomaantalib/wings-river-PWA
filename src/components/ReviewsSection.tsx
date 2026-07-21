@@ -50,9 +50,9 @@ export default function ReviewsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Badge & Title */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-gold-300/30 border border-gold-400/50 text-gold-800 text-xs font-bold uppercase mb-3">
-            <Star className="w-3.5 h-3.5 fill-gold-500 text-gold-500" />
-            <span>4.1 ★ Google Rating • 500+ Happy Customers</span>
+          <div className="inline-flex items-center space-x-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 via-gold-400 to-amber-500 border-2 border-amber-600 text-dark-950 text-xs sm:text-sm font-extrabold uppercase mb-4 shadow-xl drop-shadow-md">
+            <Star className="w-4 h-4 fill-dark-950 text-dark-950" />
+            <span className="tracking-wide">4.1 ★ Google Rating • 500+ Happy Customers</span>
           </div>
 
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-dark-900 tracking-tight mb-4">

@@ -215,29 +215,29 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
         </div>
       )}
 
-      {/* Realistic Animated Jet Ski Crossing Screen (Right to Left with Water Splash) */}
+      {/* Realistic Animated Jet Ski Crossing Screen (Left to Right with Water Splash) */}
       <div className="absolute bottom-4 left-0 right-0 z-20 pointer-events-none overflow-hidden h-28">
         <style>{`
-          @keyframes jetskiMoveRightToLeft {
-            0% { transform: translateX(110vw) translateY(0px) rotate(2deg); }
-            20% { transform: translateX(85vw) translateY(-8px) rotate(-3deg); }
-            40% { transform: translateX(60vw) translateY(4px) rotate(1deg); }
-            60% { transform: translateX(35vw) translateY(-10px) rotate(-4deg); }
-            80% { transform: translateX(10vw) translateY(2px) rotate(1deg); }
-            100% { transform: translateX(-350px) translateY(0px) rotate(2deg); }
+          @keyframes jetskiMoveLeftToRight {
+            0% { transform: translateX(-350px) translateY(0px) rotate(-2deg); }
+            20% { transform: translateX(15vw) translateY(-8px) rotate(3deg); }
+            40% { transform: translateX(40vw) translateY(4px) rotate(-1deg); }
+            60% { transform: translateX(65vw) translateY(-10px) rotate(4deg); }
+            80% { transform: translateX(90vw) translateY(2px) rotate(-1deg); }
+            100% { transform: translateX(110vw) translateY(0px) rotate(-2deg); }
           }
         `}</style>
         <div
-          className="absolute bottom-1 right-0 flex items-end"
+          className="absolute bottom-1 left-0 flex items-end"
           style={{
-            animation: 'jetskiMoveRightToLeft 14s linear infinite',
+            animation: 'jetskiMoveLeftToRight 12s linear infinite',
             willChange: 'transform'
           }}
         >
-          {/* Water Splash Foam Spray behind Jet Ski (Trailing on the Right) */}
+          {/* Water Splash Foam Spray behind Jet Ski (Trailing on the Left) */}
           <div className="relative -mr-3 mb-1 flex items-end space-x-1">
             {/* Heavy Spray Wave */}
-            <div className="w-20 h-9 bg-gradient-to-l from-transparent via-cyan-200/80 to-white/95 rounded-full blur-[2px] animate-pulse transform -skew-x-12" />
+            <div className="w-20 h-9 bg-gradient-to-r from-transparent via-cyan-200/80 to-white/95 rounded-full blur-[2px] animate-pulse transform skew-x-12" />
             {/* Frothy Bubbles */}
             <div className="w-7 h-7 rounded-full bg-white/90 blur-[1px] animate-ping" />
             <div className="w-5 h-5 rounded-full bg-cyan-100/90 blur-[1px] animate-bounce" />
@@ -246,7 +246,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
 
           {/* Realistic Jet Ski Rider SVG & Graphic */}
           <div className="relative filter drop-shadow-[0_12px_12px_rgba(0,0,0,0.6)]">
-            <svg className="w-28 h-20 transform -scale-x-100" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <svg className="w-28 h-20" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
               {/* Spray arc under hull */}
               <path d="M 10 48 Q 40 58 85 46 Q 95 44 98 48 C 80 58 35 60 5 50 Z" fill="url(#splashGradHero)" opacity="0.95" />
               {/* Jet Ski Hull (Aerodynamic Water Sports Craft) */}
