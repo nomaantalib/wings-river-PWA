@@ -11,6 +11,7 @@ export default function ReviewsSection() {
   const [nameInput, setNameInput] = useState('');
   const [ratingInput, setRatingInput] = useState(5);
   const [commentInput, setCommentInput] = useState('');
+  const [submittedSuccess, setSubmittedSuccess] = useState(false);
 
   useEffect(() => {
     const refreshData = () => { getStoredReviews().then(setReviews); };
@@ -37,6 +38,8 @@ export default function ReviewsSection() {
     setNameInput('');
     setCommentInput('');
     setNewReviewForm(false);
+    setSubmittedSuccess(true);
+    setTimeout(() => setSubmittedSuccess(false), 5000);
   };
 
   const nextReview = () => setCurrentIndex((prev) => (prev + 1) % reviews.length);
@@ -130,6 +133,12 @@ export default function ReviewsSection() {
               <span>{newReviewForm ? 'Cancel Review' : 'Write a Guest Review'}</span>
             </button>
           </div>
+
+          {submittedSuccess && (
+            <div className="mt-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 text-xs font-bold text-center animate-fade-in max-w-xl mx-auto shadow-sm">
+              ✨ Thank you! Your guest review has been posted and added to Wings River Café testimonials.
+            </div>
+          )}
 
           {/* Review Submission Form Drawer */}
           {newReviewForm && (

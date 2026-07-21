@@ -125,6 +125,7 @@ CREATE TABLE IF NOT EXISTS blogs (
   category TEXT DEFAULT 'Food & Dining',
   cover_image TEXT DEFAULT '',
   images TEXT DEFAULT '[]', -- JSON string array
+  video_url TEXT DEFAULT '',
   author TEXT DEFAULT 'Wings River Team',
   read_time TEXT DEFAULT '4 min read',
   status TEXT DEFAULT 'draft', -- draft, published, scheduled

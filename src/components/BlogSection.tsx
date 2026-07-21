@@ -374,6 +374,29 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 "{activeBlog.excerpt}"
               </div>
 
+              {/* Glimpse Video Preview Player */}
+              {activeBlog.video_url && (
+                <div className="space-y-2 pt-2">
+                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center space-x-1.5">
+                    <Sparkles className="w-4 h-4 text-amber-500" />
+                    <span>Experience Glimpse Video</span>
+                  </h4>
+                  <div className="rounded-3xl overflow-hidden bg-black border-2 border-amber-400/30 aspect-video shadow-2xl relative">
+                    <iframe
+                      src={
+                        activeBlog.video_url.includes('youtube.com') || activeBlog.video_url.includes('youtu.be')
+                          ? activeBlog.video_url.replace('watch?v=', 'embed/')
+                          : activeBlog.video_url
+                      }
+                      className="w-full h-full border-0"
+                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      allowFullScreen
+                      title="Glimpse Video"
+                    />
+                  </div>
+                </div>
+              )}
+
               {/* Article Paragraphs */}
               <div className="space-y-4 text-gray-700 font-sans text-sm sm:text-base leading-relaxed">
                 {activeBlog.content.split('\n\n').map((paragraph, idx) => (

@@ -356,8 +356,8 @@ app.post('/blogs', authMiddleware, async (c) => {
     const imagesStr = Array.isArray(data.images) ? JSON.stringify(data.images) : '[]';
     const status = data.status || (data.is_published ? 'published' : 'draft');
     await db.prepare(`
-      INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, images, author, read_time, status, version, is_deleted, published_at, updated_at)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+      INSERT OR REPLACE INTO blogs (id, title, slug, excerpt, content, category, cover_image, images, video_url, author, read_time, status, version, is_deleted, published_at, updated_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
     `).bind(
       id,
       data.title || '',
@@ -367,6 +367,7 @@ app.post('/blogs', authMiddleware, async (c) => {
       data.category || 'Food & Dining',
       data.cover_image || '',
       imagesStr,
+      data.video_url || '',
       data.author || 'Wings River Team',
       data.read_time || '4 min read',
       status,

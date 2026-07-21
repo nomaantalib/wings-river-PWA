@@ -8,6 +8,7 @@ export interface BlogPost {
   category: string;
   cover_image: string;
   images?: string[]; // Multiple images for blog gallery & inline sliders
+  video_url?: string; // Glimpse video or embed URL
   tags?: string[];   // Topic tags for filtering
   author: string;
   read_time: string;

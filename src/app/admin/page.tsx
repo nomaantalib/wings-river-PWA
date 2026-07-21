@@ -311,7 +311,8 @@ export default function AdminPage() {
       content: blogModal.content || '',
       category: blogModal.category || 'Food & Dining',
       cover_image: blogModal.cover_image || '',
-      images: blogModal.images || [],
+      images: Array.isArray(blogModal.images) ? blogModal.images : (typeof blogModal.images === 'string' ? (blogModal.images as string).split(',').map((s: string) => s.trim()).filter(Boolean) : []),
+      video_url: blogModal.video_url || '',
       author: blogModal.author || 'Wings River Team',
       read_time: blogModal.read_time || '4 min read',
       status: blogModal.status || 'draft',
@@ -1284,15 +1285,35 @@ export default function AdminPage() {
               </div>
               <div>
                 <label className={labelCls}>Cover Image URL</label>
-                <input type="text" value={blogModal.cover_image || ''} onChange={(e) => setBlogModal({ ...blogModal, cover_image: e.target.value })} className={inputCls} />
+                <input type="text" placeholder="/images/cover.jpg" value={blogModal.cover_image || ''} onChange={(e) => setBlogModal({ ...blogModal, cover_image: e.target.value })} className={inputCls} />
+              </div>
+              <div>
+                <label className={labelCls}>Additional Image URLs (Comma-separated)</label>
+                <input
+                  type="text"
+                  placeholder="/images/img1.jpg, /images/img2.jpg"
+                  value={Array.isArray(blogModal.images) ? blogModal.images.join(', ') : (blogModal.images || '')}
+                  onChange={(e) => setBlogModal({ ...blogModal, images: e.target.value as any })}
+                  className={inputCls}
+                />
+              </div>
+              <div>
+                <label className={labelCls}>Glimpse Video URL (MP4 Link or YouTube Embed)</label>
+                <input
+                  type="text"
+                  placeholder="https://www.youtube.com/watch?v=... or /videos/glimpse.mp4"
+                  value={blogModal.video_url || ''}
+                  onChange={(e) => setBlogModal({ ...blogModal, video_url: e.target.value })}
+                  className={inputCls}
+                />
               </div>
               <div>
                 <label className={labelCls}>Excerpt Summary</label>
                 <input type="text" value={blogModal.excerpt || ''} onChange={(e) => setBlogModal({ ...blogModal, excerpt: e.target.value })} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>Content Narrative</label>
-                <textarea rows={5} value={blogModal.content || ''} onChange={(e) => setBlogModal({ ...blogModal, content: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
+                <label className={labelCls}>Content Narrative (Full Text / Markdown)</label>
+                <textarea rows={6} value={blogModal.content || ''} onChange={(e) => setBlogModal({ ...blogModal, content: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
               </div>
               <div>
                 <label className="flex items-center space-x-2 text-xs text-white">
