@@ -78,11 +78,8 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
             Multicuisine Gourmet Menu
           </h2>
           <p className="text-[#6b4c30] text-sm sm:text-base leading-relaxed max-w-xl mx-auto">
-            Scroll, pinch to zoom, or tap <strong>fullscreen</strong> to browse our complete menu — Beverages, Breakfast, Chaat, Indian, Chinese, Burgers, Pizza, Desserts & more.
+            Browse our complete menu — Beverages, Breakfast, Chaat, Indian, Chinese, Burgers, Pizza, Desserts &amp; more.
           </p>
-          <div className="flex items-center justify-center mt-3 text-amber-600 animate-bounce">
-            <ChevronDown className="w-5 h-5" /><span className="text-xs font-semibold ml-1">Scroll & pinch to zoom</span>
-          </div>
         </div>
 
         {/* Card container */}
@@ -94,18 +91,12 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
           <div className="relative bg-white rounded-[10%_10%_10%_10%/4%_4%_4%_4%] shadow-2xl border border-amber-200/60 overflow-hidden"
             style={{ borderRadius: '1.5rem' }}>
             {/* Control bar */}
-            <div className="flex flex-col md:flex-row items-center justify-between gap-3 px-5 py-4 border-b border-amber-200/40"
+            <div className="flex items-center justify-between gap-3 px-5 py-3 border-b border-amber-200/40"
               style={{ background: 'linear-gradient(90deg, #2d1a0e, #4a2c1a, #2d1a0e)' }}>
-              <div className="flex items-center space-x-2 w-full md:w-auto justify-center md:justify-start">
-                <div className="w-8 h-8 rounded-xl overflow-hidden border border-amber-400/40 shrink-0">
-                  <img src="/logo.png" alt="Wings River Café Logo" className="w-full h-full object-cover" />
-                </div>
-                <div className="text-center md:text-left">
-                  <span className="font-serif font-bold text-white text-sm block md:inline">Wings River Café</span>
-                  <span className="block text-[9px] text-amber-400 font-semibold uppercase tracking-widest leading-none mt-0.5">Café & Restaurant Menu</span>
-                </div>
+              <div className="text-xs text-amber-200 font-bold uppercase tracking-wider">
+                Gourmet Food Menu
               </div>
-              <div className="flex items-center space-x-1.5 w-full md:w-auto justify-center">
+              <div className="flex items-center space-x-1.5">
                 <button onClick={zoomOut} disabled={zoomLevel <= MIN_ZOOM} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 transition-all" title="Zoom Out"><ZoomOut className="w-3.5 h-3.5" /></button>
                 <button onClick={resetZoom} className="px-2.5 py-1 rounded-lg bg-white/10 hover:bg-white/20 text-white text-[10px] font-bold min-w-[44px] text-center">{Math.round(zoomLevel * 100)}%</button>
                 <button onClick={zoomIn} disabled={zoomLevel >= MAX_ZOOM} className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white disabled:opacity-40 transition-all" title="Zoom In"><ZoomIn className="w-3.5 h-3.5" /></button>
@@ -114,6 +105,7 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
                 <a href="/images/food_menu_collage.jpg" download="wings-river-cafe-food-menu.jpg" className="p-1.5 rounded-lg bg-green-500/80 hover:bg-green-400 text-white transition-all shadow-sm" title="Download Menu"><Download className="w-3.5 h-3.5" /></a>
               </div>
             </div>
+
 
             {/* Image viewer */}
             <div ref={viewerRef} className="w-full overflow-hidden bg-[#fdf6ee]" style={{ minHeight: '340px', maxHeight: '82vh', cursor: zoomLevel > 1 ? 'grab' : 'zoom-in' }}
@@ -149,11 +141,9 @@ export default function FoodMenuSection({ onOpenBooking }: FoodMenuSectionProps)
               </button>
             </div>
           </div>
-          <p className="text-center text-xs text-[#8b6344] mt-4 font-medium">
-            Click image or press <kbd className="px-1.5 py-0.5 bg-amber-100 text-amber-700 rounded text-[10px] font-mono">⤢</kbd> for fullscreen · Scroll/pinch to zoom · Drag to pan
-          </p>
         </div>
       </div>
+
 
       {/* Fullscreen lightbox */}
       {isFullscreen && (
