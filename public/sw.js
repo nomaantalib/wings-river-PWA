@@ -1,16 +1,11 @@
-// Wings River Café - Service Worker for Offline Caching & PWA Support
+// Wings River Café - Service Worker for Offline Caching & FCM Push Notifications
 const CACHE_NAME = 'wings-river-v1';
 
 const PRECACHE_ASSETS = [
   '/',
   '/manifest.json',
-  '/images/menu_page_cover.png',
-  '/images/full_menu_card_collage.png',
-  '/images/water_sports_ticket_poster.png',
-  '/images/Screenshot_20260720-180544_Maps.png',
-  '/images/Screenshot_20260720-180555_Maps.png',
-  '/images/Screenshot_20260720-180609_Maps.png',
-  '/images/Screenshot_20260720-180745_Maps.png'
+  '/logo.png',
+  '/favicon.ico',
 ];
 
 self.addEventListener('install', (event) => {
@@ -41,7 +36,6 @@ self.addEventListener('fetch', (event) => {
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       if (cachedResponse) {
-        // Fetch background update
         fetch(event.request).then((networkResponse) => {
           if (networkResponse && networkResponse.status === 200) {
             caches.open(CACHE_NAME).then((cache) => cache.put(event.request, networkResponse));
@@ -62,11 +56,54 @@ self.addEventListener('fetch', (event) => {
 
         return networkResponse;
       }).catch(() => {
-        // Fallback for HTML pages when offline
         if (event.request.headers.get('accept')?.includes('text/html')) {
           return caches.match('/');
         }
       });
+    })
+  );
+});
+
+// ── FCM & WEB PUSH NOTIFICATION HANDLERS ────────────────────────────────────
+self.addEventListener('push', (event) => {
+  let data = { title: 'Wings River Café Alert', body: 'New order update or waiter alert!' };
+  if (event.data) {
+    try {
+      data = event.data.json();
+    } catch (e) {
+      data.body = event.data.text();
+    }
+  }
+
+  const options = {
+    body: data.body || data.message || 'Notification from Wings River Café',
+    icon: '/logo.png',
+    badge: '/logo.png',
+    vibrate: [200, 100, 200],
+    data: {
+      url: data.url || '/',
+    },
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(data.title || 'Wings River Café', options)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const urlToOpen = event.notification.data?.url || '/';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      for (let client of windowClients) {
+        if (client.url === urlToOpen && 'focus' in client) {
+          return client.focus();
+        }
+      }
+      if (clients.openWindow) {
+        return clients.openWindow(urlToOpen);
+      }
     })
   );
 });
