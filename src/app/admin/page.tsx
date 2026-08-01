@@ -1970,7 +1970,7 @@ export default function AdminPage() {
                     {reviews.map((r) => (
                       <div key={r.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
                         <div>
-                          <h4 className="font-bold text-sm text-white">{r.author_name} ({r.rating} ★)</h4>
+                          <h4 className="font-bold text-sm text-white">{r.author_name} (Rating: {r.rating}/5)</h4>
                           <p className="text-xs text-gray-300 mt-1">{r.review_text}</p>
                         </div>
                         <button onClick={() => setDeleteTarget({ label: `Review by ${r.author_name}`, action: async () => { await deleteReview(r.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
