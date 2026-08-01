@@ -133,14 +133,14 @@ function statusLabel(s: TableData['status']) {
 
 function statusClasses(s: TableData['status'], selected: boolean) {
   if (selected)
-    return 'bg-gradient-to-br from-[#F5D061] to-[#A8996B] border-[#F5EBE0] text-[#120B08] font-bold shadow-2xl shadow-[#F5D061]/40 scale-110 z-20 ring-2 ring-[#F5EBE0]/60';
+    return 'bg-gradient-to-br from-[#F5D061] via-[#E5B82C] to-[#D4AF37] border-[#1F1810] text-[#120B08] font-bold shadow-2xl shadow-[#F5D061]/50 scale-110 z-20 ring-4 ring-[#1F1810]';
   if (s === 'free')
-    return 'bg-[#1E2C1A]/80 border-[#98A886] text-[#D8E2CD] hover:bg-[#2D3F27] hover:border-[#B2C2A1] hover:scale-105 cursor-pointer active:scale-95';
+    return 'bg-[#FAF7F2] border-2 border-[#2D6A4F] text-[#1F1810] hover:bg-[#E8F0EC] hover:border-[#1B4332] hover:scale-105 cursor-pointer active:scale-95 shadow-sm';
   if (s === 'eating')
-    return 'bg-[#3B281B]/50 border-[#F5D061]/30 text-[#E8DCB8]/50 opacity-60 cursor-not-allowed';
+    return 'bg-[#F4EFE6] border-[#E5B82C]/50 text-[#7A5C3A]/60 opacity-60 cursor-not-allowed';
   if (s === 'reserved')
-    return 'bg-[#2A1412]/50 border-red-500/30 text-red-300/60 opacity-50 cursor-not-allowed';
-  return 'bg-[#181A1F]/50 border-slate-700/50 text-slate-500 opacity-40 cursor-not-allowed';
+    return 'bg-[#F4EFE6] border-red-500/40 text-red-700/60 opacity-50 cursor-not-allowed';
+  return 'bg-[#E5D9C8] border-[#A08060]/40 text-[#8B7355] opacity-40 cursor-not-allowed';
 }
 
 function AreaIcon({ type, className = 'w-6 h-6' }: { type: 'home' | 'leaf' | 'sunset'; className?: string }) {
@@ -375,14 +375,14 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             <React.Fragment key={s}>
               <div className="flex items-center gap-2">
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                  done   ? 'bg-[#5A8A6A] text-white shadow shadow-[#5A8A6A]/40'  :
+                  done   ? 'bg-[#6B8E5E] text-white shadow shadow-[#6B8E5E]/40'  :
                   active ? 'bg-gradient-to-br from-[#F5D061] to-[#E5B82C] text-[#1F1810] shadow-lg shadow-[#F5D061]/30 scale-110' :
                            'bg-[#E5D9C8] text-[#8B7355] border border-[#E5B82C]/40'
                 }`}>
                   {done ? '✓' : num}
                 </span>
                 <span className={`text-[11px] font-semibold transition-all duration-300 ${
-                  active ? 'text-[#1F1810]' : done ? 'text-[#5A8A6A]' : 'text-[#8B7355]'
+                  active ? 'text-[#1F1810]' : done ? 'text-[#6B8E5E]' : 'text-[#8B7355]'
                 }`}>{s}</span>
               </div>
               {i < STEP_LABELS.length - 1 && (
@@ -438,12 +438,12 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 <div className="flex items-center justify-between gap-4 relative z-10">
                   {/* Left */}
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-black/30 border border-white/10 p-3 shadow-inner">
-                      <AreaIcon type={area.iconType} className="w-6 h-6" />
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-[#1F1810] border border-[#E5B82C]/40 p-3 shadow-md">
+                      <AreaIcon type={area.iconType} className="w-6 h-6 text-[#F5D061]" />
                     </div>
                     <div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        <h4 className="text-sm font-serif font-bold text-[#E8DCB8]">{area.label}</h4>
+                        <h4 className="text-sm font-serif font-bold text-[#1F1810]">{area.label}</h4>
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${area.tagStyle}`}>
                           {area.tag}
                         </span>
@@ -451,7 +451,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       <p className="text-[11px] text-[#7A5C3A] mt-0.5">{area.subtitle}</p>
                       <div className="flex items-center gap-4 mt-1.5">
                         <span className="text-[10px] text-[#A08060] font-mono font-semibold">Tables: {area.tables}</span>
-                        <span className={`text-[11px] font-bold ${areaFreeTables > 0 ? 'text-[#3D7A50]' : 'text-red-600'}`}>
+                        <span className={`text-[11px] font-bold ${areaFreeTables > 0 ? 'text-[#6B8E5E]' : 'text-red-600'}`}>
                           {areaFreeTables > 0 ? `✓ ${areaFreeTables} Available` : '✗ Fully Occupied'}
                         </span>
                       </div>
@@ -464,7 +464,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
                         <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(229,184,44,0.15)" strokeWidth="3"/>
                         <circle cx="18" cy="18" r="14" fill="none"
-                          stroke={areaFreeTables > 0 ? '#3D7A50' : '#dc2626'}
+                          stroke={areaFreeTables > 0 ? '#6B8E5E' : '#dc2626'}
                           strokeWidth="3"
                           strokeDasharray={`${(areaFreeTables / totalTables) * 87.96} 87.96`}
                           strokeLinecap="round"
@@ -484,7 +484,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
           {/* Legend */}
           <div className="flex items-center justify-center gap-6 pt-2 text-[11px] text-[#7A5C3A] font-semibold">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#3D7A50] inline-block" />Available</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#6B8E5E] inline-block" />Available</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#F5D061] inline-block" />Occupied</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />Reserved</span>
           </div>

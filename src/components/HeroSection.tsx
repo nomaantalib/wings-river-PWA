@@ -61,17 +61,26 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
 
   return (
     <section id="home" className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-dark-950 text-white pt-14">
-      {/* Background Video — Playing ambient background loop */}
+      {/* Background Video — Both videos playing in continuation */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <video
           autoPlay
-          loop
           muted
           playsInline
           className="absolute inset-0 w-full h-full object-cover scale-105 filter brightness-75 contrast-110"
+          onEnded={(e) => {
+            const vid = e.currentTarget;
+            // Alternate between the two videos by swapping src
+            const current = vid.src.includes('d2d858f7') ? 'd2d858f7' : '5c810dd6';
+            const nextSrc = current === 'd2d858f7'
+              ? '/videos/gemini_generated_video_5c810dd6.mp4'
+              : '/videos/gemini_generated_video_d2d858f7.mp4';
+            vid.src = nextSrc;
+            vid.play().catch(() => {});
+          }}
         >
           <source
-            src="/videos/hero-bg-video.mp4"
+            src="/videos/gemini_generated_video_d2d858f7.mp4"
             type="video/mp4"
           />
         </video>
@@ -126,7 +135,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
           <div className="flex flex-col items-center justify-center space-y-2.5">
             <a
               href="#floor-map"
-              className="flex items-center justify-center space-x-2 px-5 py-2.5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
+              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
             >
               <Calendar className="w-4 h-4 shrink-0" />
               <span>Reserve Table</span>
@@ -134,7 +143,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
 
             <button
               onClick={() => onOpenBooking('birthday_party')}
-              className="flex items-center justify-center space-x-2 px-5 py-2.5 sm:py-3 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
+              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
             >
               <Utensils className="w-4 h-4 shrink-0" />
               <span>Book Party / Event</span>
@@ -142,7 +151,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
 
             <button
               onClick={() => onOpenMyBookings ? onOpenMyBookings() : onOpenBooking('table_booking')}
-              className="flex items-center justify-center space-x-2 px-5 py-2.5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
+              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
             >
               <Ticket className="w-4 h-4 text-[#120B08] shrink-0" />
               <span>My Reservations</span>
@@ -150,7 +159,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
 
             <a
               href="#menu-card"
-              className="flex items-center justify-center space-x-2 px-5 py-2.5 sm:py-3 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/50 text-[#F5D061] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center shadow-lg"
+              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/50 text-[#F5D061] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center shadow-lg"
             >
               <BookOpen className="w-4 h-4 text-[#F5D061] shrink-0" />
               <span>View Menu</span>
@@ -159,7 +168,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
         </div>
 
         {/* Horizontal Auto-sliding Carousel for Info Highlights with Faded Corner Edges */}
-        <div className="w-full max-w-xl mx-auto px-2 relative group">
+        <div className="w-full max-w-[547px] mx-auto px-2 relative group">
           {/* Faded Left & Right Corner Edges overlay */}
           <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0B0C0E] to-transparent z-20 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0B0C0E] to-transparent z-20 pointer-events-none" />

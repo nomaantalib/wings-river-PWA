@@ -21,7 +21,15 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const refreshData = () => { getStoredBlogs().then(setBlogs); };
+    const refreshData = () => {
+      getStoredBlogs().then(data => {
+        if (data && data.length > 0) {
+          setBlogs(data);
+        } else {
+          setBlogs(INITIAL_BLOGS);
+        }
+      });
+    };
     refreshData();
     window.addEventListener('wings_db_sync', refreshData);
     return () => window.removeEventListener('wings_db_sync', refreshData);
