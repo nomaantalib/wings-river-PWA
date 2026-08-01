@@ -448,11 +448,13 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 {onOpenBooking && (
                   <button
                     onClick={() => { closeBlogReader(); onOpenBooking(); }}
-                    className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-extrabold text-xs shadow-lg transition-all whitespace-nowrap"
+                    className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-extrabold text-xs shadow-lg transition-all whitespace-nowrap flex items-center space-x-1.5"
                   >
-                    🗓️ Reserve Table / Event
+                    <Calendar className="w-4 h-4" />
+                    <span>Reserve Table / Event</span>
                   </button>
                 )}
+
               </div>
             </div>
           </div>
