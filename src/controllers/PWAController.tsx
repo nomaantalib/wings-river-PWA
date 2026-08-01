@@ -39,14 +39,12 @@ export function usePWAInstaller() {
     // ── Pick up event already stashed before React mounted ────
     const stashed = (window as any).deferredInstallPrompt as BeforeInstallPromptEvent | undefined;
     if (stashed) {
-      stashed.preventDefault();
       setDeferredPrompt(stashed);
       setIsInstallable(true);
     }
 
     // ── Live listener for prompt events fired after mount ─────
     const handlePrompt = (e: Event) => {
-      e.preventDefault();                         // Suppress native browser mini-infobar
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
@@ -55,10 +53,10 @@ export function usePWAInstaller() {
 
     // Allow React hook to receive events via callback bridge
     (window as any).onBeforeInstallPromptReady = (e: BeforeInstallPromptEvent) => {
-      e.preventDefault();
       setDeferredPrompt(e);
       setIsInstallable(true);
     };
+
 
     return () => {
       window.removeEventListener('beforeinstallprompt', handlePrompt);

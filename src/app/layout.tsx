@@ -91,8 +91,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `
         }} />
 
-        {/* Background Video Preload */}
-        <link rel="preload" href="/videos/gemini_generated_video_5c810dd6.mp4" as="video" type="video/mp4" />
+
 
         {/* Google Fonts — Playfair Display + Lato (café feel) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
