@@ -31,9 +31,12 @@ export default function GallerySection() {
     return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
-  const filteredItems = items.filter(
+  const displayItems = items && items.length > 0 ? items : INITIAL_GALLERY;
+
+  const filteredItems = displayItems.filter(
     (item) => selectedCat === 'All' || item.category === selectedCat
   );
+
 
   // Auto-play interval for Carousel
   useEffect(() => {

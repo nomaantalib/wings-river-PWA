@@ -233,12 +233,13 @@ export async function deleteReservation(id: string): Promise<Reservation[]> {
 export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
   try {
     const res = await apiFetch('/api/gallery');
-    if (res.success && Array.isArray(res.data)) {
+    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredGalleryItems:', e); }
   return INITIAL_GALLERY;
 }
+
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
   const result = await apiPost('/api/gallery', item);
