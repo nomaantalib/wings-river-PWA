@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Phone, Lock, CheckCircle2, ShieldCheck, RefreshCw, User, LogOut, ArrowRight, Sparkles, KeyRound, Mail, Smartphone, UserCheck, UserPlus } from 'lucide-react';
+import { triggerMsg91Otp } from '@/lib/otpVerification';
 
 export interface UserSession {
   phone: string;
@@ -136,6 +137,39 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       // Auto-focus first box
       setTimeout(() => otpRefs.current[0]?.focus(), 150);
     }, 600);
+  };
+
+  // Trigger Official MSG91 / Phone91 OTP Service Widget
+  const handleMsg91Otp = () => {
+    const cleanPhone = phoneInput.replace(/\D/g, '');
+    if (cleanPhone.length !== 10) {
+      setErrorMsg('Please enter a valid 10-digit Indian mobile number');
+      return;
+    }
+    setErrorMsg('');
+    setIsSendingOtp(true);
+    triggerMsg91Otp({
+      identifier: cleanPhone,
+      onSuccess: (data) => {
+        setIsSendingOtp(false);
+        const existing = findRegisteredUser(cleanPhone);
+        const name = existing ? existing.name : `Customer ${cleanPhone.slice(-4)}`;
+        const session: UserSession = {
+          phone: cleanPhone,
+          name,
+          email: existing?.email,
+          loggedIn: true,
+          loggedInAt: new Date().toISOString(),
+        };
+        saveUserSession(session);
+        if (onSuccess) onSuccess(session);
+        onClose();
+      },
+      onFailure: (err) => {
+        setIsSendingOtp(false);
+        setErrorMsg(typeof err === 'string' ? err : 'OTP Verification failed or cancelled');
+      },
+    });
   };
 
   // One-click Auto Fill Demo OTP
@@ -336,16 +370,26 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
               <button
                 type="submit"
                 disabled={isSendingOtp || phoneInput.length !== 10}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#C9B086] via-[#D8C49D] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-xs uppercase tracking-wider shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-bold text-xs uppercase tracking-wider shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
               >
                 {isSendingOtp ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-5 h-5 animate-spin" />
                 ) : (
                   <>
-                    <span>Send Verification OTP</span>
+                    <span>Send SMS OTP Code</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
+              </button>
+
+              <button
+                type="button"
+                onClick={handleMsg91Otp}
+                disabled={isSendingOtp || phoneInput.length !== 10}
+                className="w-full py-3.5 rounded-2xl bg-[#1A1D24] border border-[#F5D061]/50 text-[#F5D061] hover:bg-[#231710] font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed"
+              >
+                <ShieldCheck className="w-4 h-4 text-[#F5D061]" />
+                <span>Instant MSG91 OTP Verification</span>
               </button>
             </form>
           )}
