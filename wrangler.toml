@@ -10,11 +10,11 @@ database_name = "wings_river_cafe_reservations"
 database_id = "912b607b-c192-4e0a-89ba-75f936fca45c"
 
 [vars]
-ADMIN_SECRET_KEY = "wings_river_cafe_admin_secret_2026"
+NEXT_PUBLIC_SITE_NAME = "Wings River Café"
+NEXT_PUBLIC_SLOGAN = "Taste • Eat • Rides"
 NEXT_PUBLIC_PHONE = "07310008020"
 NEXT_PUBLIC_WHATSAPP = "917310008020"
-
-
-
-
-
+NEXT_PUBLIC_FIREBASE_VAPID_KEY = "BB_D3Bo704xpIpSFlesjRGUCnDx8qx2fKV1dV4w3M_eArGEQ4E7MPI6r86uvMLdjLS8XoQS72eXf5a_36GBiNFk"
+NEXT_PUBLIC_FCM_SENDER_ID = "901662805305"
+NEXT_PUBLIC_INSTAGRAM_URL = "https://www.instagram.com/wingsriver"
+NEXT_PUBLIC_MAPS_URL = "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
