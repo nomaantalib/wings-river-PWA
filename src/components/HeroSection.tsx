@@ -48,31 +48,27 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
 
   return (
     <section id="home" className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-dark-950 text-white pt-20">
-      {/* Background Slideshow with Smooth Cross-Fade & Scale Effects */}
-      {slides.map((slide, idx) => (
-        <div
-          key={slide.id || idx}
-          className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${
-            idx === currentSlide ? 'opacity-100 pointer-events-auto z-0' : 'opacity-0 pointer-events-none'
-          }`}
+      {/* Background Video & Slideshow Carousel with Dark Vignette */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <video
+          autoPlay
+          loop
+          muted
+          playsInline
+          key={currentSlide % 2 === 0 ? '/videos/gemini_generated_video_5c810dd6.mp4' : '/videos/gemini_generated_video_d2d858f7.mp4'}
+          className="absolute inset-0 w-full h-full object-cover scale-105 filter brightness-75 contrast-110 transition-opacity duration-1000"
         >
-          {/* Blurred Background Backdrop Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center filter blur-xl scale-110 opacity-70 transition-transform duration-[8000ms] ease-out"
-            style={{ backgroundImage: `url(${slide.image})` }}
+          <source
+            src={currentSlide % 2 === 0 ? '/videos/gemini_generated_video_5c810dd6.mp4' : '/videos/gemini_generated_video_d2d858f7.mp4'}
+            type="video/mp4"
           />
+        </video>
 
-          {/* Sharp Foreground Focused Image */}
-          <div
-            className="absolute inset-0 bg-cover bg-center opacity-80 transition-transform duration-[10000ms] ease-out scale-105"
-            style={{ backgroundImage: `url(${slide.image})` }}
-          />
+        {/* Overlay Gradients for Luxury Waterfront Contrast */}
+        <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/70 to-dark-950/50" />
+        <div className="absolute inset-0 bg-gradient-to-r from-dark-950/90 via-transparent to-dark-950/90" />
+      </div>
 
-          {/* Overlay Gradient (Dark vignette + Mint glow) */}
-          <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/60 to-dark-950/40" />
-          <div className="absolute inset-0 bg-gradient-to-r from-dark-950/80 via-transparent to-dark-950/80" />
-        </div>
-      ))}
 
 
 

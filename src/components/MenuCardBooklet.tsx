@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem, MENU_BOOKLET_PAGES, INITIAL_MENU_ITEMS } from '@/lib/db';
-import { ChevronLeft, ChevronRight, BookOpen, Grid, Maximize2, Download, Calendar, ZoomIn, X, Play, Pause, Sparkles } from 'lucide-react';
-
+import { ChevronLeft, ChevronRight, BookOpen, Download, Calendar, Maximize2, ZoomIn, X, Play, Pause, Sparkles } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface MenuCardBookletProps {
@@ -12,13 +11,11 @@ interface MenuCardBookletProps {
 
 export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps) {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
-  const [viewMode, setViewMode] = useState<'booklet' | 'grid' | 'scroll'>('booklet');
   const [activeZoomImage, setActiveZoomImage] = useState<string | null>(null);
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
   const [isHdMode, setIsHdMode] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
-
 
   // Database client-side states to prevent hydration mismatch
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>(MENU_BOOKLET_PAGES);
@@ -90,60 +87,12 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
             Interactive Menu Card Screen
           </h2>
           <p className="font-sans text-gray-300 text-base">
-            Flip through the pages of our official café menu card with smooth sliding animations, or switch to grid view.
+            Swipe or use arrows to flip through our official café menu booklet with smooth 3D page-roll animation.
           </p>
-
-          {/* Mode Selector Controls */}
-          <div className="flex flex-wrap items-center justify-center gap-3 mt-6">
-            <button
-              onClick={() => {
-                setViewMode('booklet');
-                setIsAutoFlipping(false);
-              }}
-              className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
-                viewMode === 'booklet'
-                  ? 'bg-gradient-to-r from-mint-300 to-mint-400 text-dark-950 shadow-lg shadow-mint-400/20'
-                  : 'bg-white/10 hover:bg-white/20 text-gray-300 border border-white/10'
-              }`}
-            >
-              <BookOpen className="w-4 h-4" />
-              <span>3D Page Flip Booklet</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setViewMode('scroll');
-                setIsAutoFlipping(false);
-              }}
-              className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
-                viewMode === 'scroll'
-                  ? 'bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 shadow-lg shadow-mint-400/20'
-                  : 'bg-white/10 hover:bg-white/20 text-gray-300 border border-white/10'
-              }`}
-            >
-              <Maximize2 className="w-4 h-4" />
-              <span>Scroll Feed</span>
-            </button>
-
-            <button
-              onClick={() => {
-                setViewMode('grid');
-                setIsAutoFlipping(false);
-              }}
-              className={`flex items-center space-x-2 px-5 py-2.5 rounded-full text-xs font-bold transition-all ${
-                viewMode === 'grid'
-                  ? 'bg-gradient-to-r from-gold-400 to-gold-500 text-dark-950 shadow-lg shadow-gold-400/20'
-                  : 'bg-white/10 hover:bg-white/20 text-gray-300 border border-white/10'
-              }`}
-            >
-              <Grid className="w-4 h-4" />
-              <span>Grid View (All {menuPages.length} Pages)</span>
-            </button>
-          </div>
         </div>
 
         {/* BOOKLET FLIP VIEW */}
-        {viewMode === 'booklet' && currentPage && (
+        {currentPage && (
           <div className="max-w-4xl mx-auto">
             {/* Top Toolbar */}
             <div className="flex flex-wrap items-center justify-between gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 mb-6 text-xs">
@@ -210,47 +159,50 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
             {/* Menu Booklet Page Container with Page Flip Slide Animation */}
             <div className="relative group">
               <div className="relative bg-dark-900 rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl transition-all duration-700 aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center">
-                {/* 3D Page Turning Image Transition with Touch Swipe Support */}
+                {/* 3D Rolling Cylinder Page Turning Image Transition with Touch Swipe */}
                 <AnimatePresence initial={false} mode="wait">
                   <motion.div
                     key={currentPageIndex}
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.2}
+                    dragElastic={0.25}
                     onDragEnd={(_, info) => {
                       if (info.offset.x < -40) nextPage();
                       else if (info.offset.x > 40) prevPage();
                     }}
                     initial={{
-                      rotateY: flipDirection === 'next' ? 115 : -115,
-                      rotateZ: flipDirection === 'next' ? 7 : -7,
-                      scale: 0.86,
+                      rotateY: flipDirection === 'next' ? 140 : -140,
+                      rotateX: flipDirection === 'next' ? 6 : -6,
+                      rotateZ: flipDirection === 'next' ? 8 : -8,
+                      scale: 0.82,
                       opacity: 0,
-                      boxShadow: flipDirection === 'next' ? '-30px 30px 60px rgba(0,0,0,0.6)' : '30px 30px 60px rgba(0,0,0,0.6)'
+                      boxShadow: flipDirection === 'next' ? '-40px 40px 80px rgba(0,0,0,0.7)' : '40px 40px 80px rgba(0,0,0,0.7)'
                     }}
                     animate={{
                       rotateY: 0,
+                      rotateX: 0,
                       rotateZ: 0,
                       scale: 1,
                       opacity: 1,
-                      boxShadow: '0px 10px 30px rgba(0,0,0,0.3)'
+                      boxShadow: '0px 15px 40px rgba(0,0,0,0.4)'
                     }}
                     exit={{
-                      rotateY: flipDirection === 'next' ? -115 : 115,
-                      rotateZ: flipDirection === 'next' ? -7 : 7,
-                      scale: 0.86,
+                      rotateY: flipDirection === 'next' ? -140 : 140,
+                      rotateX: flipDirection === 'next' ? -6 : 6,
+                      rotateZ: flipDirection === 'next' ? -8 : 8,
+                      scale: 0.82,
                       opacity: 0,
-                      boxShadow: flipDirection === 'next' ? '30px 30px 60px rgba(0,0,0,0.6)' : '-30px 30px 60px rgba(0,0,0,0.6)'
+                      boxShadow: flipDirection === 'next' ? '40px 40px 80px rgba(0,0,0,0.7)' : '-40px 40px 80px rgba(0,0,0,0.7)'
                     }}
                     transition={{
                       type: 'spring',
-                      stiffness: 220,
-                      damping: 24,
-                      mass: 0.7
+                      stiffness: 260,
+                      damping: 22,
+                      mass: 0.6
                     }}
                     style={{
                       transformOrigin: flipDirection === 'next' ? 'left center' : 'right center',
-                      perspective: 2000,
+                      perspective: 2400,
                       transformStyle: 'preserve-3d',
                       backfaceVisibility: 'hidden',
                       touchAction: 'pan-y',
@@ -270,7 +222,6 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                         isHdMode ? 'contrast-[1.06] brightness-[1.02] saturate-[1.04]' : ''
                       }`}
                     />
-
 
                     {/* Left/Right Spine Shadow Overlay */}
                     <div className={`absolute inset-y-0 w-16 bg-gradient-to-r from-black/10 to-transparent pointer-events-none ${
@@ -356,116 +307,6 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
             )}
           </div>
         )}
-        {/* SCROLL FEED VIEW */}
-        {viewMode === 'scroll' && (
-          <div className="flex flex-col lg:flex-row gap-8 items-start animate-fade-in">
-            {/* Quick Sticky Page Navigator Sidebar */}
-            <div className="w-full lg:w-60 lg:sticky lg:top-24 bg-white/5 backdrop-blur-md p-5 rounded-3xl border border-white/10 shrink-0 space-y-4">
-              <h4 className="font-serif font-bold text-sm text-gold-400 uppercase tracking-widest">
-                Quick Index
-              </h4>
-              <div className="grid grid-cols-4 lg:grid-cols-1 gap-2 text-xs">
-                {menuPages.map((page, idx) => (
-                  <button
-                    key={page.pageNumber}
-                    onClick={() => {
-                      document.getElementById(`menu-scroll-page-${page.pageNumber}`)?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                      });
-                    }}
-                    className="flex items-center space-x-2 p-2.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/5 hover:border-gold-400/30 text-left transition-all text-gray-300 hover:text-white"
-                  >
-                    <span className="font-mono font-bold text-mint-400 shrink-0">0{page.pageNumber}</span>
-                    <span className="truncate hidden lg:inline">{page.title}</span>
-                  </button>
-                ))}
-              </div>
-              <div className="pt-2 border-t border-white/10 hidden lg:block">
-                <button
-                  onClick={onOpenBooking}
-                  className="w-full flex items-center justify-center space-x-2 py-3 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-bold rounded-xl text-xs shadow-md hover:scale-[1.02] transition-transform"
-                >
-                  <Calendar className="w-4 h-4" />
-                  <span>Reserve Table Now</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Continuous Vertical Feed */}
-            <div className="flex-1 w-full space-y-8">
-              {menuPages.map((page, idx) => (
-                <div
-                  key={page.pageNumber}
-                  id={`menu-scroll-page-${page.pageNumber}`}
-                  className="relative bg-[#fbf5eb] p-4 sm:p-6 rounded-3xl border-2 border-gold-400/20 shadow-2xl transition-all duration-300 hover:border-gold-400/50"
-                >
-                  {/* Floating Page Badge */}
-                  <div className="absolute top-4 left-4 bg-dark-950/80 backdrop-blur-md text-gold-300 px-4 py-1.5 rounded-full text-xs font-bold z-10 border border-gold-400/25 shadow-lg">
-                    Page {idx + 1} of {menuPages.length} · {page.title}
-                  </div>
-
-                  {/* Actions bar inside page card */}
-                  <div className="absolute top-4 right-4 flex items-center space-x-1.5 z-10">
-                    <button
-                      onClick={() => setActiveZoomImage(page.image)}
-                      className="p-2 rounded-full bg-dark-950/80 hover:bg-gold-400 hover:text-dark-950 text-white backdrop-blur-md border border-white/10 transition-colors shadow-lg"
-                      title="Expand Full Screen"
-                    >
-                      <ZoomIn className="w-4 h-4" />
-                    </button>
-                  </div>
-
-                  {/* Page Image */}
-                  <div className="relative group overflow-hidden rounded-2xl flex items-center justify-center bg-transparent mt-8">
-                    <img
-                      src={page.image}
-                      alt={page.title}
-                      className="w-full h-auto object-contain filter drop-shadow-xl rounded-xl transition-all duration-500 group-hover:scale-[1.01]"
-                    />
-                    <div className="absolute inset-0 bg-black/0 group-hover:bg-black/5 transition-colors pointer-events-none" />
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* GRID VIEW (ALL PAGES) */}
-        {viewMode === 'grid' && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 animate-fade-in">
-            {menuPages.map((page) => (
-              <div
-                key={page.pageNumber}
-                onClick={() => setActiveZoomImage(page.image)}
-                className="group relative bg-dark-900 rounded-3xl overflow-hidden border border-white/10 hover:border-gold-400 shadow-2xl cursor-pointer transition-all duration-500 hover:-translate-y-2"
-              >
-                <div className="h-64 overflow-hidden bg-[#fbf5eb] p-2 flex items-center justify-center">
-                  <img
-                    src={page.image}
-                    alt={page.title}
-                    className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-500"
-                  />
-                </div>
-
-                <div className="p-4 bg-dark-900 flex items-center justify-between border-t border-white/10">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-mint-400">
-                      Page 0{page.pageNumber}
-                    </span>
-                    <h4 className="font-serif font-bold text-sm text-white truncate max-w-[150px]">
-                      {page.title}
-                    </h4>
-                  </div>
-
-                  <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-gold-400 group-hover:bg-gold-500 group-hover:text-dark-950 transition-colors">
-                    <ZoomIn className="w-4 h-4" />
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
       </div>
 
       {/* Lightbox Zoom Viewer */}
@@ -540,4 +381,3 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
     </section>
   );
 }
-
