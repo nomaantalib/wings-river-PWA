@@ -197,63 +197,6 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
         </div>
       )}
 
-      {/* Realistic Animated Jet Ski Crossing Screen (Left to Right with Water Splash) */}
-      <div className="absolute bottom-4 left-0 right-0 z-20 pointer-events-none overflow-hidden h-28">
-        <style>{`
-          @keyframes jetskiMoveLeftToRight {
-            0% { transform: translateX(-380px) translateY(0px) rotate(-2deg); }
-            20% { transform: translateX(20vw) translateY(-8px) rotate(3deg); }
-            40% { transform: translateX(45vw) translateY(4px) rotate(-1deg); }
-            60% { transform: translateX(70vw) translateY(-10px) rotate(4deg); }
-            80% { transform: translateX(95vw) translateY(2px) rotate(-1deg); }
-            100% { transform: translateX(125vw) translateY(0px) rotate(-2deg); }
-          }
-        `}</style>
-        <div
-          className="absolute bottom-1 left-0 flex items-end"
-          style={{
-            animation: 'jetskiMoveLeftToRight 10s cubic-bezier(0.25, 0.1, 0.25, 1) infinite',
-            willChange: 'transform'
-          }}
-        >
-          {/* Water Splash Foam Spray behind Jet Ski (Trailing on the Left) */}
-          <div className="relative -mr-3 mb-1 flex items-end space-x-1">
-            {/* Heavy Spray Wave */}
-            <div className="w-20 h-9 bg-gradient-to-r from-transparent via-cyan-200/80 to-white/95 rounded-full blur-[2px] animate-pulse transform skew-x-12" />
-            {/* Frothy Bubbles */}
-            <div className="w-7 h-7 rounded-full bg-white/90 blur-[1px] animate-ping" />
-            <div className="w-5 h-5 rounded-full bg-cyan-100/90 blur-[1px] animate-bounce" />
-            <div className="w-10 h-4 rounded-full bg-white/80 blur-[2px]" />
-          </div>
-
-          {/* Realistic Jet Ski Rider SVG & Graphic */}
-          <div className="relative filter drop-shadow-[0_12px_12px_rgba(0,0,0,0.6)]">
-            <svg className="w-28 h-20" viewBox="0 0 100 60" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Spray arc under hull */}
-              <path d="M 10 48 Q 40 58 85 46 Q 95 44 98 48 C 80 58 35 60 5 50 Z" fill="url(#splashGradHero)" opacity="0.95" />
-              {/* Jet Ski Hull (Aerodynamic Water Sports Craft) */}
-              <path d="M 5 45 L 35 45 L 75 42 L 95 38 L 88 46 L 30 48 Z" fill="#F59E0B" stroke="#78350F" strokeWidth="1.5" />
-              <path d="M 25 45 L 45 35 L 70 34 L 85 38 L 70 42 Z" fill="#111827" />
-              {/* Seat & Steering Handlebars */}
-              <path d="M 25 38 L 45 35 L 52 35 L 48 39 Z" fill="#EF4444" />
-              <path d="M 55 35 L 62 25 L 64 25" stroke="#FFFFFF" strokeWidth="2.5" strokeLinecap="round" />
-              {/* Rider (Helmet, Lifejacket & Torso) */}
-              <circle cx="48" cy="18" r="6" fill="#0EA5E9" stroke="#0284C7" strokeWidth="1.5" />
-              <path d="M 44 24 L 56 26 L 58 35 L 42 35 Z" fill="#F97316" />
-              <path d="M 54 26 L 62 25" stroke="#F97316" strokeWidth="3" strokeLinecap="round" />
-              <defs>
-                <linearGradient id="splashGradHero" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0%" stopColor="#FFFFFF" stopOpacity="0.95" />
-                  <stop offset="50%" stopColor="#38BDF8" stopOpacity="0.8" />
-                  <stop offset="100%" stopColor="#0284C7" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-            </svg>
-            {/* Front Bow Water Crest */}
-            <div className="absolute top-10 left-0 w-10 h-5 bg-white/90 rounded-full blur-[1px] animate-pulse transform -skew-y-12" />
-          </div>
-        </div>
-      </div>
 
       {/* Scroll Down Indicator */}
       <a

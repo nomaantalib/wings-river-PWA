@@ -105,22 +105,9 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
               </div>
 
               <div className="flex items-center space-x-2">
-                {/* HD Sharpness / Depixelate Mode Toggle */}
-                <button
-                  onClick={() => setIsHdMode(!isHdMode)}
-                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
-                    isHdMode
-                      ? 'bg-amber-500 text-dark-950 border-amber-500 shadow-md font-bold'
-                      : 'bg-white/10 text-gray-200 border-white/20 hover:bg-white/20'
-                  }`}
-                  title="Toggle Ultra Sharp Depixelated View"
-                >
-                  <Sparkles className="w-3.5 h-3.5" />
-                  <span>{isHdMode ? 'HD Sharpness: ON' : 'HD Sharpness: OFF'}</span>
-                </button>
-
                 {/* Auto flip button */}
                 <button
+
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
                   className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg border text-xs font-semibold ${
                     isAutoFlipping
@@ -156,61 +143,49 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
               </div>
             </div>
 
-            {/* Menu Booklet Page Container with Page Flip Slide Animation */}
+            {/* Menu Booklet Page Container */}
+
+
             <div className="relative group">
               <div className="relative bg-dark-900 rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl transition-all duration-700 aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center">
-                {/* 3D Rolling Cylinder Page Turning Image Transition with Touch Swipe */}
+                {/* Smooth Non-Glitch Horizontal Slide Transition */}
                 <AnimatePresence initial={false} mode="wait">
                   <motion.div
                     key={currentPageIndex}
                     drag="x"
                     dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.25}
+                    dragElastic={0.2}
                     onDragEnd={(_, info) => {
                       if (info.offset.x < -40) nextPage();
                       else if (info.offset.x > 40) prevPage();
                     }}
                     initial={{
-                      rotateY: flipDirection === 'next' ? 140 : -140,
-                      rotateX: flipDirection === 'next' ? 6 : -6,
-                      rotateZ: flipDirection === 'next' ? 8 : -8,
-                      scale: 0.82,
+                      x: flipDirection === 'next' ? 300 : -300,
                       opacity: 0,
-                      boxShadow: flipDirection === 'next' ? '-40px 40px 80px rgba(0,0,0,0.7)' : '40px 40px 80px rgba(0,0,0,0.7)'
+                      scale: 0.96
                     }}
                     animate={{
-                      rotateY: 0,
-                      rotateX: 0,
-                      rotateZ: 0,
-                      scale: 1,
+                      x: 0,
                       opacity: 1,
-                      boxShadow: '0px 15px 40px rgba(0,0,0,0.4)'
+                      scale: 1
                     }}
                     exit={{
-                      rotateY: flipDirection === 'next' ? -140 : 140,
-                      rotateX: flipDirection === 'next' ? -6 : 6,
-                      rotateZ: flipDirection === 'next' ? -8 : 8,
-                      scale: 0.82,
+                      x: flipDirection === 'next' ? -300 : 300,
                       opacity: 0,
-                      boxShadow: flipDirection === 'next' ? '40px 40px 80px rgba(0,0,0,0.7)' : '-40px 40px 80px rgba(0,0,0,0.7)'
+                      scale: 0.96
                     }}
                     transition={{
-                      type: 'spring',
-                      stiffness: 260,
-                      damping: 22,
-                      mass: 0.6
+                      duration: 0.35,
+                      ease: [0.32, 0.72, 0, 1]
                     }}
                     style={{
-                      transformOrigin: flipDirection === 'next' ? 'left center' : 'right center',
-                      perspective: 2400,
-                      transformStyle: 'preserve-3d',
-                      backfaceVisibility: 'hidden',
                       touchAction: 'pan-y',
                       userSelect: 'none',
                       cursor: 'grab'
                     }}
                     className="w-full h-full relative overflow-hidden flex items-center justify-center p-2 bg-[#ffffff]"
                   >
+
                     <img
                       src={currentPage.image}
                       alt={currentPage.title}
