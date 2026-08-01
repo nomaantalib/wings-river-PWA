@@ -65,11 +65,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <meta name="apple-mobile-web-app-title" content="Wings River" />
-        {/* Auto-reload window on ChunkLoadError or script asset 404 failures (e.g. after new deploys) */}
+        {/* 
+          PWA Install Prompt:
+          We do NOT call e.preventDefault() here any more.
+          We just stash the event so the React hook (PWAController) 
+          can call e.preventDefault() + e.prompt() cleanly on user tap.
+        */}
         <script dangerouslySetInnerHTML={{
           __html: `
             window.addEventListener('beforeinstallprompt', function(e) {
-              e.preventDefault();
               window.deferredInstallPrompt = e;
               if (typeof window.onBeforeInstallPromptReady === 'function') {
                 window.onBeforeInstallPromptReady(e);
@@ -86,6 +90,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             }, true);
           `
         }} />
+
         {/* Google Fonts — Playfair Display + Lato (café feel) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />

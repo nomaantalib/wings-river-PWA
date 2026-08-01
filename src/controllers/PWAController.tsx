@@ -9,84 +9,78 @@ export interface BeforeInstallPromptEvent extends Event {
 
 export function usePWAInstaller() {
   const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstallable, setIsInstallable] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
-  const [isStandalone, setIsStandalone] = useState(false);
+  const [isInstallable, setIsInstallable]   = useState(false);
+  const [isIOS,         setIsIOS]           = useState(false);
+  const [isStandalone,  setIsStandalone]    = useState(false);
 
   useEffect(() => {
-    // Service Worker Registration
-    if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+    if (typeof window === 'undefined') return;
+
+    // ── Service Worker Registration ──────────────────────────
+    if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
         navigator.serviceWorker
           .register('/sw.js')
-          .then((reg) => console.log('PWA Service Worker registered:', reg.scope))
-          .catch((err) => console.log('Service Worker registration failed:', err));
+          .then((reg) => console.log('[PWA] SW registered:', reg.scope))
+          .catch((err) => console.warn('[PWA] SW registration failed:', err));
       });
     }
 
-    // Check Standalone Mode (Already installed)
-    const isStandaloneMode =
-      typeof window !== 'undefined' &&
-      (window.matchMedia('(display-mode: standalone)').matches ||
-       (window.navigator as any).standalone === true);
-    setIsStandalone(isStandaloneMode);
+    // ── Standalone / already installed check ─────────────────
+    const standalone =
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+    setIsStandalone(standalone);
 
-    // Detect iOS
-    const userAgent = typeof window !== 'undefined' ? window.navigator.userAgent.toLowerCase() : '';
-    const isIosDevice = /iphone|ipad|ipod/.test(userAgent);
-    setIsIOS(isIosDevice && !isStandaloneMode);
+    // ── iOS detection ─────────────────────────────────────────
+    const ua = window.navigator.userAgent.toLowerCase();
+    setIsIOS(/iphone|ipad|ipod/.test(ua) && !standalone);
 
-    // Load globally captured deferred prompt if it fired early
-    if (typeof window !== 'undefined') {
-      const globalPrompt = (window as any).deferredInstallPrompt;
-      if (globalPrompt) {
-        setDeferredPrompt(globalPrompt);
-        setIsInstallable(true);
-      }
-
-      // Listen for prompt ready callback if fired mid-load
-      (window as any).onBeforeInstallPromptReady = (e: BeforeInstallPromptEvent) => {
-        setDeferredPrompt(e);
-        setIsInstallable(true);
-      };
+    // ── Pick up event already stashed before React mounted ────
+    const stashed = (window as any).deferredInstallPrompt as BeforeInstallPromptEvent | undefined;
+    if (stashed) {
+      stashed.preventDefault();
+      setDeferredPrompt(stashed);
+      setIsInstallable(true);
     }
 
-    // Catch Chrome/Android install prompt
-    const handleBeforeInstallPrompt = (e: Event) => {
-      e.preventDefault();
+    // ── Live listener for prompt events fired after mount ─────
+    const handlePrompt = (e: Event) => {
+      e.preventDefault();                         // Suppress native browser mini-infobar
       setDeferredPrompt(e as BeforeInstallPromptEvent);
       setIsInstallable(true);
     };
 
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    window.addEventListener('beforeinstallprompt', handlePrompt);
+
+    // Allow React hook to receive events via callback bridge
+    (window as any).onBeforeInstallPromptReady = (e: BeforeInstallPromptEvent) => {
+      e.preventDefault();
+      setDeferredPrompt(e);
+      setIsInstallable(true);
+    };
 
     return () => {
-      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-      if (typeof window !== 'undefined') {
-        delete (window as any).onBeforeInstallPromptReady;
-      }
+      window.removeEventListener('beforeinstallprompt', handlePrompt);
+      delete (window as any).onBeforeInstallPromptReady;
     };
   }, []);
 
   const triggerInstall = async (): Promise<boolean> => {
     if (!deferredPrompt) return false;
-
-    deferredPrompt.prompt();
-    const choiceResult = await deferredPrompt.userChoice;
-
-    if (choiceResult.outcome === 'accepted') {
-      setIsInstallable(false);
-      setDeferredPrompt(null);
-      return true;
+    try {
+      await deferredPrompt.prompt();
+      const result = await deferredPrompt.userChoice;
+      if (result.outcome === 'accepted') {
+        setIsInstallable(false);
+        setDeferredPrompt(null);
+        return true;
+      }
+    } catch (e) {
+      console.warn('[PWA] Install prompt error:', e);
     }
-
     return false;
   };
 
-  return {
-    isInstallable,
-    isIOS,
-    isStandalone,
-    triggerInstall
-  };
+  return { isInstallable, isIOS, isStandalone, triggerInstall };
 }
