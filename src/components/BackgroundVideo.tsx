@@ -3,8 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 
 const VIDEOS = [
+  '/videos/hero-bg-video.mp4',
   '/videos/gemini_generated_video_5c810dd6.mp4',
-  '/videos/gemini_generated_video_d2d858f7.mp4',
 ];
 
 export default function BackgroundVideo() {

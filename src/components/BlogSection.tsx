@@ -168,12 +168,16 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           </div>
         )}
 
-        {/* Very Fancy Horizontal Carousel Container */}
+        {/* Very Fancy Horizontal Carousel Container with Faded Corner Edges */}
         <div
           className="relative group px-1"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
+          {/* Faded Left & Right Corner Edges overlay */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0B0E14] to-transparent z-20 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0B0E14] to-transparent z-20 pointer-events-none" />
+
           {/* Fancy Scroll Left Button */}
           <button
             onClick={scrollLeft}
@@ -195,7 +199,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           {/* Horizontal Track */}
           <div
             ref={carouselRef}
-            className="flex items-stretch gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-4 px-2 scroll-smooth snap-x snap-mandatory"
+            className="flex items-stretch gap-4 sm:gap-6 overflow-x-auto no-scrollbar py-4 px-3 scroll-smooth snap-x snap-mandatory"
           >
             {filteredBlogs.map((post, idx) => {
               const postImages = safeImages(post.images, post.cover_image);
@@ -203,7 +207,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
               return (
                 <div
                   key={post.id}
-                  className="snap-start shrink-0 w-[290px] sm:w-[330px] bg-[#151821] rounded-3xl overflow-hidden shadow-2xl border border-[#F5D061]/30 hover:border-[#F5D061] hover:shadow-[0_15px_40px_rgba(245,208,97,0.2)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col group/card"
+                  className="snap-start shrink-0 w-[230px] sm:w-[320px] bg-[#151821] rounded-3xl overflow-hidden shadow-2xl border border-[#F5D061]/30 hover:border-[#F5D061] hover:shadow-[0_15px_40px_rgba(245,208,97,0.2)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col group/card"
                 >
                   {/* Shorter Compact Image Banner */}
                   <div

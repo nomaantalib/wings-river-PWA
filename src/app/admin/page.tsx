@@ -36,7 +36,7 @@ import {
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
   Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen,
-  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3
+  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3, Code, Terminal
 } from 'lucide-react';
 import { getRegisteredUsers, saveRegisteredUser, RegisteredUser } from '@/components/UserAuthModal';
 
@@ -411,6 +411,7 @@ type TabKey =
   | 'users'
   | 'revenue'
   | 'heatmap'
+  | 'database'
   | 'reviews' 
   | 'contact' 
   | 'media' 
@@ -526,6 +527,14 @@ export default function AdminPage() {
   const [newUserForm, setNewUserForm] = useState({ name: '', phone: '', email: '' });
   const [heatmapAreaFilter, setHeatmapAreaFilter] = useState<'all' | 'indoor' | 'garden' | 'rooftop'>('all');
 
+  // Full Database Explorer & SQL Console States
+  const [dbSelectedTable, setDbSelectedTable] = useState<string>('reservations');
+  const [dbSearchQuery, setDbSearchQuery] = useState<string>('');
+  const [sqlQueryText, setSqlQueryText] = useState<string>('SELECT * FROM reservations ORDER BY created_at DESC LIMIT 50;');
+  const [sqlQueryResult, setSqlQueryResult] = useState<any[] | null>(null);
+  const [isExecutingSql, setIsExecutingSql] = useState<boolean>(false);
+  const [sqlQueryError, setSqlQueryError] = useState<string>('');
+
   // Search, Filter & Sort options
   const [categoryFilter, setCategoryFilter] = useState('');
   const [sortBy, setSortBy] = useState('display_order');
@@ -563,7 +572,7 @@ export default function AdminPage() {
     const token = localStorage.getItem('wings_admin_jwt');
     const savedTab = (typeof window !== 'undefined' ? (window.location.hash.replace('#', '') || localStorage.getItem('wings_admin_active_tab')) : null) as TabKey | null;
 
-    if (savedTab && ['dashboard','settings','hero','pages','categories','menu','menupages','promopages','blogs','gallery','rides','banners','offers','faqs','team','bookings','reviews','contact','media','audit'].includes(savedTab)) {
+    if (savedTab && ['dashboard','settings','hero','pages','categories','menu','menupages','promopages','blogs','gallery','rides','banners','offers','faqs','team','bookings','users','revenue','heatmap','database','reviews','contact','media','audit'].includes(savedTab)) {
       setActiveTab(savedTab);
     }
 
@@ -1079,6 +1088,7 @@ export default function AdminPage() {
     { id: 'users',      label: 'Users CRM Database', icon: <Users className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
     { id: 'revenue',    label: 'Revenue & Refunds',   icon: <IndianRupee className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
     { id: 'heatmap',    label: 'Booking Heatmap',     icon: <Activity className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+    { id: 'database',   label: 'Full Database Console',icon: <Database className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
     { id: 'reviews',    label: 'Customer Reviews',   icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
     { id: 'contact',    label: 'Inquiries & Messages',icon:<Mail className="w-4 h-4 shrink-0" /> },
     { id: 'media',      label: 'Media Library',      icon: <FolderOpen className="w-4 h-4 shrink-0" /> },
@@ -2541,6 +2551,352 @@ export default function AdminPage() {
               })()}
             </>
           )}
+          {/* ─── FULL DATABASE CONSOLE ─────────────────────────────────────────── */}
+          {activeTab === 'database' && (() => {
+            // All local DB tables from localStorage / StorageController
+            const DB_TABLES: { id: string; label: string; desc: string; icon: React.ReactNode; getData: () => any[] }[] = [
+              {
+                id: 'reservations', label: 'Reservations', desc: 'All table & party bookings',
+                icon: <Calendar className="w-4 h-4 text-amber-400" />,
+                getData: () => reservations,
+              },
+              {
+                id: 'users', label: 'Registered Users', desc: 'Customer accounts & profiles',
+                icon: <Users className="w-4 h-4 text-blue-400" />,
+                getData: () => registeredUsersList,
+              },
+              {
+                id: 'menu', label: 'Menu Items', desc: 'All dishes & drinks',
+                icon: <Utensils className="w-4 h-4 text-green-400" />,
+                getData: () => menuItems,
+              },
+              {
+                id: 'categories', label: 'Menu Categories', desc: 'Menu section groups',
+                icon: <Layers className="w-4 h-4 text-purple-400" />,
+                getData: () => categories,
+              },
+              {
+                id: 'gallery', label: 'Gallery Photos', desc: 'Visual gallery items',
+                icon: <ImageIcon className="w-4 h-4 text-pink-400" />,
+                getData: () => gallery,
+              },
+              {
+                id: 'blogs', label: 'Blogs & News', desc: 'Blog posts & articles',
+                icon: <FileText className="w-4 h-4 text-cyan-400" />,
+                getData: () => blogs,
+              },
+              {
+                id: 'reviews', label: 'Customer Reviews', desc: 'Ratings & testimonials',
+                icon: <MessageSquare className="w-4 h-4 text-yellow-400" />,
+                getData: () => reviews,
+              },
+              {
+                id: 'contact', label: 'Contact Messages', desc: 'Inquiry & contact forms',
+                icon: <Mail className="w-4 h-4 text-rose-400" />,
+                getData: () => messages,
+              },
+              {
+                id: 'offers', label: 'Offers & Discounts', desc: 'Promo codes & deals',
+                icon: <Tag className="w-4 h-4 text-orange-400" />,
+                getData: () => offers,
+              },
+              {
+                id: 'team', label: 'Team Members', desc: 'Staff & team profiles',
+                icon: <Users className="w-4 h-4 text-teal-400" />,
+                getData: () => team,
+              },
+              {
+                id: 'banners', label: 'Event Banners', desc: 'Promotional banners',
+                icon: <Megaphone className="w-4 h-4 text-indigo-400" />,
+                getData: () => banners,
+              },
+              {
+                id: 'faqs', label: 'FAQs', desc: 'Frequently asked questions',
+                icon: <HelpCircle className="w-4 h-4 text-lime-400" />,
+                getData: () => faqs,
+              },
+              {
+                id: 'media', label: 'Media Library', desc: 'Uploaded images & files',
+                icon: <FolderOpen className="w-4 h-4 text-violet-400" />,
+                getData: () => media,
+              },
+              {
+                id: 'audit', label: 'Audit Logs', desc: 'System activity trail',
+                icon: <Terminal className="w-4 h-4 text-gray-400" />,
+                getData: () => auditLogs,
+              },
+            ];
+
+            const activeTable = DB_TABLES.find(t => t.id === dbSelectedTable) || DB_TABLES[0];
+            const rawData = activeTable.getData();
+            const filteredData = dbSearchQuery
+              ? rawData.filter(row => JSON.stringify(row).toLowerCase().includes(dbSearchQuery.toLowerCase()))
+              : rawData;
+
+            // Get all unique column keys from the data
+            const allKeys = filteredData.length > 0
+              ? Array.from(new Set(filteredData.flatMap(r => Object.keys(r || {}))))
+              : [];
+
+            // SQL-like query runner (client-side localStorage query)
+            const runSqlQuery = () => {
+              setIsExecutingSql(true);
+              setSqlQueryError('');
+              setSqlQueryResult(null);
+              setTimeout(() => {
+                try {
+                  const q = sqlQueryText.trim().toLowerCase();
+                  let tableMatch = '';
+                  for (const t of DB_TABLES) {
+                    if (q.includes(t.id)) { tableMatch = t.id; break; }
+                  }
+                  if (!tableMatch) { setSqlQueryError('Table not found in query. Available: ' + DB_TABLES.map(t => t.id).join(', ')); setIsExecutingSql(false); return; }
+                  const tbl = DB_TABLES.find(t => t.id === tableMatch)!;
+                  let data = [...tbl.getData()];
+                  if (q.includes('where')) {
+                    const whereMatch = sqlQueryText.match(/where\s+(\w+)\s*(=|!=|>|<|>=|<=|like)\s*['"]?([^'";\s]+)['"]?/i);
+                    if (whereMatch) {
+                      const [, col, op, val] = whereMatch;
+                      data = data.filter(row => {
+                        const v = String(row[col] ?? '');
+                        if (op === '=') return v === val;
+                        if (op === '!=') return v !== val;
+                        if (op.toLowerCase() === 'like') return v.toLowerCase().includes(val.toLowerCase().replace(/%/g, ''));
+                        return true;
+                      });
+                    }
+                  }
+                  if (q.includes('order by')) {
+                    const orderMatch = sqlQueryText.match(/order\s+by\s+(\w+)(\s+desc)?/i);
+                    if (orderMatch) {
+                      const [, col, dir] = orderMatch;
+                      data.sort((a, b) => {
+                        const av = String(a[col] ?? ''), bv = String(b[col] ?? '');
+                        return dir ? bv.localeCompare(av) : av.localeCompare(bv);
+                      });
+                    }
+                  }
+                  const limitMatch = sqlQueryText.match(/limit\s+(\d+)/i);
+                  if (limitMatch) data = data.slice(0, parseInt(limitMatch[1]));
+                  if (q.includes('count(*)')) { setSqlQueryResult([{ 'COUNT(*)': data.length }]); setIsExecutingSql(false); return; }
+                  setSqlQueryResult(data);
+                } catch (e) {
+                  setSqlQueryError(String(e));
+                }
+                setIsExecutingSql(false);
+              }, 350);
+            };
+
+            return (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h2 className="text-xl font-bold text-white font-serif">Full Database Console</h2>
+                    <p className="text-xs text-gray-400 mt-0.5">{DB_TABLES.length} tables • {DB_TABLES.reduce((s, t) => s + t.getData().length, 0)} total records</p>
+                  </div>
+                  <span className="flex items-center gap-2 text-xs text-emerald-400 font-bold bg-emerald-500/10 border border-emerald-500/30 rounded-xl px-3 py-1.5">
+                    <Database className="w-3.5 h-3.5" /> LocalStorage D1 Active
+                  </span>
+                </div>
+
+                {/* Table Selector Grid */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-7 gap-2 mb-6">
+                  {DB_TABLES.map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => { setDbSelectedTable(t.id); setDbSearchQuery(''); setSqlQueryResult(null); }}
+                      className={`flex flex-col items-center gap-1.5 p-3 rounded-2xl border transition-all text-center ${
+                        dbSelectedTable === t.id
+                          ? 'bg-[#F5D061]/15 border-[#F5D061]/50 text-[#F8E7A1]'
+                          : 'bg-dark-900/50 border-white/8 text-gray-400 hover:border-white/20 hover:text-white'
+                      }`}
+                    >
+                      {t.icon}
+                      <span className="text-[10px] font-bold leading-tight">{t.label}</span>
+                      <span className="text-[9px] bg-white/10 rounded-full px-1.5 py-0.5">{t.getData().length}</span>
+                    </button>
+                  ))}
+                </div>
+
+                {/* Active Table Explorer */}
+                <div className={`${cardCls} mb-5`}>
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+                    <div className="flex items-center gap-2">
+                      {activeTable.icon}
+                      <div>
+                        <h3 className="text-sm font-bold text-white">{activeTable.label}</h3>
+                        <p className="text-[10px] text-gray-400">{activeTable.desc} · {filteredData.length} rows</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="relative">
+                        <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-500" />
+                        <input
+                          type="text"
+                          placeholder="Search records..."
+                          value={dbSearchQuery}
+                          onChange={e => setDbSearchQuery(e.target.value)}
+                          className="pl-8 pr-3 py-2 text-xs bg-dark-950/80 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 w-48"
+                        />
+                      </div>
+                      <button
+                        onClick={() => {
+                          const blob = new Blob([JSON.stringify(filteredData, null, 2)], { type: 'application/json' });
+                          const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                          a.download = `wings_${dbSelectedTable}_${Date.now()}.json`; a.click();
+                        }}
+                        className="flex items-center gap-1.5 px-3 py-2 text-xs bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 rounded-xl hover:bg-emerald-500/20 transition"
+                      >
+                        <Copy className="w-3.5 h-3.5" /> Export JSON
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Records Table */}
+                  {filteredData.length === 0 ? (
+                    <div className="text-center py-12 text-gray-500 text-sm">No records found in <span className="text-amber-400 font-mono">{dbSelectedTable}</span></div>
+                  ) : (
+                    <div className="overflow-auto max-h-[480px] rounded-xl border border-white/8">
+                      <table className="w-full text-xs">
+                        <thead className="sticky top-0 bg-dark-900 z-10">
+                          <tr>
+                            <th className="px-3 py-2.5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-white/8">#</th>
+                            {allKeys.map(k => (
+                              <th key={k} className="px-3 py-2.5 text-left text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-white/8 whitespace-nowrap">{k}</th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {filteredData.map((row, ri) => (
+                            <tr key={ri} className="hover:bg-white/5 transition-colors group">
+                              <td className="px-3 py-2.5 text-gray-500 font-mono">{ri + 1}</td>
+                              {allKeys.map(k => {
+                                const val = row?.[k];
+                                const str = val === undefined || val === null ? '' : typeof val === 'object' ? JSON.stringify(val) : String(val);
+                                const isId = k === 'id' || k.endsWith('_id');
+                                const isStatus = k === 'status';
+                                const statusColors: Record<string, string> = {
+                                  confirmed: 'bg-emerald-500/20 text-emerald-300',
+                                  pending: 'bg-amber-500/20 text-amber-300',
+                                  cancelled: 'bg-rose-500/20 text-rose-300',
+                                  completed: 'bg-blue-500/20 text-blue-300',
+                                  free: 'bg-emerald-500/20 text-emerald-300',
+                                  eating: 'bg-orange-500/20 text-orange-300',
+                                  reserved: 'bg-amber-500/20 text-amber-300',
+                                };
+                                return (
+                                  <td key={k} className="px-3 py-2.5 max-w-[200px]">
+                                    {isStatus && statusColors[str] ? (
+                                      <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[10px] font-bold ${statusColors[str]}`}>{str}</span>
+                                    ) : isId ? (
+                                      <span className="font-mono text-[10px] text-gray-500 truncate block max-w-[120px]" title={str}>{str}</span>
+                                    ) : (
+                                      <span className="text-gray-300 line-clamp-1 block" title={str}>{str || <span className="text-gray-600 italic">—</span>}</span>
+                                    )}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* SQL-like Query Console */}
+                <div className={cardCls}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Code className="w-4 h-4 text-[#F5D061]" />
+                    <h3 className="text-sm font-bold text-white">SQL-Like Query Console</h3>
+                    <span className="text-[10px] text-gray-500 bg-white/5 border border-white/10 rounded px-2 py-0.5">Client-Side</span>
+                  </div>
+                  <p className="text-[10px] text-gray-500 mb-3">Supports: SELECT, WHERE (=, !=, LIKE), ORDER BY (ASC/DESC), LIMIT, COUNT(*)</p>
+                  <div className="relative mb-3">
+                    <textarea
+                      value={sqlQueryText}
+                      onChange={e => setSqlQueryText(e.target.value)}
+                      rows={3}
+                      className="w-full px-4 py-3 text-xs font-mono bg-[#0A0D12] border border-white/10 rounded-xl text-[#F5D061] placeholder-gray-600 focus:outline-none focus:border-[#F5D061]/50 resize-none"
+                      placeholder="SELECT * FROM reservations WHERE status = 'pending' ORDER BY created_at DESC LIMIT 20;"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 mb-4">
+                    <button
+                      onClick={runSqlQuery}
+                      disabled={isExecutingSql}
+                      className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-bold text-xs hover:scale-105 transition shadow-lg disabled:opacity-60"
+                    >
+                      {isExecutingSql ? <><Clock className="w-3.5 h-3.5 animate-spin" /> Running...</> : <><Terminal className="w-3.5 h-3.5" /> Execute Query</>}
+                    </button>
+                    <button
+                      onClick={() => { setSqlQueryResult(null); setSqlQueryError(''); }}
+                      className="px-3 py-2.5 rounded-xl text-xs bg-white/5 border border-white/10 text-gray-400 hover:text-white transition"
+                    >
+                      Clear
+                    </button>
+                    {/* Quick templates */}
+                    <div className="flex flex-wrap gap-1.5">
+                      {[
+                        { label: 'All Reservations', q: 'SELECT * FROM reservations ORDER BY created_at DESC LIMIT 50;' },
+                        { label: 'Pending', q: "SELECT * FROM reservations WHERE status = 'pending' LIMIT 20;" },
+                        { label: 'Count Users', q: 'SELECT COUNT(*) FROM users;' },
+                        { label: 'Recent Blogs', q: 'SELECT * FROM blogs ORDER BY created_at DESC LIMIT 10;' },
+                      ].map(t => (
+                        <button key={t.label} onClick={() => setSqlQueryText(t.q)}
+                          className="text-[10px] px-2 py-1 rounded-lg bg-white/5 border border-white/10 text-gray-400 hover:text-[#F5D061] hover:border-[#F5D061]/30 transition font-mono"
+                        >{t.label}</button>
+                      ))}
+                    </div>
+                  </div>
+                  {sqlQueryError && (
+                    <div className="mb-3 px-4 py-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs font-mono">
+                      ✗ {sqlQueryError}
+                    </div>
+                  )}
+                  {sqlQueryResult !== null && (
+                    <div>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-[10px] text-emerald-400 font-bold">✓ {sqlQueryResult.length} row{sqlQueryResult.length !== 1 ? 's' : ''} returned</span>
+                        <button
+                          onClick={() => {
+                            const blob = new Blob([JSON.stringify(sqlQueryResult, null, 2)], { type: 'application/json' });
+                            const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+                            a.download = `query_result_${Date.now()}.json`; a.click();
+                          }}
+                          className="text-[10px] px-2 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 hover:bg-emerald-500/20 transition"
+                        >Export</button>
+                      </div>
+                      <div className="overflow-auto max-h-[340px] rounded-xl border border-white/8">
+                        <table className="w-full text-xs">
+                          <thead className="sticky top-0 bg-[#0A0D12]">
+                            <tr>
+                              {Object.keys(sqlQueryResult[0] || {}).map(k => (
+                                <th key={k} className="px-3 py-2.5 text-left text-[10px] font-bold text-[#F5D061] uppercase tracking-wider border-b border-white/8 whitespace-nowrap">{k}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5">
+                            {sqlQueryResult.map((row, ri) => (
+                              <tr key={ri} className="hover:bg-white/5 transition-colors">
+                                {Object.values(row).map((val: any, vi) => (
+                                  <td key={vi} className="px-3 py-2.5 text-gray-300 font-mono text-[10px] max-w-[200px]">
+                                    <span className="line-clamp-1 block" title={String(val ?? '')}>{String(val ?? <span className="text-gray-600 italic">null</span>)}</span>
+                                  </td>
+                                ))}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
+          {/* ─── END FULL DATABASE CONSOLE ─────────────────────────────────────── */}
+
         </div>
 
         {/* ─── MODALS ───────────────────────────────────────────────────────────── */}

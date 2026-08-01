@@ -88,15 +88,15 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-gold-400/20 border border-gold-400/30 text-gold-300 font-semibold text-xs tracking-widest uppercase mb-3">
-            <BookOpen className="w-3.5 h-3.5 text-gold-400" />
-            <span>Official Menu Booklet & Card</span>
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#F5D061]/40 text-[#F8E7A1] font-bold text-xs tracking-widest uppercase mb-3 shadow-md">
+            <BookOpen className="w-3.5 h-3.5 text-[#F5D061]" />
+            <span>Our Delicacies &amp; Offerings</span>
           </div>
 
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
-            Interactive Menu Card Screen
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F8E7A1] tracking-tight mb-4">
+            Our Delicacies &amp; Offerings
           </h2>
-          <p className="font-sans text-gray-300 text-base">
+          <p className="font-sans text-[#D4C4A0]/80 text-base">
             Swipe or use arrows to flip through our official café menu booklet with smooth 3D page-roll animation.
           </p>
         </div>

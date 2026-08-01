@@ -71,7 +71,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
           className="absolute inset-0 w-full h-full object-cover scale-105 filter brightness-75 contrast-110"
         >
           <source
-            src="/videos/gemini_generated_video_5c810dd6.mp4"
+            src="/videos/hero-bg-video.mp4"
             type="video/mp4"
           />
         </video>
@@ -158,11 +158,15 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
           </div>
         </div>
 
-        {/* Horizontal Auto-sliding Carousel for Info Highlights */}
-        <div className="w-full max-w-xl mx-auto px-2 relative">
+        {/* Horizontal Auto-sliding Carousel for Info Highlights with Faded Corner Edges */}
+        <div className="w-full max-w-xl mx-auto px-2 relative group">
+          {/* Faded Left & Right Corner Edges overlay */}
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0B0C0E] to-transparent z-20 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0B0C0E] to-transparent z-20 pointer-events-none" />
+
           <div
             ref={infoCarouselRef}
-            className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1 px-1 scroll-smooth snap-x snap-mandatory"
+            className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-4 scroll-smooth snap-x snap-mandatory"
           >
             {[
               { title: 'Gomti River', sub: 'Scenic Waterfront', color: 'text-[#F8E7A1]' },
@@ -172,10 +176,10 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
             ].map((card, idx) => (
               <div
                 key={idx}
-                className="snap-center shrink-0 min-w-[190px] sm:min-w-[210px] bg-[#121417]/80 backdrop-blur-md border border-[#F5D061]/25 px-3.5 py-2 rounded-xl text-center shadow-lg hover:border-[#F5D061]/60 transition-all"
+                className="snap-center shrink-0 w-[150px] sm:w-[190px] bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/30 px-3 py-2 rounded-xl text-center shadow-lg hover:border-[#F5D061]/60 transition-all"
               >
-                <p className={`${card.color} font-serif font-bold text-xs sm:text-sm`}>{card.title}</p>
-                <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider font-sans mt-0.5">{card.sub}</p>
+                <p className={`${card.color} font-serif font-bold text-xs sm:text-sm truncate`}>{card.title}</p>
+                <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider font-sans mt-0.5 truncate">{card.sub}</p>
               </div>
             ))}
           </div>
