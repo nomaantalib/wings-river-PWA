@@ -168,9 +168,10 @@ export default function ReviewsSection() {
                   onChange={(e) => setRatingInput(Number(e.target.value))}
                   className="w-full px-3.5 py-2 text-xs rounded-xl border border-gray-300 text-black font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-mint-400"
                 >
-                  <option value={5} className="text-black font-semibold">5 Stars ★★★★★ - Excellent</option>
-                  <option value={4} className="text-black font-semibold">4 Stars ★★★★☆ - Very Good</option>
-                  <option value={3} className="text-black font-semibold">3 Stars ★★★☆☆ - Good</option>
+                  <option value={5} className="text-black font-semibold">5 / 5 - Excellent</option>
+                  <option value={4} className="text-black font-semibold">4 / 5 - Very Good</option>
+                  <option value={3} className="text-black font-semibold">3 / 5 - Good</option>
+
                 </select>
               </div>
 

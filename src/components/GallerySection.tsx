@@ -63,9 +63,9 @@ export default function GallerySection() {
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
           <span className="inline-flex items-center space-x-1.5 px-4 py-1.5 rounded-full bg-[#C9B086]/20 border border-[#C9B086]/40 text-[#E8DCB8] font-bold text-xs tracking-widest uppercase mb-3 shadow-md">
-            <Sparkles className="w-3.5 h-3.5 text-[#C9B086]" />
             <span>Photo Showcase</span>
           </span>
+
           <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[#E8DCB8] tracking-tight mb-3">
             Wings River Café Gallery
           </h2>

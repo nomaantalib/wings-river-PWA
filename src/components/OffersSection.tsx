@@ -205,8 +205,8 @@ export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
                       <Percent className="w-3 h-3" />
                       <span>{offer.discount_type === 'flat' ? `Flat ₹${offer.discount_value} OFF` : `${offer.discount_value}% Discount`}</span>
                     </span>
-                    <Sparkles className="w-4 h-4 text-amber-400 group-hover:rotate-12 transition-transform" />
                   </div>
+
 
                   {/* Title & Description */}
                   <div>

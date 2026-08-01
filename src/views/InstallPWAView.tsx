@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePWAInstaller } from '@/controllers/PWAController';
-import { Download, Smartphone, X, Sparkles, Share, PlusSquare, CheckCircle2 } from 'lucide-react';
+import { Download, Smartphone, X, Share, PlusSquare, CheckCircle2 } from 'lucide-react';
+
 import CircularLogo from '@/components/CircularLogo';
 
 export default function InstallPWAView() {

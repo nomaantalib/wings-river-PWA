@@ -54,8 +54,8 @@ export default function PWAInstallBanner() {
         <div className="flex-1 min-w-0">
           <div className="flex items-center space-x-1.5">
             <h4 className="font-serif font-extrabold text-sm text-white truncate">Wings River Café App</h4>
-            <Sparkles className="w-3.5 h-3.5 text-amber-400 shrink-0" />
           </div>
+
           <p className="text-[11px] text-gray-300 leading-tight mt-0.5">
             Install app on your device for instant offline access & table booking!
           </p>

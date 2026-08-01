@@ -401,9 +401,9 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
               {activeBlog.video_url && (
                 <div className="space-y-2 pt-2">
                   <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center space-x-1.5">
-                    <Sparkles className="w-4 h-4 text-amber-500" />
                     <span>Experience Glimpse Video</span>
                   </h4>
+
                   <div className="rounded-3xl overflow-hidden bg-black border-2 border-amber-400/30 aspect-video shadow-2xl relative">
                     <iframe
                       src={

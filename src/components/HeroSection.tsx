@@ -94,9 +94,9 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
               >
                 {/* Dynamic Tagline Badge */}
                 <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-mint-300/30 text-mint-200 text-xs sm:text-sm font-semibold tracking-wide uppercase mb-4 shadow-lg">
-                  <Sparkles className="w-3.5 h-3.5 text-gold-400 animate-spin" style={{ animationDuration: '8s' }} />
                   <span>{slide.tag || heroSettings.badgeText}</span>
                 </div>
+
 
                 {/* Dynamic Main Heading */}
                 <h1 className="font-serif font-extrabold text-4xl sm:text-6xl md:text-7xl tracking-tight text-white drop-shadow-lg leading-tight mb-4 text-center">
@@ -126,9 +126,10 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
             onClick={() => onOpenBooking('birthday_party')}
             className="flex items-center space-x-2 px-7 py-3.5 bg-gradient-to-r from-gold-400 to-gold-500 text-dark-950 font-bold text-sm rounded-full shadow-xl shadow-gold-500/25 hover:scale-105 transition-all duration-300"
           >
-            <Sparkles className="w-4 h-4" />
+            <Utensils className="w-4 h-4" />
             <span>Book Party / Event</span>
           </button>
+
 
           <a
             href="#menu-card"
