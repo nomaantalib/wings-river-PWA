@@ -5,6 +5,11 @@ export interface Reservation {
   phone: string;
   email?: string;
   booking_type: string;
+  table_number?: string;
+  cluster_name?: string;
+  duration_hours?: number;
+  qr_code?: string;
+  amount?: number;
   date: string;
   time: string;
   guests: number;

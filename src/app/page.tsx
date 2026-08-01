@@ -141,26 +141,9 @@ export default function Home() {
       <LoadingScreen />
       <Navbar onOpenBooking={() => handleOpenBooking('table_booking')} onOpenAuth={() => setIsAuthOpen(true)} />
       
-      <HeroSection onOpenBooking={handleOpenBooking} />
+      <HeroSection onOpenBooking={handleOpenBooking} onOpenMyBookings={handleOpenMyBookings} />
 
-      {/* Quick Action Floating Bar for Customer Orders & Tickets */}
-      <div className="flex items-center justify-center gap-3 py-4 bg-dark-950/60 backdrop-blur-md border-y border-amber-500/20 px-4 flex-wrap">
-        <button
-          onClick={handleOpenQROrder}
-          className="flex items-center space-x-2 px-5 py-2 rounded-full bg-amber-500 text-dark-950 font-bold text-xs shadow-lg hover:bg-amber-400 transition"
-        >
-          <QrCode className="w-4 h-4" />
-          <span>Quick QR Food Order (Table {selectedTableNumber})</span>
-        </button>
 
-        <button
-          onClick={handleOpenMyBookings}
-          className="flex items-center space-x-2 px-5 py-2 rounded-full bg-dark-900 border border-amber-500/40 text-amber-300 font-bold text-xs hover:bg-dark-800 transition"
-        >
-          <Ticket className="w-4 h-4" />
-          <span>My Reservations &amp; QR Tickets</span>
-        </button>
-      </div>
 
       <AboutSection />
 

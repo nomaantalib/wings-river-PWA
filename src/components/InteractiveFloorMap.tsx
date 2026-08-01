@@ -244,9 +244,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               <MapPin className="w-4 h-4 text-[#F5D061]" />
             </div>
             <div>
-              <h3 className="text-base font-serif font-bold text-[#E8DCB8] flex items-center gap-2">
+              <h3 className="text-base font-serif font-bold text-[#E8DCB8]">
                 Reserve Your Table
-                <Sparkles className="w-3.5 h-3.5 text-[#F5D061] animate-pulse" />
               </h3>
               <p className="text-[11px] text-[#D4C4A0]/70 mt-0.5">Choose area → pick a table → confirm booking</p>
             </div>
