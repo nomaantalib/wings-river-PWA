@@ -1,4 +1,4 @@
-name = "wings-river-cafe-blog"
+name = "wings-river-pwa"
 compatibility_date = "2026-07-21"
 compatibility_flags = ["nodejs_compat"]
 
@@ -7,12 +7,13 @@ pages_build_output_dir = "out"
 [[d1_databases]]
 binding = "DB"
 database_name = "wings_river_cafe_reservations"
-database_id = "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
+database_id = "912b607b-c192-4e0a-89ba-75f936fca45c"
 
 [vars]
 ADMIN_SECRET_KEY = "wings_river_cafe_admin_secret_2026"
 NEXT_PUBLIC_PHONE = "07310008020"
 NEXT_PUBLIC_WHATSAPP = "917310008020"
+
 
 
 
