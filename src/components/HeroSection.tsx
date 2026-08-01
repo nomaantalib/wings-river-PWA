@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStoredHeroSettings, HeroSettings, DEFAULT_HERO_SETTINGS, DEFAULT_HERO_SLIDES } from '@/lib/db';
-import { Calendar, Utensils, Anchor, ChevronDown, Sparkles, ChevronRight, ChevronLeft } from 'lucide-react';
+import { Calendar, Utensils, Anchor, ChevronDown, Sparkles, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react';
 import CircularLogo from './CircularLogo';
 
 interface HeroSectionProps {
@@ -108,32 +108,33 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
         </div>
 
 
-        {/* CTA Button Group */}
-        <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-          <a
-            href="#floor-map"
-            className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-[#C9B086] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-xs rounded-full shadow-xl hover:scale-105 transition-all duration-300"
-          >
-            <Calendar className="w-4 h-4" />
-            <span>Reserve Table</span>
-          </a>
+        {/* CTA Button Group — Increased size, equal width, responsive grid */}
+        <div className="w-full max-w-2xl mx-auto px-2 mb-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 justify-items-stretch">
+            <a
+              href="#floor-map"
+              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#C9B086] via-[#B8A07A] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-[#C9B086]/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+            >
+              <Calendar className="w-5 h-5 shrink-0" />
+              <span>Reserve Table</span>
+            </a>
 
+            <button
+              onClick={() => onOpenBooking('birthday_party')}
+              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#D4C4A0] via-[#C9B086] to-[#B8A07A] hover:from-[#F5EBE0] hover:to-[#D4C4A0] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-[#C9B086]/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+            >
+              <Utensils className="w-5 h-5 shrink-0" />
+              <span>Book Party / Event</span>
+            </button>
 
-          <button
-            onClick={() => onOpenBooking('birthday_party')}
-            className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-gold-400 to-gold-500 text-dark-950 font-bold text-xs rounded-full shadow-xl shadow-gold-500/25 hover:scale-105 transition-all duration-300"
-          >
-            <Utensils className="w-4 h-4" />
-            <span>Book Party / Event</span>
-          </button>
-
-          <a
-            href="#menu-card"
-            className="flex items-center space-x-2 px-6 py-2.5 bg-dark-900/80 backdrop-blur-md border border-[#C9B086]/30 text-[#E8DCB8] font-semibold text-xs rounded-full hover:bg-dark-800 transition-all duration-300"
-          >
-            <Utensils className="w-4 h-4 text-[#C9B086]" />
-            <span>View Menu</span>
-          </a>
+            <a
+              href="#menu-card"
+              className="col-span-1 sm:col-span-2 md:col-span-1 flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-[#121417]/90 backdrop-blur-md border border-[#C9B086]/40 text-[#E8DCB8] font-bold text-sm sm:text-base rounded-2xl hover:bg-[#1A1D24] hover:border-[#C9B086] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
+            >
+              <BookOpen className="w-5 h-5 text-[#C9B086] shrink-0" />
+              <span>View Menu</span>
+            </a>
+          </div>
         </div>
 
         {/* Compact & Shortened Glassmorphism Info Overlay Cards */}
