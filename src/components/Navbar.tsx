@@ -2,15 +2,25 @@
 
 import React, { useState, useEffect } from 'react';
 import CircularLogo from './CircularLogo';
-import { MapPin, Instagram, Phone, Menu as MenuIcon, X, Calendar } from 'lucide-react';
+import { MapPin, Instagram, Phone, Menu as MenuIcon, X, Calendar, User, LogOut } from 'lucide-react';
+import { getStoredUserSession, clearUserSession, UserSession } from './UserAuthModal';
 
 interface NavbarProps {
   onOpenBooking: () => void;
+  onOpenAuth: () => void;
 }
 
-export default function Navbar({ onOpenBooking }: NavbarProps) {
+export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<UserSession | null>(null);
+
+  useEffect(() => {
+    const checkAuth = () => setUser(getStoredUserSession());
+    checkAuth();
+    window.addEventListener('wings_auth_change', checkAuth);
+    return () => window.removeEventListener('wings_auth_change', checkAuth);
+  }, []);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,6 +33,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
 
   const navLinks = [
     { name: 'Home', href: '#home' },
@@ -94,6 +105,29 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
 
           {/* ICON-ONLY BUTTONS (Right Side Only - No Text Beside Icons) */}
           <div className="flex items-center space-x-2">
+            {/* User Login / Profile Button */}
+            {user ? (
+              <div className="flex items-center space-x-1 bg-[#1A1D24] border border-[#C9B086]/30 rounded-full pl-3 pr-1.5 py-1 text-xs">
+                <span className="text-[#E8DCB8] font-bold max-w-[90px] truncate">{user.name.split(' ')[0]}</span>
+                <button
+                  onClick={clearUserSession}
+                  title="Logout"
+                  className="p-1 rounded-full text-[#D4C4A0] hover:text-red-400 transition"
+                >
+                  <LogOut className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            ) : (
+              <button
+                onClick={onOpenAuth}
+                title="User OTP Login"
+                aria-label="User OTP Login"
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-[#C9B086] text-[#120B08] font-bold hover:bg-[#E8DCB8]"
+              >
+                <User className="w-4 h-4" />
+              </button>
+            )}
+
             <a
               href="https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
               target="_blank"
@@ -127,6 +161,7 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
               <Phone className="w-4 h-4" />
             </a>
           </div>
+
 
           {/* Mobile Menu Toggle Button */}
           <button

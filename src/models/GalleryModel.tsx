@@ -47,14 +47,7 @@ export const INITIAL_GALLERY: GalleryItem[] = [
   },
 
   // Evening & Ambience
-  {
-    id: 'g5',
-    title: 'Fairy Light Canopy Evening Setup',
-    category: 'Evening',
-    image_url: '/images/Screenshot_20260720-180609_Maps.png',
-    about: 'Enchanting fairy light canopy outdoor seating, specially tailored for birthday parties, anniversaries, and romantic dinners.',
-    featured: true
-  },
+
   {
     id: 'g6',
     title: 'Sunset Gomti Riverfront Lounge',

@@ -97,14 +97,15 @@ export default function AboutSection() {
             {/* Secondary Floating Overlapping Card (Evening Lights Canopy) */}
             <div className="absolute -bottom-8 -right-4 sm:-right-8 w-3/5 rounded-2xl overflow-hidden shadow-2xl border-4 border-white/90 hidden sm:block group/sub shadow-gold-500/20">
               <img
-                src={settings.aboutSecondaryImage || "/images/Screenshot_20260720-180609_Maps.png"}
+                src={settings.aboutSecondaryImage || "/images/Screenshot_20260720-180644_Maps.png"}
                 alt="Evening Party Canopy at Wings River Cafe"
                 className="w-full h-48 object-cover group-hover/sub:scale-110 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark-950/70 via-transparent to-transparent" />
               <div className="absolute bottom-2 left-3 text-[11px] font-bold text-amber-300">
-                Fairy Light Celebration Canopy
+                Evening Celebration Canopy
               </div>
+
 
             </div>
 
