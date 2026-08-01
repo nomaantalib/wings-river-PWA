@@ -2,14 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStoredHeroSettings, HeroSettings, DEFAULT_HERO_SETTINGS, DEFAULT_HERO_SLIDES } from '@/lib/db';
-import { Calendar, Utensils, Anchor, ChevronDown, Sparkles, ChevronRight, ChevronLeft, BookOpen } from 'lucide-react';
+import { Calendar, Utensils, Anchor, ChevronDown, Sparkles, ChevronRight, ChevronLeft, BookOpen, Ticket } from 'lucide-react';
 import CircularLogo from './CircularLogo';
 
 interface HeroSectionProps {
   onOpenBooking: (type?: string) => void;
+  onOpenMyBookings?: () => void;
 }
 
-export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
+export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSectionProps) {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [heroSettings, setHeroSettings] = useState<HeroSettings>(DEFAULT_HERO_SETTINGS);
 
@@ -41,10 +42,22 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
     return () => clearInterval(interval);
   }, [slides]);
 
-  const nextSlide = () => setCurrentSlide((prev) => (prev + 1) % slides.length);
-  const prevSlide = () => setCurrentSlide((prev) => (prev - 1 + slides.length) % slides.length);
+  const infoCarouselRef = React.useRef<HTMLDivElement>(null);
 
-  const activeSlide = slides[currentSlide] || slides[0];
+  useEffect(() => {
+    const el = infoCarouselRef.current;
+    if (!el) return;
+
+    const interval = setInterval(() => {
+      if (el.scrollLeft + el.clientWidth >= el.scrollWidth - 15) {
+        el.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        el.scrollBy({ left: 210, behavior: 'smooth' });
+      }
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     <section id="home" className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-dark-950 text-white pt-14">
@@ -108,52 +121,63 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
         </div>
 
 
-        {/* CTA Button Group — Increased size, equal width, responsive grid */}
-        <div className="w-full max-w-2xl mx-auto px-2 mb-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 justify-items-stretch">
+        {/* CTA Button Group — Responsive Grid with My Reservations button */}
+        <div className="w-full max-w-3xl mx-auto px-2 mb-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 justify-items-stretch">
             <a
               href="#floor-map"
-              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-yellow-500/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+              className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
             >
-              <Calendar className="w-5 h-5 shrink-0" />
+              <Calendar className="w-4 h-4 shrink-0" />
               <span>Reserve Table</span>
             </a>
 
             <button
               onClick={() => onOpenBooking('birthday_party')}
-              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-yellow-500/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+              className="flex items-center justify-center space-x-2 px-4 py-3 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
             >
-              <Utensils className="w-5 h-5 shrink-0" />
+              <Utensils className="w-4 h-4 shrink-0" />
               <span>Book Party / Event</span>
+            </button>
+
+            <button
+              onClick={() => onOpenMyBookings ? onOpenMyBookings() : onOpenBooking('table_booking')}
+              className="flex items-center justify-center space-x-2 px-4 py-3 bg-[#181B22]/90 backdrop-blur-md border border-[#F5D061]/60 text-[#F5D061] font-bold text-xs sm:text-sm rounded-2xl hover:bg-[#231710] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
+            >
+              <Ticket className="w-4 h-4 text-[#F5D061] shrink-0" />
+              <span>My Reservations</span>
             </button>
 
             <a
               href="#menu-card"
-              className="col-span-1 sm:col-span-2 md:col-span-1 flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/50 text-[#F5D061] font-bold text-sm sm:text-base rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
+              className="flex items-center justify-center space-x-2 px-4 py-3 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/40 text-[#E8DCB8] font-bold text-xs sm:text-sm rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
             >
-              <BookOpen className="w-5 h-5 text-[#F5D061] shrink-0" />
+              <BookOpen className="w-4 h-4 text-[#F5D061] shrink-0" />
               <span>View Menu</span>
             </a>
           </div>
         </div>
 
-        {/* Compact & Shortened Glassmorphism Info Overlay Cards */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 w-full max-w-3xl">
-          <div className="bg-[#121417]/80 backdrop-blur-md border border-[#C9B086]/25 px-2.5 py-2 rounded-xl text-center shadow-md">
-            <p className="text-[#E8DCB8] font-serif font-bold text-xs sm:text-sm">Gomti River</p>
-            <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider">Scenic Waterfront</p>
-          </div>
-          <div className="bg-[#121417]/80 backdrop-blur-md border border-[#C9B086]/25 px-2.5 py-2 rounded-xl text-center shadow-md">
-            <p className="text-[#98A886] font-serif font-bold text-xs sm:text-sm">Multicuisine</p>
-            <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider">Indian • Chinese • Italian</p>
-          </div>
-          <div className="bg-[#121417]/80 backdrop-blur-md border border-[#C9B086]/25 px-2.5 py-2 rounded-xl text-center shadow-md">
-            <p className="text-[#E8DCB8] font-serif font-bold text-xs sm:text-sm">Speedboats</p>
-            <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider">Lucknow Water Sports</p>
-          </div>
-          <div className="bg-[#121417]/80 backdrop-blur-md border border-[#C9B086]/25 px-2.5 py-2 rounded-xl text-center shadow-md">
-            <p className="text-[#98A886] font-serif font-bold text-xs sm:text-sm">11 AM – 12 AM</p>
-            <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider">Open Daily · {heroSettings.contactPhone || '07310008020'}</p>
+        {/* Horizontal Auto-sliding Carousel for Info Highlights */}
+        <div className="w-full max-w-xl mx-auto px-2 relative">
+          <div
+            ref={infoCarouselRef}
+            className="flex items-center gap-2.5 overflow-x-auto no-scrollbar py-1 px-1 scroll-smooth snap-x snap-mandatory"
+          >
+            {[
+              { title: 'Gomti River', sub: 'Scenic Waterfront', color: 'text-[#F8E7A1]' },
+              { title: 'Multicuisine', sub: 'Indian • Chinese • Italian', color: 'text-[#98A886]' },
+              { title: 'Speedboats', sub: 'Lucknow Water Sports', color: 'text-[#F5D061]' },
+              { title: '11 AM – 12 AM', sub: `Open Daily · ${heroSettings.contactPhone || '07310008020'}`, color: 'text-[#98A886]' },
+            ].map((card, idx) => (
+              <div
+                key={idx}
+                className="snap-center shrink-0 min-w-[190px] sm:min-w-[210px] bg-[#121417]/80 backdrop-blur-md border border-[#F5D061]/25 px-3.5 py-2 rounded-xl text-center shadow-lg hover:border-[#F5D061]/60 transition-all"
+              >
+                <p className={`${card.color} font-serif font-bold text-xs sm:text-sm`}>{card.title}</p>
+                <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider font-sans mt-0.5">{card.sub}</p>
+              </div>
+            ))}
           </div>
         </div>
       </div>
