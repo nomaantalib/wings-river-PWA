@@ -87,9 +87,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 mb-6 pb-6 border-b border-dark-800">
         <div>
           <div className="flex items-center space-x-2">
-            <Sparkles className="w-5 h-5 text-amber-400" />
             <h3 className="text-xl font-serif font-bold text-amber-200">Interactive Floor Plan Table Picker</h3>
           </div>
+
           <p className="text-xs text-slate-400 mt-1">
             Tap an available table to lock your reservation on the Gomti Riverfront floor map.
           </p>

@@ -226,9 +226,9 @@ export default function QROrderModal({ isOpen, onClose, tableNumber = 'T4' }: QR
               ) : (
                 <>
                   <div className="inline-flex items-center space-x-2 bg-amber-500/10 border border-amber-500/30 px-3 py-1 rounded-full text-xs text-amber-300 font-mono">
-                    <Sparkles className="w-3.5 h-3.5" />
                     <span>Order #ORD-101 • Table {tableNumber}</span>
                   </div>
+
 
                   {/* Progress Timeline */}
                   <div className="flex items-center justify-between max-w-sm mx-auto my-6 relative">
