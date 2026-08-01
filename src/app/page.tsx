@@ -150,9 +150,11 @@ export default function Home() {
 
       <AboutSection />
 
-      {/* SRS Interactive Table Reservation Floor Map Section */}
-      <section id="floor-map" className="py-12 px-4 max-w-7xl mx-auto">
-        <InteractiveFloorMap onSelectTable={handleSelectTableFromMap} />
+      {/* SRS Interactive Table Reservation Floor Map Section — Beige, Black & Golden Theme */}
+      <section id="floor-map" className="py-14 sm:py-20 bg-[#FAF7F2] text-[#1F1810] border-y border-[#E5B82C]/30 shadow-xl">
+        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
+          <InteractiveFloorMap onSelectTable={handleSelectTableFromMap} />
+        </div>
       </section>
 
       {/* Exclusive Deals & Promo Banners Section */}

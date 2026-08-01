@@ -40,22 +40,22 @@ export default function GallerySection() {
   };
 
   return (
-    <section id="gallery" className="py-20 bg-[#0B0C0E]/95 text-white relative overflow-hidden border-t border-[#C9B086]/20">
-      {/* Background Soft Glows (Pista & Executive Brown) */}
-      <div className="absolute top-1/3 -left-32 w-96 h-96 bg-[#362419]/30 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-[#2D3825]/30 rounded-full blur-3xl pointer-events-none" />
+    <section id="gallery" className="py-16 sm:py-20 bg-[#FAF7F2] text-[#1F1810] relative overflow-hidden border-t border-[#E5B82C]/30 shadow-xl">
+      {/* Background Soft Glows */}
+      <div className="absolute top-1/3 -left-32 w-96 h-96 bg-[#F5D061]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/3 -right-32 w-96 h-96 bg-[#98A886]/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10 space-y-2">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-[#C9B086]/15 border border-[#C9B086]/35 text-[#E8DCB8] font-bold text-[11px] tracking-widest uppercase shadow-md">
-            Visual Journal
+          <span className="inline-block px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#F5D061]/40 text-[#F8E7A1] font-bold text-[11px] tracking-widest uppercase shadow-md">
+            Visual Journal &amp; Gallery
           </span>
 
-          <h2 className="font-serif text-3xl sm:text-5xl font-bold text-[#E8DCB8] tracking-tight">
+          <h2 className="font-serif text-3xl sm:text-5xl font-extrabold text-[#1F1810] tracking-tight">
             Wings River Café Gallery
           </h2>
-          <p className="font-sans text-[#D4C4A0]/80 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto font-light">
+          <p className="font-sans text-gray-600 text-xs sm:text-sm leading-relaxed max-w-xl mx-auto">
             Waterfront Ambience • Sunset Dining • Speedboat Dock • Evening Canopies
           </p>
         </div>
@@ -64,7 +64,7 @@ export default function GallerySection() {
         {displayItems.length > 0 && (
           <div className="space-y-6 max-w-4xl mx-auto">
             <div
-              className="relative rounded-3xl overflow-hidden border border-[#C9B086]/35 shadow-[0_20px_50px_rgba(0,0,0,0.8)] bg-[#14171D] group aspect-[4/6] max-h-[620px] flex flex-col justify-between mx-auto"
+              className="relative rounded-3xl overflow-hidden border border-[#F5D061]/50 shadow-2xl bg-[#14171D] group aspect-[4/6] max-h-[620px] flex flex-col justify-between mx-auto text-white"
               onMouseEnter={() => setIsPlaying(false)}
               onMouseLeave={() => setIsPlaying(true)}
               onTouchStart={(e) => {
@@ -100,45 +100,31 @@ export default function GallerySection() {
                         <img
                           src={optimizedUrl}
                           alt={item.title}
-                          onClick={() => setActivePhoto(item)}
-                          className="w-full h-full object-cover transition-transform duration-700 hover:scale-105 cursor-pointer"
+                          className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         />
                       </div>
 
-                      {/* Sober Slide Details Bar */}
-                      <div className="relative z-20 px-5 py-3.5 w-full flex items-center justify-between gap-3 bg-[#121417]/95 backdrop-blur-xl border-t border-[#C9B086]/25">
-                        <div className="space-y-0.5 min-w-0 flex-1">
-                          <div className="flex items-center space-x-2">
-                            <span className="text-[10px] text-[#D4C4A0]/60 font-mono font-semibold">
-                              {idx + 1} / {displayItems.length}
+                      {/* Bottom Caption Overlay */}
+                      <div className="absolute bottom-0 inset-x-0 z-20 p-5 bg-gradient-to-t from-[#0B0C0E] via-[#0B0C0E]/80 to-transparent pt-12 text-white">
+                        <div className="flex items-end justify-between">
+                          <div>
+                            <span className="text-[10px] font-bold uppercase tracking-widest text-[#F5D061] font-mono">
+                              {item.category || 'Atmosphere'}
                             </span>
-                          </div>
-                          <h3 className="font-serif font-bold text-sm sm:text-base text-[#E8DCB8] truncate">
-                            {item.title}
-                          </h3>
-                          {item.about && (
-                            <p className="text-[10px] sm:text-[11px] text-[#D4C4A0]/80 line-clamp-1 flex items-center gap-1 font-light">
-                              <Info className="w-3 h-3 text-[#98A886] shrink-0 inline" />
-                              <span>{item.about}</span>
+                            <h3 className="font-serif font-bold text-xl text-[#F8E7A1] mt-0.5">
+                              {item.title}
+                            </h3>
+                            <p className="text-xs text-[#D4C4A0]/80 mt-1 line-clamp-2">
+                              {item.about || item.description || ''}
                             </p>
-                          )}
-                        </div>
+                          </div>
 
-                        <div className="flex items-center space-x-2 shrink-0">
                           <button
                             onClick={() => setActivePhoto(item)}
-                            className="flex items-center space-x-1 px-3 py-1.5 bg-[#C9B086] hover:bg-[#E8DCB8] text-[#120B08] font-bold text-[11px] rounded-xl shadow-md transition"
+                            className="p-3 rounded-2xl bg-[#F5D061] text-[#120B08] font-bold hover:scale-110 transition shadow-lg shrink-0 ml-3"
+                            title="Fullscreen View"
                           >
-                            <ZoomIn className="w-3.5 h-3.5" />
-                            <span>Expand</span>
-                          </button>
-
-                          <button
-                            onClick={() => setIsPlaying(!isPlaying)}
-                            title={isPlaying ? 'Pause Auto-Play' : 'Play Auto-Play'}
-                            className="p-1.5 rounded-xl bg-[#1A1D24] border border-[#C9B086]/30 text-[#D4C4A0] hover:text-white transition"
-                          >
-                            {isPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                            <ZoomIn className="w-5 h-5" />
                           </button>
                         </div>
                       </div>
@@ -147,81 +133,57 @@ export default function GallerySection() {
                 })}
               </div>
 
-              {/* Navigation Arrows */}
-              <button
-                onClick={handlePrevSlide}
-                className="absolute left-3 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-[#121417]/85 border border-[#C9B086]/30 text-[#D4C4A0] hover:text-white transition shadow-xl hover:scale-110"
-                aria-label="Previous Photo"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
+              {/* Controls Bar */}
+              <div className="relative z-30 p-4 bg-[#14171D] border-t border-[#F5D061]/25 flex items-center justify-between">
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={() => setIsPlaying(!isPlaying)}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition"
+                  >
+                    {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  </button>
+                  <span className="text-xs font-mono text-[#D4C4A0]">
+                    {carouselIndex + 1} / {displayItems.length}
+                  </span>
+                </div>
 
-              <button
-                onClick={handleNextSlide}
-                className="absolute right-3 top-1/2 -translate-y-1/2 z-30 p-2.5 rounded-full bg-[#121417]/85 border border-[#C9B086]/30 text-[#D4C4A0] hover:text-white transition shadow-xl hover:scale-110"
-                aria-label="Next Photo"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Sober Thumbnail Strip Bar */}
-            <div className="flex items-center justify-center space-x-2 overflow-x-auto pb-2 no-scrollbar">
-              {displayItems.map((item, idx) => (
-                <button
-                  key={item.id}
-                  onClick={() => setCarouselIndex(idx)}
-                  className={`relative shrink-0 w-12 h-16 rounded-lg overflow-hidden border transition-all duration-300 ${
-                    idx === carouselIndex
-                      ? 'border-[#C9B086] scale-105 shadow-md ring-1 ring-[#C9B086]/40'
-                      : 'border-[#181A1F] opacity-40 hover:opacity-100'
-                  }`}
-                >
-                  <img
-                    src={getCloudinaryOptimizedUrl(item.image_url, 150, 'auto')}
-                    alt={item.title}
-                    className="w-full h-full object-cover"
-                  />
-                </button>
-              ))}
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handlePrevSlide}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <button
+                    onClick={handleNextSlide}
+                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
         )}
       </div>
 
-      {/* Lightbox Modal with Full 4:6 Image & Sober Description */}
+      {/* Fullscreen Photo Lightbox Modal */}
       {activePhoto && (
-        <div className="fixed inset-0 z-[120] bg-[#0B0C0E]/95 backdrop-blur-2xl flex items-center justify-center p-4">
+        <div className="fixed inset-0 z-[300] bg-black/95 backdrop-blur-2xl flex items-center justify-center p-4">
           <button
             onClick={() => setActivePhoto(null)}
-            className="absolute top-6 right-6 p-2.5 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            className="absolute top-5 right-5 p-3 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition"
           >
-            <X className="w-5 h-5" />
+            <X className="w-6 h-6" />
           </button>
-
-          <div className="max-w-md w-full bg-[#14171D] rounded-3xl overflow-hidden border border-[#C9B086]/35 shadow-2xl">
-            <div className="aspect-[4/6] max-h-[65vh] overflow-hidden bg-black flex items-center justify-center">
-              <img
-                src={getCloudinaryOptimizedUrl(activePhoto.image_url, 1000, 'auto')}
-                alt={activePhoto.title}
-                className="w-full h-full object-cover"
-              />
-            </div>
-            <div className="p-4 bg-[#1A1D24] border-t border-[#C9B086]/20 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold text-[#98A886] tracking-wider uppercase">
-                  Wings River Café Showcase
-                </span>
-                <Camera className="w-3.5 h-3.5 text-[#C9B086]" />
-              </div>
-              <h3 className="font-serif font-bold text-base text-[#E8DCB8]">{activePhoto.title}</h3>
-              {activePhoto.about && (
-                <p className="text-[11px] text-[#D4C4A0]/90 font-light leading-relaxed bg-[#121417] p-2.5 rounded-xl border border-[#C9B086]/15 flex items-start gap-1.5">
-                  <Info className="w-3.5 h-3.5 text-[#98A886] shrink-0 mt-0.5" />
-                  <span>{activePhoto.about}</span>
-                </p>
-              )}
-            </div>
+          <div className="max-w-4xl max-h-[85vh] text-center space-y-4">
+            <img
+              src={activePhoto.image_url}
+              alt={activePhoto.title}
+              className="max-h-[75vh] max-w-full object-contain mx-auto rounded-2xl border border-[#F5D061]/40 shadow-2xl"
+            />
+            <h3 className="font-serif font-bold text-xl text-[#F8E7A1]">{activePhoto.title}</h3>
+            <p className="text-xs text-[#D4C4A0] max-w-lg mx-auto">{activePhoto.description}</p>
           </div>
         </div>
       )}

@@ -231,23 +231,25 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
   return (
     <div
       ref={stepRef}
-      className="bg-[#0E1117] border border-[#F5D061]/25 rounded-3xl shadow-2xl text-[#F5EBE0] overflow-hidden"
+      className="bg-[#12151C] border border-[#F5D061]/40 rounded-3xl shadow-2xl text-white overflow-hidden"
     >
 
       {/* ── Section Header ───────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-[#1A1D24] via-[#181B21] to-[#141720] border-b border-[#F5D061]/20 px-5 sm:px-7 py-5">
+      <div className="bg-[#181B22] border-b border-[#F5D061]/25 px-5 sm:px-7 py-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
           {/* Title */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#F5D061]/30 to-[#98A886]/20 border border-[#F5D061]/40 flex items-center justify-center shrink-0">
-              <MapPin className="w-4 h-4 text-[#F5D061]" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] p-0.5 shadow-lg shrink-0">
+              <div className="w-full h-full bg-[#120B08] rounded-[14px] flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-[#F5D061]" />
+              </div>
             </div>
             <div>
-              <h3 className="text-base font-serif font-bold text-[#E8DCB8]">
+              <h3 className="text-lg font-serif font-bold text-[#F8E7A1]">
                 Reserve Your Table
               </h3>
-              <p className="text-[11px] text-[#D4C4A0]/70 mt-0.5">Choose area → pick a table → confirm booking</p>
+              <p className="text-xs text-[#D4C4A0]/80 mt-0.5">Select Gomti riverfront deck area → pick table → instant QR ticket</p>
             </div>
           </div>
 

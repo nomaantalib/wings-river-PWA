@@ -4,7 +4,12 @@ import SEOStructuredData from '@/components/SEOStructuredData';
 import BackgroundVideo from '@/components/BackgroundVideo';
 
 export const viewport: Viewport = {
-  themeColor: '#C9B086',
+  themeColor: '#0B0E14',
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: 'cover',
 };
 
 export const metadata: Metadata = {

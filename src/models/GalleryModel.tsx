@@ -5,6 +5,7 @@ export interface GalleryItem {
   category: string;
   image_url: string;
   about?: string;
+  description?: string;
   featured?: boolean;
   display_order?: number;
   is_deleted?: number;
