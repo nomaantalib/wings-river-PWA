@@ -102,9 +102,10 @@ export default function AboutSection() {
                 className="w-full h-48 object-cover group-hover/sub:scale-110 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-dark-950/70 via-transparent to-transparent" />
-              <div className="absolute bottom-2 left-3 text-[11px] font-bold text-gold-300">
-                ✨ Fairy Light Celebration Canopy
+              <div className="absolute bottom-2 left-3 text-[11px] font-bold text-amber-300">
+                Fairy Light Celebration Canopy
               </div>
+
             </div>
 
             {/* Overlapping Floating Emblem */}

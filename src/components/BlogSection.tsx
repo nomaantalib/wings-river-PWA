@@ -128,7 +128,8 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                     : 'bg-white text-gray-600 hover:bg-amber-50 hover:text-amber-800 border border-cream-200'
                 }`}
               >
-                {cat === 'All' ? '✨ All Articles' : cat}
+                {cat === 'All' ? 'All Articles' : cat}
+
               </button>
             ))}
           </div>
@@ -341,8 +342,9 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                         </button>
                         
                         <div className="absolute bottom-4 right-4 z-20 px-3.5 py-1.5 rounded-full bg-dark-950/90 text-amber-300 font-extrabold text-xs backdrop-blur-md border border-amber-400/30 shadow-lg">
-                          ✨ Photo {activeImageIndex + 1} of {activeBlogImages.length}
+                          Photo {activeImageIndex + 1} of {activeBlogImages.length}
                         </div>
+
                       </>
                     )}
                   </div>

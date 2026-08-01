@@ -77,7 +77,8 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
 ];
 
 export const DEFAULT_HERO_SETTINGS: HeroSettings = {
-  badgeText: '✨ Lucknow’s Premier Waterfront Dining & Water Sports Destination',
+  badgeText: 'Lucknow’s Premier Waterfront Dining Destination',
+
   mainHeadline: 'Wings River Café & Water Sports',
   subHeadline: 'Multicuisine Gourmet Food, Riverside Deck & Thrilling Speedboat Rides',
   contactPhone: '07310008020',

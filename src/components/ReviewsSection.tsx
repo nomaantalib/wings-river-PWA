@@ -135,9 +135,11 @@ export default function ReviewsSection() {
 
           {submittedSuccess && (
             <div className="mt-4 p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-700 text-xs font-bold text-center animate-fade-in max-w-xl mx-auto shadow-sm">
-              ✨ Thank you! Your guest review has been posted and added to Wings River Café testimonials.
+              Thank you! Your guest review has been posted and added to Wings River Café testimonials.
             </div>
           )}
+
+
 
           {/* Review Submission Form Drawer */}
           {newReviewForm && (

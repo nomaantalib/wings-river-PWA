@@ -74,13 +74,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
         </div>
       ))}
 
-      {/* Floating Leaves & Sparkles Animation */}
-      <div className="absolute inset-0 pointer-events-none overflow-hidden z-10">
-        <div className="absolute top-1/4 left-10 text-mint-300/30 animate-float text-3xl">🍃</div>
-        <div className="absolute top-1/3 right-12 text-gold-400/30 animate-float text-2xl" style={{ animationDelay: '1.5s' }}>✨</div>
-        <div className="absolute bottom-1/4 left-1/5 text-mint-400/30 animate-float text-xl" style={{ animationDelay: '2.5s' }}>🍃</div>
-        <div className="absolute top-2/3 right-1/4 text-gold-300/20 animate-float text-3xl" style={{ animationDelay: '3.5s' }}>🌟</div>
-      </div>
+
 
       {/* Main Hero Content */}
       <div className="relative z-20 max-w-5xl mx-auto px-4 sm:px-6 text-center flex flex-col items-center py-12">
