@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { X, Calendar, QrCode, Ticket, CheckCircle, Clock, MapPin, Phone } from 'lucide-react';
+import { isEligibleForRefundCancellation } from '@/lib/notifications';
+
 
 interface MyBookingsModalProps {
   isOpen: boolean;
@@ -118,29 +120,53 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
                   </span>
                 </div>
 
-                {/* QR Entry Code Section */}
-                <div className="mt-4 pt-3 border-t border-dark-800 flex items-center justify-between bg-dark-900 p-3 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white rounded-md p-1 flex items-center justify-center">
-                      <QrCode className="w-10 h-10 text-dark-950" />
+                {/* QR Entry Code & Cancellation Policy Section */}
+                <div className="mt-4 pt-3 border-t border-dark-800 space-y-3">
+                  <div className="flex items-center justify-between bg-dark-900 p-3 rounded-lg">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-white rounded-md p-1 flex items-center justify-center">
+                        <QrCode className="w-10 h-10 text-dark-950" />
+                      </div>
+                      <div>
+                        <span className="text-[10px] text-slate-400 block">Show QR Ticket at Reception</span>
+                        <span className="text-xs font-mono font-bold text-amber-300">{b.qr_code}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="text-[10px] text-slate-400 block">Show QR Ticket at Reception</span>
-                      <span className="text-xs font-mono font-bold text-amber-300">{b.qr_code}</span>
-                    </div>
+
+                    <a
+                      href={`https://wa.me/917310008020?text=Hi%2C%20here%20is%20my%20booking%20QR%20code%3A%20${b.qr_code}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg transition"
+                    >
+                      WhatsApp Ticket
+                    </a>
                   </div>
 
-                  <a
-                    href={`https://wa.me/917310008020?text=Hi%2C%20here%20is%20my%20booking%20QR%20code%3A%20${b.qr_code}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-3 py-1.5 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-[11px] rounded-lg transition"
-                  >
-                    WhatsApp Ticket
-                  </a>
+                  {/* 5-Hour Refund Cancellation Section */}
+                  <div className="flex items-center justify-between p-2.5 rounded-xl bg-dark-900 border border-slate-800 text-xs">
+                    <div className="text-[11px] text-slate-400">
+                      <span className="text-amber-400 font-semibold block">Cancellation Policy:</span>
+                      Full refund eligible if cancelled 5+ hours prior to slot time.
+                    </div>
+                    <button
+                      onClick={() => {
+                        const check = isEligibleForRefundCancellation(b.date, b.time);
+                        if (check.eligible) {
+                          alert(`Cancellation Request Approved! ${check.reason} 100% refund initiated to original payment mode.`);
+                        } else {
+                          alert(`Cancellation Notice: ${check.reason}`);
+                        }
+                      }}
+                      className="px-3 py-1 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 rounded-lg text-[11px] font-bold shrink-0 transition"
+                    >
+                      Cancel Booking
+                    </button>
+                  </div>
                 </div>
               </div>
             ))
+
           ) : (
             <div className="py-8 text-center text-slate-400 text-xs">
               No past visits recorded under this session yet.

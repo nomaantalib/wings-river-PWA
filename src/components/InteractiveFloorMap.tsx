@@ -149,10 +149,31 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const [selectedArea, setSelectedArea] = useState<AreaCard | null>(null);
   const [selectedTable, setSelectedTable] = useState<TableData | null>(null);
+  const [tablesList, setTablesList] = useState<TableData[]>(ALL_TABLES);
 
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [selectedTime, setSelectedTime] = useState<string>('19:30');
   const [guestCount, setGuestCount] = useState<number>(2);
+
+  // Sync staff/admin updated table readiness
+  useEffect(() => {
+    const syncTableStatus = () => {
+      if (typeof window === 'undefined') return;
+      try {
+        const raw = localStorage.getItem('wings_tables_status');
+        if (raw) {
+          const map = JSON.parse(raw);
+          setTablesList(prev => prev.map(t => map[t.table_number] ? { ...t, status: map[t.table_number] } : t));
+        }
+      } catch {
+        // fallback
+      }
+    };
+
+    syncTableStatus();
+    window.addEventListener('wings_db_sync', syncTableStatus);
+    return () => window.removeEventListener('wings_db_sync', syncTableStatus);
+  }, []);
 
   // 5-minute hold timer
   const [holdLeft, setHoldLeft] = useState<number | null>(null);
@@ -160,6 +181,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     if (!selectedTable) { setHoldLeft(null); return; }
     setHoldLeft(300);
   }, [selectedTable]);
+
   useEffect(() => {
     if (holdLeft === null || holdLeft <= 0) return;
     const t = setInterval(() => setHoldLeft(p => (p && p > 1 ? p - 1 : 0)), 1000);
@@ -169,8 +191,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
   // Tables for selected area
   const areaTables = selectedArea
-    ? ALL_TABLES.filter(t => t.cluster_id === selectedArea.id)
+    ? tablesList.filter(t => t.cluster_id === selectedArea.id)
     : [];
+
   const freeCount = areaTables.filter(t => t.status === 'free').length;
 
   const handleAreaSelect = (area: AreaCard) => {

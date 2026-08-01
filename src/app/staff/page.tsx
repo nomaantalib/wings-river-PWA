@@ -92,10 +92,20 @@ export default function StaffPWA() {
     }
   };
 
-  // Staff Table Status Updates
+  // Staff Table Status Updates (Vacant / Ready / Occupied / Reserved / Cleaning)
   const updateTableStatus = (id: string, newStatus: string) => {
-    setTables(prev => prev.map(t => t.id === id ? { ...t, status: newStatus } : t));
+    setTables(prev => {
+      const updated = prev.map(t => t.id === id ? { ...t, status: newStatus } : t);
+      if (typeof window !== 'undefined') {
+        const statusMap: Record<string, string> = {};
+        updated.forEach(tbl => { statusMap[tbl.table_number] = tbl.status; });
+        localStorage.setItem('wings_tables_status', JSON.stringify(statusMap));
+        window.dispatchEvent(new Event('wings_db_sync'));
+      }
+      return updated;
+    });
   };
+
 
   // Kitchen Order Status Flow
   const updateOrderStatus = (orderId: string, nextStatus: string) => {

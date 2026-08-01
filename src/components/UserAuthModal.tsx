@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { X, Phone, Lock, CheckCircle2, ShieldCheck, RefreshCw, User, LogOut, ArrowRight, Sparkles, KeyRound, Mail, Smartphone } from 'lucide-react';
+import { X, Phone, Lock, CheckCircle2, ShieldCheck, RefreshCw, User, LogOut, ArrowRight, Sparkles, KeyRound, Mail, Smartphone, UserCheck, UserPlus } from 'lucide-react';
 
 export interface UserSession {
   phone: string;
@@ -11,12 +11,20 @@ export interface UserSession {
   loggedInAt: string;
 }
 
+export interface RegisteredUser {
+  phone: string;
+  name: string;
+  email?: string;
+  registeredAt: string;
+}
+
 interface UserAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess?: (user: UserSession) => void;
 }
 
+// User Session Storage
 export function getStoredUserSession(): UserSession | null {
   if (typeof window === 'undefined') return null;
   try {
@@ -40,6 +48,35 @@ export function clearUserSession() {
   window.dispatchEvent(new Event('wings_auth_change'));
 }
 
+// Database Registered Users Storage
+export function getRegisteredUsers(): RegisteredUser[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem('wings_registered_users');
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveRegisteredUser(user: RegisteredUser) {
+  if (typeof window === 'undefined') return;
+  const users = getRegisteredUsers();
+  const index = users.findIndex(u => u.phone === user.phone);
+  if (index >= 0) {
+    users[index] = user;
+  } else {
+    users.push(user);
+  }
+  localStorage.setItem('wings_registered_users', JSON.stringify(users));
+}
+
+export function findRegisteredUser(phone: string): RegisteredUser | undefined {
+  const clean = phone.replace(/\D/g, '');
+  return getRegisteredUsers().find(u => u.phone.replace(/\D/g, '') === clean);
+}
+
 export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthModalProps) {
   const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
   const [phoneInput, setPhoneInput] = useState('');
@@ -47,6 +84,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
+  const [matchedUser, setMatchedUser] = useState<RegisteredUser | null>(null);
   
   const [errorMsg, setErrorMsg] = useState('');
   const [resendTimer, setResendTimer] = useState(30);
@@ -77,6 +115,16 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
     setErrorMsg('');
     setIsSendingOtp(true);
+
+    // Check database if phone number already exists
+    const existing = findRegisteredUser(cleanPhone);
+    if (existing) {
+      setMatchedUser(existing);
+      setNameInput(existing.name);
+      setEmailInput(existing.email || '');
+    } else {
+      setMatchedUser(null);
+    }
 
     setTimeout(() => {
       const code = String(Math.floor(100000 + Math.random() * 900000));
@@ -136,12 +184,12 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
     setTimeout(() => {
       setIsVerifying(false);
-      const existingSession = getStoredUserSession();
-      if (existingSession?.name) {
+      if (matchedUser) {
+        // User already in database -> Auto Login immediately
         const session: UserSession = {
           phone: phoneInput.replace(/\D/g, ''),
-          name: existingSession.name,
-          email: existingSession.email,
+          name: matchedUser.name,
+          email: matchedUser.email,
           loggedIn: true,
           loggedInAt: new Date().toISOString(),
         };
@@ -149,17 +197,29 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
         if (onSuccess) onSuccess(session);
         onClose();
       } else {
+        // New Phone number -> Move to Sign Up Profile registration
         setStep('profile');
       }
     }, 600);
   };
 
-  // Handle Profile Submission
+  // Handle Sign Up Profile Submission
   const handleProfileSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     const name = nameInput.trim() || `Customer ${phoneInput.slice(-4)}`;
+    const cleanPhone = phoneInput.replace(/\D/g, '');
+    
+    // Save to Database & Session
+    const regUser: RegisteredUser = {
+      phone: cleanPhone,
+      name,
+      email: emailInput.trim(),
+      registeredAt: new Date().toISOString(),
+    };
+    saveRegisteredUser(regUser);
+
     const session: UserSession = {
-      phone: phoneInput.replace(/\D/g, ''),
+      phone: cleanPhone,
       name,
       email: emailInput.trim(),
       loggedIn: true,
@@ -201,7 +261,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
               <span className="text-[10px] font-bold tracking-widest uppercase text-[#98A886]">
                 Wings River Café
               </span>
-              <h3 className="font-serif font-bold text-base text-[#E8DCB8]">VIP Customer Portal</h3>
+              <h3 className="font-serif font-bold text-base text-[#E8DCB8]">Customer Login &amp; Sign Up</h3>
             </div>
           </div>
 
@@ -213,11 +273,11 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           </button>
         </div>
 
-        {/* Fancy Step Indicator Bar */}
+        {/* Step Indicator Bar */}
         <div className="px-6 py-3 bg-[#121417] border-b border-[#C9B086]/15 flex items-center justify-between text-[11px] font-semibold text-[#D4C4A0]">
           <div className={`flex items-center space-x-1.5 ${step === 'phone' ? 'text-[#E8DCB8] font-bold' : 'text-[#98A886]'}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 'phone' ? 'bg-[#C9B086] text-[#120B08]' : 'bg-[#98A886]/20 text-[#98A886]'}`}>1</span>
-            <span>Phone</span>
+            <span>Mobile</span>
           </div>
           <div className="w-8 h-0.5 bg-[#C9B086]/20" />
           <div className={`flex items-center space-x-1.5 ${step === 'otp' ? 'text-[#E8DCB8] font-bold' : step === 'profile' ? 'text-[#98A886]' : 'opacity-40'}`}>
@@ -227,7 +287,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           <div className="w-8 h-0.5 bg-[#C9B086]/20" />
           <div className={`flex items-center space-x-1.5 ${step === 'profile' ? 'text-[#E8DCB8] font-bold' : 'opacity-40'}`}>
             <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 'profile' ? 'bg-[#C9B086] text-[#120B08]' : 'bg-[#98A886]/20 text-[#98A886]'}`}>3</span>
-            <span>Profile</span>
+            <span>Sign Up</span>
           </div>
         </div>
 
@@ -247,14 +307,14 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 <div className="w-12 h-12 rounded-2xl bg-[#C9B086]/15 border border-[#C9B086]/30 flex items-center justify-center mx-auto mb-2 text-[#C9B086]">
                   <Smartphone className="w-6 h-6" />
                 </div>
-                <h4 className="text-xl font-serif font-bold text-[#E8DCB8]">Sign In with Mobile</h4>
+                <h4 className="text-xl font-serif font-bold text-[#E8DCB8]">Login / Create Account</h4>
                 <p className="text-xs text-[#D4C4A0]/80 max-w-xs mx-auto">
-                  Instant table reservations, priority water sports tickets & exclusive discounts.
+                  Enter your mobile number to sign in or create your new customer account.
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#D4C4A0] mb-1.5">Enter Mobile Number</label>
+                <label className="block text-xs font-semibold text-[#D4C4A0] mb-1.5">Mobile Number</label>
                 <div className="relative flex items-center">
                   <div className="absolute left-3.5 flex items-center space-x-1.5 pointer-events-none">
                     <span className="text-base">🇮🇳</span>
@@ -282,7 +342,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                   <RefreshCw className="w-4 h-4 animate-spin" />
                 ) : (
                   <>
-                    <span>Send Verification Code</span>
+                    <span>Send Verification OTP</span>
                     <ArrowRight className="w-4 h-4" />
                   </>
                 )}
@@ -290,14 +350,27 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
             </form>
           )}
 
-          {/* STEP 2: Fancy 6-Digit OTP Verification */}
+          {/* STEP 2: 6-Digit OTP Verification */}
           {step === 'otp' && (
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div className="text-center space-y-1.5">
                 <div className="w-12 h-12 rounded-2xl bg-[#98A886]/15 border border-[#98A886]/30 flex items-center justify-center mx-auto mb-2 text-[#98A886]">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h4 className="text-xl font-serif font-bold text-[#E8DCB8]">Verify 6-Digit OTP</h4>
+                <h4 className="text-xl font-serif font-bold text-[#E8DCB8]">Enter 6-Digit OTP</h4>
+                
+                {matchedUser ? (
+                  <div className="px-3 py-1 bg-[#98A886]/20 border border-[#98A886]/40 rounded-full inline-flex items-center space-x-1.5 text-xs text-[#D8E2CD] font-semibold my-1">
+                    <UserCheck className="w-3.5 h-3.5 text-[#98A886]" />
+                    <span>Welcome Back, <strong>{matchedUser.name}</strong>!</span>
+                  </div>
+                ) : (
+                  <div className="px-3 py-1 bg-[#C9B086]/20 border border-[#C9B086]/40 rounded-full inline-flex items-center space-x-1.5 text-xs text-[#E8DCB8] font-semibold my-1">
+                    <UserPlus className="w-3.5 h-3.5 text-[#C9B086]" />
+                    <span>New Account Registration</span>
+                  </div>
+                )}
+
                 <p className="text-xs text-[#D4C4A0]/80">
                   Sent to <span className="text-[#E8DCB8] font-mono font-bold">+91 {phoneInput}</span>{' '}
                   <button
@@ -305,7 +378,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                     onClick={() => setStep('phone')}
                     className="text-[#98A886] underline font-semibold ml-1 hover:text-[#E8DCB8]"
                   >
-                    Edit Number
+                    Edit
                   </button>
                 </p>
               </div>
@@ -366,22 +439,22 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
-                    <span>Verify &amp; Enter Portal</span>
+                    <span>{matchedUser ? 'Login to Account' : 'Verify & Continue Sign Up'}</span>
                   </>
                 )}
               </button>
             </form>
           )}
 
-          {/* STEP 3: Fancy Executive Profile Registration */}
+          {/* STEP 3: Sign Up Profile Details */}
           {step === 'profile' && (
             <form onSubmit={handleProfileSubmit} className="space-y-4">
               <div className="text-center space-y-1.5">
                 <div className="w-12 h-12 rounded-2xl bg-[#C9B086]/15 border border-[#C9B086]/30 flex items-center justify-center mx-auto mb-2 text-[#C9B086]">
-                  <User className="w-6 h-6" />
+                  <UserPlus className="w-6 h-6" />
                 </div>
-                <h4 className="text-xl font-serif font-bold text-[#E8DCB8]">VIP Guest Profile</h4>
-                <p className="text-xs text-[#D4C4A0]/80">Personalize your table bookings &amp; waterfront experiences.</p>
+                <h4 className="text-xl font-serif font-bold text-[#E8DCB8]">Complete Account Sign Up</h4>
+                <p className="text-xs text-[#D4C4A0]/80">Please enter your details to complete account setup.</p>
               </div>
 
               <div>
@@ -401,11 +474,12 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#D4C4A0] mb-1.5">Email Address (Optional)</label>
+                <label className="block text-xs font-semibold text-[#D4C4A0] mb-1.5">Email Address</label>
                 <div className="relative flex items-center">
                   <Mail className="absolute left-3.5 w-4 h-4 text-[#98A886]" />
                   <input
                     type="email"
+                    required
                     value={emailInput}
                     onChange={e => setEmailInput(e.target.value)}
                     placeholder="rahul@example.com"
@@ -418,7 +492,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 type="submit"
                 className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#C9B086] via-[#D8C49D] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-xs uppercase tracking-wider shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                <span>Save Profile &amp; Finish</span>
+                <span>Create Account &amp; Login</span>
                 <CheckCircle2 className="w-4 h-4" />
               </button>
             </form>

@@ -222,18 +222,43 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center space-x-1">
-                    <Clock className="w-3.5 h-3.5 text-mint-600" />
-                    <span>Time *</span>
+                  <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center justify-between">
+                    <span className="flex items-center space-x-1">
+                      <Clock className="w-3.5 h-3.5 text-mint-600" />
+                      <span>Time Slot (1-Hour Intervals) *</span>
+                    </span>
                   </label>
-                  <input
-                    type="time"
-                    required
+                  <select
                     value={formData.time}
                     onChange={(e) => setFormData({ ...formData, time: e.target.value })}
                     className="w-full px-3 py-2 text-sm rounded-xl border border-gray-300 text-black font-semibold bg-white focus:outline-none focus:ring-2 focus:ring-mint-400"
-                  />
+                  >
+                    <option value="11:00 AM">11:00 AM Slot</option>
+                    <option value="12:00 PM">12:00 PM Slot</option>
+                    <option value="01:00 PM">01:00 PM Slot</option>
+                    <option value="02:00 PM">02:00 PM Slot</option>
+                    <option value="03:00 PM">03:00 PM Slot</option>
+                    <option value="04:00 PM">04:00 PM Slot</option>
+                    <option value="05:00 PM">05:00 PM Slot</option>
+                    <option value="06:00 PM">06:00 PM Slot</option>
+                    <option value="07:00 PM">07:00 PM (Dinner Special)</option>
+                    <option value="08:00 PM">08:00 PM Slot</option>
+                    <option value="09:00 PM">09:00 PM Slot</option>
+                    <option value="10:00 PM">10:00 PM Slot</option>
+                    <option value="11:00 PM">11:00 PM Slot</option>
+                    <option value="custom">Custom Time Request...</option>
+                  </select>
+                  {formData.time === 'custom' && (
+                    <input
+                      type="text"
+                      placeholder="e.g. 07:15 PM"
+                      required
+                      onChange={(e) => setFormData({ ...formData, time: e.target.value })}
+                      className="mt-2 w-full px-3 py-2 text-xs rounded-xl border border-mint-500 text-black font-semibold bg-mint-50 placeholder:text-gray-400 focus:outline-none"
+                    />
+                  )}
                 </div>
+
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-700 mb-1 flex items-center space-x-1">
