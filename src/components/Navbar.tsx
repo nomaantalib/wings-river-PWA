@@ -95,13 +95,14 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
         {/* Right Action Cluster & Icons Only */}
         <div className="flex items-center space-x-3">
           {/* Reserve CTA Button */}
-          <button
-            onClick={onOpenBooking}
-            className="hidden sm:flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-mint-300 to-gold-400 text-dark-950 font-bold text-xs rounded-full shadow-lg hover:scale-105 transition-transform duration-300"
+          <a
+            href="#floor-map"
+            className="hidden sm:flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-[#C9B086] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-xs rounded-full shadow-lg hover:scale-105 transition-all duration-300"
           >
             <Calendar className="w-3.5 h-3.5" />
-            <span>Book Table / Party</span>
-          </button>
+            <span>Reserve Table</span>
+          </a>
+
 
           {/* ICON-ONLY BUTTONS (Right Side Only - No Text Beside Icons) */}
           <div className="flex items-center space-x-2">

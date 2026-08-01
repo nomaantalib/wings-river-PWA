@@ -109,13 +109,14 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
 
         {/* CTA Button Group */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
-          <button
-            onClick={() => onOpenBooking('table_booking')}
+          <a
+            href="#floor-map"
             className="flex items-center space-x-2 px-6 py-2.5 bg-gradient-to-r from-[#C9B086] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-xs rounded-full shadow-xl hover:scale-105 transition-all duration-300"
           >
             <Calendar className="w-4 h-4" />
             <span>Reserve Table</span>
-          </button>
+          </a>
+
 
           <button
             onClick={() => onOpenBooking('birthday_party')}
