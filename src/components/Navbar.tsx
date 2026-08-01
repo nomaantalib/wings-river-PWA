@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import CircularLogo from './CircularLogo';
-import { MapPin, Instagram, Phone, Menu as MenuIcon, X, Calendar, User, LogOut } from 'lucide-react';
+import { Menu as MenuIcon, X, Calendar, User, LogOut, CheckCircle2 } from 'lucide-react';
+
 import { getStoredUserSession, clearUserSession, UserSession } from './UserAuthModal';
 
 interface NavbarProps {
@@ -104,12 +105,25 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
           </a>
 
 
-          {/* ICON-ONLY BUTTONS (Right Side Only - No Text Beside Icons) */}
+          {/* ICON-ONLY BUTTONS — Profile Icon & Sidebar Toggle Only */}
           <div className="flex items-center space-x-2">
-            {/* User Login / Profile Button */}
+            {/* User Login / Profile Icon Button with Tick Mark on Login */}
             {user ? (
-              <div className="flex items-center space-x-1 bg-[#1A1D24] border border-[#C9B086]/30 rounded-full pl-3 pr-1.5 py-1 text-xs">
-                <span className="text-[#E8DCB8] font-bold max-w-[90px] truncate">{user.name.split(' ')[0]}</span>
+              <div className="relative flex items-center space-x-1.5 bg-[#1A1D24] border border-[#98A886]/50 rounded-full pl-2.5 pr-2 py-1 text-xs shadow-md">
+                <div className="relative flex items-center justify-center">
+                  <div className="w-7 h-7 rounded-full bg-[#98A886] text-[#120B08] flex items-center justify-center font-bold">
+                    <User className="w-4 h-4" />
+                  </div>
+                  {/* Verified Green Tick Mark Badge */}
+                  <span className="absolute -top-1 -right-1 bg-[#2D3825] rounded-full text-[#98A886] p-0.5 border border-[#98A886]">
+                    <CheckCircle2 className="w-3 h-3 text-[#98A886] fill-[#98A886] text-[#120B08]" />
+                  </span>
+                </div>
+
+                <span className="text-[#E8DCB8] font-bold text-xs max-w-[80px] truncate">
+                  {user.name.split(' ')[0]}
+                </span>
+
                 <button
                   onClick={clearUserSession}
                   title="Logout"
@@ -123,45 +137,13 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
                 onClick={onOpenAuth}
                 title="User OTP Login"
                 aria-label="User OTP Login"
-                className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-[#C9B086] text-[#120B08] font-bold hover:bg-[#E8DCB8]"
+                className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-[#C9B086] text-[#120B08] font-bold hover:bg-[#E8DCB8] shadow-md"
               >
                 <User className="w-4 h-4" />
               </button>
             )}
-
-            <a
-              href="https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Google Maps Location"
-              aria-label="Google Maps Location"
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-white/15 backdrop-blur-sm text-white hover:bg-gold-500 hover:text-dark-950"
-            >
-              <MapPin className="w-4 h-4" />
-            </a>
-
-            {/* Instagram Icon Button */}
-            <a
-              href="https://www.instagram.com/wingsriver"
-              target="_blank"
-              rel="noopener noreferrer"
-              title="Instagram"
-              aria-label="Instagram"
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-white/15 backdrop-blur-sm text-white hover:bg-gold-500 hover:text-dark-950"
-            >
-              <Instagram className="w-4 h-4" />
-            </a>
-
-            {/* Call Icon Button */}
-            <a
-              href="tel:07310008020"
-              title="Call Us"
-              aria-label="Call Us"
-              className="w-9 h-9 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 bg-gold-500 text-dark-950 hover:bg-gold-400"
-            >
-              <Phone className="w-4 h-4" />
-            </a>
           </div>
+
 
 
           {/* Mobile Menu Toggle Button */}
