@@ -82,10 +82,10 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
             return (
               <div
                 key={slide.id || idx}
-                className={`absolute inset-0 flex flex-col items-center justify-center transition-opacity duration-1200 ease-in-out ${
+                className={`absolute inset-0 flex flex-col items-center justify-center transition-all duration-1000 ease-in-out ${
                   isActive
-                    ? 'opacity-100 pointer-events-auto z-10'
-                    : 'opacity-0 pointer-events-none z-0'
+                    ? 'opacity-100 scale-100 translate-y-0 pointer-events-auto z-10'
+                    : 'opacity-0 scale-95 translate-y-2 pointer-events-none z-0'
                 }`}
               >
                 {/* Dynamic Tagline Badge */}
@@ -94,7 +94,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
                 </div>
 
                 {/* Dynamic Main Heading */}
-                <h1 className="font-serif font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight text-white drop-shadow-lg leading-tight mb-3 text-center">
+                <h1 className="font-serif font-extrabold text-3xl sm:text-5xl md:text-6xl tracking-tight text-white drop-shadow-[0_10px_20px_rgba(0,0,0,0.8)] leading-tight mb-3 text-center">
                   {slide.title || heroSettings.mainHeadline}
                 </h1>
 
@@ -106,6 +106,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
             );
           })}
         </div>
+
 
         {/* CTA Button Group */}
         <div className="flex flex-wrap items-center justify-center gap-3 mb-8">
