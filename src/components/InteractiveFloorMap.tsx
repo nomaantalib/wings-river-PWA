@@ -254,47 +254,47 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           </div>
 
           {/* ── Booking Filters ──────────────────────────────── */}
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-2.5">
 
             {/* Date */}
-            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#F5D061]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#F5D061]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#F5D061]/40">
-              <Calendar className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
+            <label className="flex items-center gap-2 bg-[#2A1D0E] border-2 border-[#F5D061]/60 rounded-xl px-3.5 py-2 text-xs font-bold text-[#FFF8E7] cursor-pointer hover:border-[#F5D061] hover:bg-[#3D291C] transition-all focus-within:ring-2 focus-within:ring-[#F5D061]">
+              <Calendar className="w-4 h-4 text-[#F5D061] shrink-0" />
               <input
                 type="date"
                 aria-label="Booking date"
                 value={selectedDate}
                 min={new Date().toISOString().split('T')[0]}
                 onChange={e => setSelectedDate(e.target.value)}
-                className="bg-transparent text-[#E8DCB8] focus:outline-none w-28 cursor-pointer"
+                className="bg-transparent text-[#FFF8E7] font-bold focus:outline-none w-28 cursor-pointer"
               />
             </label>
 
             {/* Guest Count */}
-            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#F5D061]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#F5D061]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#F5D061]/40">
-              <Users className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
+            <label className="flex items-center gap-2 bg-[#2A1D0E] border-2 border-[#F5D061]/60 rounded-xl px-3.5 py-2 text-xs font-bold text-[#FFF8E7] cursor-pointer hover:border-[#F5D061] hover:bg-[#3D291C] transition-all focus-within:ring-2 focus-within:ring-[#F5D061]">
+              <Users className="w-4 h-4 text-[#F5D061] shrink-0" />
               <select
                 aria-label="Number of guests"
                 value={guestCount}
                 onChange={e => setGuestCount(Number(e.target.value))}
-                className="bg-transparent text-[#E8DCB8] focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#FFF8E7] font-bold focus:outline-none cursor-pointer"
               >
                 {[1,2,3,4,5,6,8,10,12,15,20].map(n => (
-                  <option key={n} value={n} className="bg-[#121417]">{n} Guest{n > 1 ? 's' : ''}</option>
+                  <option key={n} value={n} className="bg-[#1F1810] text-[#FFF8E7] font-bold">{n} Guest{n > 1 ? 's' : ''}</option>
                 ))}
               </select>
             </label>
 
             {/* Duration */}
-            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#F5D061]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#F5D061]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#F5D061]/40">
-              <Timer className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
+            <label className="flex items-center gap-2 bg-[#2A1D0E] border-2 border-[#F5D061]/60 rounded-xl px-3.5 py-2 text-xs font-bold text-[#FFF8E7] cursor-pointer hover:border-[#F5D061] hover:bg-[#3D291C] transition-all focus-within:ring-2 focus-within:ring-[#F5D061]">
+              <Timer className="w-4 h-4 text-[#F5D061] shrink-0" />
               <select
                 aria-label="Duration of stay"
                 value={durationHrs}
                 onChange={e => setDurationHrs(Number(e.target.value))}
-                className="bg-transparent text-[#E8DCB8] focus:outline-none cursor-pointer"
+                className="bg-transparent text-[#FFF8E7] font-bold focus:outline-none cursor-pointer"
               >
                 {DURATIONS.map(d => (
-                  <option key={d.value} value={d.value} className="bg-[#121417]">
+                  <option key={d.value} value={d.value} className="bg-[#1F1810] text-[#FFF8E7] font-bold">
                     {d.label} ({d.tag})
                   </option>
                 ))}
@@ -306,9 +306,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
         {/* ── Time Slot Picker ─────────────────────────────── */}
         <div className="mt-4">
-          <p className="text-[10px] text-[#D4C4A0]/60 uppercase tracking-widest mb-2 font-semibold">
-            <Clock className="w-3 h-3 inline mr-1 text-[#98A886]" />
-            Select Check-in Time
+          <p className="text-xs text-[#F5D061] uppercase tracking-widest mb-2.5 font-extrabold flex items-center gap-1.5">
+            <Clock className="w-4 h-4 text-[#F5D061]" />
+            Select Check-in Time Slot
           </p>
           <div className="flex flex-wrap gap-2">
             {TIME_SLOTS.map(slot => {
@@ -326,14 +326,14 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       setSelectedTime(slot.value);
                     }
                   }}
-                  className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-200 border flex items-center gap-1 ${
+                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 border flex items-center gap-1.5 ${
                     isActive
-                      ? 'bg-gradient-to-r from-[#F5D061] to-[#A8996B] border-[#E8DCB8]/60 text-[#120B08] shadow-lg shadow-[#F5D061]/30 scale-105'
-                      : 'bg-[#1A1D24] border-[#F5D061]/25 text-[#D4C4A0]/80 hover:border-[#F5D061]/60 hover:text-[#E8DCB8] hover:bg-[#231710]/50'
+                      ? 'bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] border-[#FFF8E7] text-[#120B08] shadow-xl shadow-[#F5D061]/40 scale-105 ring-2 ring-[#FFF8E7]'
+                      : 'bg-[#2A1D0E] border-[#E5B82C]/40 text-[#F5EBE0] hover:border-[#F5D061] hover:text-[#FFF8E7] hover:bg-[#3D291C]'
                   }`}
                 >
                   <span>{slot.label}</span>
-                  {slot.tag && <span className="opacity-60 text-[9px]">· {slot.tag}</span>}
+                  {slot.tag && <span className="opacity-75 text-[9px] font-mono">· {slot.tag}</span>}
                 </button>
               );
             })}
@@ -342,24 +342,24 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           {/* Custom time input */}
           {showCustomTime && (
             <div className="mt-3 flex items-center gap-3 animate-fade-in">
-              <label className="flex items-center gap-2 bg-[#1A1D24] border-2 border-[#F5D061]/60 rounded-xl px-4 py-2.5 text-sm text-[#E8DCB8] focus-within:ring-2 focus-within:ring-[#F5D061]/40 transition-all">
+              <label className="flex items-center gap-2 bg-[#2A1D0E] border-2 border-[#F5D061] rounded-xl px-4 py-2.5 text-sm text-[#FFF8E7] focus-within:ring-2 focus-within:ring-[#F5D061] transition-all">
                 <Clock className="w-4 h-4 text-[#F5D061] shrink-0" />
                 <input
                   type="time"
                   aria-label="Custom check-in time"
                   value={customTime}
                   onChange={e => setCustomTime(e.target.value)}
-                  className="bg-transparent text-[#E8DCB8] focus:outline-none font-mono font-bold"
+                  className="bg-transparent text-[#FFF8E7] focus:outline-none font-mono font-bold"
                 />
               </label>
-              <span className="text-xs text-[#D4C4A0]/70">→ Check-out ~<span className="font-bold text-[#E8DCB8]">{formatCheckout(customTime, durationHrs)}</span></span>
+              <span className="text-xs text-[#F5EBE0]">→ Check-out ~<span className="font-bold text-[#F5D061]">{formatCheckout(customTime, durationHrs)}</span></span>
             </div>
           )}
           {!showCustomTime && selectedTime && (
-            <p className="mt-2 text-[11px] text-[#D4C4A0]/60">
-              Check-in: <span className="font-bold text-[#E8DCB8]">{TIME_SLOTS.find(s => s.value === selectedTime)?.label}</span>
-              {'  '}→{'  '}Check-out: <span className="font-bold text-[#98A886]">{formatCheckout(selectedTime, durationHrs)}</span>
-              <span className="ml-2 opacity-60">({durationHrs}hr{durationHrs > 1 ? 's' : ''})</span>
+            <p className="mt-2.5 text-xs text-[#F5EBE0] font-medium">
+              Check-in: <span className="font-extrabold text-[#F5D061]">{TIME_SLOTS.find(s => s.value === selectedTime)?.label}</span>
+              {'  '}→{'  '}Check-out: <span className="font-extrabold text-[#8A9A78]">{formatCheckout(selectedTime, durationHrs)}</span>
+              <span className="ml-2 opacity-80 text-[11px]">({durationHrs}hr{durationHrs > 1 ? 's' : ''})</span>
             </p>
           )}
         </div>
