@@ -1,76 +1,118 @@
-# 🌊 Wings River Café & Lucknow Water Sports
+# 🌊 Wings River Café & Lucknow Water Sports - Unified Operations System & PWA
 
-A luxury, responsive, high-performance **WordPress-style dynamic website** for **Wings River Café** (विंग्स रिवर) and **Lucknow Water Sports**, built with Next.js 14, TypeScript, Tailwind CSS, Framer Motion, and **Cloudflare Workers / Pages** with **Cloudflare D1 Database** integration.
+[![Deployment Status](https://img.shields.io/badge/Deployment-Cloudflare%20Pages%20%26%20Workers-orange?style=for-the-badge&logo=cloudflare)](https://wings-river-cafe-blog.pages.dev)
+[![Database](https://img.shields.io/badge/Database-Cloudflare%20D1%20SQLite-blue?style=for-the-badge&logo=sqlite)](https://dash.cloudflare.com)
+[![Framework](https://img.shields.io/badge/Framework-Next.js%2014%20%2B%20Hono-black?style=for-the-badge&logo=nextdotjs)](https://nextjs.org)
+[![Repository](https://img.shields.io/badge/GitHub-nomaantalib%2Fwings--river--PWA-gold?style=for-the-badge&logo=github)](https://github.com/nomaantalib/wings-river-PWA)
+
+A very professional, high-performance, real-time Progressive Web Application (PWA) and digital operations platform for **Wings River Café** (विंग्स रिवर) and **Lucknow Water Sports** at Gomti Riverfront, Lucknow. Built strictly according to the **Software Requirements Specification (SRS)** documentation (`Wings_River_Cafe_SRS-2.pdf`).
 
 ---
 
-## 🚀 Cloudflare Deployment Guide (Pages, Workers & D1)
+## 📋 SRS Compliance & System Architecture
 
-### 1. Cloudflare D1 Database Binding
-This repository is pre-configured with Cloudflare D1 Database Binding in `wrangler.json`:
-- **Database Name**: `wings-river-cafe-db`
-- **Database ID**: `c2491a90-0f90-4a1e-8a4d-852e6588a68a`
+This project connects **5 dedicated apps/modules** under a single shared backend engine and unified Cloudflare D1 database:
+
+```mermaid
+graph TD
+    A[Cloudflare D1 Database & Hono Workers Engine] --> B[Customer PWA - 15 Screens]
+    A --> C[Staff PWA / Waiter App - 6 Screens]
+    A --> D[Staff PWA / Kitchen App - 3 Screens]
+    A --> E[Staff PWA / Manager App - 8 Screens]
+    A --> F[Admin CMS - 12 Screens]
+```
+
+### 1. 📱 Customer PWA (15 Screens / Flows)
+- **Home & Brand Hub**: Hero banner, quick actions, featured multicuisine menu, water sports ticket rates, photo gallery, guest reviews, blog, location map, contact.
+- **Interactive Floor Map Table Reservation (`/ #floor-map`)**: BookMyShow-style visual table picker across **Riverside Deck**, **Indoor AC Hall**, and **VIP Private Canopy** with real-time seating capacity and a **5-minute Table Hold Timer**.
+- **Table QR Menu Ordering & Live Tracker (`QROrderModal`)**: Table QR scan flow (`?table=T4`), dish picker, cart builder, 5% GST calculator, live kitchen order status (`Order Placed` $\rightarrow$ `Preparing` $\rightarrow$ `Ready to Serve`), and itemized bill view.
+- **Instant Call Waiter Alerts**: Single-tap alert buttons (`Drinking Water`, `Spoon/Tissue`, `Call Waiter`, `Request Bill`) that ping waiters instantly.
+- **Party Canopy Booking Flow**: Event canopy package selector for birthdays, corporate parties, and anniversaries.
+- **My Bookings & QR Ticket Generator (`MyBookingsModal`)**: Customer dashboard to view active/past reservations, generate entry QR tickets, and send automated WhatsApp confirmation messages (`wa.me`).
+
+### 2. 👨‍🍳 Kitchen PWA (`/staff` -> Kitchen Mode)
+- **High-Contrast Order Queue**: 3-column kanban board (`New Orders` $\rightarrow$ `Cooking in Progress` $\rightarrow$ `Ready for Pickup`).
+- **One-Tap Actions**: Large high-contrast touch buttons allowing chefs to advance order states with a single tap without reading long text.
+
+### 3. 💁 Waiter PWA (`/staff` -> Waiter Mode)
+- **Live Table Status Floor Map**: Color-coded table indicators (**Green** = Free, **Amber** = Eating, **Red** = Needs Cleaning, **Blue** = Reserved).
+- **One-Tap Status Buttons**: `Check In`, `Food Served`, `Bill Requested`, `Vacated`, `Mark Free / Cleaned`.
+- **Instant Call Request Alert Banner**: Top alert notification bar showing real-time customer calls with 1-tap resolution.
+
+### 4. 📊 Reception / Manager PWA (`/staff` -> Manager Mode)
+- **Operations Dashboard**: Today's total revenue, live floor occupancy %, active reservations, and walk-in headcount.
+- **Walk-in Seating Flow**: Quick guest entry (Name + Phone $\rightarrow$ Table Assignment $\rightarrow$ Mark Occupied).
+- **Party Canopy Approvals**: Manage pending event requests and assign canopy venues.
+
+### 5. ⚙️ Admin CMS (`/admin` - 12 Screens)
+- Protected control panel for executive analytics, Website CMS, Menu CMS, Table Floor Layout Editor (X/Y position & capacity editor), QR Code Manager, Payments & Ledger, Staff Account Management (Create Waiter, Kitchen, Manager logins), and System Settings.
+
+---
+
+## ⚡ Security, Rate Limiting & Performance Engine
+
+- **Token Bucket Event Throttler / Rate Limiter**: In-memory IP rate limiter in `functions/api/[[route]].js` restricting API requests to **max 100 requests per minute** to prevent bot attacks and booking hoarding (`429 Too Many Requests` with `Retry-After` headers).
+- **$O(1)$ TTL Response Cache Map**: In-memory response cache with 15-second TTL on hot read endpoints (`/api/menu/items`, `/api/tables`) for sub-5ms response speeds.
+- **Input Sanitization & Anti-XSS**: Sanitizes user inputs before processing database writes.
+- **Strict Security Headers**: Enforces `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `X-XSS-Protection: 1; mode=block`.
+
+---
+
+## 🛠️ Recommended Tech Stack
+
+| Layer | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Frontend App** | Next.js 14 (App Router), React 18, Tailwind CSS, Lucide Icons | Responsive, PWA installable web app |
+| **API Backend** | Hono Framework on Cloudflare Workers | Edge API execution |
+| **Database** | Cloudflare D1 (SQLite SQL Engine) | Relational storage for reservations, tables, orders, CMS |
+| **Storage & CDN** | Cloudinary & Cloudflare Images | Optimized food photos, ride posters & QR tickets |
+
+---
+
+## ⚙️ Configuration & Environment Setup
+
+### Database Binding (`wrangler.json` & `wrangler.toml`)
+- **Account ID**: `8f1aecb785da9e40b20ab73a3b15e27e`
+- **Database Name**: `wings_river_cafe_reservations`
+- **Database ID**: `f3cb90af-78ce-4e54-96ad-d0aa657062e3`
 - **Binding Name**: `DB`
 
-### 2. Environment Variables & Secrets (Local vs Production)
-> ⚠️ **SECURITY NOTICE**: Never commit `.env` or `.env.local` files to Git. All secrets are excluded via `.gitignore`.
-
-For local development, copy `.env.example` to `.env.local`:
-```bash
-cp .env.example .env.local
-```
-
-For Cloudflare Production deployment, set secrets using Wrangler or the Cloudflare Dashboard:
-```bash
-npx wrangler secret put ADMIN_PASSWORD
-npx wrangler secret put ADMIN_SECRET_KEY
-```
-
-### 3. Initialize D1 Database Schema
-Execute the SQL schema migration against your remote Cloudflare D1 database:
-```bash
-npx wrangler d1 execute wings-river-cafe-db --remote --file=schema.sql
-```
-
-### 4. Build & Deploy to Cloudflare Pages
-To build and deploy the Next.js edge application to Cloudflare Pages:
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Build for Cloudflare Pages (Edge output)
-npm run pages:build
-
-# 3. Deploy to Cloudflare Pages
-npx wrangler pages deploy .vercel/output/static --project-name=wings-river-cafe-blog
-```
-
-Or deploy automatically using **Cloudflare Pages GitHub Integration**:
-- **Build command**: `npm run pages:build`
-- **Build output directory**: `.vercel/output/static`
-- **Root directory**: `/`
-- **Environment variables**: Add `NODE_VERSION: 20` and D1 database binding `DB` -> `c2491a90-0f90-4a1e-8a4d-852e6588a68a`.
-
 ---
 
-## ⚡ Local Development
+## 🚀 Deployment Commands
 
+### 1. Initialize & Seed Remote Cloudflare D1 Database
+```bash
+# Execute schema migration (28 tables)
+npm run db:schema
+
+# Seed initial tables, menu items, staff accounts & demo orders
+npm run db:seed
+
+# Or run complete setup at once:
+npm run db:setup
+```
+
+### 2. Local Development
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) to view the application locally with mock D1 database fallback.
+Open [http://localhost:3000](http://localhost:3000) to view the Customer PWA, [http://localhost:3000/staff](http://localhost:3000/staff) for Staff App, and [http://localhost:3000/admin](http://localhost:3000/admin) for Admin CMS.
+
+### 3. Build & Deploy to Cloudflare Pages & Workers
+```bash
+# 1. Build optimized static output
+npm run build
+
+# 2. Deploy to Cloudflare Pages
+npm run deploy
+```
 
 ---
 
-## 🏆 Key Features Included
+## 📜 Repository Information
 
-1. **Circular Logo & Luxury Theme**: Mint Green (`#8FD3C7`), Cream White, Golden (`#D4AF37`), Dark (`#1B1B1B`).
-2. **Blurred Hero Slideshow**: Background slideshow with blurred backdrops, image carousel, floating leaves, and CTAs.
-3. **Interactive 8-Page Menu Booklet Screen**: Smooth 3D page flip booklet with page zoom, auto-flip, grid mode, and high-res image download.
-4. **Lucknow Water Sports & Rides Ticket Screen**: Rate card poster for Jetski (₹350), Speed Boat (₹250), Motor Boat (₹200), Panda Train (₹50), Kids Car (₹50), and Trampoline (₹50).
-5. **Table, Party & Rides Reservation System**: Multi-purpose booking modal saving directly to Cloudflare D1 database.
-6. **WordPress-Style Blog Journal**: Featured post layout, category tags, recent posts grid, and inline article reader.
-7. **Masonry Photo Gallery**: Pinterest grid layout with categories & zoom lightbox.
-8. **Customer Reviews Carousel**: 4.1★ Google rating summary & verified guest reviews.
-9. **Admin CMS Dashboard**: Protected panel at `/admin` for managing reservations, menu items, blog posts, reviews, and contact messages.
-10. **SEO & Schema.org**: `Restaurant` JSON-LD structured metadata, OpenGraph, sitemap.xml, robots.txt.
+- **GitHub Repository**: [`nomaantalib/wings-river-PWA`](https://github.com/nomaantalib/wings-river-PWA)
+- **Live Reference Site**: [`https://wings-river-cafe.pages.dev`](https://wings-river-cafe.pages.dev)
+- **Location**: Laxman Mela Ground, Gomti Riverfront, Hazratganj, Lucknow, UP 226001
+- **Contact**: `07310008020` | `wingsrivercafe@gmail.com`
