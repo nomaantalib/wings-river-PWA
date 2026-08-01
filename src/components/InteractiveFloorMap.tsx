@@ -67,8 +67,8 @@ const AREAS: AreaCard[] = [
     tag: 'Most Popular',
     iconType: 'home',
     gradient: 'from-[#2A1E17] via-[#1E140F] to-[#120B08]',
-    borderStyle: 'border-[#C9B086]/35 hover:border-[#E8DCB8]',
-    tagStyle: 'bg-[#C9B086]/20 text-[#E8DCB8] border border-[#C9B086]/40',
+    borderStyle: 'border-[#F5D061]/35 hover:border-[#E8DCB8]',
+    tagStyle: 'bg-[#F5D061]/20 text-[#E8DCB8] border border-[#F5D061]/40',
     tables: 'T14 – T17',
     tableIds: ['tbl-14','tbl-15','tbl-16','tbl-17'],
   },
@@ -133,11 +133,11 @@ function statusLabel(s: TableData['status']) {
 
 function statusClasses(s: TableData['status'], selected: boolean) {
   if (selected)
-    return 'bg-gradient-to-br from-[#C9B086] to-[#A8996B] border-[#F5EBE0] text-[#120B08] font-bold shadow-2xl shadow-[#C9B086]/40 scale-110 z-20 ring-2 ring-[#F5EBE0]/60';
+    return 'bg-gradient-to-br from-[#F5D061] to-[#A8996B] border-[#F5EBE0] text-[#120B08] font-bold shadow-2xl shadow-[#F5D061]/40 scale-110 z-20 ring-2 ring-[#F5EBE0]/60';
   if (s === 'free')
     return 'bg-[#1E2C1A]/80 border-[#98A886] text-[#D8E2CD] hover:bg-[#2D3F27] hover:border-[#B2C2A1] hover:scale-105 cursor-pointer active:scale-95';
   if (s === 'eating')
-    return 'bg-[#3B281B]/50 border-[#C9B086]/30 text-[#E8DCB8]/50 opacity-60 cursor-not-allowed';
+    return 'bg-[#3B281B]/50 border-[#F5D061]/30 text-[#E8DCB8]/50 opacity-60 cursor-not-allowed';
   if (s === 'reserved')
     return 'bg-[#2A1412]/50 border-red-500/30 text-red-300/60 opacity-50 cursor-not-allowed';
   return 'bg-[#181A1F]/50 border-slate-700/50 text-slate-500 opacity-40 cursor-not-allowed';
@@ -231,22 +231,22 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
   return (
     <div
       ref={stepRef}
-      className="bg-[#0E1117] border border-[#C9B086]/25 rounded-3xl shadow-2xl text-[#F5EBE0] overflow-hidden"
+      className="bg-[#0E1117] border border-[#F5D061]/25 rounded-3xl shadow-2xl text-[#F5EBE0] overflow-hidden"
     >
 
       {/* ── Section Header ───────────────────────────────────── */}
-      <div className="bg-gradient-to-r from-[#1A1D24] via-[#181B21] to-[#141720] border-b border-[#C9B086]/20 px-5 sm:px-7 py-5">
+      <div className="bg-gradient-to-r from-[#1A1D24] via-[#181B21] to-[#141720] border-b border-[#F5D061]/20 px-5 sm:px-7 py-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
           {/* Title */}
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#C9B086]/30 to-[#98A886]/20 border border-[#C9B086]/40 flex items-center justify-center shrink-0">
-              <MapPin className="w-4 h-4 text-[#C9B086]" />
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#F5D061]/30 to-[#98A886]/20 border border-[#F5D061]/40 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4 text-[#F5D061]" />
             </div>
             <div>
               <h3 className="text-base font-serif font-bold text-[#E8DCB8] flex items-center gap-2">
                 Reserve Your Table
-                <Sparkles className="w-3.5 h-3.5 text-[#C9B086] animate-pulse" />
+                <Sparkles className="w-3.5 h-3.5 text-[#F5D061] animate-pulse" />
               </h3>
               <p className="text-[11px] text-[#D4C4A0]/70 mt-0.5">Choose area → pick a table → confirm booking</p>
             </div>
@@ -256,7 +256,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           <div className="flex flex-wrap gap-2">
 
             {/* Date */}
-            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#C9B086]/40">
+            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#F5D061]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#F5D061]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#F5D061]/40">
               <Calendar className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
               <input
                 type="date"
@@ -269,7 +269,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             </label>
 
             {/* Guest Count */}
-            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#C9B086]/40">
+            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#F5D061]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#F5D061]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#F5D061]/40">
               <Users className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
               <select
                 aria-label="Number of guests"
@@ -284,7 +284,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             </label>
 
             {/* Duration */}
-            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#C9B086]/40">
+            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#F5D061]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#F5D061]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#F5D061]/40">
               <Timer className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
               <select
                 aria-label="Duration of stay"
@@ -327,8 +327,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                   }}
                   className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-200 border flex items-center gap-1 ${
                     isActive
-                      ? 'bg-gradient-to-r from-[#C9B086] to-[#A8996B] border-[#E8DCB8]/60 text-[#120B08] shadow-lg shadow-[#C9B086]/30 scale-105'
-                      : 'bg-[#1A1D24] border-[#C9B086]/25 text-[#D4C4A0]/80 hover:border-[#C9B086]/60 hover:text-[#E8DCB8] hover:bg-[#231710]/50'
+                      ? 'bg-gradient-to-r from-[#F5D061] to-[#A8996B] border-[#E8DCB8]/60 text-[#120B08] shadow-lg shadow-[#F5D061]/30 scale-105'
+                      : 'bg-[#1A1D24] border-[#F5D061]/25 text-[#D4C4A0]/80 hover:border-[#F5D061]/60 hover:text-[#E8DCB8] hover:bg-[#231710]/50'
                   }`}
                 >
                   <span>{slot.label}</span>
@@ -341,8 +341,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           {/* Custom time input */}
           {showCustomTime && (
             <div className="mt-3 flex items-center gap-3 animate-fade-in">
-              <label className="flex items-center gap-2 bg-[#1A1D24] border-2 border-[#C9B086]/60 rounded-xl px-4 py-2.5 text-sm text-[#E8DCB8] focus-within:ring-2 focus-within:ring-[#C9B086]/40 transition-all">
-                <Clock className="w-4 h-4 text-[#C9B086] shrink-0" />
+              <label className="flex items-center gap-2 bg-[#1A1D24] border-2 border-[#F5D061]/60 rounded-xl px-4 py-2.5 text-sm text-[#E8DCB8] focus-within:ring-2 focus-within:ring-[#F5D061]/40 transition-all">
+                <Clock className="w-4 h-4 text-[#F5D061] shrink-0" />
                 <input
                   type="time"
                   aria-label="Custom check-in time"
@@ -365,7 +365,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       </div>
 
       {/* ── Step Breadcrumb ──────────────────────────────────── */}
-      <div className="flex items-center gap-0 px-5 sm:px-7 py-3.5 border-b border-[#C9B086]/15 bg-[#12151B]">
+      <div className="flex items-center gap-0 px-5 sm:px-7 py-3.5 border-b border-[#F5D061]/15 bg-[#12151B]">
         {STEP_LABELS.map((s, i) => {
           const num = i + 1;
           const done   = step > num;
@@ -375,8 +375,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               <div className="flex items-center gap-2">
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
                   done   ? 'bg-[#98A886] text-[#120B08] shadow shadow-[#98A886]/40'  :
-                  active ? 'bg-gradient-to-br from-[#C9B086] to-[#A8996B] text-[#120B08] shadow-lg shadow-[#C9B086]/30 scale-110' :
-                           'bg-[#1E2129] text-[#D4C4A0]/40 border border-[#C9B086]/20'
+                  active ? 'bg-gradient-to-br from-[#F5D061] to-[#A8996B] text-[#120B08] shadow-lg shadow-[#F5D061]/30 scale-110' :
+                           'bg-[#1E2129] text-[#D4C4A0]/40 border border-[#F5D061]/20'
                 }`}>
                   {done ? '✓' : num}
                 </span>
@@ -385,7 +385,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 }`}>{s}</span>
               </div>
               {i < STEP_LABELS.length - 1 && (
-                <ChevronRight className="w-3 h-3 text-[#C9B086]/25 mx-3 shrink-0" />
+                <ChevronRight className="w-3 h-3 text-[#F5D061]/25 mx-3 shrink-0" />
               )}
             </React.Fragment>
           );
@@ -398,12 +398,12 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             aria-label={step === 3 ? 'Go back to table selection' : 'Go back to area selection'}
             className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl
               bg-gradient-to-r from-[#231710] to-[#1A1209]
-              border border-[#C9B086]/50 hover:border-[#C9B086]
-              text-[#C9B086] hover:text-[#F5EBE0]
+              border border-[#F5D061]/50 hover:border-[#F5D061]
+              text-[#F5D061] hover:text-[#F5EBE0]
               text-[11px] font-bold uppercase tracking-wider
-              shadow-md hover:shadow-[#C9B086]/20 hover:shadow-lg
+              shadow-md hover:shadow-[#F5D061]/20 hover:shadow-lg
               transition-all duration-200 active:scale-95
-              focus:outline-none focus:ring-2 focus:ring-[#C9B086]/50"
+              focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
           >
             <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
             {step === 3 ? 'Change Table' : 'Back'}
@@ -415,7 +415,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       {step === 1 && (
         <div className="p-5 sm:p-7 space-y-3 animate-fade-in">
           <p className="text-xs text-[#D4C4A0]/60 pb-1 flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-[#C9B086]" /> Select a dining area along the Gomti Riverfront
+            <Compass className="w-3.5 h-3.5 text-[#F5D061]" /> Select a dining area along the Gomti Riverfront
           </p>
           {AREAS.map(area => {
             const areaFreeTables = ALL_TABLES.filter(t => t.cluster_id === area.id && t.status === 'free').length;
@@ -429,7 +429,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 aria-label={`Select ${area.label} — ${areaFreeTables} tables available`}
                 className={`w-full text-left rounded-2xl border bg-gradient-to-r ${area.gradient} ${area.borderStyle}
                   p-5 transition-all duration-300 group relative overflow-hidden
-                  focus:outline-none focus:ring-2 focus:ring-[#C9B086]/50
+                  focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50
                   ${occupied ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.015] hover:shadow-2xl hover:shadow-black/40 active:scale-[0.99]'}
                 `}
               >
@@ -476,7 +476,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                         {areaFreeTables}/{totalTables}
                       </span>
                     </div>
-                    <ChevronRight className={`w-4 h-4 transition-all duration-200 ${occupied ? 'text-slate-600' : 'text-[#C9B086]/60 group-hover:text-[#E8DCB8] group-hover:translate-x-1'}`} />
+                    <ChevronRight className={`w-4 h-4 transition-all duration-200 ${occupied ? 'text-slate-600' : 'text-[#F5D061]/60 group-hover:text-[#E8DCB8] group-hover:translate-x-1'}`} />
                   </div>
                 </div>
               </button>
@@ -486,7 +486,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           {/* Legend */}
           <div className="flex items-center justify-center gap-6 pt-2 text-[11px] text-[#D4C4A0]/60 font-medium">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#98A886] inline-block" />Available</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#C9B086] inline-block" />Occupied</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#F5D061] inline-block" />Occupied</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block" />Reserved</span>
           </div>
         </div>
@@ -497,7 +497,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         <div className="p-5 sm:p-7 animate-fade-in">
 
           {/* Area header */}
-          <div className="flex items-center gap-3 mb-5 p-3.5 bg-[#1A1D24]/80 rounded-2xl border border-[#C9B086]/20">
+          <div className="flex items-center gap-3 mb-5 p-3.5 bg-[#1A1D24]/80 rounded-2xl border border-[#F5D061]/20">
             <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-black/30 border border-white/10 p-2 shrink-0">
               <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
             </div>
@@ -560,7 +560,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           </div>
 
           {/* Table grid */}
-          <div className="bg-[#141820]/80 border border-[#C9B086]/15 rounded-b-xl rounded-tr-xl p-6 space-y-5">
+          <div className="bg-[#141820]/80 border border-[#F5D061]/15 rounded-b-xl rounded-tr-xl p-6 space-y-5">
             {AREA_LAYOUTS[selectedArea.id].map((row, ri) => (
               <div key={ri} className="flex items-center justify-center gap-3 flex-wrap">
                 {row.map(tNum => {
@@ -576,7 +576,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       aria-label={`Table ${tbl.table_number}, ${tbl.capacity} seats, ${statusLabel(tbl.status)}`}
                       aria-pressed={isSelected}
                       className={`relative flex flex-col items-center justify-center rounded-2xl border-2 transition-all duration-200 px-5 py-3.5 min-w-[86px]
-                        focus:outline-none focus:ring-2 focus:ring-[#C9B086]/50
+                        focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50
                         ${statusClasses(tbl.status, isSelected)}`}
                     >
                       {/* Availability pulse dot */}
@@ -589,7 +589,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       </span>
                       <span className={`text-[9px] mt-1 font-bold ${
                         tbl.status === 'free' ? 'text-[#98A886]' :
-                        tbl.status === 'eating' ? 'text-[#C9B086]' : 'text-red-300'
+                        tbl.status === 'eating' ? 'text-[#F5D061]' : 'text-red-300'
                       }`}>{statusLabel(tbl.status)}</span>
                       {/* Unsuitable capacity indicator */}
                       {!suitable && tbl.status === 'free' && (
@@ -628,14 +628,14 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             </div>
           )}
           {selectedArea.id === 'rooftop' && (
-            <div className="w-full rounded-xl overflow-hidden border border-[#C9B086]/40 mt-3 relative">
+            <div className="w-full rounded-xl overflow-hidden border border-[#F5D061]/40 mt-3 relative">
               <div className="bg-gradient-to-r from-[#231710] via-[#362419] to-[#231710] px-4 py-3 flex items-center gap-3">
                 <Sparkles className="w-4 h-4 text-[#E8DCB8] shrink-0" />
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E8DCB8]">Greenery & Canopy View</p>
                   <p className="text-[9px] text-[#D4C4A0]/80">Overlooking garden canopy · Fairy lights glow · Elevated deck</p>
                 </div>
-                <span className="ml-auto text-[9px] bg-[#362419] border border-[#C9B086]/50 text-[#E8DCB8] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
+                <span className="ml-auto text-[9px] bg-[#362419] border border-[#F5D061]/50 text-[#E8DCB8] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
               </div>
             </div>
           )}
@@ -658,17 +658,17 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           <div className="p-5 sm:p-7 animate-fade-in space-y-4">
 
             {/* Confirmation card */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#1E1609] via-[#1A1510] to-[#0F1015] border border-[#C9B086]/40 p-5 shadow-2xl">
+            <div className="rounded-3xl bg-gradient-to-br from-[#1E1609] via-[#1A1510] to-[#0F1015] border border-[#F5D061]/40 p-5 shadow-2xl">
 
               {/* Top badge */}
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/40 border border-[#C9B086]/30 p-2 shrink-0">
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/40 border border-[#F5D061]/30 p-2 shrink-0">
                     <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
                   </div>
                   <div>
                     <h4 className="text-sm font-serif font-bold text-[#E8DCB8] flex items-center gap-1.5">
-                      <Lock className="w-3.5 h-3.5 text-[#C9B086]" /> Table Locked for Booking
+                      <Lock className="w-3.5 h-3.5 text-[#F5D061]" /> Table Locked for Booking
                     </h4>
                     <p className="text-[11px] text-[#D4C4A0]/70">{selectedArea.label}</p>
                   </div>
@@ -691,9 +691,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                   { label: 'Rate', value: `₹${pricing.perPersonRate}/person`, Icon: IndianRupee },
                   { label: 'Total', value: `₹${pricing.totalPrice}`, Icon: Receipt },
                 ].map(({ label, value, Icon }) => (
-                  <div key={label} className="bg-[#131619]/80 rounded-xl px-3 py-2.5 border border-[#C9B086]/15">
+                  <div key={label} className="bg-[#131619]/80 rounded-xl px-3 py-2.5 border border-[#F5D061]/15">
                     <p className="text-[9px] text-[#D4C4A0]/50 uppercase tracking-wider flex items-center gap-1">
-                      <Icon className="w-3 h-3 text-[#C9B086]" />{label}
+                      <Icon className="w-3 h-3 text-[#F5D061]" />{label}
                     </p>
                     <p className="text-xs font-bold text-[#E8DCB8] mt-0.5 truncate">{value}</p>
                   </div>
@@ -701,15 +701,15 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               </div>
 
               {/* Hold timer */}
-              <div className="mt-4 flex items-center gap-3 bg-[#0D1118]/80 border border-[#C9B086]/25 rounded-2xl px-4 py-3">
-                <ShieldAlert className="w-4 h-4 text-[#C9B086] animate-pulse shrink-0" />
+              <div className="mt-4 flex items-center gap-3 bg-[#0D1118]/80 border border-[#F5D061]/25 rounded-2xl px-4 py-3">
+                <ShieldAlert className="w-4 h-4 text-[#F5D061] animate-pulse shrink-0" />
                 <p className="text-xs text-[#F5EBE0] flex-1">
                   Table <span className="text-[#E8DCB8] font-bold">{selectedTable.table_number}</span> is locked for you
                 </p>
                 <span className={`font-mono text-sm font-bold px-3 py-1 rounded-xl border ${
                   holdLeft !== null && holdLeft < 60
                     ? 'bg-red-900/40 border-red-500/50 text-red-300'
-                    : 'bg-[#231710] border-[#C9B086]/40 text-[#E8DCB8]'
+                    : 'bg-[#231710] border-[#F5D061]/40 text-[#E8DCB8]'
                 }`}>
                   {holdLeft !== null ? fmtTimer(holdLeft) : '5:00'}
                 </span>
@@ -723,14 +723,14 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 onClick={handleBack}
                 aria-label="Go back to pick a different table"
                 className="flex-1 py-3.5 rounded-2xl
-                  border-2 border-[#C9B086]/50 hover:border-[#C9B086]
+                  border-2 border-[#F5D061]/50 hover:border-[#F5D061]
                   bg-gradient-to-r from-[#1A1209] to-[#231710] hover:from-[#231710] hover:to-[#2E1F0E]
-                  text-[#C9B086] hover:text-[#F5EBE0]
+                  text-[#F5D061] hover:text-[#F5EBE0]
                   text-xs font-bold uppercase tracking-wider
                   flex items-center justify-center gap-2
-                  shadow hover:shadow-lg hover:shadow-[#C9B086]/15
+                  shadow hover:shadow-lg hover:shadow-[#F5D061]/15
                   transition-all duration-200 active:scale-95
-                  focus:outline-none focus:ring-2 focus:ring-[#C9B086]/40"
+                  focus:outline-none focus:ring-2 focus:ring-[#F5D061]/40"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Change Table
@@ -741,10 +741,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 onClick={() => onSelectTable(selectedTable, selectedDate, effectiveTime, guestCount)}
                 aria-label={`Confirm booking and pay ₹${pricing.totalPrice}`}
                 className="flex-2 sm:flex-[2] py-3.5 rounded-2xl
-                  bg-gradient-to-r from-[#C9B086] via-[#B8A07A] to-[#A3B58E]
+                  bg-gradient-to-r from-[#F5D061] via-[#B8A07A] to-[#A3B58E]
                   hover:from-[#E8DCB8] hover:via-[#D4C4A0] hover:to-[#B2C2A1]
                   text-[#120B08] font-bold text-xs uppercase tracking-wider
-                  shadow-xl shadow-[#C9B086]/30 hover:shadow-[#C9B086]/50
+                  shadow-xl shadow-[#F5D061]/30 hover:shadow-[#F5D061]/50
                   flex items-center justify-center gap-2
                   transition-all duration-200 active:scale-95
                   focus:outline-none focus:ring-2 focus:ring-[#E8DCB8]/50"

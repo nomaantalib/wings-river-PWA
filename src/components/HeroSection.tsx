@@ -113,7 +113,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3.5 justify-items-stretch">
             <a
               href="#floor-map"
-              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#C9B086] via-[#B8A07A] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-[#C9B086]/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-yellow-500/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
             >
               <Calendar className="w-5 h-5 shrink-0" />
               <span>Reserve Table</span>
@@ -121,7 +121,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
 
             <button
               onClick={() => onOpenBooking('birthday_party')}
-              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#D4C4A0] via-[#C9B086] to-[#B8A07A] hover:from-[#F5EBE0] hover:to-[#D4C4A0] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-[#C9B086]/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+              className="flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-sm sm:text-base rounded-2xl shadow-2xl shadow-yellow-500/25 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
             >
               <Utensils className="w-5 h-5 shrink-0" />
               <span>Book Party / Event</span>
@@ -129,9 +129,9 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
 
             <a
               href="#menu-card"
-              className="col-span-1 sm:col-span-2 md:col-span-1 flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-[#121417]/90 backdrop-blur-md border border-[#C9B086]/40 text-[#E8DCB8] font-bold text-sm sm:text-base rounded-2xl hover:bg-[#1A1D24] hover:border-[#C9B086] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
+              className="col-span-1 sm:col-span-2 md:col-span-1 flex items-center justify-center space-x-2.5 px-6 py-3.5 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/50 text-[#F5D061] font-bold text-sm sm:text-base rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
             >
-              <BookOpen className="w-5 h-5 text-[#C9B086] shrink-0" />
+              <BookOpen className="w-5 h-5 text-[#F5D061] shrink-0" />
               <span>View Menu</span>
             </a>
           </div>

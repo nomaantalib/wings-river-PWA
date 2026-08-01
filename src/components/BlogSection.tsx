@@ -121,14 +121,14 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   return (
     <section id="blog" className="py-16 sm:py-20 bg-[#0B0E14]/90 backdrop-blur-md relative overflow-hidden text-[#F5EBE0]">
       {/* Background ambient lighting accents */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#C9B086]/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#F5D061]/10 rounded-full blur-3xl pointer-events-none" />
       <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#98A886]/10 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#C9B086]/30 text-[#E8DCB8] font-bold text-xs tracking-widest uppercase mb-3 shadow-md">
-            <BookOpen className="w-3.5 h-3.5 text-[#C9B086]" />
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#F5D061]/30 text-[#E8DCB8] font-bold text-xs tracking-widest uppercase mb-3 shadow-md">
+            <BookOpen className="w-3.5 h-3.5 text-[#F5D061]" />
             <span>Riverside Journal & Blog</span>
           </div>
           <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#E8DCB8] tracking-tight mb-3">
@@ -148,8 +148,8 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 ${
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-[#C9B086] via-[#B8A07A] to-[#A3B58E] text-[#120B08] shadow-lg scale-105'
-                    : 'bg-[#14171D] text-[#D4C4A0]/80 hover:bg-[#1F242E] hover:text-[#E8DCB8] border border-[#C9B086]/20'
+                    ? 'bg-gradient-to-r from-[#F5D061] via-[#B8A07A] to-[#A3B58E] text-[#120B08] shadow-lg scale-105'
+                    : 'bg-[#14171D] text-[#D4C4A0]/80 hover:bg-[#1F242E] hover:text-[#E8DCB8] border border-[#F5D061]/20'
                 }`}
               >
                 {cat === 'All' ? 'All Articles' : cat}
@@ -168,7 +168,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           <button
             onClick={scrollLeft}
             aria-label="Scroll left"
-            className="absolute -left-2 sm:-left-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#181B22]/90 border border-[#C9B086]/40 text-[#C9B086] shadow-2xl hover:bg-[#C9B086] hover:text-[#120B08] transition-all opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute -left-2 sm:-left-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#181B22]/90 border border-[#F5D061]/40 text-[#F5D061] shadow-2xl hover:bg-[#F5D061] hover:text-[#120B08] transition-all opacity-80 hover:opacity-100 hover:scale-110"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -177,7 +177,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           <button
             onClick={scrollRight}
             aria-label="Scroll right"
-            className="absolute -right-2 sm:-right-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#181B22]/90 border border-[#C9B086]/40 text-[#C9B086] shadow-2xl hover:bg-[#C9B086] hover:text-[#120B08] transition-all opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute -right-2 sm:-right-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#181B22]/90 border border-[#F5D061]/40 text-[#F5D061] shadow-2xl hover:bg-[#F5D061] hover:text-[#120B08] transition-all opacity-80 hover:opacity-100 hover:scale-110"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -193,7 +193,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
               return (
                 <div
                   key={post.id}
-                  className="snap-start shrink-0 w-[270px] sm:w-[310px] bg-[#12151C]/90 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl border border-[#C9B086]/20 transition-all duration-300 flex flex-col group/card hover:-translate-y-1"
+                  className="snap-start shrink-0 w-[270px] sm:w-[310px] bg-[#12151C]/90 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl border border-[#F5D061]/20 transition-all duration-300 flex flex-col group/card hover:-translate-y-1"
                 >
                   {/* Shorter Compact Image Banner */}
                   <div
@@ -216,13 +216,13 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                     />
 
                     {/* Category Tag */}
-                    <span className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded-md bg-[#0A0C10]/80 backdrop-blur-sm text-[#E8DCB8] text-[9px] font-bold uppercase tracking-wider border border-[#C9B086]/30">
+                    <span className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded-md bg-[#0A0C10]/80 backdrop-blur-sm text-[#E8DCB8] text-[9px] font-bold uppercase tracking-wider border border-[#F5D061]/30">
                       {post.category}
                     </span>
 
                     {/* Photo count badge */}
                     {postImages.length > 1 && (
-                      <span className="absolute top-2 right-2 z-20 px-2 py-0.5 rounded-md bg-[#C9B086] text-[#120B08] font-bold text-[9px] flex items-center gap-1 shadow-sm">
+                      <span className="absolute top-2 right-2 z-20 px-2 py-0.5 rounded-md bg-[#F5D061] text-[#120B08] font-bold text-[9px] flex items-center gap-1 shadow-sm">
                         <ImageIcon className="w-2.5 h-2.5" />
                         <span>{postImages.length}</span>
                       </span>
@@ -247,7 +247,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
 
                       {/* Title — 2 lines */}
                       <h3
-                        className="font-serif font-bold text-sm text-[#E8DCB8] mb-1.5 group-hover/card:text-[#C9B086] transition-colors line-clamp-2 cursor-pointer leading-tight"
+                        className="font-serif font-bold text-sm text-[#E8DCB8] mb-1.5 group-hover/card:text-[#F5D061] transition-colors line-clamp-2 cursor-pointer leading-tight"
                         onClick={() => openBlogReader(post)}
                       >
                         {post.title}
@@ -260,13 +260,13 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                     </div>
 
                     {/* Read More Footer */}
-                    <div className="pt-2.5 border-t border-[#C9B086]/15 flex items-center justify-between">
+                    <div className="pt-2.5 border-t border-[#F5D061]/15 flex items-center justify-between">
                       <span className="text-[10px] font-bold text-[#98A886] font-mono">
                         #{post.category}
                       </span>
                       <button
                         onClick={() => openBlogReader(post)}
-                        className="inline-flex items-center space-x-1 text-xs font-bold text-[#C9B086] hover:text-[#E8DCB8] transition-colors"
+                        className="inline-flex items-center space-x-1 text-xs font-bold text-[#F5D061] hover:text-[#E8DCB8] transition-colors"
                       >
                         <span>Read</span>
                         <ArrowRight className="w-3 h-3" />
