@@ -7,11 +7,13 @@ pages_build_output_dir = "out"
 [[d1_databases]]
 binding = "DB"
 database_name = "wings_river_cafe_reservations"
-database_id = "c2491a90-0f90-4a1e-8a4d-852e6588a68a"
+database_id = "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
 
 [vars]
 ADMIN_SECRET_KEY = "wings_river_cafe_admin_secret_2026"
 NEXT_PUBLIC_PHONE = "07310008020"
 NEXT_PUBLIC_WHATSAPP = "917310008020"
+
+
 
 
