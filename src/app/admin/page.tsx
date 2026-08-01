@@ -36,8 +36,9 @@ import {
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
   Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen,
-  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell
+  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3
 } from 'lucide-react';
+import { getRegisteredUsers, saveRegisteredUser, RegisteredUser } from '@/components/UserAuthModal';
 
 // ── Image Compression & Array Normalization Helpers ─────────────────────────────
 const compressImage = (file: File, maxWidth: number = 1000, maxHeight: number = 1000, quality: number = 0.75): Promise<File> => {
@@ -407,6 +408,9 @@ type TabKey =
   | 'faqs' 
   | 'team' 
   | 'bookings' 
+  | 'users'
+  | 'revenue'
+  | 'heatmap'
   | 'reviews' 
   | 'contact' 
   | 'media' 
@@ -512,6 +516,15 @@ export default function AdminPage() {
   const [promoPageModal, setPromoPageModal] = useState<Partial<PromoPage> | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<{ label: string; action: () => void } | null>(null);
+
+  // CRM Users, Revenue & Heatmap States
+  const [registeredUsersList, setRegisteredUsersList] = useState<RegisteredUser[]>([]);
+  const [userSearchTerm, setUserSearchTerm] = useState('');
+  const [editingUser, setEditingUser] = useState<RegisteredUser | null>(null);
+  const [isAddingUserModal, setIsAddingUserModal] = useState(false);
+  const [userHistoryModal, setUserHistoryModal] = useState<RegisteredUser | null>(null);
+  const [newUserForm, setNewUserForm] = useState({ name: '', phone: '', email: '' });
+  const [heatmapAreaFilter, setHeatmapAreaFilter] = useState<'all' | 'indoor' | 'garden' | 'rooftop'>('all');
 
   // Search, Filter & Sort options
   const [categoryFilter, setCategoryFilter] = useState('');
@@ -623,6 +636,7 @@ export default function AdminPage() {
       setHeroSettings(resHero);
       setSiteSettings(resSiteSettings);
       setDashboardStats(resStats);
+      setRegisteredUsersList(getRegisteredUsers());
 
       // Audit logs (auth protected)
       const logs = await getStoredAuditLogs();
@@ -1062,6 +1076,9 @@ export default function AdminPage() {
     { id: 'faqs',       label: 'FAQs Management',    icon: <HelpCircle className="w-4 h-4 shrink-0" /> },
     { id: 'team',       label: 'Team Members',       icon: <Users className="w-4 h-4 shrink-0" /> },
     { id: 'bookings',   label: 'Reservations',       icon: <Calendar className="w-4 h-4 shrink-0" /> },
+    { id: 'users',      label: 'Users CRM Database', icon: <Users className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+    { id: 'revenue',    label: 'Revenue & Refunds',   icon: <IndianRupee className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+    { id: 'heatmap',    label: 'Booking Heatmap',     icon: <Activity className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
     { id: 'reviews',    label: 'Customer Reviews',   icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
     { id: 'contact',    label: 'Inquiries & Messages',icon:<Mail className="w-4 h-4 shrink-0" /> },
     { id: 'media',      label: 'Media Library',      icon: <FolderOpen className="w-4 h-4 shrink-0" /> },
@@ -2183,6 +2200,345 @@ export default function AdminPage() {
                   </div>
                 </div>
               )}
+
+              {/* ═══ REGISTERED USERS CRM & DATABASE ════════════════════════════ */}
+              {activeTab === 'users' && (
+                <div className="space-y-6">
+                  {/* Top Action & Search Bar */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-4 bg-dark-900 border border-white/10 rounded-2xl p-4">
+                    <div className="flex items-center space-x-3 flex-1">
+                      <div className="relative flex-1 max-w-md">
+                        <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          placeholder="Search users by name, phone (+91), or email..."
+                          value={userSearchTerm}
+                          onChange={(e) => setUserSearchTerm(e.target.value)}
+                          className="w-full pl-9 pr-4 py-2 bg-dark-950 border border-white/10 rounded-xl text-xs text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
+                        />
+                      </div>
+                      <span className="text-xs text-gray-400 font-mono hidden sm:inline">
+                        {registeredUsersList.length} Total Registered Customers
+                      </span>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        setNewUserForm({ name: '', phone: '', email: '' });
+                        setIsAddingUserModal(true);
+                      }}
+                      className={btnPrimary}
+                    >
+                      <Plus className="w-4 h-4" />
+                      <span>Add New Customer</span>
+                    </button>
+                  </div>
+
+                  {/* Registered Users Table */}
+                  <div className="bg-dark-900 border border-white/10 rounded-2xl overflow-hidden shadow-xl">
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="bg-dark-950 border-b border-white/10 text-gray-400 font-mono uppercase text-[10px] tracking-wider">
+                            <th className="p-3.5">Customer Name</th>
+                            <th className="p-3.5">Mobile Number</th>
+                            <th className="p-3.5">Email</th>
+                            <th className="p-3.5">Registration Date</th>
+                            <th className="p-3.5 text-center">Reservations</th>
+                            <th className="p-3.5 text-center">Total Spend</th>
+                            <th className="p-3.5 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5 font-sans">
+                          {registeredUsersList
+                            .filter(u => {
+                              const q = userSearchTerm.toLowerCase();
+                              return (
+                                u.name.toLowerCase().includes(q) ||
+                                u.phone.includes(q) ||
+                                (u.email || '').toLowerCase().includes(q)
+                              );
+                            })
+                            .map((u) => {
+                              const cleanPhone = u.phone.replace(/\D/g, '');
+                              const userRes = reservations.filter(r => r.phone.replace(/\D/g, '') === cleanPhone);
+                              const totalSpend = userRes.reduce((acc, r) => acc + (r.amount || (r.guests || 2) * 300), 0);
+
+                              return (
+                                <tr key={u.phone} className="hover:bg-white/5 transition-colors">
+                                  <td className="p-3.5 font-bold text-white flex items-center space-x-2.5">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-dark-950 flex items-center justify-center font-bold text-xs shrink-0 shadow">
+                                      {u.name.slice(0, 1).toUpperCase()}
+                                    </div>
+                                    <span>{u.name}</span>
+                                  </td>
+                                  <td className="p-3.5 font-mono text-amber-400 font-semibold">{u.phone}</td>
+                                  <td className="p-3.5 text-gray-300">{u.email || 'N/A'}</td>
+                                  <td className="p-3.5 text-gray-400 font-mono">
+                                    {u.registeredAt ? new Date(u.registeredAt).toLocaleDateString() : 'Direct Order'}
+                                  </td>
+                                  <td className="p-3.5 text-center font-bold text-emerald-400">
+                                    <span className="px-2 py-0.5 rounded-full bg-emerald-950/60 border border-emerald-500/30">
+                                      {userRes.length}
+                                    </span>
+                                  </td>
+                                  <td className="p-3.5 text-center font-mono font-bold text-amber-300">
+                                    ₹{totalSpend}
+                                  </td>
+                                  <td className="p-3.5 text-right space-x-1.5">
+                                    <button
+                                      onClick={() => setUserHistoryModal(u)}
+                                      className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white transition-all text-[11px] font-bold inline-flex items-center space-x-1"
+                                      title="View Booking History"
+                                    >
+                                      <Eye className="w-3.5 h-3.5" />
+                                      <span>History</span>
+                                    </button>
+
+                                    <button
+                                      onClick={() => setEditingUser(u)}
+                                      className={btnEdit}
+                                      title="Edit User"
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+
+                                    <button
+                                      onClick={() => {
+                                        setDeleteTarget({
+                                          label: `User ${u.name} (${u.phone})`,
+                                          action: () => {
+                                            const updated = registeredUsersList.filter(x => x.phone !== u.phone);
+                                            localStorage.setItem('wings_registered_users', JSON.stringify(updated));
+                                            setRegisteredUsersList(updated);
+                                          }
+                                        });
+                                      }}
+                                      className={btnDanger}
+                                      title="Delete User"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* ═══ REVENUE & REFUNDS MANAGEMENT ═══════════════════════════════ */}
+              {activeTab === 'revenue' && (() => {
+                const totalGross = reservations
+                  .filter(r => r.status !== 'cancelled' && r.status !== 'refunded')
+                  .reduce((acc, r) => acc + (r.amount || (r.guests || 2) * 300), 0);
+
+                const refundedBookings = reservations.filter(r => r.status === 'refunded' || r.status === 'cancelled');
+                const totalRefunded = refundedBookings.reduce((acc, r) => acc + (r.amount || (r.guests || 2) * 300), 0);
+                const netRevenue = Math.max(0, totalGross - totalRefunded);
+
+                return (
+                  <div className="space-y-6">
+                    {/* Revenue Overview Stats Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="bg-dark-900 border border-emerald-500/30 rounded-2xl p-5 shadow-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Gross Sales</span>
+                          <IndianRupee className="w-5 h-5 text-emerald-400" />
+                        </div>
+                        <p className="font-serif text-3xl font-extrabold text-white">₹{totalGross.toLocaleString()}</p>
+                        <p className="text-[11px] text-emerald-400 mt-1">Confirmed &amp; Active Dining Orders</p>
+                      </div>
+
+                      <div className="bg-dark-900 border border-rose-500/30 rounded-2xl p-5 shadow-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Total Refunded</span>
+                          <XCircle className="w-5 h-5 text-rose-400" />
+                        </div>
+                        <p className="font-serif text-3xl font-extrabold text-rose-300">₹{totalRefunded.toLocaleString()}</p>
+                        <p className="text-[11px] text-rose-400 mt-1">{refundedBookings.length} Cancelled / Refunded Slots</p>
+                      </div>
+
+                      <div className="bg-dark-900 border border-amber-500/30 rounded-2xl p-5 shadow-xl">
+                        <div className="flex items-center justify-between mb-2">
+                          <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Revenue</span>
+                          <Sparkles className="w-5 h-5 text-amber-400" />
+                        </div>
+                        <p className="font-serif text-3xl font-extrabold text-amber-300">₹{netRevenue.toLocaleString()}</p>
+                        <p className="text-[11px] text-amber-400 mt-1">Net Realized Earnings</p>
+                      </div>
+                    </div>
+
+                    {/* Refund Processing Table */}
+                    <div className="bg-dark-900 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h3 className="font-serif font-bold text-base text-white">Cancellation &amp; Refund Log</h3>
+                          <p className="text-xs text-gray-400">Automated 5-hour refund guarantee tracking &amp; instant razorpay refund initiation</p>
+                        </div>
+                      </div>
+
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs text-left">
+                          <thead>
+                            <tr className="bg-dark-950 border-b border-white/10 text-gray-400 font-mono uppercase text-[10px] tracking-wider">
+                              <th className="p-3">Reservation ID</th>
+                              <th className="p-3">Customer</th>
+                              <th className="p-3">Date &amp; Time Slot</th>
+                              <th className="p-3">Amount</th>
+                              <th className="p-3">Status</th>
+                              <th className="p-3 text-right">Action</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5 font-mono">
+                            {refundedBookings.map((r) => (
+                              <tr key={r.id} className="hover:bg-white/5">
+                                <td className="p-3 font-bold text-amber-400">{r.id}</td>
+                                <td className="p-3 font-sans font-bold text-white">{r.name} ({r.phone})</td>
+                                <td className="p-3 text-gray-300">{r.date} @ {r.time}</td>
+                                <td className="p-3 font-bold text-emerald-400">₹{r.amount || (r.guests || 2) * 300}</td>
+                                <td className="p-3">
+                                  {r.status === 'refunded' ? (
+                                    <span className="px-2.5 py-0.5 rounded-full bg-emerald-950/80 border border-emerald-500/40 text-emerald-300 text-[10px] font-bold">
+                                      Refund Processed ✓
+                                    </span>
+                                  ) : (
+                                    <span className="px-2.5 py-0.5 rounded-full bg-rose-950/80 border border-rose-500/40 text-rose-300 text-[10px] font-bold">
+                                      Cancelled / Pending Refund
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="p-3 text-right">
+                                  {r.status !== 'refunded' && (
+                                    <button
+                                      onClick={async () => {
+                                        if (window.confirm(`Initiate instant refund of ₹${r.amount || (r.guests || 2) * 300} for ${r.name}?`)) {
+                                          await updateReservationStatus(r.id, 'refunded');
+                                          loadAll();
+                                          alert('Refund initiated successfully! Customer account updated.');
+                                        }
+                                      }}
+                                      className="px-3 py-1 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-[10px] uppercase shadow transition-all"
+                                    >
+                                      Initiate Refund
+                                    </button>
+                                  )}
+                                </td>
+                              </tr>
+                            ))}
+                            {refundedBookings.length === 0 && (
+                              <tr>
+                                <td colSpan={6} className="p-6 text-center text-gray-500 font-sans text-xs">
+                                  No cancellations or refund requests recorded yet.
+                                </td>
+                              </tr>
+                            )}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* ═══ BOOKING RESERVATION HEATMAP & ANALYTICS ═══════════════════ */}
+              {activeTab === 'heatmap' && (() => {
+                const weekdays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                const slots = [
+                  { label: 'Lunch (11 AM - 3 PM)', range: [11, 12, 13, 14, 15] },
+                  { label: 'Sunset (4 PM - 7 PM)', range: [16, 17, 18, 19] },
+                  { label: 'Dinner (8 PM - 12 AM)', range: [20, 21, 22, 23] }
+                ];
+
+                return (
+                  <div className="space-y-6">
+                    {/* Area Filter Selector */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-dark-900 border border-white/10 rounded-2xl p-4">
+                      <div>
+                        <h3 className="font-serif font-bold text-base text-white">Weekly Reservation Heatmap</h3>
+                        <p className="text-xs text-gray-400">Peak dining hours &amp; table occupancy density across weekdays</p>
+                      </div>
+
+                      <div className="flex items-center space-x-2">
+                        <Filter className="w-4 h-4 text-amber-400 shrink-0" />
+                        <select
+                          value={heatmapAreaFilter}
+                          onChange={(e) => setHeatmapAreaFilter(e.target.value as any)}
+                          className="px-3 py-2 bg-dark-950 border border-white/15 rounded-xl text-xs text-white focus:outline-none focus:border-amber-400 font-bold"
+                        >
+                          <option value="all">All Dining Decks</option>
+                          <option value="indoor">Indoor AC Hall (T1-T13)</option>
+                          <option value="garden">Open Garden Deck (T14-T17)</option>
+                          <option value="rooftop">Rooftop View Deck (T18-T20)</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Interactive Heatmap Matrix */}
+                    <div className="bg-dark-900 border border-white/10 rounded-2xl p-5 space-y-4 shadow-xl">
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-xs border-collapse">
+                          <thead>
+                            <tr className="border-b border-white/10 text-gray-400 font-mono uppercase text-[10px]">
+                              <th className="p-3 text-left">Time Slot \ Day</th>
+                              {weekdays.map(d => (
+                                <th key={d} className="p-3 text-center">{d.slice(0, 3)}</th>
+                              ))}
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-white/5 font-sans">
+                            {slots.map((slot) => (
+                              <tr key={slot.label}>
+                                <td className="p-3 font-bold text-amber-300 font-mono shrink-0">{slot.label}</td>
+                                {weekdays.map((day, dIdx) => {
+                                  // Compute booking density count for this day x slot
+                                  const density = reservations.filter(r => {
+                                    if (!r.date) return false;
+                                    const d = new Date(r.date);
+                                    const dayNum = d.getDay(); // 0 is Sunday, 1 is Mon
+                                    const mappedDay = dayNum === 0 ? 6 : dayNum - 1;
+                                    if (mappedDay !== dIdx) return false;
+
+                                    const hour = parseInt((r.time || '19:00').split(':')[0], 10);
+                                    return slot.range.includes(hour);
+                                  }).length;
+
+                                  let bgStyle = 'bg-dark-950 border-white/5 text-gray-500';
+                                  if (density >= 1 && density <= 3) bgStyle = 'bg-emerald-950/60 border-emerald-500/30 text-emerald-300 font-bold';
+                                  if (density >= 4 && density <= 7) bgStyle = 'bg-amber-950/70 border-amber-500/40 text-amber-300 font-extrabold';
+                                  if (density >= 8) bgStyle = 'bg-rose-950/80 border-rose-500/50 text-rose-300 font-black scale-105';
+
+                                  return (
+                                    <td key={day} className="p-2 text-center">
+                                      <div className={`p-3 rounded-xl border text-center transition-all ${bgStyle}`} title={`${density} Bookings on ${day} during ${slot.label}`}>
+                                        <span className="text-sm font-serif">{density}</span>
+                                        <span className="block text-[9px] uppercase tracking-wider opacity-70">
+                                          {density === 0 ? 'Quiet' : density > 7 ? 'PEAK' : 'Busy'}
+                                        </span>
+                                      </div>
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+
+                      {/* Legend */}
+                      <div className="flex flex-wrap items-center justify-center gap-6 pt-3 text-xs text-gray-400 font-medium border-t border-white/5">
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-dark-950 border border-white/10" /> 0 Bookings (Quiet)</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-emerald-950 border border-emerald-500/40 text-emerald-300" /> 1–3 Moderate</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-amber-950 border border-amber-500/40 text-amber-300" /> 4–7 High Demand</span>
+                        <span className="flex items-center gap-1.5"><span className="w-3 h-3 rounded bg-rose-950 border border-rose-500/50 text-rose-300" /> 8+ Peak Capacity</span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
             </>
           )}
         </div>

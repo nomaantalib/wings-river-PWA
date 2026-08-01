@@ -121,12 +121,12 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
         </div>
 
 
-        {/* CTA Button Group — Compact on mobile (grid-cols-2), responsive grid on desktop */}
-        <div className="w-full max-w-3xl mx-auto px-2 mb-6">
-          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-2.5 justify-items-stretch">
+        {/* CTA Button Group — display flex with controlled reduced width on mobile */}
+        <div className="w-full max-w-2xl mx-auto px-2 mb-6">
+          <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-3">
             <a
               href="#floor-map"
-              className="flex items-center justify-center space-x-1.5 px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 sm:px-5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-auto min-w-[130px] max-w-[180px] sm:max-w-none text-center"
             >
               <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span>Reserve Table</span>
@@ -134,7 +134,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
 
             <button
               onClick={() => onOpenBooking('birthday_party')}
-              className="flex items-center justify-center space-x-1.5 px-3 py-2.5 sm:px-4 sm:py-3 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center"
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 sm:px-5 sm:py-3 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-auto min-w-[130px] max-w-[180px] sm:max-w-none text-center"
             >
               <Utensils className="w-3.5 h-3.5 sm:w-4 sm:h-4 shrink-0" />
               <span>Book Party / Event</span>
@@ -142,7 +142,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
 
             <button
               onClick={() => onOpenMyBookings ? onOpenMyBookings() : onOpenBooking('table_booking')}
-              className="flex items-center justify-center space-x-1.5 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#181B22]/90 backdrop-blur-md border border-[#F5D061]/60 text-[#F5D061] font-bold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl hover:bg-[#231710] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 sm:px-5 sm:py-3 bg-[#181B22]/90 backdrop-blur-md border border-[#F5D061]/60 text-[#F5D061] font-bold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl hover:bg-[#231710] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-auto min-w-[130px] max-w-[180px] sm:max-w-none text-center shadow-lg"
             >
               <Ticket className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F5D061] shrink-0" />
               <span>My Reservations</span>
@@ -150,7 +150,7 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
 
             <a
               href="#menu-card"
-              className="flex items-center justify-center space-x-1.5 px-3 py-2.5 sm:px-4 sm:py-3 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/40 text-[#E8DCB8] font-bold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full text-center shadow-lg"
+              className="flex items-center justify-center space-x-1.5 px-3.5 py-2.5 sm:px-5 sm:py-3 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/40 text-[#E8DCB8] font-bold text-[11px] sm:text-xs rounded-xl sm:rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-auto min-w-[130px] max-w-[180px] sm:max-w-none text-center shadow-lg"
             >
               <BookOpen className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#F5D061] shrink-0" />
               <span>View Menu</span>
