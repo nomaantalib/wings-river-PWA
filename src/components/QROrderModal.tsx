@@ -338,9 +338,32 @@ export default function QROrderModal({ isOpen, onClose, tableNumber = 'T4' }: QR
                     <span>₹{gstAmount}</span>
                   </div>
                   <div className="flex justify-between text-sm font-bold text-amber-300 pt-2 border-t border-dark-800 mt-2">
-                    <span>Grand Total</span>
+                    <span>Total Amount Payable</span>
                     <span>₹{totalBill}</span>
                   </div>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-dark-800">
+                  <button
+                    onClick={async () => {
+                      if (totalBill === 0) return alert('Your cart is empty');
+                      const { openRazorpayCheckout } = await import('@/lib/razorpay');
+                      await openRazorpayCheckout({
+                        amount: totalBill,
+                        name: `Wings River Café • Table ${tableNumber} Bill`,
+                        description: `Food Bill Settlement for Table ${tableNumber}`,
+                        customerName: `Guest Table ${tableNumber}`,
+                        customerPhone: '07310008020',
+                        onSuccess: (paymentId) => {
+                          alert(`Payment Successful! Payment ID: ${paymentId}. Your bill has been marked PAID.`);
+                        }
+                      });
+                    }}
+                    className="w-full py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold text-xs rounded-xl shadow-lg flex items-center justify-center space-x-2 transition"
+                  >
+                    <Receipt className="w-4 h-4" />
+                    <span>Pay ₹{totalBill} Online via Razorpay (Test Key)</span>
+                  </button>
                 </div>
               </div>
             </div>

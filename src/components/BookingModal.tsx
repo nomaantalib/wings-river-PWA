@@ -49,9 +49,26 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
         created_at: new Date().toISOString()
       };
 
-      await saveReservation(newBooking);
+      // Import & launch Razorpay Checkout for token payment ₹500
+      const { openRazorpayCheckout } = await import('@/lib/razorpay');
+      await openRazorpayCheckout({
+        amount: 500,
+        name: 'Wings River Café Table Reservation Token',
+        description: `${bookingType.replace('_', ' ').toUpperCase()} • ${formData.date} at ${formData.time}`,
+        customerName: formData.name,
+        customerPhone: formData.phone,
+        customerEmail: formData.email,
+        onSuccess: async (paymentId) => {
+          newBooking.status = 'confirmed';
+          await saveReservation(newBooking);
+          setSuccessMsg(`Payment Successful! (Ref: ${paymentId}). Your reservation is confirmed.`);
+        },
+        onFailure: async () => {
+          await saveReservation(newBooking);
+          setSuccessMsg('Reservation saved (Pay at venue). Our team will confirm shortly.');
+        }
+      });
 
-      setSuccessMsg('Your reservation request has been submitted successfully! Our team will call you to confirm.');
       setFormData({
         name: '',
         phone: '',
@@ -67,6 +84,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
       setLoading(false);
     }
   };
+
 
   const bookingOptions = [
     { id: 'table_booking', label: 'Table Booking', icon: Calendar },
