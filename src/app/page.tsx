@@ -31,6 +31,8 @@ import QROrderModal from '@/components/QROrderModal';
 import MyBookingsModal from '@/components/MyBookingsModal';
 import { Ticket, QrCode } from 'lucide-react';
 
+import { initRealtimeBookingNotifier } from '@/lib/firebaseMessaging';
+
 // Push Notification: register SW silently on page load
 import '@/lib/pushNotifications';
 
@@ -45,6 +47,7 @@ export default function Home() {
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   useEffect(() => {
+    initRealtimeBookingNotifier();
     const handleSync = () => setSyncKey(prev => prev + 1);
     window.addEventListener('wings_db_sync', handleSync);
 
