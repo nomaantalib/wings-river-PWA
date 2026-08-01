@@ -47,7 +47,7 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
   const activeSlide = slides[currentSlide] || slides[0];
 
   return (
-    <section id="home" className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-dark-950 text-white pt-20">
+    <section id="home" className="relative w-full min-h-screen flex items-center justify-center overflow-hidden bg-dark-950 text-white pt-14">
       {/* Background Video — Playing ambient background loop */}
       <div className="absolute inset-0 z-0 overflow-hidden">
         <video

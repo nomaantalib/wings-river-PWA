@@ -63,15 +63,31 @@ export interface MediaItem {
   updated_at?: string;
 }
 
+// ── Cloudinary Image Optimization CDN Helpers ──────────────────────────────
+const CLOUDINARY_CLOUD = process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME || 'vrgblmky';
+
 export function getCloudinaryOptimizedUrl(url: string, width?: number, quality: string = 'auto'): string {
-  if (!url || !url.includes('res.cloudinary.com')) return url;
-  const parts = url.split('/upload/');
-  if (parts.length === 2) {
-    const transform = width ? `f_auto,q_${quality},w_${width}` : `f_auto,q_${quality}`;
-    return `${parts[0]}/upload/${transform}/${parts[1]}`;
+  if (!url) return url;
+  // Already a Cloudinary URL → inject transformation params
+  if (url.includes('res.cloudinary.com')) {
+    const parts = url.split('/upload/');
+    if (parts.length === 2) {
+      const cropTransform = width ? `c_fill,ar_4:6,g_auto,f_auto,q_${quality},w_${width}` : `f_auto,q_${quality}`;
+      return `${parts[0]}/upload/${cropTransform}/${parts[1]}`;
+    }
+    return url;
+  }
+  // External URL → proxy via Cloudinary fetch with auto 4:6 crop
+  if (url.startsWith('http')) {
+    const encoded = encodeURIComponent(url);
+    const cropTransform = width
+      ? `c_fill,ar_4:6,g_auto,f_auto,q_${quality},w_${width}`
+      : `f_auto,q_${quality}`;
+    return `https://res.cloudinary.com/${CLOUDINARY_CLOUD}/image/fetch/${cropTransform}/${encoded}`;
   }
   return url;
 }
+
 
 export interface SitePage {
   id: string;

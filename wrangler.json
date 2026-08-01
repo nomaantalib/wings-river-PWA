@@ -2,7 +2,7 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wings-river-pwa",
   "pages_build_output_dir": "out",
-  "compatibility_date": "2026-07-20",
+  "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
     {
@@ -13,6 +13,8 @@
   ],
   "vars": {
     "CLOUDFLARE_D1_DATABASE_ID": "912b607b-c192-4e0a-89ba-75f936fca45c",
+    "CLOUDFLARE_ACCOUNT_ID": "8f1aecb785da9e40b20ab73a3b15e27e",
+    "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "vrgblmky",
     "NEXT_PUBLIC_FIREBASE_VAPID_KEY": "BB_D3Bo704xpIpSFlesjRGUCnDx8qx2fKV1dV4w3M_eArGEQ4E7MPI6r86uvMLdjLS8XoQS72eXf5a_36GBiNFk",
     "NEXT_PUBLIC_FCM_SENDER_ID": "901662805305",
     "NEXT_PUBLIC_RAZORPAY_KEY_ID": "rzp_test_T6KQlgcu5bhQPo",
@@ -20,7 +22,7 @@
     "NEXT_PUBLIC_MAPS_URL": "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA",
     "NEXT_PUBLIC_PHONE": "07310008020",
     "NEXT_PUBLIC_SLOGAN": "Taste • Eat • Rides",
-    "NEXT_PUBLIC_WHATSAPP": "917310008020"
+    "NEXT_PUBLIC_WHATSAPP": "917310008020",
+    "NEXT_PUBLIC_SITE_NAME": "Wings River Café"
   }
 }
-
