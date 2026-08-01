@@ -37,10 +37,10 @@ export default function AboutSection() {
       cardBg: 'bg-white border-mint-100'
     },
     {
-      icon: Star,
-      value: '4.1★',
-      label: 'Google Rating',
-      subText: 'Top Rated Waterfront Spot',
+      icon: Award,
+      value: '4.9 / 5.0',
+      label: 'Guest Rating',
+      subText: 'Based on 500+ Google Reviews',
       color: 'text-dark-900',
       bgColor: 'bg-gold-500',
       cardBg: 'bg-gold-300/25 border-gold-400/50 shadow-gold-500/10'

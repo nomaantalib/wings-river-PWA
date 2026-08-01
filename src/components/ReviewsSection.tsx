@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStoredReviews, saveReview, Review, INITIAL_REVIEWS } from '@/lib/db';
-import { Star, Quote, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
+import { Quote, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
+
 
 export default function ReviewsSection() {
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
@@ -50,9 +51,8 @@ export default function ReviewsSection() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header Badge & Title */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center space-x-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 via-gold-400 to-amber-500 border-2 border-amber-600 text-dark-950 text-xs sm:text-sm font-extrabold uppercase mb-4 shadow-xl drop-shadow-md">
-            <Star className="w-4 h-4 fill-dark-950 text-dark-950" />
-            <span className="tracking-wide">4.1 ★ Google Rating • 500+ Happy Customers</span>
+          <div className="inline-flex items-center space-x-2.5 px-5 py-2.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-dark-950 text-xs sm:text-sm font-extrabold uppercase mb-4 shadow-xl">
+            <span className="tracking-wide">4.9 / 5.0 Rating • 500+ Happy Customers</span>
           </div>
 
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-dark-900 tracking-tight mb-4">
@@ -67,14 +67,13 @@ export default function ReviewsSection() {
         <div className="relative max-w-4xl mx-auto">
           {reviews.length > 0 && (
             <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-cream-200 relative">
-              <Quote className="w-12 h-12 text-mint-200 absolute top-6 right-6 pointer-events-none" />
+              <Quote className="w-12 h-12 text-amber-200 absolute top-6 right-6 pointer-events-none" />
 
-              {/* Star Rating */}
-              <div className="flex items-center space-x-1 text-gold-500 mb-6">
-                {[...Array(reviews[currentIndex].rating || 5)].map((_, i) => (
-                  <Star key={i} className="w-5 h-5 fill-current" />
-                ))}
+              {/* Rating Badge */}
+              <div className="inline-flex items-center space-x-1.5 bg-amber-100 text-amber-900 px-3 py-1 rounded-full text-xs font-bold font-mono mb-6">
+                <span>{reviews[currentIndex].rating || 5}.0 / 5.0 Rating</span>
               </div>
+
 
               {/* Review Quote */}
               <p className="font-serif text-lg sm:text-2xl text-dark-900 leading-relaxed italic mb-8">

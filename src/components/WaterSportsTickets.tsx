@@ -154,15 +154,16 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
           ))}
         </div>
 
-        {/* ── RIDE CARDS GRID ── */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {/* ── RIDE CARDS HORIZONTAL CAROUSEL ── */}
+        <div className="flex flex-row overflow-x-auto gap-6 pb-6 snap-x snap-mandatory scrollbar-thin scrollbar-thumb-amber-500/30 scrollbar-track-dark-900 scroll-smooth">
           {filteredRides.map((ride) => (
             <div
               key={ride.id}
               onMouseEnter={() => setHoveredRide(ride.id)}
               onMouseLeave={() => setHoveredRide(null)}
-              className="bg-dark-900/40 backdrop-blur-sm border border-white/10 hover:border-gold-400/40 hover:shadow-2xl hover:shadow-gold-500/10 hover:-translate-y-1 transition-all duration-400 flex flex-col group rounded-3xl overflow-hidden"
+              className="min-w-[280px] sm:min-w-[340px] max-w-[340px] snap-center shrink-0 bg-dark-900/60 backdrop-blur-sm border border-white/10 hover:border-amber-400/40 hover:shadow-2xl hover:shadow-amber-500/10 transition-all duration-300 flex flex-col group rounded-3xl overflow-hidden"
             >
+
               {/* Image */}
               <div className="relative h-52 w-full overflow-hidden bg-gray-900">
                 <img

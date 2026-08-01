@@ -1579,4 +1579,114 @@ app.delete('/promopages/:id', async (c) => {
   }
 });
 
+// ── 20. TABLE-NUMBER-WISE DEDICATED APIS & QR CODE ROUTER ──────────────────
+
+// GET /tables - List all tables and clusters
+app.get('/tables', async (c) => {
+  const db = c.env?.DB;
+  if (!db) return c.json({ success: true, data: [] });
+  try {
+    await ensureTables(db);
+    const tables = await db.prepare("SELECT * FROM tables WHERE is_active = 1 ORDER BY table_number ASC").all();
+    const clusters = await db.prepare("SELECT * FROM table_clusters ORDER BY display_order ASC").all();
+    return c.json({ success: true, data: tables.results || [], clusters: clusters.results || [] });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+// GET /tables/:tableNumber - Get details for a specific table (e.g. T4)
+app.get('/tables/:tableNumber', async (c) => {
+  const db = c.env?.DB;
+  const tableNum = c.req.param('tableNumber').toUpperCase();
+  if (!db) return c.json({ success: true, table_number: tableNum, status: 'free' });
+  try {
+    await ensureTables(db);
+    const tbl = await db.prepare("SELECT * FROM tables WHERE table_number = ? OR id = ?").bind(tableNum, tableNum).first();
+    const activeOrder = await db.prepare("SELECT * FROM orders WHERE table_number = ? AND status NOT IN ('completed', 'cancelled') ORDER BY created_at DESC LIMIT 1").bind(tableNum).first();
+    const activeCall = await db.prepare("SELECT * FROM call_requests WHERE table_number = ? AND status = 'pending' ORDER BY created_at DESC LIMIT 1").bind(tableNum).first();
+    return c.json({
+      success: true,
+      data: tbl || { table_number: tableNum, status: 'free', capacity: 4 },
+      active_order: activeOrder || null,
+      active_call_request: activeCall || null
+    });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+// GET /tables/:tableNumber/qr - Get table-wise QR code URL & redirect payload
+app.get('/tables/:tableNumber/qr', async (c) => {
+  const tableNum = c.req.param('tableNumber').toUpperCase();
+  const host = c.req.header('host') || 'wings-river-pwa.pages.dev';
+  const protocol = host.includes('localhost') ? 'http' : 'https';
+  const targetUrl = `${protocol}://${host}/?table=${tableNum}`;
+  const qrImageUrl = `https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${encodeURIComponent(targetUrl)}`;
+
+  return c.json({
+    success: true,
+    table_number: tableNum,
+    qr_redirect_url: targetUrl,
+    qr_code_image: qrImageUrl
+  });
+});
+
+// POST /tables/:tableNumber/order - Submit direct food order for specific table
+app.post('/tables/:tableNumber/order', async (c) => {
+  const db = c.env?.DB;
+  const tableNum = c.req.param('tableNumber').toUpperCase();
+  if (!db) return c.json({ success: false, error: 'Database not available' }, 503);
+  try {
+    await ensureTables(db);
+    const body = await c.req.json();
+    const orderId = `ord-${Date.now()}`;
+    const orderNum = `ORD-${Math.floor(100 + Math.random() * 900)}`;
+    const items = body.items || [];
+    const totalAmount = body.total_amount || items.reduce((sum, item) => sum + (item.price * item.quantity), 0);
+
+    await db.prepare(`
+      INSERT INTO orders (id, order_number, table_number, customer_name, customer_phone, order_type, status, total_amount, notes)
+      VALUES (?, ?, ?, ?, ?, 'qr_dine_in', 'new', ?, ?)
+    `).bind(orderId, orderNum, tableNum, sanitize(body.customer_name || 'Guest'), sanitize(body.customer_phone || ''), totalAmount, sanitize(body.notes || '')).run();
+
+    for (const item of items) {
+      await db.prepare(`
+        INSERT INTO order_items (id, order_id, menu_item_id, item_name, quantity, price, notes)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
+      `).bind(`item-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`, orderId, item.id || '', item.name, item.quantity || 1, item.price || 0, sanitize(item.notes || '')).run();
+    }
+
+    // Update table status to eating
+    await db.prepare("UPDATE tables SET status = 'eating' WHERE table_number = ?").bind(tableNum).run();
+
+    return c.json({ success: true, order_id: orderId, order_number: orderNum, table_number: tableNum });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+// POST /tables/:tableNumber/call-waiter - Submit waiter call alert for specific table
+app.post('/tables/:tableNumber/call-waiter', async (c) => {
+  const db = c.env?.DB;
+  const tableNum = c.req.param('tableNumber').toUpperCase();
+  if (!db) return c.json({ success: false, error: 'Database not available' }, 503);
+  try {
+    await ensureTables(db);
+    const body = await c.req.json();
+    const requestId = `call-${Date.now()}`;
+    const reqType = sanitize(body.request_type || 'Call Waiter');
+
+    await db.prepare(`
+      INSERT INTO call_requests (id, table_number, request_type, status)
+      VALUES (?, ?, ?, 'pending')
+    `).bind(requestId, tableNum, reqType).run();
+
+    return c.json({ success: true, request_id: requestId, table_number: tableNum, request_type: reqType });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
 export const onRequest = handle(app);
+

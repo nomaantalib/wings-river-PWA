@@ -32,16 +32,15 @@ export default function LoadingScreen() {
       }`}
     >
       <div className="relative flex flex-col items-center">
-        {/* Brand Logo with Soft Glow */}
-        <div className="relative w-28 h-28 mb-4 flex items-center justify-center animate-pulse">
-          <div className="absolute inset-0 rounded-full bg-amber-500/20 blur-xl" />
+        {/* Brand Logo with 25% border-radius */}
+        <div className="relative w-28 h-28 mb-4 flex items-center justify-center rounded-[25%] overflow-hidden bg-dark-900 border border-amber-500/30 p-2 shadow-2xl shadow-amber-500/20">
           <Image
             src="/logo.png"
             alt="Wings River Café Logo"
             width={112}
             height={112}
             priority
-            className="w-full h-full object-contain relative z-10 drop-shadow-[0_10px_25px_rgba(217,119,6,0.3)]"
+            className="w-full h-full object-cover rounded-[25%]"
           />
         </div>
 

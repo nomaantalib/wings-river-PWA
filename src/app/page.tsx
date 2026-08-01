@@ -32,12 +32,26 @@ export default function Home() {
   const [bookingInitialType, setBookingInitialType] = useState('table_booking');
   const [isQROrderOpen, setIsQROrderOpen] = useState(false);
   const [isMyBookingsOpen, setIsMyBookingsOpen] = useState(false);
-  const [selectedTableNumber, setSelectedTableNumber] = useState('T2');
+  const [selectedTableNumber, setSelectedTableNumber] = useState('T1');
   const [syncKey, setSyncKey] = useState(0);
 
   useEffect(() => {
     const handleSync = () => setSyncKey(prev => prev + 1);
     window.addEventListener('wings_db_sync', handleSync);
+
+    // Auto-detect Table QR Code URL Scan (e.g. ?table=T4 or ?qr=T4)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tableParam = params.get('table') || params.get('qr') || params.get('t');
+      if (tableParam) {
+        const formattedTable = tableParam.toUpperCase().startsWith('T') || tableParam.toUpperCase().startsWith('V')
+          ? tableParam.toUpperCase()
+          : `T${tableParam}`;
+        setSelectedTableNumber(formattedTable);
+        setIsQROrderOpen(true);
+      }
+    }
+
     return () => window.removeEventListener('wings_db_sync', handleSync);
   }, []);
 
