@@ -28,13 +28,15 @@ export default function Navbar({ onOpenBooking }: NavbarProps) {
     { name: 'Home', href: '#home' },
     { name: 'About', href: '#about' },
     { name: 'Menu', href: '#menu-card' },
+    { name: 'Reserve Table', href: '#floor-map' },
     { name: 'Gallery', href: '#gallery' },
     { name: 'Reviews', href: '#reviews' },
     { name: 'Blog', href: '#blog' },
     { name: 'Location', href: '#location' },
-    { name: 'Contact', href: '#contact' },
+    { name: 'Staff Terminal', href: '/staff' },
     { name: 'Admin CMS', href: '/admin' },
   ];
+
 
   return (
     <header

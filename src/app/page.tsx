@@ -21,9 +21,18 @@ import BookingModal from '@/components/BookingModal';
 import InstallPWAView from '@/views/InstallPWAView';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
 
+// SRS Modules
+import InteractiveFloorMap from '@/components/InteractiveFloorMap';
+import QROrderModal from '@/components/QROrderModal';
+import MyBookingsModal from '@/components/MyBookingsModal';
+import { Ticket, QrCode } from 'lucide-react';
+
 export default function Home() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
   const [bookingInitialType, setBookingInitialType] = useState('table_booking');
+  const [isQROrderOpen, setIsQROrderOpen] = useState(false);
+  const [isMyBookingsOpen, setIsMyBookingsOpen] = useState(false);
+  const [selectedTableNumber, setSelectedTableNumber] = useState('T2');
   const [syncKey, setSyncKey] = useState(0);
 
   useEffect(() => {
@@ -37,15 +46,45 @@ export default function Home() {
     setIsBookingOpen(true);
   };
 
+  const handleSelectTableFromMap = (table: any) => {
+    setSelectedTableNumber(table.table_number);
+    handleOpenBooking('table_booking');
+  };
+
   return (
     <main className="min-h-screen bg-dark-950 text-white relative">
       <LoadingScreen />
       <Navbar onOpenBooking={() => handleOpenBooking('table_booking')} />
       
       <HeroSection onOpenBooking={handleOpenBooking} />
+
+      {/* Quick Customer Action Buttons */}
+      <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap items-center justify-center gap-4">
+        <button
+          onClick={() => setIsQROrderOpen(true)}
+          className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold text-xs rounded-xl shadow-lg shadow-amber-500/20 flex items-center space-x-2 transition"
+        >
+          <QrCode className="w-4 h-4" />
+          <span>Table QR Menu & Direct Ordering</span>
+        </button>
+
+        <button
+          onClick={() => setIsMyBookingsOpen(true)}
+          className="px-5 py-2.5 bg-dark-900 border border-amber-500/30 hover:border-amber-500 text-amber-300 font-bold text-xs rounded-xl shadow flex items-center space-x-2 transition"
+        >
+          <Ticket className="w-4 h-4" />
+          <span>My Reservations & QR Tickets</span>
+        </button>
+      </div>
+
       <AboutSection />
       <FeaturesSection />
-      
+
+      {/* SRS Interactive Table Reservation Floor Map Section */}
+      <section id="floor-map" className="py-12 px-4 max-w-7xl mx-auto">
+        <InteractiveFloorMap onSelectTable={handleSelectTableFromMap} />
+      </section>
+
       {/* Exclusive Deals & Promo Banners Section */}
       <OffersSection key={`offers-${syncKey}`} onOpenBooking={handleOpenBooking} />
 
@@ -67,10 +106,22 @@ export default function Home() {
       <PWAInstallBanner />
       <InstallPWAView />
 
+      {/* Customer Modals */}
       <BookingModal
         isOpen={isBookingOpen}
         onClose={() => setIsBookingOpen(false)}
         initialType={bookingInitialType}
+      />
+
+      <QROrderModal
+        isOpen={isQROrderOpen}
+        onClose={() => setIsQROrderOpen(false)}
+        tableNumber={selectedTableNumber}
+      />
+
+      <MyBookingsModal
+        isOpen={isMyBookingsOpen}
+        onClose={() => setIsMyBookingsOpen(false)}
       />
     </main>
   );
