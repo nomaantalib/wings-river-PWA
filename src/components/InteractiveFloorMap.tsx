@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Users, Clock, Calendar, CheckCircle2, ShieldAlert,
   ArrowLeft, Home, Leaf, Sunset, ChevronRight, MapPin,
+  Timer, Sparkles, ChevronDown, ChevronUp,
 } from 'lucide-react';
 import { calculateBookingPrice } from '@/lib/pricing';
 
@@ -26,7 +27,7 @@ interface AreaCard {
   gradient: string;
   borderStyle: string;
   tagStyle: string;
-  tables: string; // range label e.g. "T14 – T17"
+  tables: string;
   tableIds: string[];
 }
 
@@ -37,28 +38,27 @@ interface InteractiveFloorMapProps {
 /* ─── Static Table Data ───────────────────────────────────── */
 const ALL_TABLES: TableData[] = [
   // Rooftop Upper Deck — T1-T6
-  { id: 'tbl-1',  table_number: 'T1', cluster_id: 'rooftop',  capacity: 2, status: 'free' },
-  { id: 'tbl-2',  table_number: 'T2', cluster_id: 'rooftop',  capacity: 4, status: 'eating' },
-  { id: 'tbl-3',  table_number: 'T3', cluster_id: 'rooftop',  capacity: 2, status: 'free' },
-  { id: 'tbl-4',  table_number: 'T4', cluster_id: 'rooftop',  capacity: 4, status: 'free' },
-  { id: 'tbl-5',  table_number: 'T5', cluster_id: 'rooftop',  capacity: 2, status: 'free' },
-  { id: 'tbl-6',  table_number: 'T6', cluster_id: 'rooftop',  capacity: 4, status: 'reserved' },
+  { id: 'tbl-1',  table_number: 'T1', cluster_id: 'rooftop', capacity: 2, status: 'free' },
+  { id: 'tbl-2',  table_number: 'T2', cluster_id: 'rooftop', capacity: 4, status: 'eating' },
+  { id: 'tbl-3',  table_number: 'T3', cluster_id: 'rooftop', capacity: 2, status: 'free' },
+  { id: 'tbl-4',  table_number: 'T4', cluster_id: 'rooftop', capacity: 4, status: 'free' },
+  { id: 'tbl-5',  table_number: 'T5', cluster_id: 'rooftop', capacity: 2, status: 'free' },
+  { id: 'tbl-6',  table_number: 'T6', cluster_id: 'rooftop', capacity: 4, status: 'reserved' },
   // Open Garden — T7-T13
-  { id: 'tbl-7',  table_number: 'T7',  cluster_id: 'garden',  capacity: 4, status: 'free' },
-  { id: 'tbl-8',  table_number: 'T8',  cluster_id: 'garden',  capacity: 4, status: 'free' },
-  { id: 'tbl-9',  table_number: 'T9',  cluster_id: 'garden',  capacity: 6, status: 'eating' },
-  { id: 'tbl-10', table_number: 'T10', cluster_id: 'garden',  capacity: 4, status: 'free' },
-  { id: 'tbl-11', table_number: 'T11', cluster_id: 'garden',  capacity: 4, status: 'free' },
-  { id: 'tbl-12', table_number: 'T12', cluster_id: 'garden',  capacity: 6, status: 'free' },
-  { id: 'tbl-13', table_number: 'T13', cluster_id: 'garden',  capacity: 8, status: 'reserved' },
+  { id: 'tbl-7',  table_number: 'T7',  cluster_id: 'garden', capacity: 4, status: 'free' },
+  { id: 'tbl-8',  table_number: 'T8',  cluster_id: 'garden', capacity: 4, status: 'free' },
+  { id: 'tbl-9',  table_number: 'T9',  cluster_id: 'garden', capacity: 6, status: 'eating' },
+  { id: 'tbl-10', table_number: 'T10', cluster_id: 'garden', capacity: 4, status: 'free' },
+  { id: 'tbl-11', table_number: 'T11', cluster_id: 'garden', capacity: 4, status: 'free' },
+  { id: 'tbl-12', table_number: 'T12', cluster_id: 'garden', capacity: 6, status: 'free' },
+  { id: 'tbl-13', table_number: 'T13', cluster_id: 'garden', capacity: 8, status: 'reserved' },
   // Indoor AC Hall — T14-T17
-  { id: 'tbl-14', table_number: 'T14', cluster_id: 'indoor',  capacity: 4, status: 'free' },
-  { id: 'tbl-15', table_number: 'T15', cluster_id: 'indoor',  capacity: 4, status: 'free' },
-  { id: 'tbl-16', table_number: 'T16', cluster_id: 'indoor',  capacity: 6, status: 'eating' },
-  { id: 'tbl-17', table_number: 'T17', cluster_id: 'indoor',  capacity: 8, status: 'free' },
+  { id: 'tbl-14', table_number: 'T14', cluster_id: 'indoor', capacity: 4, status: 'free' },
+  { id: 'tbl-15', table_number: 'T15', cluster_id: 'indoor', capacity: 4, status: 'free' },
+  { id: 'tbl-16', table_number: 'T16', cluster_id: 'indoor', capacity: 6, status: 'eating' },
+  { id: 'tbl-17', table_number: 'T17', cluster_id: 'indoor', capacity: 8, status: 'free' },
 ];
 
-/* ─── Executive Color Palette Cards (Brown, Pista, Golden Beige, Black) ── */
 const AREAS: AreaCard[] = [
   {
     id: 'indoor',
@@ -98,24 +98,32 @@ const AREAS: AreaCard[] = [
   },
 ];
 
-
-/* ─── Table Layout per area (row arrays) ─────────────────── */
 const AREA_LAYOUTS: Record<string, string[][]> = {
-  rooftop: [
-    ['T1', 'T3', 'T5'],
-    ['T2', 'T4', 'T6'],
-  ],
-  garden: [
-    ['T13', 'T12', 'T11', 'T10'],
-    ['T7',  'T8',  'T9'],
-  ],
-  indoor: [
-    ['T14', 'T15'],
-    ['T16', 'T17'],
-  ],
+  rooftop: [['T1', 'T3', 'T5'], ['T2', 'T4', 'T6']],
+  garden:  [['T13', 'T12', 'T11', 'T10'], ['T7', 'T8', 'T9']],
+  indoor:  [['T14', 'T15'], ['T16', 'T17']],
 };
 
-/* ─── Status helpers with Pista & Golden Beige Palette ───── */
+/* ─── Time Slot Presets ────────────────────────────────────── */
+const TIME_SLOTS = [
+  { value: '11:00', label: '11:00 AM', emoji: '☕', tag: 'Brunch' },
+  { value: '12:30', label: '12:30 PM', emoji: '🍽️', tag: 'Lunch' },
+  { value: '14:00', label: '02:00 PM', emoji: '🌤️', tag: 'Afternoon' },
+  { value: '17:30', label: '05:30 PM', emoji: '🌅', tag: 'Sunset' },
+  { value: '19:00', label: '07:00 PM', emoji: '🕯️', tag: 'Dinner' },
+  { value: '19:30', label: '07:30 PM', emoji: '✨', tag: 'Prime' },
+  { value: '21:00', label: '09:00 PM', emoji: '🌙', tag: 'Late Night' },
+  { value: 'custom', label: 'Custom Time', emoji: '⏰', tag: '' },
+];
+
+const DURATIONS = [
+  { value: 1, label: '1 Hour', tag: 'Quick' },
+  { value: 2, label: '2 Hours', tag: 'Ideal' },
+  { value: 3, label: '3 Hours', tag: 'Relaxed' },
+  { value: 4, label: '4 Hours', tag: 'Event' },
+];
+
+/* ─── Helpers ─────────────────────────────────────────────── */
 function statusLabel(s: TableData['status']) {
   if (s === 'free') return 'Available';
   if (s === 'eating') return 'Occupied';
@@ -125,20 +133,31 @@ function statusLabel(s: TableData['status']) {
 
 function statusClasses(s: TableData['status'], selected: boolean) {
   if (selected)
-    return 'bg-[#C9B086] border-[#F5EBE0] text-[#120B08] font-bold shadow-xl shadow-[#C9B086]/30 scale-105 z-20 ring-2 ring-[#F5EBE0]';
+    return 'bg-gradient-to-br from-[#C9B086] to-[#A8996B] border-[#F5EBE0] text-[#120B08] font-bold shadow-2xl shadow-[#C9B086]/40 scale-110 z-20 ring-2 ring-[#F5EBE0]/60';
   if (s === 'free')
-    return 'bg-[#2D3825]/70 border-[#98A886] text-[#D8E2CD] hover:bg-[#3B4A31] hover:border-[#B2C2A1] cursor-pointer';
+    return 'bg-[#1E2C1A]/80 border-[#98A886] text-[#D8E2CD] hover:bg-[#2D3F27] hover:border-[#B2C2A1] hover:scale-105 cursor-pointer active:scale-95';
   if (s === 'eating')
-    return 'bg-[#3B281B]/60 border-[#C9B086]/40 text-[#E8DCB8]/70 opacity-70 cursor-not-allowed';
+    return 'bg-[#3B281B]/50 border-[#C9B086]/30 text-[#E8DCB8]/50 opacity-60 cursor-not-allowed';
   if (s === 'reserved')
-    return 'bg-[#2A1412]/60 border-red-500/40 text-red-300 opacity-60 cursor-not-allowed';
-  return 'bg-[#181A1F]/60 border-slate-700 text-slate-400 opacity-50 cursor-not-allowed';
+    return 'bg-[#2A1412]/50 border-red-500/30 text-red-300/60 opacity-50 cursor-not-allowed';
+  return 'bg-[#181A1F]/50 border-slate-700/50 text-slate-500 opacity-40 cursor-not-allowed';
 }
 
-function AreaIcon({ type, className = "w-6 h-6" }: { type: 'home' | 'leaf' | 'sunset'; className?: string }) {
+function AreaIcon({ type, className = 'w-6 h-6' }: { type: 'home' | 'leaf' | 'sunset'; className?: string }) {
   if (type === 'home') return <Home className={`${className} text-[#E8DCB8]`} />;
   if (type === 'leaf') return <Leaf className={`${className} text-[#98A886]`} />;
   return <Sunset className={`${className} text-[#F5EBE0]`} />;
+}
+
+function formatCheckout(checkin: string, durationHrs: number): string {
+  if (!checkin || checkin === 'custom') return '';
+  const [h, m] = checkin.split(':').map(Number);
+  const totalMins = h * 60 + m + durationHrs * 60;
+  const outH = Math.floor(totalMins / 60) % 24;
+  const outM = totalMins % 60;
+  const period = outH >= 12 ? 'PM' : 'AM';
+  const h12 = outH % 12 || 12;
+  return `${h12}:${outM < 10 ? '0' : ''}${outM} ${period}`;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -153,9 +172,14 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
   const [selectedDate, setSelectedDate] = useState<string>(() => new Date().toISOString().split('T')[0]);
   const [selectedTime, setSelectedTime] = useState<string>('19:30');
+  const [customTime, setCustomTime] = useState<string>('19:30');
+  const [showCustomTime, setShowCustomTime] = useState(false);
+  const [durationHrs, setDurationHrs] = useState<number>(2);
   const [guestCount, setGuestCount] = useState<number>(2);
 
-  // Sync staff/admin updated table readiness
+  const stepRef = useRef<HTMLDivElement>(null);
+
+  // Sync staff/admin table readiness updates
   useEffect(() => {
     const syncTableStatus = () => {
       if (typeof window === 'undefined') return;
@@ -165,11 +189,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           const map = JSON.parse(raw);
           setTablesList(prev => prev.map(t => map[t.table_number] ? { ...t, status: map[t.table_number] } : t));
         }
-      } catch {
-        // fallback
-      }
+      } catch { /* fallback */ }
     };
-
     syncTableStatus();
     window.addEventListener('wings_db_sync', syncTableStatus);
     return () => window.removeEventListener('wings_db_sync', syncTableStatus);
@@ -181,187 +202,282 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     if (!selectedTable) { setHoldLeft(null); return; }
     setHoldLeft(300);
   }, [selectedTable]);
-
   useEffect(() => {
     if (holdLeft === null || holdLeft <= 0) return;
     const t = setInterval(() => setHoldLeft(p => (p && p > 1 ? p - 1 : 0)), 1000);
     return () => clearInterval(t);
   }, [holdLeft]);
-  const fmtTime = (s: number) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' : ''}${s % 60}`;
+  const fmtTimer = (s: number) => `${Math.floor(s / 60)}:${s % 60 < 10 ? '0' : ''}${s % 60}`;
 
-  // Tables for selected area
-  const areaTables = selectedArea
-    ? tablesList.filter(t => t.cluster_id === selectedArea.id)
-    : [];
+  const effectiveTime = showCustomTime ? customTime : selectedTime;
 
-  const freeCount = areaTables.filter(t => t.status === 'free').length;
+  // Smooth scroll to top of component on step change
+  useEffect(() => {
+    stepRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }, [step]);
 
-  const handleAreaSelect = (area: AreaCard) => {
-    setSelectedArea(area);
-    setSelectedTable(null);
-    setStep(2);
-  };
+  const areaTables = selectedArea ? tablesList.filter(t => t.cluster_id === selectedArea.id) : [];
+  const freeCount  = areaTables.filter(t => t.status === 'free').length;
 
-  const handleTableSelect = (t: TableData) => {
-    if (t.status !== 'free') return;
-    setSelectedTable(t);
-    setStep(3);
-  };
-
+  const handleAreaSelect = (area: AreaCard) => { setSelectedArea(area); setSelectedTable(null); setStep(2); };
+  const handleTableSelect = (t: TableData) => { if (t.status !== 'free') return; setSelectedTable(t); setStep(3); };
   const handleBack = () => {
     if (step === 3) { setSelectedTable(null); setStep(2); }
     else { setSelectedArea(null); setSelectedTable(null); setStep(1); }
   };
 
-  /* ── STEP INDICATOR ─────────────────────────────────────── */
-  const steps = ['Choose Area', 'Pick Table', 'Confirm'];
+  const STEP_LABELS = ['Choose Area', 'Pick Table', 'Confirm'];
 
   return (
-    <div className="bg-[#121417]/95 border border-[#C9B086]/30 rounded-3xl shadow-2xl text-[#F5EBE0] overflow-hidden">
+    <div
+      ref={stepRef}
+      className="bg-[#0E1117] border border-[#C9B086]/25 rounded-3xl shadow-2xl text-[#F5EBE0] overflow-hidden"
+    >
 
-      {/* ── Top Bar ─────────────────────────────────────────── */}
-      <div className="bg-[#1A1D24] border-b border-[#C9B086]/20 px-6 py-5 flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-lg font-serif font-bold text-[#E8DCB8] flex items-center gap-2">
-            <MapPin className="w-4 h-4 text-[#98A886]" />
-            Reserve Your Table
-          </h3>
-          <p className="text-xs text-[#D4C4A0]/80 mt-0.5">Choose your dining area, then pick a table</p>
+      {/* ── Section Header ───────────────────────────────────── */}
+      <div className="bg-gradient-to-r from-[#1A1D24] via-[#181B21] to-[#141720] border-b border-[#C9B086]/20 px-5 sm:px-7 py-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+
+          {/* Title */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-2xl bg-gradient-to-br from-[#C9B086]/30 to-[#98A886]/20 border border-[#C9B086]/40 flex items-center justify-center shrink-0">
+              <MapPin className="w-4 h-4 text-[#C9B086]" />
+            </div>
+            <div>
+              <h3 className="text-base font-serif font-bold text-[#E8DCB8] flex items-center gap-2">
+                Reserve Your Table
+                <Sparkles className="w-3.5 h-3.5 text-[#C9B086] animate-pulse" />
+              </h3>
+              <p className="text-[11px] text-[#D4C4A0]/70 mt-0.5">Choose area → pick a table → confirm booking</p>
+            </div>
+          </div>
+
+          {/* ── Booking Filters ──────────────────────────────── */}
+          <div className="flex flex-wrap gap-2">
+
+            {/* Date */}
+            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#C9B086]/40">
+              <Calendar className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
+              <input
+                type="date"
+                aria-label="Booking date"
+                value={selectedDate}
+                min={new Date().toISOString().split('T')[0]}
+                onChange={e => setSelectedDate(e.target.value)}
+                className="bg-transparent text-[#E8DCB8] focus:outline-none w-28 cursor-pointer"
+              />
+            </label>
+
+            {/* Guest Count */}
+            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#C9B086]/40">
+              <Users className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
+              <select
+                aria-label="Number of guests"
+                value={guestCount}
+                onChange={e => setGuestCount(Number(e.target.value))}
+                className="bg-transparent text-[#E8DCB8] focus:outline-none cursor-pointer"
+              >
+                {[1,2,3,4,5,6,8,10,12,15,20].map(n => (
+                  <option key={n} value={n} className="bg-[#121417]">{n} Guest{n > 1 ? 's' : ''}</option>
+                ))}
+              </select>
+            </label>
+
+            {/* Duration */}
+            <label className="flex items-center gap-2 bg-[#1A1D24] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086]/70 hover:bg-[#231710]/60 transition-all focus-within:ring-2 focus-within:ring-[#C9B086]/40">
+              <Timer className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
+              <select
+                aria-label="Duration of stay"
+                value={durationHrs}
+                onChange={e => setDurationHrs(Number(e.target.value))}
+                className="bg-transparent text-[#E8DCB8] focus:outline-none cursor-pointer"
+              >
+                {DURATIONS.map(d => (
+                  <option key={d.value} value={d.value} className="bg-[#121417]">
+                    {d.label} ({d.tag})
+                  </option>
+                ))}
+              </select>
+            </label>
+
+          </div>
         </div>
 
-        {/* Date / Time / Guests — always visible */}
-        <div className="flex flex-wrap gap-2.5">
-          <label className="flex items-center gap-2 bg-[#231710] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086] transition">
-            <Calendar className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
-            <input
-              type="date"
-              value={selectedDate}
-              min={new Date().toISOString().split('T')[0]}
-              onChange={e => setSelectedDate(e.target.value)}
-              className="bg-transparent text-[#E8DCB8] focus:outline-none w-28 cursor-pointer"
-            />
-          </label>
+        {/* ── Time Slot Picker ─────────────────────────────── */}
+        <div className="mt-4">
+          <p className="text-[10px] text-[#D4C4A0]/60 uppercase tracking-widest mb-2 font-semibold">
+            <Clock className="w-3 h-3 inline mr-1 text-[#98A886]" />
+            Select Check-in Time
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {TIME_SLOTS.map(slot => {
+              const isCustomSlot = slot.value === 'custom';
+              const isActive = isCustomSlot ? showCustomTime : (!showCustomTime && selectedTime === slot.value);
+              return (
+                <button
+                  key={slot.value}
+                  aria-pressed={isActive}
+                  onClick={() => {
+                    if (isCustomSlot) {
+                      setShowCustomTime(true);
+                    } else {
+                      setShowCustomTime(false);
+                      setSelectedTime(slot.value);
+                    }
+                  }}
+                  className={`px-3 py-1.5 rounded-xl text-[11px] font-semibold transition-all duration-200 border flex items-center gap-1 ${
+                    isActive
+                      ? 'bg-gradient-to-r from-[#C9B086] to-[#A8996B] border-[#E8DCB8]/60 text-[#120B08] shadow-lg shadow-[#C9B086]/30 scale-105'
+                      : 'bg-[#1A1D24] border-[#C9B086]/25 text-[#D4C4A0]/80 hover:border-[#C9B086]/60 hover:text-[#E8DCB8] hover:bg-[#231710]/50'
+                  }`}
+                >
+                  <span>{slot.emoji}</span>
+                  <span>{slot.label}</span>
+                  {slot.tag && <span className="opacity-60 text-[9px]">· {slot.tag}</span>}
+                </button>
+              );
+            })}
+          </div>
 
-          <label className="flex items-center gap-2 bg-[#231710] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086] transition">
-            <Clock className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
-            <select
-              value={selectedTime}
-              onChange={e => setSelectedTime(e.target.value)}
-              className="bg-transparent text-[#E8DCB8] focus:outline-none cursor-pointer"
-            >
-              <option value="12:30" className="bg-[#121417]">12:30 PM (Lunch)</option>
-              <option value="14:00" className="bg-[#121417]">02:00 PM (Afternoon)</option>
-              <option value="17:30" className="bg-[#121417]">05:30 PM (Sunset)</option>
-              <option value="19:30" className="bg-[#121417]">07:30 PM (Dinner)</option>
-              <option value="21:00" className="bg-[#121417]">09:00 PM (Late)</option>
-            </select>
-          </label>
-
-          <label className="flex items-center gap-2 bg-[#231710] border border-[#C9B086]/30 rounded-xl px-3 py-2 text-xs text-[#E8DCB8] cursor-pointer hover:border-[#C9B086] transition">
-            <Users className="w-3.5 h-3.5 text-[#98A886] shrink-0" />
-            <select
-              value={guestCount}
-              onChange={e => setGuestCount(Number(e.target.value))}
-              className="bg-transparent text-[#E8DCB8] focus:outline-none cursor-pointer"
-            >
-              {[1,2,3,4,5,6,8,10,12,15,20].map(n => (
-                <option key={n} value={n} className="bg-[#121417]">{n} Guest{n > 1 ? 's' : ''}</option>
-              ))}
-            </select>
-          </label>
+          {/* Custom time input */}
+          {showCustomTime && (
+            <div className="mt-3 flex items-center gap-3 animate-fade-in">
+              <label className="flex items-center gap-2 bg-[#1A1D24] border-2 border-[#C9B086]/60 rounded-xl px-4 py-2.5 text-sm text-[#E8DCB8] focus-within:ring-2 focus-within:ring-[#C9B086]/40 transition-all">
+                <Clock className="w-4 h-4 text-[#C9B086] shrink-0" />
+                <input
+                  type="time"
+                  aria-label="Custom check-in time"
+                  value={customTime}
+                  onChange={e => setCustomTime(e.target.value)}
+                  className="bg-transparent text-[#E8DCB8] focus:outline-none font-mono font-bold"
+                />
+              </label>
+              <span className="text-xs text-[#D4C4A0]/70">→ Check-out ~<span className="font-bold text-[#E8DCB8]">{formatCheckout(customTime, durationHrs)}</span></span>
+            </div>
+          )}
+          {!showCustomTime && selectedTime && (
+            <p className="mt-2 text-[11px] text-[#D4C4A0]/60">
+              Check-in: <span className="font-bold text-[#E8DCB8]">{TIME_SLOTS.find(s => s.value === selectedTime)?.label}</span>
+              {'  '}→{'  '}Check-out: <span className="font-bold text-[#98A886]">{formatCheckout(selectedTime, durationHrs)}</span>
+              <span className="ml-2 opacity-60">({durationHrs}hr{durationHrs > 1 ? 's' : ''})</span>
+            </p>
+          )}
         </div>
       </div>
 
       {/* ── Step Breadcrumb ──────────────────────────────────── */}
-      <div className="flex items-center gap-0 px-6 py-3.5 border-b border-[#C9B086]/15 bg-[#14171D]">
-        {steps.map((s, i) => {
+      <div className="flex items-center gap-0 px-5 sm:px-7 py-3.5 border-b border-[#C9B086]/15 bg-[#12151B]">
+        {STEP_LABELS.map((s, i) => {
           const num = i + 1;
-          const done = step > num;
+          const done   = step > num;
           const active = step === num;
           return (
             <React.Fragment key={s}>
               <div className="flex items-center gap-2">
-                <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold transition-all ${
-                  done   ? 'bg-[#98A886] text-[#120B08]'  :
-                  active ? 'bg-[#C9B086] text-[#120B08]' :
-                           'bg-[#231710] text-[#D4C4A0]/50 border border-[#C9B086]/20'
+                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
+                  done   ? 'bg-[#98A886] text-[#120B08] shadow shadow-[#98A886]/40'  :
+                  active ? 'bg-gradient-to-br from-[#C9B086] to-[#A8996B] text-[#120B08] shadow-lg shadow-[#C9B086]/30 scale-110' :
+                           'bg-[#1E2129] text-[#D4C4A0]/40 border border-[#C9B086]/20'
                 }`}>
                   {done ? '✓' : num}
                 </span>
-                <span className={`text-[11px] font-semibold transition-colors ${
-                  active ? 'text-[#E8DCB8]' : done ? 'text-[#98A886]' : 'text-slate-500'
+                <span className={`text-[11px] font-semibold transition-all duration-300 ${
+                  active ? 'text-[#E8DCB8]' : done ? 'text-[#98A886]' : 'text-slate-600'
                 }`}>{s}</span>
               </div>
-              {i < steps.length - 1 && (
-                <ChevronRight className="w-3.5 h-3.5 text-[#C9B086]/30 mx-3 shrink-0" />
+              {i < STEP_LABELS.length - 1 && (
+                <ChevronRight className="w-3 h-3 text-[#C9B086]/25 mx-3 shrink-0" />
               )}
             </React.Fragment>
           );
         })}
+
+        {/* ── BACK BUTTON — Highlighted & Accessible ─────────── */}
         {step > 1 && (
           <button
             onClick={handleBack}
-            className="ml-auto flex items-center gap-1 text-[11px] text-[#D4C4A0]/80 hover:text-[#E8DCB8] transition font-medium"
+            aria-label={step === 3 ? 'Go back to table selection' : 'Go back to area selection'}
+            className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl
+              bg-gradient-to-r from-[#231710] to-[#1A1209]
+              border border-[#C9B086]/50 hover:border-[#C9B086]
+              text-[#C9B086] hover:text-[#F5EBE0]
+              text-[11px] font-bold uppercase tracking-wider
+              shadow-md hover:shadow-[#C9B086]/20 hover:shadow-lg
+              transition-all duration-200 active:scale-95
+              focus:outline-none focus:ring-2 focus:ring-[#C9B086]/50"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
-            Back
+            <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
+            {step === 3 ? 'Change Table' : 'Back'}
           </button>
         )}
       </div>
 
       {/* ── STEP 1: Choose Area ──────────────────────────────── */}
       {step === 1 && (
-        <div className="p-6 space-y-4 animate-fade-in">
+        <div className="p-5 sm:p-7 space-y-3 animate-fade-in">
+          <p className="text-xs text-[#D4C4A0]/60 pb-1">
+            🌊 Select a dining area along the Gomti Riverfront
+          </p>
           {AREAS.map(area => {
             const areaFreeTables = ALL_TABLES.filter(t => t.cluster_id === area.id && t.status === 'free').length;
             const totalTables    = ALL_TABLES.filter(t => t.cluster_id === area.id).length;
+            const occupied = areaFreeTables === 0;
             return (
               <button
                 key={area.id}
                 onClick={() => handleAreaSelect(area)}
-                className={`w-full text-left rounded-2xl border bg-gradient-to-r ${area.gradient} ${area.borderStyle} p-5 transition-all duration-300 hover:scale-[1.01] hover:shadow-2xl group relative overflow-hidden`}
+                disabled={occupied}
+                aria-label={`Select ${area.label} — ${areaFreeTables} tables available`}
+                className={`w-full text-left rounded-2xl border bg-gradient-to-r ${area.gradient} ${area.borderStyle}
+                  p-5 transition-all duration-300 group relative overflow-hidden
+                  focus:outline-none focus:ring-2 focus:ring-[#C9B086]/50
+                  ${occupied ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.015] hover:shadow-2xl hover:shadow-black/40 active:scale-[0.99]'}
+                `}
               >
+                {/* Shimmer highlight on hover */}
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+
                 <div className="flex items-center justify-between gap-4 relative z-10">
-                  {/* Left: icon + details */}
+                  {/* Left */}
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-[#231710]/80 border border-[#C9B086]/30 p-3 shadow-inner">
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-black/30 border border-white/10 p-3 shadow-inner">
                       <AreaIcon type={area.iconType} className="w-6 h-6" />
                     </div>
-
                     <div>
-                      <div className="flex items-center gap-2.5 flex-wrap">
-                        <h4 className="text-base font-serif font-bold text-[#E8DCB8]">{area.label}</h4>
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <h4 className="text-sm font-serif font-bold text-[#E8DCB8]">{area.label}</h4>
                         <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md ${area.tagStyle}`}>
                           {area.tag}
                         </span>
                       </div>
-                      <p className="text-xs text-[#D4C4A0]/80 mt-1">{area.subtitle}</p>
-                      <div className="flex items-center gap-4 mt-2">
-                        <span className="text-[11px] text-slate-400 font-mono">Tables: {area.tables}</span>
+                      <p className="text-[11px] text-[#D4C4A0]/75 mt-0.5">{area.subtitle}</p>
+                      <div className="flex items-center gap-4 mt-1.5">
+                        <span className="text-[10px] text-slate-500 font-mono">Tables: {area.tables}</span>
                         <span className={`text-[11px] font-bold ${areaFreeTables > 0 ? 'text-[#98A886]' : 'text-red-400'}`}>
-                          {areaFreeTables > 0 ? `${areaFreeTables} Available` : 'Fully Occupied'}
+                          {areaFreeTables > 0 ? `✓ ${areaFreeTables} Available` : '✗ Fully Occupied'}
                         </span>
                       </div>
                     </div>
                   </div>
 
-                  {/* Right: progress indicator + arrow */}
-                  <div className="flex flex-col items-center gap-1.5 shrink-0">
-                    <div className="relative w-11 h-11">
-                      <svg className="w-11 h-11 -rotate-90" viewBox="0 0 36 36">
+                  {/* Right: donut + arrow */}
+                  <div className="flex flex-col items-center gap-2 shrink-0">
+                    <div className="relative w-12 h-12">
+                      <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
                         <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(201,176,134,0.12)" strokeWidth="3"/>
                         <circle cx="18" cy="18" r="14" fill="none"
                           stroke={areaFreeTables > 0 ? '#98A886' : '#ef4444'}
                           strokeWidth="3"
                           strokeDasharray={`${(areaFreeTables / totalTables) * 87.96} 87.96`}
                           strokeLinecap="round"
+                          className="transition-all duration-700"
                         />
                       </svg>
                       <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold font-mono text-[#E8DCB8]">
                         {areaFreeTables}/{totalTables}
                       </span>
                     </div>
-                    <ChevronRight className="w-4 h-4 text-[#C9B086]/60 group-hover:text-[#E8DCB8] group-hover:translate-x-1 transition-all" />
+                    <ChevronRight className={`w-4 h-4 transition-all duration-200 ${occupied ? 'text-slate-600' : 'text-[#C9B086]/60 group-hover:text-[#E8DCB8] group-hover:translate-x-1'}`} />
                   </div>
                 </div>
               </button>
@@ -369,7 +485,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           })}
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-6 pt-3 text-xs text-[#D4C4A0]/70 font-medium">
+          <div className="flex items-center justify-center gap-6 pt-2 text-[11px] text-[#D4C4A0]/60 font-medium">
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#98A886] inline-block" />Available</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#C9B086] inline-block" />Occupied</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block" />Reserved</span>
@@ -379,33 +495,34 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
       {/* ── STEP 2: Pick a Table ─────────────────────────────── */}
       {step === 2 && selectedArea && (
-        <div className="p-6 animate-fade-in">
+        <div className="p-5 sm:p-7 animate-fade-in">
+
           {/* Area header */}
-          <div className="flex items-center gap-3 mb-5">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#231710] border border-[#C9B086]/30 p-2">
+          <div className="flex items-center gap-3 mb-5 p-3.5 bg-[#1A1D24]/80 rounded-2xl border border-[#C9B086]/20">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-black/30 border border-white/10 p-2 shrink-0">
               <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
             </div>
-            <div>
-              <h4 className="text-base font-serif font-bold text-[#E8DCB8]">{selectedArea.label}</h4>
-              <p className="text-xs text-[#D4C4A0]/80">{selectedArea.subtitle}</p>
+            <div className="flex-1">
+              <h4 className="text-sm font-serif font-bold text-[#E8DCB8]">{selectedArea.label}</h4>
+              <p className="text-[11px] text-[#D4C4A0]/70">{selectedArea.subtitle}</p>
             </div>
-            <div className="ml-auto text-xs font-bold text-[#98A886]">
-              {freeCount} table{freeCount !== 1 ? 's' : ''} free
+            <div className={`text-xs font-bold px-3 py-1.5 rounded-xl border ${freeCount > 0 ? 'text-[#98A886] border-[#98A886]/40 bg-[#98A886]/10' : 'text-red-400 border-red-400/30 bg-red-400/10'}`}>
+              {freeCount > 0 ? `${freeCount} free` : 'Full'}
             </div>
           </div>
 
-          {/* Gomti River label */}
-          <div className="w-full py-2 px-4 rounded-t-xl bg-gradient-to-r from-[#231710] via-[#362419] to-[#231710] border border-[#C9B086]/30 mb-1">
-            <p className="text-center text-[10px] tracking-[0.2em] text-[#E8DCB8] uppercase font-mono flex items-center justify-center gap-2">
-              <MapPin className="w-3 h-3 text-[#98A886]" />
+          {/* Riverfront label */}
+          <div className="w-full py-2.5 px-5 rounded-t-xl bg-gradient-to-r from-[#18232F]/80 via-[#1E2D40]/80 to-[#18232F]/80 border border-[#4A7DA0]/30 mb-1">
+            <p className="text-center text-[10px] tracking-[0.2em] text-[#8BB8D4] uppercase font-mono flex items-center justify-center gap-2">
+              <MapPin className="w-3 h-3 text-[#5B9EC9]" />
               Gomti Riverfront — {selectedArea.label}
             </p>
           </div>
 
           {/* Table grid */}
-          <div className="bg-[#181A1F] border border-[#C9B086]/20 rounded-b-xl rounded-tr-xl p-6 space-y-4">
+          <div className="bg-[#141820]/80 border border-[#C9B086]/15 rounded-b-xl rounded-tr-xl p-6 space-y-5">
             {AREA_LAYOUTS[selectedArea.id].map((row, ri) => (
-              <div key={ri} className="flex items-center justify-center gap-4 flex-wrap">
+              <div key={ri} className="flex items-center justify-center gap-3 flex-wrap">
                 {row.map(tNum => {
                   const tbl = areaTables.find(t => t.table_number === tNum);
                   if (!tbl) return null;
@@ -416,10 +533,15 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       key={tbl.id}
                       disabled={tbl.status !== 'free'}
                       onClick={() => handleTableSelect(tbl)}
-                      className={`relative flex flex-col items-center justify-center rounded-2xl border-2 transition-all duration-200 px-5 py-3.5 min-w-[80px] ${statusClasses(tbl.status, isSelected)}`}
+                      aria-label={`Table ${tbl.table_number}, ${tbl.capacity} seats, ${statusLabel(tbl.status)}`}
+                      aria-pressed={isSelected}
+                      className={`relative flex flex-col items-center justify-center rounded-2xl border-2 transition-all duration-200 px-5 py-3.5 min-w-[86px]
+                        focus:outline-none focus:ring-2 focus:ring-[#C9B086]/50
+                        ${statusClasses(tbl.status, isSelected)}`}
                     >
+                      {/* Availability pulse dot */}
                       {suitable && tbl.status === 'free' && !isSelected && (
-                        <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#98A886] border-2 border-[#121417] animate-pulse" />
+                        <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#98A886] border-2 border-[#141820] animate-pulse" />
                       )}
                       <span className="text-base font-bold font-mono">{tbl.table_number}</span>
                       <span className="text-[10px] opacity-80 flex items-center gap-0.5 mt-0.5">
@@ -429,6 +551,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                         tbl.status === 'free' ? 'text-[#98A886]' :
                         tbl.status === 'eating' ? 'text-[#C9B086]' : 'text-red-300'
                       }`}>{statusLabel(tbl.status)}</span>
+                      {/* Unsuitable capacity indicator */}
+                      {!suitable && tbl.status === 'free' && (
+                        <span className="text-[8px] text-amber-400 mt-0.5">Low capacity</span>
+                      )}
                     </button>
                   );
                 })}
@@ -436,10 +562,11 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             ))}
           </div>
 
-          {/* Capacity note */}
-          <p className="text-center text-xs text-[#D4C4A0]/70 mt-4">
-            Tables with pista green indicator fit your party of <span className="text-[#E8DCB8] font-bold">{guestCount}</span>.
-            Tap an available table to select it.
+          <p className="text-center text-[11px] text-[#D4C4A0]/60 mt-4">
+            <span className="inline-flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-[#98A886] animate-pulse inline-block" />
+              Pulsing green tables fit your party of <span className="text-[#E8DCB8] font-bold mx-1">{guestCount}</span>. Tap to select.
+            </span>
           </p>
         </div>
       )}
@@ -447,70 +574,109 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       {/* ── STEP 3: Confirm Booking ──────────────────────────── */}
       {step === 3 && selectedTable && selectedArea && (() => {
         const pricing = calculateBookingPrice(selectedDate, guestCount);
+        const checkoutLabel = formatCheckout(effectiveTime, durationHrs);
+        const timeLabel = TIME_SLOTS.find(s => s.value === effectiveTime)?.label || effectiveTime;
         return (
-          <div className="p-6 animate-fade-in space-y-4">
-            {/* Summary card */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#231710] to-[#121417] border border-[#C9B086]/40 p-6">
-              <div className="flex items-start gap-4">
-                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#231710] border border-[#C9B086]/30 p-3 shrink-0">
-                  <AreaIcon type={selectedArea.iconType} className="w-6 h-6" />
-                </div>
+          <div className="p-5 sm:p-7 animate-fade-in space-y-4">
 
-                <div className="flex-1">
-                  <div className="flex items-center justify-between flex-wrap gap-2">
-                    <h4 className="text-base font-serif font-bold text-[#E8DCB8]">Your Table is on Hold</h4>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-md bg-[#98A886]/20 text-[#D8E2CD] border border-[#98A886]/40">
-                      {pricing.isWeekend ? 'Weekend Rate (₹600/person)' : 'Weekday Rate (₹300/person)'}
-                    </span>
+            {/* Confirmation card */}
+            <div className="rounded-3xl bg-gradient-to-br from-[#1E1609] via-[#1A1510] to-[#0F1015] border border-[#C9B086]/40 p-5 shadow-2xl">
+
+              {/* Top badge */}
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/40 border border-[#C9B086]/30 p-2 shrink-0">
+                    <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
                   </div>
-                  <p className="text-xs text-[#D4C4A0]/80 mt-0.5">{selectedArea.label}</p>
-
-                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mt-4">
-                    {[
-                      { label: 'Table', value: selectedTable.table_number },
-                      { label: 'Seats', value: `${selectedTable.capacity} max` },
-                      { label: 'Date', value: `${selectedDate} (${pricing.dayName.slice(0, 3)})` },
-                      { label: 'Time', value: selectedTime },
-                      { label: 'Guests', value: `${guestCount} people` },
-                      { label: 'Calculated Fee', value: `₹${pricing.totalPrice} (₹${pricing.perPersonRate} x ${guestCount})` },
-                    ].map(({ label, value }) => (
-                      <div key={label} className="bg-[#181A1F] rounded-xl px-3.5 py-2.5 border border-[#C9B086]/20">
-                        <p className="text-[9px] text-[#D4C4A0]/60 uppercase tracking-wider">{label}</p>
-                        <p className="text-xs font-bold text-[#E8DCB8] mt-0.5">{value}</p>
-                      </div>
-                    ))}
+                  <div>
+                    <h4 className="text-sm font-serif font-bold text-[#E8DCB8]">Table on Hold 🔒</h4>
+                    <p className="text-[11px] text-[#D4C4A0]/70">{selectedArea.label}</p>
                   </div>
                 </div>
+                <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-xl bg-[#98A886]/15 text-[#D8E2CD] border border-[#98A886]/40">
+                  {pricing.isWeekend ? '₹600/person' : '₹300/person'}
+                </span>
+              </div>
+
+              {/* Details grid */}
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
+                {[
+                  { label: 'Table', value: selectedTable.table_number, icon: '🪑' },
+                  { label: 'Seats', value: `${selectedTable.capacity} max`, icon: '👤' },
+                  { label: 'Date', value: `${selectedDate} (${pricing.dayName.slice(0,3)})`, icon: '📅' },
+                  { label: 'Check-in', value: timeLabel, icon: '⏰' },
+                  { label: 'Check-out', value: checkoutLabel || '—', icon: '🚪' },
+                  { label: 'Duration', value: `${durationHrs} hr${durationHrs > 1 ? 's' : ''}`, icon: '⏱️' },
+                  { label: 'Guests', value: `${guestCount} people`, icon: '👥' },
+                  { label: 'Rate', value: `₹${pricing.perPersonRate}/person`, icon: '💰' },
+                  { label: 'Total', value: `₹${pricing.totalPrice}`, icon: '🧾' },
+                ].map(({ label, value, icon }) => (
+                  <div key={label} className="bg-[#131619]/80 rounded-xl px-3 py-2.5 border border-[#C9B086]/15">
+                    <p className="text-[9px] text-[#D4C4A0]/50 uppercase tracking-wider flex items-center gap-1">
+                      <span>{icon}</span>{label}
+                    </p>
+                    <p className="text-xs font-bold text-[#E8DCB8] mt-0.5 truncate">{value}</p>
+                  </div>
+                ))}
               </div>
 
               {/* Hold timer */}
-              <div className="mt-5 flex items-center gap-3 bg-[#14171D] border border-[#C9B086]/30 rounded-2xl px-4 py-3">
-                <ShieldAlert className="w-4 h-4 text-[#98A886] animate-pulse shrink-0" />
+              <div className="mt-4 flex items-center gap-3 bg-[#0D1118]/80 border border-[#C9B086]/25 rounded-2xl px-4 py-3">
+                <ShieldAlert className="w-4 h-4 text-[#C9B086] animate-pulse shrink-0" />
                 <p className="text-xs text-[#F5EBE0] flex-1">
                   Table <span className="text-[#E8DCB8] font-bold">{selectedTable.table_number}</span> is locked for you
                 </p>
-                <span className="font-mono text-xs font-bold text-[#E8DCB8] bg-[#231710] border border-[#C9B086]/40 px-3 py-1 rounded-xl">
-                  {holdLeft !== null ? fmtTime(holdLeft) : '5:00'}
+                <span className={`font-mono text-sm font-bold px-3 py-1 rounded-xl border ${
+                  holdLeft !== null && holdLeft < 60
+                    ? 'bg-red-900/40 border-red-500/50 text-red-300'
+                    : 'bg-[#231710] border-[#C9B086]/40 text-[#E8DCB8]'
+                }`}>
+                  {holdLeft !== null ? fmtTimer(holdLeft) : '5:00'}
                 </span>
               </div>
             </div>
 
             {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 pt-1">
+              {/* Highlighted Back button */}
               <button
                 onClick={handleBack}
-                className="flex-1 py-3 rounded-2xl border border-[#C9B086]/30 text-[#D4C4A0] text-xs font-semibold hover:border-[#C9B086] hover:text-white transition flex items-center justify-center gap-2"
+                aria-label="Go back to pick a different table"
+                className="flex-1 py-3.5 rounded-2xl
+                  border-2 border-[#C9B086]/50 hover:border-[#C9B086]
+                  bg-gradient-to-r from-[#1A1209] to-[#231710] hover:from-[#231710] hover:to-[#2E1F0E]
+                  text-[#C9B086] hover:text-[#F5EBE0]
+                  text-xs font-bold uppercase tracking-wider
+                  flex items-center justify-center gap-2
+                  shadow hover:shadow-lg hover:shadow-[#C9B086]/15
+                  transition-all duration-200 active:scale-95
+                  focus:outline-none focus:ring-2 focus:ring-[#C9B086]/40"
               >
-                <ArrowLeft className="w-4 h-4" /> Change Table
+                <ArrowLeft className="w-4 h-4" />
+                Change Table
               </button>
+
+              {/* Confirm CTA */}
               <button
-                onClick={() => onSelectTable(selectedTable, selectedDate, selectedTime, guestCount)}
-                className="flex-1 py-3 rounded-2xl bg-gradient-to-r from-[#C9B086] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-xs uppercase tracking-wider shadow-xl transition flex items-center justify-center gap-2"
+                onClick={() => onSelectTable(selectedTable, selectedDate, effectiveTime, guestCount)}
+                aria-label={`Confirm booking and pay ₹${pricing.totalPrice}`}
+                className="flex-2 sm:flex-[2] py-3.5 rounded-2xl
+                  bg-gradient-to-r from-[#C9B086] via-[#B8A07A] to-[#A3B58E]
+                  hover:from-[#E8DCB8] hover:via-[#D4C4A0] hover:to-[#B2C2A1]
+                  text-[#120B08] font-bold text-xs uppercase tracking-wider
+                  shadow-xl shadow-[#C9B086]/30 hover:shadow-[#C9B086]/50
+                  flex items-center justify-center gap-2
+                  transition-all duration-200 active:scale-95
+                  focus:outline-none focus:ring-2 focus:ring-[#E8DCB8]/50"
               >
                 <CheckCircle2 className="w-4 h-4" />
                 Pay ₹{pricing.totalPrice} &amp; Confirm
               </button>
             </div>
+
+            <p className="text-center text-[10px] text-[#D4C4A0]/50 pb-1">
+              ✦ Cancellation eligible up to 5 hours before check-in · Secure payment via Razorpay
+            </p>
           </div>
         );
       })()}
