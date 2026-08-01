@@ -91,6 +91,9 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           `
         }} />
 
+        {/* Background Video Preload */}
+        <link rel="preload" href="/videos/gemini_generated_video_5c810dd6.mp4" as="video" type="video/mp4" />
+
         {/* Google Fonts — Playfair Display + Lato (café feel) */}
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
@@ -104,10 +107,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             loop
             muted
             playsInline
+            preload="auto"
             className="w-full h-full object-cover filter brightness-[0.35] contrast-[1.08] saturate-[0.85]"
           >
             <source src="/videos/gemini_generated_video_5c810dd6.mp4" type="video/mp4" />
           </video>
+
           <div className="absolute inset-0 bg-[#070a0f]/75 backdrop-blur-[2px]" />
         </div>
         <SEOStructuredData />

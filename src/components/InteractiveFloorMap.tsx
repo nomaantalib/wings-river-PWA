@@ -22,7 +22,7 @@ interface AreaCard {
   label: string;
   subtitle: string;
   tag: string;
-  emoji: string;
+  iconType: 'home' | 'leaf' | 'sunset';
   gradient: string;
   borderStyle: string;
   tagStyle: string;
@@ -65,7 +65,7 @@ const AREAS: AreaCard[] = [
     label: 'Indoor AC Hall',
     subtitle: 'Air-conditioned • Cozy • River View Windows',
     tag: 'Most Popular',
-    emoji: '🏠',
+    iconType: 'home',
     gradient: 'from-[#2A1E17] via-[#1E140F] to-[#120B08]',
     borderStyle: 'border-[#C9B086]/35 hover:border-[#E8DCB8]',
     tagStyle: 'bg-[#C9B086]/20 text-[#E8DCB8] border border-[#C9B086]/40',
@@ -77,7 +77,7 @@ const AREAS: AreaCard[] = [
     label: 'Open Garden Area',
     subtitle: 'Outdoor • Canopy Lights • Riverside Breeze',
     tag: 'Family Favourite',
-    emoji: '🌳',
+    iconType: 'leaf',
     gradient: 'from-[#212C1B] via-[#182213] to-[#0E150B]',
     borderStyle: 'border-[#98A886]/40 hover:border-[#B2C2A1]',
     tagStyle: 'bg-[#98A886]/20 text-[#D8E2CD] border border-[#98A886]/40',
@@ -89,7 +89,7 @@ const AREAS: AreaCard[] = [
     label: 'Rooftop Upper Deck',
     subtitle: 'Best River View • Sunset Dining • Starlit Nights',
     tag: 'Premium View',
-    emoji: '🌅',
+    iconType: 'sunset',
     gradient: 'from-[#332216] via-[#24160C] to-[#120A05]',
     borderStyle: 'border-[#D4C4A0]/40 hover:border-[#F5EBE0]',
     tagStyle: 'bg-[#D4C4A0]/20 text-[#F5EBE0] border border-[#D4C4A0]/40',
@@ -97,6 +97,7 @@ const AREAS: AreaCard[] = [
     tableIds: ['tbl-1','tbl-2','tbl-3','tbl-4','tbl-5','tbl-6'],
   },
 ];
+
 
 /* ─── Table Layout per area (row arrays) ─────────────────── */
 const AREA_LAYOUTS: Record<string, string[][]> = {
@@ -132,6 +133,12 @@ function statusClasses(s: TableData['status'], selected: boolean) {
   if (s === 'reserved')
     return 'bg-[#2A1412]/60 border-red-500/40 text-red-300 opacity-60 cursor-not-allowed';
   return 'bg-[#181A1F]/60 border-slate-700 text-slate-400 opacity-50 cursor-not-allowed';
+}
+
+function AreaIcon({ type, className = "w-6 h-6" }: { type: 'home' | 'leaf' | 'sunset'; className?: string }) {
+  if (type === 'home') return <Home className={`${className} text-[#E8DCB8]`} />;
+  if (type === 'leaf') return <Leaf className={`${className} text-[#98A886]`} />;
+  return <Sunset className={`${className} text-[#F5EBE0]`} />;
 }
 
 /* ═══════════════════════════════════════════════════════════
@@ -294,9 +301,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 <div className="flex items-center justify-between gap-4 relative z-10">
                   {/* Left: icon + details */}
                   <div className="flex items-center gap-4">
-                    <div className="w-13 h-13 rounded-2xl flex items-center justify-center text-3xl shrink-0 bg-[#231710]/80 border border-[#C9B086]/30 p-2 shadow-inner">
-                      {area.emoji}
+                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-[#231710]/80 border border-[#C9B086]/30 p-3 shadow-inner">
+                      <AreaIcon type={area.iconType} className="w-6 h-6" />
                     </div>
+
                     <div>
                       <div className="flex items-center gap-2.5 flex-wrap">
                         <h4 className="text-base font-serif font-bold text-[#E8DCB8]">{area.label}</h4>
@@ -351,7 +359,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         <div className="p-6 animate-fade-in">
           {/* Area header */}
           <div className="flex items-center gap-3 mb-5">
-            <div className="text-3xl">{selectedArea.emoji}</div>
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-[#231710] border border-[#C9B086]/30 p-2">
+              <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
+            </div>
             <div>
               <h4 className="text-base font-serif font-bold text-[#E8DCB8]">{selectedArea.label}</h4>
               <p className="text-xs text-[#D4C4A0]/80">{selectedArea.subtitle}</p>
@@ -363,8 +373,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
           {/* Gomti River label */}
           <div className="w-full py-2 px-4 rounded-t-xl bg-gradient-to-r from-[#231710] via-[#362419] to-[#231710] border border-[#C9B086]/30 mb-1">
-            <p className="text-center text-[10px] tracking-[0.2em] text-[#E8DCB8] uppercase font-mono">
-              🌊 Gomti Riverfront — {selectedArea.label}
+            <p className="text-center text-[10px] tracking-[0.2em] text-[#E8DCB8] uppercase font-mono flex items-center justify-center gap-2">
+              <MapPin className="w-3 h-3 text-[#98A886]" />
+              Gomti Riverfront — {selectedArea.label}
             </p>
           </div>
 
@@ -404,7 +415,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
           {/* Capacity note */}
           <p className="text-center text-xs text-[#D4C4A0]/70 mt-4">
-            Tables with <span className="text-[#98A886] font-bold">●</span> pista green dot fit your party of <span className="text-[#E8DCB8] font-bold">{guestCount}</span>.
+            Tables with pista green indicator fit your party of <span className="text-[#E8DCB8] font-bold">{guestCount}</span>.
             Tap an available table to select it.
           </p>
         </div>
@@ -418,7 +429,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             {/* Summary card */}
             <div className="rounded-3xl bg-gradient-to-br from-[#231710] to-[#121417] border border-[#C9B086]/40 p-6">
               <div className="flex items-start gap-4">
-                <div className="text-4xl">{selectedArea.emoji}</div>
+                <div className="w-12 h-12 rounded-2xl flex items-center justify-center bg-[#231710] border border-[#C9B086]/30 p-3 shrink-0">
+                  <AreaIcon type={selectedArea.iconType} className="w-6 h-6" />
+                </div>
+
                 <div className="flex-1">
                   <div className="flex items-center justify-between flex-wrap gap-2">
                     <h4 className="text-base font-serif font-bold text-[#E8DCB8]">Your Table is on Hold</h4>
