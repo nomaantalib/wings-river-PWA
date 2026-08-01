@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getStoredBlogs, BlogPost, INITIAL_BLOGS } from '@/lib/db';
-import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, Sparkles, BookOpen } from 'lucide-react';
+import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, BookOpen } from 'lucide-react';
 
 interface BlogSectionProps {
   onOpenBooking?: () => void;
@@ -13,10 +13,11 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [activeBlog, setActiveBlog] = useState<BlogPost | null>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number>(0);
-  const [expandedCardId, setExpandedCardId] = useState<string | null>(null);
-
   const [activeBlogImages, setActiveBlogImages] = useState<string[]>([]);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
+  const [isPaused, setIsPaused] = useState<boolean>(false);
+
+  const carouselRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const refreshData = () => { getStoredBlogs().then(setBlogs); };
@@ -24,6 +25,29 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
     window.addEventListener('wings_db_sync', refreshData);
     return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
+
+  // Horizontal Auto-sliding Carousel interval (scrolls 320px every 3.5 seconds)
+  useEffect(() => {
+    if (isPaused) return;
+    const interval = setInterval(() => {
+      if (!carouselRef.current) return;
+      const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
+      if (scrollLeft + clientWidth >= scrollWidth - 15) {
+        carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+      } else {
+        carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+      }
+    }, 3500);
+    return () => clearInterval(interval);
+  }, [isPaused]);
+
+  const scrollLeft = () => {
+    carouselRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
+  };
+  const scrollRight = () => {
+    carouselRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
+  };
+
 
   const categories = ['All', ...Array.from(new Set(blogs.map(b => b.category)))];
 
@@ -135,139 +159,125 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           </div>
         )}
 
-        {/* Blog Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredBlogs.map((post) => {
-            const postImages = safeImages(post.images, post.cover_image);
-            const isExpanded = expandedCardId === post.id;
+        {/* Horizontal Auto-sliding Carousel Container */}
+        <div
+          className="relative group"
+          onMouseEnter={() => setIsPaused(true)}
+          onMouseLeave={() => setIsPaused(false)}
+        >
+          {/* Scroll Left Button */}
+          <button
+            onClick={scrollLeft}
+            aria-label="Scroll left"
+            className="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 shadow-xl hover:bg-amber-500 hover:text-dark-950 transition-all opacity-80 hover:opacity-100 hover:scale-110"
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </button>
 
-            return (
-              <div
-                key={post.id}
-                className="bg-white rounded-3xl overflow-hidden shadow-lg border border-cream-200 hover:shadow-2xl transition-all duration-300 flex flex-col group"
-              >
-                {/* Fancy Card Image Banner (Dual-layer: ambient blur + full un-cropped image) */}
+          {/* Scroll Right Button */}
+          <button
+            onClick={scrollRight}
+            aria-label="Scroll right"
+            className="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 shadow-xl hover:bg-amber-500 hover:text-dark-950 transition-all opacity-80 hover:opacity-100 hover:scale-110"
+          >
+            <ChevronRight className="w-5 h-5" />
+          </button>
+
+          {/* Horizontal Track */}
+          <div
+            ref={carouselRef}
+            className="flex items-stretch gap-5 overflow-x-auto no-scrollbar py-4 px-1 scroll-smooth snap-x snap-mandatory"
+          >
+            {filteredBlogs.map((post) => {
+              const postImages = safeImages(post.images, post.cover_image);
+
+              return (
                 <div
-                  className="relative h-64 overflow-hidden bg-dark-950 cursor-pointer flex items-center justify-center"
-                  onClick={() => openBlogReader(post)}
+                  key={post.id}
+                  className="snap-start shrink-0 w-[280px] sm:w-[320px] bg-white rounded-2xl overflow-hidden shadow-md hover:shadow-xl border border-cream-200 transition-all duration-300 flex flex-col group/card hover:-translate-y-1"
                 >
-                  {/* Ambient Blurred Background Layer */}
-                  <img
-                    src={post.cover_image}
-                    alt=""
-                    aria-hidden="true"
-                    className="absolute inset-0 w-full h-full object-cover filter blur-xl opacity-50 scale-110 transition-transform duration-700 group-hover:scale-125"
-                  />
+                  {/* Shorter Compact Image Banner */}
+                  <div
+                    className="relative h-36 overflow-hidden bg-dark-950 cursor-pointer flex items-center justify-center"
+                    onClick={() => openBlogReader(post)}
+                  >
+                    {/* Ambient Blur Layer */}
+                    <img
+                      src={post.cover_image}
+                      alt=""
+                      aria-hidden="true"
+                      className="absolute inset-0 w-full h-full object-cover filter blur-lg opacity-40 scale-110 transition-transform duration-500 group-hover/card:scale-120"
+                    />
 
-                  {/* Dark Vignette Overlay */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-dark-950/20 to-transparent" />
+                    {/* Sharp Image */}
+                    <img
+                      src={post.cover_image}
+                      alt={post.title}
+                      className="relative z-10 max-h-full max-w-full object-contain p-2 transition-transform duration-300 group-hover/card:scale-105"
+                    />
 
-                  {/* Sharp Full Un-cropped Image (Full aspect ratio preserved) */}
-                  <img
-                    src={post.cover_image}
-                    alt={post.title}
-                    className="relative z-10 max-h-full max-w-full object-contain p-3 drop-shadow-2xl transition-transform duration-500 group-hover:scale-105"
-                  />
-                  
-                  {/* Category Pill */}
-                  <span className="absolute top-3 left-3 z-20 px-3 py-1 rounded-full bg-dark-950/80 backdrop-blur-md text-amber-300 text-[10px] font-bold uppercase tracking-wider border border-amber-400/30">
-                    {post.category}
-                  </span>
-
-                  {/* Multi-Image Count Badge */}
-                  {postImages.length > 1 && (
-                    <span className="absolute top-3 right-3 z-20 px-2.5 py-1 rounded-full bg-amber-500/90 text-dark-950 font-extrabold text-[10px] flex items-center space-x-1 shadow-md">
-                      <ImageIcon className="w-3 h-3" />
-                      <span>{postImages.length} Full Photos</span>
+                    {/* Category Tag */}
+                    <span className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded-md bg-dark-950/80 backdrop-blur-sm text-amber-300 text-[9px] font-bold uppercase tracking-wider border border-amber-400/30">
+                      {post.category}
                     </span>
-                  )}
-                </div>
 
-                {/* Card Content */}
-                <div className="p-6 flex-1 flex flex-col justify-between">
-                  <div>
-                    {/* Meta Header */}
-                    <div className="flex items-center space-x-3 text-[11px] text-gray-500 mb-2">
-                      <span className="flex items-center space-x-1">
-                        <Calendar className="w-3 h-3 text-amber-600" />
-                        <span>{formatBlogDate(post.created_at)}</span>
+                    {/* Photo count badge */}
+                    {postImages.length > 1 && (
+                      <span className="absolute top-2 right-2 z-20 px-2 py-0.5 rounded-md bg-amber-500/90 text-dark-950 font-bold text-[9px] flex items-center gap-1 shadow-sm">
+                        <ImageIcon className="w-2.5 h-2.5" />
+                        <span>{postImages.length}</span>
                       </span>
-                      <span>•</span>
-                      <span className="flex items-center space-x-1">
-                        <Clock className="w-3 h-3 text-amber-600" />
-                        <span>{post.read_time}</span>
-                      </span>
+                    )}
+                  </div>
+
+                  {/* Compact Card Body */}
+                  <div className="p-4 flex-1 flex flex-col justify-between">
+                    <div>
+                      {/* Meta Date & Read time */}
+                      <div className="flex items-center space-x-2 text-[10px] text-gray-500 mb-1.5">
+                        <span className="flex items-center space-x-1">
+                          <Calendar className="w-3 h-3 text-amber-600" />
+                          <span>{formatBlogDate(post.created_at)}</span>
+                        </span>
+                        <span>•</span>
+                        <span className="flex items-center space-x-1">
+                          <Clock className="w-3 h-3 text-amber-600" />
+                          <span>{post.read_time}</span>
+                        </span>
+                      </div>
+
+                      {/* Title — 2 lines */}
+                      <h3
+                        className="font-serif font-bold text-sm text-dark-900 mb-1.5 group-hover/card:text-amber-700 transition-colors line-clamp-2 cursor-pointer leading-tight"
+                        onClick={() => openBlogReader(post)}
+                      >
+                        {post.title}
+                      </h3>
+
+                      {/* Excerpt — 2 lines */}
+                      <p className="font-sans text-[11px] text-gray-600 leading-snug line-clamp-2 mb-3">
+                        {post.excerpt}
+                      </p>
                     </div>
 
-                    {/* Article Title */}
-                    <h3
-                      className="font-serif font-bold text-lg text-dark-900 mb-2 group-hover:text-amber-700 transition-colors leading-snug cursor-pointer"
-                      onClick={() => openBlogReader(post)}
-                    >
-                      {post.title}
-                    </h3>
-
-                    {/* Article Excerpt */}
-                    <p className="font-sans text-xs text-gray-600 leading-relaxed mb-4">
-                      {isExpanded ? post.content : post.excerpt}
-                    </p>
-
-                    {/* Multi-Image Thumbnails Bar */}
-                    {postImages.length > 1 && (
-                      <div className="flex items-center space-x-2 mb-4 overflow-x-auto pb-1 no-scrollbar">
-                        {postImages.slice(0, 4).map((img, idx) => (
-                          <div
-                            key={idx}
-                            onClick={() => openBlogReader(post)}
-                            className="w-12 h-12 rounded-xl overflow-hidden shrink-0 border border-amber-200 cursor-pointer hover:opacity-80 transition-opacity bg-dark-950 p-0.5"
-                          >
-                            <img src={img} alt="" className="w-full h-full object-contain" />
-                          </div>
-                        ))}
-                        {postImages.length > 4 && (
-                          <div
-                            onClick={() => openBlogReader(post)}
-                            className="w-12 h-12 rounded-xl bg-amber-100 text-amber-800 text-xs font-bold flex items-center justify-center shrink-0 border border-amber-200 cursor-pointer"
-                          >
-                            +{postImages.length - 4}
-                          </div>
-                        )}
-                      </div>
-                    )}
-
-                    {/* Tags */}
-                    {post.tags && post.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1.5 mb-4">
-                        {post.tags.map(t => (
-                          <span key={t} className="px-2 py-0.5 rounded-md bg-cream-200 text-gray-700 text-[10px] font-semibold">
-                            #{t}
-                          </span>
-                        ))}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Actions Bar */}
-                  <div className="flex items-center justify-between pt-3 border-t border-cream-200">
-                    <button
-                      onClick={() => setExpandedCardId(isExpanded ? null : post.id)}
-                      className="text-[11px] font-bold text-gray-500 hover:text-amber-700 transition-colors"
-                    >
-                      {isExpanded ? 'Collapse text ▲' : 'Expand preview ▼'}
-                    </button>
-
-                    <button
-                      onClick={() => openBlogReader(post)}
-                      className="inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500 text-amber-900 hover:text-dark-950 font-bold text-xs transition-all"
-                    >
-                      <span>Read Full & Gallery</span>
-                      <ArrowRight className="w-3.5 h-3.5" />
-                    </button>
+                    {/* Read More Footer */}
+                    <div className="pt-2 border-t border-cream-200 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-amber-800 font-mono">
+                        #{post.category}
+                      </span>
+                      <button
+                        onClick={() => openBlogReader(post)}
+                        className="inline-flex items-center space-x-1 text-xs font-bold text-amber-700 hover:text-amber-900 transition-colors"
+                      >
+                        <span>Read</span>
+                        <ArrowRight className="w-3 h-3" />
+                      </button>
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
