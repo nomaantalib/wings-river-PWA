@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import SEOStructuredData from '@/components/SEOStructuredData';
+import BackgroundVideo from '@/components/BackgroundVideo';
 
 export const viewport: Viewport = {
-  themeColor: '#d97706',
+  themeColor: '#C9B086',
 };
 
 export const metadata: Metadata = {
@@ -99,21 +100,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;0,900;1,600&family=Lato:wght@300;400;700;900&family=Cinzel:wght@400;600;700&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased selection:bg-amber-300 selection:text-amber-950 text-slate-100 relative min-h-screen" style={{ fontFamily: "'Lato', sans-serif", background: '#070a0f' }}>
-        {/* Fixed App-Wide Background Video Backdrop */}
-        <div className="fixed inset-0 -z-50 overflow-hidden pointer-events-none select-none">
-          <video
-            autoPlay
-            loop
-            muted
-            playsInline
-            preload="auto"
-            className="w-full h-full object-cover filter brightness-[0.35] contrast-[1.08] saturate-[0.85]"
-          >
-            <source src="/videos/gemini_generated_video_5c810dd6.mp4" type="video/mp4" />
-          </video>
-
-          <div className="absolute inset-0 bg-[#070a0f]/75 backdrop-blur-[2px]" />
-        </div>
+        {/* Fixed App-Wide Dual Background Video Backdrop */}
+        <BackgroundVideo />
         <SEOStructuredData />
         {children}
       </body>

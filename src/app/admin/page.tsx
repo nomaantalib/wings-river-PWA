@@ -1320,7 +1320,7 @@ export default function AdminPage() {
                       { label: 'Blogs & Stories', value: dashboardStats?.blogs_count ?? blogs.length, color: 'text-blue-400', sub: `${reviews.length} reviews` },
                       { label: 'Media Library', value: dashboardStats?.gallery_images ?? gallery.length, color: 'text-purple-400', sub: `${media.length} files` },
                       { label: 'Customer Reviews', value: dashboardStats?.reviews_count ?? reviews.length, color: 'text-pink-400', sub: 'from D1' },
-                      { label: 'Offers & Coupons', value: dashboardStats?.offers_count ?? offers.length, color: 'text-orange-400', sub: 'active offers' },
+                      { label: 'Offers & Coupons', value: dashboardStats?.offers_count ?? offers.length, color: 'text-gold-400', sub: 'active offers' },
                       { label: 'Contact Inquiries', value: dashboardStats?.feedback_count ?? messages.length, color: 'text-cyan-400', sub: 'unread msgs' },
                       { label: 'Water Sports Rides', value: rides.length, color: 'text-teal-400', sub: `${banners.length} banners` },
                     ].map((stat, i) => (

@@ -148,7 +148,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 onClick={() => setSelectedCategory(cat)}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 ${
                   selectedCategory === cat
-                    ? 'bg-amber-500 text-dark-950 shadow-md scale-105'
+                    ? 'bg-gold-400 text-dark-950 shadow-md scale-105'
                     : 'bg-white text-gray-600 hover:bg-amber-50 hover:text-amber-800 border border-cream-200'
                 }`}
               >
@@ -169,7 +169,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           <button
             onClick={scrollLeft}
             aria-label="Scroll left"
-            className="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 shadow-xl hover:bg-amber-500 hover:text-dark-950 transition-all opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute -left-3 sm:-left-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 shadow-xl hover:bg-gold-400 hover:text-dark-950 transition-all opacity-80 hover:opacity-100 hover:scale-110"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
@@ -178,7 +178,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           <button
             onClick={scrollRight}
             aria-label="Scroll right"
-            className="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 shadow-xl hover:bg-amber-500 hover:text-dark-950 transition-all opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute -right-3 sm:-right-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-white/90 border border-amber-300 text-amber-900 shadow-xl hover:bg-gold-400 hover:text-dark-950 transition-all opacity-80 hover:opacity-100 hover:scale-110"
           >
             <ChevronRight className="w-5 h-5" />
           </button>
@@ -223,7 +223,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
 
                     {/* Photo count badge */}
                     {postImages.length > 1 && (
-                      <span className="absolute top-2 right-2 z-20 px-2 py-0.5 rounded-md bg-amber-500/90 text-dark-950 font-bold text-[9px] flex items-center gap-1 shadow-sm">
+                      <span className="absolute top-2 right-2 z-20 px-2 py-0.5 rounded-md bg-gold-400/90 text-dark-950 font-bold text-[9px] flex items-center gap-1 shadow-sm">
                         <ImageIcon className="w-2.5 h-2.5" />
                         <span>{postImages.length}</span>
                       </span>
@@ -288,7 +288,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
             {/* Modal Header Bar */}
             <div className="flex items-center justify-between px-6 py-3.5 bg-dark-950 text-white border-b border-white/10 shrink-0">
               <div className="flex items-center space-x-3 min-w-0">
-                <span className="px-2.5 py-1 rounded-full bg-amber-500 text-dark-950 font-black text-[10px] uppercase tracking-wider shrink-0">
+                <span className="px-2.5 py-1 rounded-full bg-gold-400 text-dark-950 font-black text-[10px] uppercase tracking-wider shrink-0">
                   {activeBlog.category}
                 </span>
                 <span className="text-xs font-serif font-bold truncate text-gray-200">
@@ -338,14 +338,14 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                       <>
                         <button
                           onClick={prevImage}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-amber-500 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
+                          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-gold-400 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
                           title="Previous Photo"
                         >
                           <ChevronLeft className="w-5 h-5" />
                         </button>
                         <button
                           onClick={nextImage}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-amber-500 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-gold-400 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
                           title="Next Photo"
                         >
                           <ChevronRight className="w-5 h-5" />
@@ -368,7 +368,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                           onClick={() => changeSlide(idx)}
                           className={`relative w-20 h-16 rounded-2xl overflow-hidden shrink-0 border-2 transition-all duration-300 bg-dark-950 p-0.5 ${
                             activeImageIndex === idx
-                              ? 'border-amber-500 scale-110 shadow-lg ring-2 ring-amber-500/50'
+                              ? 'border-gold-400 scale-110 shadow-lg ring-2 ring-gold-400/50'
                               : 'border-transparent opacity-50 hover:opacity-100'
                           }`}
                         >
@@ -403,7 +403,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
               </div>
 
               {/* Excerpt Quote */}
-              <div className="p-4 rounded-2xl bg-amber-50 border-l-4 border-amber-500 text-amber-950 font-medium text-sm sm:text-base leading-relaxed">
+              <div className="p-4 rounded-2xl bg-amber-50 border-l-4 border-gold-400 text-amber-950 font-medium text-sm sm:text-base leading-relaxed">
                 "{activeBlog.excerpt}"
               </div>
 
@@ -458,7 +458,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 {onOpenBooking && (
                   <button
                     onClick={() => { closeBlogReader(); onOpenBooking(); }}
-                    className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-extrabold text-xs shadow-lg transition-all whitespace-nowrap flex items-center space-x-1.5"
+                    className="px-6 py-2.5 rounded-xl bg-gold-400 hover:bg-amber-400 text-dark-950 font-extrabold text-xs shadow-lg transition-all whitespace-nowrap flex items-center space-x-1.5"
                   >
                     <Calendar className="w-4 h-4" />
                     <span>Reserve Table / Event</span>
