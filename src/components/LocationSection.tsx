@@ -8,65 +8,65 @@ export default function LocationSection() {
   const directMapsLink = "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA";
 
   return (
-    <section id="location" className="py-20 bg-dark-900 text-white relative">
+    <section id="location" className="py-20 bg-[#FAF7F2] text-[#1F1810] relative border-t border-[#E5B82C]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-gold-400/20 border border-gold-400/30 text-gold-300 font-semibold text-xs tracking-widest uppercase mb-3">
+          <span className="inline-block px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#E5B82C]/50 text-[#F5D061] font-semibold text-xs tracking-widest uppercase mb-3">
             Find Our Waterfront Venue
           </span>
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight mb-4">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1F1810] tracking-tight mb-4">
             Location & Directions
           </h2>
-          <p className="font-sans text-gray-300 text-base">
+          <p className="font-sans text-[#7A5C3A] text-base">
             Situated right inside Laxman Mela Ground at Laxman Jhula Park along Gomti Riverfront.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Address Card */}
-          <div className="lg:col-span-5 bg-white/5 backdrop-blur-xl border border-white/10 p-8 rounded-3xl flex flex-col justify-between shadow-2xl">
+          <div className="lg:col-span-5 bg-[#1F1810] border border-[#E5B82C]/30 p-8 rounded-3xl flex flex-col justify-between shadow-2xl">
             <div>
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-mint-400/20 border border-mint-300/40 flex items-center justify-center text-mint-300">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center text-[#1F1810] shadow-lg">
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-xl text-white">Wings River Café</h3>
-                  <p className="text-xs text-mint-300 font-semibold">Lucknow Water Sports Hub</p>
+                  <h3 className="font-serif font-bold text-xl text-[#F8E7A1]">Wings River Café</h3>
+                  <p className="text-xs text-[#F5D061] font-semibold">Lucknow Water Sports Hub</p>
                 </div>
               </div>
 
-              <div className="space-y-4 text-sm text-gray-300">
+              <div className="space-y-4 text-sm text-[#D4C4A0]">
                 <div className="flex items-start space-x-3">
-                  <Compass className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+                  <Compass className="w-5 h-5 text-[#F5D061] shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-white block">Full Address:</strong>
+                    <strong className="text-[#F8E7A1] block">Full Address:</strong>
                     Laxman Jhula Park, River Front, Kala Kankar Colony, Purana Haidarabad, Hazratganj, Lucknow, Uttar Pradesh 226001
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <Anchor className="w-5 h-5 text-mint-400 shrink-0 mt-0.5" />
+                  <Anchor className="w-5 h-5 text-[#F5D061] shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-white block">Landmark:</strong>
+                    <strong className="text-[#F8E7A1] block">Landmark:</strong>
                     Located inside Laxman Mela Ground beside Lucknow Water Sports Dock
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <Clock className="w-5 h-5 text-gold-400 shrink-0 mt-0.5" />
+                  <Clock className="w-5 h-5 text-[#F5D061] shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-white block">Business Hours:</strong>
+                    <strong className="text-[#F8E7A1] block">Business Hours:</strong>
                     Monday – Sunday: 11:00 AM – 11:59 PM
                   </div>
                 </div>
 
                 <div className="flex items-start space-x-3">
-                  <Phone className="w-5 h-5 text-mint-400 shrink-0 mt-0.5" />
+                  <Phone className="w-5 h-5 text-[#F5D061] shrink-0 mt-0.5" />
                   <div>
-                    <strong className="text-white block">Phone Enquiries:</strong>
-                    <a href="tel:07310008020" className="text-gold-400 hover:underline font-bold">
+                    <strong className="text-[#F8E7A1] block">Phone Enquiries:</strong>
+                    <a href="tel:07310008020" className="text-[#F5D061] hover:underline font-bold">
                       07310008020
                     </a>
                   </div>
@@ -74,12 +74,12 @@ export default function LocationSection() {
               </div>
             </div>
 
-            <div className="mt-8 pt-6 border-t border-white/10">
+            <div className="mt-8 pt-6 border-t border-[#E5B82C]/30">
               <a
                 href={directMapsLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-4 bg-gradient-to-r from-mint-400 via-mint-500 to-gold-400 text-dark-950 font-extrabold text-sm rounded-2xl shadow-xl flex items-center justify-center space-x-2 hover:scale-102 transition-transform"
+                className="w-full py-4 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] text-[#1F1810] font-extrabold text-sm rounded-2xl shadow-xl flex items-center justify-center space-x-2 hover:scale-[1.02] transition-transform"
               >
                 <Navigation className="w-4 h-4" />
                 <span>Get Driving Directions on Google Maps</span>
@@ -88,7 +88,7 @@ export default function LocationSection() {
           </div>
 
           {/* Embedded Map (Medium/Large Screens Only) */}
-          <div className="hidden md:block lg:col-span-7 rounded-3xl overflow-hidden border border-white/10 shadow-2xl min-h-[380px] bg-dark-800 relative">
+          <div className="hidden md:block lg:col-span-7 rounded-3xl overflow-hidden border border-[#E5B82C]/30 shadow-2xl min-h-[380px] bg-[#F0EAE0] relative">
             <iframe
               title="Wings River Cafe Google Maps"
               src={mapEmbedUrl}

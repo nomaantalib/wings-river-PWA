@@ -231,11 +231,11 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
   return (
     <div
       ref={stepRef}
-      className="bg-[#12151C] border border-[#F5D061]/40 rounded-3xl shadow-2xl text-white overflow-hidden"
+      className="bg-[#FAF7F2] border border-[#E5B82C]/40 rounded-3xl shadow-2xl text-[#1F1810] overflow-hidden"
     >
 
       {/* ── Section Header ───────────────────────────────────── */}
-      <div className="bg-[#181B22] border-b border-[#F5D061]/25 px-5 sm:px-7 py-5">
+      <div className="bg-gradient-to-r from-[#1F1810] via-[#2A1D0E] to-[#1F1810] border-b border-[#F5D061]/25 px-5 sm:px-7 py-5">
         <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
 
           {/* Title */}
@@ -366,7 +366,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       </div>
 
       {/* ── Step Breadcrumb ──────────────────────────────────── */}
-      <div className="flex items-center gap-0 px-5 sm:px-7 py-3.5 border-b border-[#F5D061]/15 bg-[#12151B]">
+      <div className="flex items-center gap-0 px-5 sm:px-7 py-3.5 border-b border-[#E5B82C]/30 bg-[#F0EAE0]">
         {STEP_LABELS.map((s, i) => {
           const num = i + 1;
           const done   = step > num;
@@ -375,14 +375,14 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             <React.Fragment key={s}>
               <div className="flex items-center gap-2">
                 <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                  done   ? 'bg-[#98A886] text-[#120B08] shadow shadow-[#98A886]/40'  :
-                  active ? 'bg-gradient-to-br from-[#F5D061] to-[#A8996B] text-[#120B08] shadow-lg shadow-[#F5D061]/30 scale-110' :
-                           'bg-[#1E2129] text-[#D4C4A0]/40 border border-[#F5D061]/20'
+                  done   ? 'bg-[#5A8A6A] text-white shadow shadow-[#5A8A6A]/40'  :
+                  active ? 'bg-gradient-to-br from-[#F5D061] to-[#E5B82C] text-[#1F1810] shadow-lg shadow-[#F5D061]/30 scale-110' :
+                           'bg-[#E5D9C8] text-[#8B7355] border border-[#E5B82C]/40'
                 }`}>
                   {done ? '✓' : num}
                 </span>
                 <span className={`text-[11px] font-semibold transition-all duration-300 ${
-                  active ? 'text-[#E8DCB8]' : done ? 'text-[#98A886]' : 'text-slate-600'
+                  active ? 'text-[#1F1810]' : done ? 'text-[#5A8A6A]' : 'text-[#8B7355]'
                 }`}>{s}</span>
               </div>
               {i < STEP_LABELS.length - 1 && (
@@ -398,12 +398,11 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             onClick={handleBack}
             aria-label={step === 3 ? 'Go back to table selection' : 'Go back to area selection'}
             className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl
-              bg-gradient-to-r from-[#231710] to-[#1A1209]
-              border border-[#F5D061]/50 hover:border-[#F5D061]
-              text-[#F5D061] hover:text-[#F5EBE0]
+              bg-[#1F1810]
+              border border-[#E5B82C]/60 hover:border-[#F5D061]
+              text-[#F5D061] hover:text-[#F8E7A1]
               text-[11px] font-bold uppercase tracking-wider
-              shadow-md hover:shadow-[#F5D061]/20 hover:shadow-lg
-              transition-all duration-200 active:scale-95
+              shadow-md transition-all duration-200 active:scale-95
               focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
           >
             <ArrowLeft className="w-3.5 h-3.5 transition-transform group-hover:-translate-x-0.5" />
@@ -415,8 +414,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       {/* ── STEP 1: Choose Area ──────────────────────────────── */}
       {step === 1 && (
         <div className="p-5 sm:p-7 space-y-3 animate-fade-in">
-          <p className="text-xs text-[#D4C4A0]/60 pb-1 flex items-center gap-1.5">
-            <Compass className="w-3.5 h-3.5 text-[#F5D061]" /> Select a dining area along the Gomti Riverfront
+          <p className="text-xs text-[#7A5C3A] pb-1 flex items-center gap-1.5 font-semibold">
+            <Compass className="w-3.5 h-3.5 text-[#E5B82C]" /> Select a dining area along the Gomti Riverfront
           </p>
           {AREAS.map(area => {
             const areaFreeTables = ALL_TABLES.filter(t => t.cluster_id === area.id && t.status === 'free').length;
@@ -428,14 +427,13 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 onClick={() => handleAreaSelect(area)}
                 disabled={occupied}
                 aria-label={`Select ${area.label} — ${areaFreeTables} tables available`}
-                className={`w-full text-left rounded-2xl border bg-gradient-to-r ${area.gradient} ${area.borderStyle}
-                  p-5 transition-all duration-300 group relative overflow-hidden
-                  focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50
-                  ${occupied ? 'opacity-50 cursor-not-allowed' : 'hover:scale-[1.015] hover:shadow-2xl hover:shadow-black/40 active:scale-[0.99]'}
-                `}
-              >
+                className={`w-full text-left rounded-2xl border bg-white/80
+                  p-5 transition-all duration-300 group relative overflow-hidden shadow-sm
+                  focus:outline-none focus:ring-2 focus:ring-[#E5B82C]/60
+                  ${occupied ? 'opacity-50 cursor-not-allowed border-gray-300' : 'border-[#E5B82C]/50 hover:border-[#E5B82C] hover:shadow-lg hover:shadow-[#E5B82C]/20 hover:scale-[1.01] active:scale-[0.99]'}
+                `}>
                 {/* Shimmer highlight on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
+                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#F5D061]/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
 
                 <div className="flex items-center justify-between gap-4 relative z-10">
                   {/* Left */}
@@ -450,10 +448,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                           {area.tag}
                         </span>
                       </div>
-                      <p className="text-[11px] text-[#D4C4A0]/75 mt-0.5">{area.subtitle}</p>
+                      <p className="text-[11px] text-[#7A5C3A] mt-0.5">{area.subtitle}</p>
                       <div className="flex items-center gap-4 mt-1.5">
-                        <span className="text-[10px] text-slate-500 font-mono">Tables: {area.tables}</span>
-                        <span className={`text-[11px] font-bold ${areaFreeTables > 0 ? 'text-[#98A886]' : 'text-red-400'}`}>
+                        <span className="text-[10px] text-[#A08060] font-mono font-semibold">Tables: {area.tables}</span>
+                        <span className={`text-[11px] font-bold ${areaFreeTables > 0 ? 'text-[#3D7A50]' : 'text-red-600'}`}>
                           {areaFreeTables > 0 ? `✓ ${areaFreeTables} Available` : '✗ Fully Occupied'}
                         </span>
                       </div>
@@ -464,20 +462,20 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                   <div className="flex flex-col items-center gap-2 shrink-0">
                     <div className="relative w-12 h-12">
                       <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(201,176,134,0.12)" strokeWidth="3"/>
+                        <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(229,184,44,0.15)" strokeWidth="3"/>
                         <circle cx="18" cy="18" r="14" fill="none"
-                          stroke={areaFreeTables > 0 ? '#98A886' : '#ef4444'}
+                          stroke={areaFreeTables > 0 ? '#3D7A50' : '#dc2626'}
                           strokeWidth="3"
                           strokeDasharray={`${(areaFreeTables / totalTables) * 87.96} 87.96`}
                           strokeLinecap="round"
                           className="transition-all duration-700"
                         />
                       </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold font-mono text-[#E8DCB8]">
+                      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold font-mono text-[#1F1810]">
                         {areaFreeTables}/{totalTables}
                       </span>
                     </div>
-                    <ChevronRight className={`w-4 h-4 transition-all duration-200 ${occupied ? 'text-slate-600' : 'text-[#F5D061]/60 group-hover:text-[#E8DCB8] group-hover:translate-x-1'}`} />
+                    <ChevronRight className={`w-4 h-4 transition-all duration-200 ${occupied ? 'text-gray-400' : 'text-[#E5B82C] group-hover:text-[#1F1810] group-hover:translate-x-1'}`} />
                   </div>
                 </div>
               </button>
@@ -485,10 +483,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           })}
 
           {/* Legend */}
-          <div className="flex items-center justify-center gap-6 pt-2 text-[11px] text-[#D4C4A0]/60 font-medium">
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#98A886] inline-block" />Available</span>
+          <div className="flex items-center justify-center gap-6 pt-2 text-[11px] text-[#7A5C3A] font-semibold">
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#3D7A50] inline-block" />Available</span>
             <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-[#F5D061] inline-block" />Occupied</span>
-            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-400 inline-block" />Reserved</span>
+            <span className="flex items-center gap-1.5"><span className="w-2.5 h-2.5 rounded-full bg-red-500 inline-block" />Reserved</span>
           </div>
         </div>
       )}
@@ -498,13 +496,13 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         <div className="p-5 sm:p-7 animate-fade-in">
 
           {/* Area header */}
-          <div className="flex items-center gap-3 mb-5 p-3.5 bg-[#1A1D24]/80 rounded-2xl border border-[#F5D061]/20">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-black/30 border border-white/10 p-2 shrink-0">
-              <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
+          <div className="flex items-center gap-3 mb-5 p-3.5 bg-[#1F1810] rounded-2xl border border-[#E5B82C]/40">
+            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#F5D061] to-[#E5B82C] shadow-md p-2 shrink-0">
+              <AreaIcon type={selectedArea.iconType} className="w-5 h-5 text-[#1F1810]" />
             </div>
             <div className="flex-1">
-              <h4 className="text-sm font-serif font-bold text-[#E8DCB8]">{selectedArea.label}</h4>
-              <p className="text-[11px] text-[#D4C4A0]/70">{selectedArea.subtitle}</p>
+              <h4 className="text-sm font-serif font-bold text-[#F8E7A1]">{selectedArea.label}</h4>
+              <p className="text-[11px] text-[#D4C4A0]/80">{selectedArea.subtitle}</p>
             </div>
             <div className={`text-xs font-bold px-3 py-1.5 rounded-xl border ${freeCount > 0 ? 'text-[#98A886] border-[#98A886]/40 bg-[#98A886]/10' : 'text-red-400 border-red-400/30 bg-red-400/10'}`}>
               {freeCount > 0 ? `${freeCount} free` : 'Full'}
@@ -561,7 +559,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           </div>
 
           {/* Table grid */}
-          <div className="bg-[#141820]/80 border border-[#F5D061]/15 rounded-b-xl rounded-tr-xl p-6 space-y-5">
+          <div className="bg-white/70 border border-[#E5B82C]/30 rounded-b-xl rounded-tr-xl p-6 space-y-5">
             {AREA_LAYOUTS[selectedArea.id].map((row, ri) => (
               <div key={ri} className="flex items-center justify-center gap-3 flex-wrap">
                 {row.map(tNum => {
@@ -641,10 +639,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             </div>
           )}
 
-          <p className="text-center text-[11px] text-[#D4C4A0]/60 mt-4">
+          <p className="text-center text-[11px] text-[#5A6A50] mt-4 font-semibold">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#98A886] animate-pulse inline-block" />
-              Pulsing green tables fit your party of <span className="text-[#E8DCB8] font-bold mx-1">{guestCount}</span>. Tap to select.
+              <span className="w-2 h-2 rounded-full bg-[#3D7A50] animate-pulse inline-block" />
+              Green tables fit your party of <span className="text-[#1F1810] font-bold mx-1">{guestCount}</span>. Tap to select.
             </span>
           </p>
         </div>
@@ -659,7 +657,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           <div className="p-5 sm:p-7 animate-fade-in space-y-4">
 
             {/* Confirmation card */}
-            <div className="rounded-3xl bg-gradient-to-br from-[#1E1609] via-[#1A1510] to-[#0F1015] border border-[#F5D061]/40 p-5 shadow-2xl">
+            <div className="rounded-3xl bg-[#1F1810] border border-[#F5D061]/40 p-5 shadow-2xl">
 
               {/* Top badge */}
               <div className="flex items-center justify-between mb-4">

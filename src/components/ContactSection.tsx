@@ -55,122 +55,122 @@ export default function ContactSection() {
   };
 
   return (
-    <section id="contact" className="py-20 bg-dark-950 text-white relative overflow-hidden">
+    <section id="contact" className="py-20 bg-[#FAF7F2] text-[#1F1810] relative overflow-hidden border-t border-[#E5B82C]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
           {/* Info Side */}
           <div className="lg:col-span-5 space-y-6">
-            <span className="inline-block px-4 py-1.5 rounded-full bg-gold-400/20 border border-gold-400/40 text-gold-400 text-xs font-bold uppercase tracking-widest">
+            <span className="inline-block px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#E5B82C]/50 text-[#F5D061] text-xs font-bold uppercase tracking-widest">
               Get in Touch
             </span>
-            <h2 className="font-serif text-3xl sm:text-4xl font-extrabold text-white leading-tight">
+            <h2 className="font-serif text-3xl sm:text-4xl font-extrabold text-[#1F1810] leading-tight">
               We’d Love to Hear From You
             </h2>
-            <p className="text-gray-400 text-sm leading-relaxed">
+            <p className="text-[#7A5C3A] text-sm leading-relaxed">
               Have questions about booking private birthday canopies, custom party menus, or speedboat tickets? Reach out to our dedicated team.
             </p>
 
             <div className="space-y-4 pt-4">
               <div className="flex items-start space-x-4">
-                <div className="p-3 rounded-2xl bg-mint-500/10 text-mint-400 border border-mint-500/20">
+                <div className="p-3 rounded-2xl bg-[#1F1810] text-[#F5D061] border border-[#E5B82C]/30 shadow-md">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-white">Direct Phone Call</h4>
-                  <a href={`tel:${phone}`} className="text-sm text-mint-400 font-semibold hover:underline">
+                  <h4 className="font-bold text-sm text-[#1F1810]">Direct Phone Call</h4>
+                  <a href={`tel:${phone}`} className="text-sm text-[#E5B82C] font-semibold hover:underline">
                     {phone}
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="p-3 rounded-2xl bg-mint-500/10 text-mint-400 border border-mint-500/20">
+                <div className="p-3 rounded-2xl bg-[#1F1810] text-[#F5D061] border border-[#E5B82C]/30 shadow-md">
                   <Clock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-white">Opening Hours</h4>
-                  <p className="text-sm text-gray-400">{hours.split('(')[0].trim()}</p>
+                  <h4 className="font-bold text-sm text-[#1F1810]">Opening Hours</h4>
+                  <p className="text-sm text-[#7A5C3A]">{hours.split('(')[0].trim()}</p>
                 </div>
               </div>
 
               <div className="flex items-start space-x-4">
-                <div className="p-3 rounded-2xl bg-mint-500/10 text-mint-400 border border-mint-500/20">
+                <div className="p-3 rounded-2xl bg-[#1F1810] text-[#F5D061] border border-[#E5B82C]/30 shadow-md">
                   <MapPin className="w-5 h-5" />
                 </div>
                 <div>
-                  <h4 className="font-bold text-sm text-white">Location &amp; Address</h4>
-                  <p className="text-sm text-gray-400">{address}</p>
+                  <h4 className="font-bold text-sm text-[#1F1810]">Location &amp; Address</h4>
+                  <p className="text-sm text-[#7A5C3A]">{address}</p>
                 </div>
               </div>
             </div>
           </div>
 
           {/* Form Side */}
-          <div className="lg:col-span-7 bg-dark-900 rounded-3xl p-8 border border-white/10 shadow-2xl">
+          <div className="lg:col-span-7 bg-[#1F1810] rounded-3xl p-8 border border-[#E5B82C]/30 shadow-2xl">
             {success ? (
               <div className="p-8 text-center space-y-4">
-                <CheckCircle2 className="w-12 h-12 text-mint-400 mx-auto" />
-                <h3 className="font-serif font-bold text-2xl text-white">Message Sent Successfully!</h3>
-                <p className="text-sm text-gray-300">
+                <CheckCircle2 className="w-12 h-12 text-[#F5D061] mx-auto" />
+                <h3 className="font-serif font-bold text-2xl text-[#F8E7A1]">Message Sent Successfully!</h3>
+                <p className="text-sm text-[#D4C4A0]">
                   Thank you for writing to Wings River Café. Our team will respond shortly.
                 </p>
                 <button
                   onClick={() => setSuccess(false)}
-                  className="px-6 py-2.5 bg-mint-500 text-dark-950 font-bold rounded-xl text-xs"
+                  className="px-6 py-2.5 bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#1F1810] font-bold rounded-xl text-xs"
                 >
                   Send Another Message
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-4">
-                <h3 className="font-serif font-bold text-2xl text-white mb-6">Send an Inquiry</h3>
+                <h3 className="font-serif font-bold text-2xl text-[#F8E7A1] mb-6">Send an Inquiry</h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1">Your Name *</label>
+                    <label className="block text-xs font-semibold text-[#D4C4A0] mb-1">Your Name *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Priyanshu Singh"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                      className="w-full px-4 py-3 text-sm rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-xs font-semibold text-gray-400 mb-1">Phone Number *</label>
+                    <label className="block text-xs font-semibold text-[#D4C4A0] mb-1">Phone Number *</label>
                     <input
                       type="tel"
                       required
                       placeholder="e.g. 07310008020"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                      className="w-full px-4 py-3 text-sm rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Email Address</label>
+                  <label className="block text-xs font-semibold text-[#D4C4A0] mb-1">Email Address</label>
                   <input
                     type="email"
                     placeholder="name@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-4 py-3 text-sm rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-xs font-semibold text-gray-400 mb-1">Message / Event Details *</label>
+                  <label className="block text-xs font-semibold text-[#D4C4A0] mb-1">Message / Event Details *</label>
                   <textarea
                     required
                     rows={4}
                     placeholder="Write your inquiry or party requirements..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-4 py-3 text-sm rounded-xl bg-white border border-gray-300 text-black font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-mint-400"
+                    className="w-full px-4 py-3 text-sm rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                   />
                 </div>
 
@@ -183,7 +183,7 @@ export default function ContactSection() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-4 bg-mint-500 hover:bg-mint-400 text-dark-950 font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2"
+                  className="w-full py-4 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] hover:from-[#E5B82C] hover:to-[#F5D061] text-[#1F1810] font-bold text-sm rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2"
                 >
                   <Send className="w-4 h-4" />
                   <span>{loading ? 'Sending...' : 'Send Message'}</span>
