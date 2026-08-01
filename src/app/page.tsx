@@ -9,7 +9,8 @@ import FeaturesSection from '@/components/FeaturesSection';
 import OffersSection from '@/components/OffersSection';
 import MenuCardBooklet from '@/components/MenuCardBooklet';
 import FoodMenuSection from '@/components/FoodMenuSection';
-import WaterSportsTickets from '@/components/WaterSportsTickets';
+
+
 import GallerySection from '@/components/GallerySection';
 import ReviewsSection from '@/components/ReviewsSection';
 import BlogSection from '@/components/BlogSection';
@@ -105,10 +106,10 @@ export default function Home() {
       {/* Venue Gallery Section */}
       <GallerySection key={`gallery-${syncKey}`} />
       
-      {/* Dynamic Interactive Menu & Water Sports Hub */}
+      {/* Dynamic Interactive Menu Hub */}
       <MenuCardBooklet key={`booklet-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
-      <WaterSportsTickets key={`sports-${syncKey}`} onOpenBooking={handleOpenBooking} />
       <FoodMenuSection key={`foodmenu-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
+
       
       <ReviewsSection key={`reviews-${syncKey}`} />
       <BlogSection key={`blog-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
