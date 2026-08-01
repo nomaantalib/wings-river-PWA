@@ -8,7 +8,7 @@ import AboutSection from '@/components/AboutSection';
 import FeaturesSection from '@/components/FeaturesSection';
 import OffersSection from '@/components/OffersSection';
 import MenuCardBooklet from '@/components/MenuCardBooklet';
-import FoodMenuSection from '@/components/FoodMenuSection';
+
 
 
 import GallerySection from '@/components/GallerySection';
@@ -107,7 +107,7 @@ export default function Home() {
       
       {/* Dynamic Interactive Menu Hub */}
       <MenuCardBooklet key={`booklet-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
-      <FoodMenuSection key={`foodmenu-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
+
 
       {/* Why Choose Wings River Cafe Horizontal Carousel */}
       <FeaturesSection />
