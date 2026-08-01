@@ -246,8 +246,15 @@ async function ensureTables(db) {
     if (!rideCheck || rideCheck.cnt === 0) {
       const rides = [
         ['ride-1', 'Speedboat Rush', 'High Speed', 500, 'Per Person', 'High-speed thrilling ride on the Gomti Riverfront with certified safety gear.', 'Most Popular', 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=600&q=80', '🛥️', 1],
-        ['ride-2', 'Jet Ski Adventure', 'Solo Ride', 800, 'Per 10 Mins', 'Feel the adrenaline wave splashing along the Lucknow riverfront skyline.', 'Thrill Seeker', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80', '🏄', 2],
+        ['ride-2', 'Jet Ski Adventure', 'Solo Ride', 800, 'Per 10 Mins', 'Feel the adrenaline wave splashing along the Lucknow riverfront skyline.', 'Thrill Seeker', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80', '🏄', 2]
+      ];
+      for (const r of rides) {
+        await db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(...r).run();
+      }
+    }
+
     // 5. Auto-seed Table Clusters & Tables if empty
+
     const tableCheck = await db.prepare("SELECT COUNT(*) as cnt FROM tables").first();
     if (!tableCheck || tableCheck.cnt === 0) {
       const clusters = [
