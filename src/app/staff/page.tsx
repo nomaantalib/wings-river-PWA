@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { ChefHat, UserCheck, LayoutDashboard, QrCode, LogOut, CheckCircle, Clock, AlertTriangle, Utensils, DollarSign, Bell, RefreshCw, Phone, Users, ShieldAlert, Sparkles, Filter } from 'lucide-react';
 import StorageController from '@/controllers/StorageController';
+import { notifyOrderReady, notifyTableReady } from '@/lib/pushNotifications';
 
 export default function StaffPWA() {
   const [currentUser, setCurrentUser] = useState<{ username: string; role: 'Kitchen' | 'Waiter' | 'Manager' | 'Admin' } | null>(null);
@@ -102,14 +103,30 @@ export default function StaffPWA() {
         localStorage.setItem('wings_tables_status', JSON.stringify(statusMap));
         window.dispatchEvent(new Event('wings_db_sync'));
       }
+      // 🔔 Notify customers when a table becomes free/available
+      if (newStatus === 'free') {
+        const tbl = tables.find(t => t.id === id);
+        if (tbl) notifyTableReady(tbl.table_number);
+      }
       return updated;
     });
   };
 
 
-  // Kitchen Order Status Flow
+
+  // Kitchen Order Status Flow — fire push notification when order is ready
   const updateOrderStatus = (orderId: string, nextStatus: string) => {
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
+    // Notify customer when order is ready/served
+    if (nextStatus === 'ready' || nextStatus === 'served') {
+      const order = orders.find(o => o.id === orderId);
+      if (order) {
+        notifyOrderReady({
+          table: order.table_number,
+          orderNumber: order.order_number,
+        });
+      }
+    }
   };
 
   // Resolve Call Request

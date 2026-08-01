@@ -41,7 +41,7 @@ export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
   },
   {
     id: 'hs-3',
-    image: '/images/Screenshot_20260720-180609_Maps.png',
+    image: '/images/Screenshot_20260720-180644_Maps.png',
     title: 'Celebrations & Party Canopy',
     subtitle: 'Birthday Parties, Anniversaries & Romantic Dinners',
     tag: 'Fairy Light Arches & Custom Catering'
@@ -89,5 +89,5 @@ export const DEFAULT_HERO_SETTINGS: HeroSettings = {
   aboutParagraph1: 'Located inside Laxman Mela Ground at Laxman Jhula Park along the scenic Gomti River in Lucknow, Wings River Café is a premier destination where exquisite multicuisine gastronomy meets breathtaking riverside natural ambience and thrilling Lucknow Water Sports speedboat rides.',
   aboutParagraph2: 'Whether you are planning a relaxed family gathering, a festive birthday party under our sparkling fairy-light canopy, or a romantic candlelit evening beside the gentle river waters, our elevated indoor & outdoor dining decks offer an unforgettable experience.',
   aboutPrimaryImage: '/images/Screenshot_20260720-180544_Maps.png',
-  aboutSecondaryImage: '/images/Screenshot_20260720-180609_Maps.png'
+  aboutSecondaryImage: '/images/Screenshot_20260720-180621_Maps.png'
 };

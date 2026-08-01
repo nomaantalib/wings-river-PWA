@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { X, Calendar, Clock, Users, User, Phone, Mail, Sparkles, Anchor, CheckCircle2, AlertCircle } from 'lucide-react';
 import { saveReservation, Reservation } from '@/lib/db';
+import { notifyBookingConfirmed } from '@/lib/pushNotifications';
 
 interface BookingModalProps {
   isOpen: boolean;
@@ -65,10 +66,26 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
           newBooking.status = 'confirmed';
           await saveReservation(newBooking);
           setSuccessMsg(`Payment Successful! (Ref: ${paymentId}). Your reservation for ${formData.guests} guests (₹${pricing.totalPrice}) is confirmed.`);
+          // 🔔 Fire push notification on booking confirmation
+          await notifyBookingConfirmed({
+            name: formData.name,
+            table: 'Your Reserved Table',
+            date: formData.date,
+            time: formData.time,
+            bookingId: newBooking.id,
+          });
         },
         onFailure: async () => {
           await saveReservation(newBooking);
           setSuccessMsg(`Reservation saved for ${formData.guests} guests (Pay ₹${pricing.totalPrice} at venue). Our team will confirm shortly.`);
+          // 🔔 Also notify on pay-at-venue reservations
+          await notifyBookingConfirmed({
+            name: formData.name,
+            table: 'Your Reserved Table',
+            date: formData.date,
+            time: formData.time,
+            bookingId: newBooking.id,
+          });
         }
       });
 

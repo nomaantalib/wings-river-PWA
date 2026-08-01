@@ -32,7 +32,7 @@ export const INITIAL_BLOGS: BlogPost[] = [
     cover_image: '/images/Screenshot_20260720-180544_Maps.png',
     images: [
       '/images/Screenshot_20260720-180544_Maps.png',
-      '/images/Screenshot_20260720-180609_Maps.png',
+      '/images/Screenshot_20260720-180644_Maps.png',
       '/images/Screenshot_20260720-180644_Maps.png',
       '/images/food_menu_collage.jpg'
     ],
@@ -49,10 +49,10 @@ export const INITIAL_BLOGS: BlogPost[] = [
     excerpt: 'From fairy light canopies to custom buffet menus, learn how to turn your birthday or anniversary into a magical evening.',
     content: 'Searching for the best party venue in Hazratganj and Purana Haidarabad? Wings River Café offers exclusive outdoor canopy setups, personalized lighting arches, DJ audio equipment, and customizable multicuisine buffet spreads for up to 200 guests.\n\nWhether it is a romantic candlelit anniversary setup or a lively birthday bash with friends, our dedicated event management team handles end-to-end decor, custom cake arrangements, and live grill stations.',
     category: 'Events & Parties',
-    cover_image: '/images/Screenshot_20260720-180609_Maps.png',
+    cover_image: '/images/Screenshot_20260720-180644_Maps.png',
     images: [
-      '/images/Screenshot_20260720-180609_Maps.png',
       '/images/Screenshot_20260720-180644_Maps.png',
+      '/images/Screenshot_20260720-180544_Maps.png',
       '/images/Screenshot_20260720-180938_Instagram.png'
     ],
     tags: ['Birthday', 'Parties', 'Anniversary', 'Decor'],
@@ -109,7 +109,7 @@ export const INITIAL_BLOGS: BlogPost[] = [
     images: [
       '/images/Screenshot_20260720-180938_Instagram.png',
       '/images/food_menu_collage.jpg',
-      '/images/Screenshot_20260720-180609_Maps.png'
+      '/images/food_menu_collage.jpg'
     ],
     tags: ['Food', 'Mocktails', 'Chef Special', 'Lucknowi Flavors'],
     author: 'Head Chef',

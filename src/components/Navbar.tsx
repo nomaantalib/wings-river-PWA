@@ -143,27 +143,46 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
               )}
             </div>
 
-            {/* Mobile Menu Toggle Button */}
+            {/* Mobile Menu Toggle Button — rotates icon smoothly */}
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
               aria-label="Toggle Navigation Menu"
               className="p-2 rounded-lg transition-colors text-white hover:bg-white/20"
             >
-              {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+              <span
+                className="block transition-transform duration-300"
+                style={{ transform: mobileMenuOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+              >
+                {mobileMenuOpen ? <X className="w-6 h-6" /> : <MenuIcon className="w-6 h-6" />}
+              </span>
             </button>
           </div>
         </div>
 
-        {/* Mobile Drawer Menu */}
-        {mobileMenuOpen && (
-          <div className="lg:hidden bg-dark-950/95 backdrop-blur-xl border-b border-mint-500/30 px-6 py-6 transition-all animate-fade-in">
-            <nav className="flex flex-col space-y-4">
-              {navLinks.map((link) => (
+        {/* Mobile Drawer — smooth expand/collapse via max-height + opacity transition */}
+        <div
+          className="lg:hidden overflow-hidden transition-all duration-500 ease-in-out"
+          style={{
+            maxHeight: mobileMenuOpen ? '600px' : '0px',
+            opacity: mobileMenuOpen ? 1 : 0,
+            transform: mobileMenuOpen ? 'translateY(0)' : 'translateY(-8px)',
+            pointerEvents: mobileMenuOpen ? 'auto' : 'none',
+          }}
+        >
+          <div className="bg-dark-950/97 backdrop-blur-2xl border-b border-[#C9B086]/20 px-6 py-5">
+            <nav className="flex flex-col space-y-1">
+              {navLinks.map((link, i) => (
                 <a
                   key={link.name}
                   href={link.href}
                   onClick={() => setMobileMenuOpen(false)}
-                  className="text-gray-200 text-base font-medium hover:text-gold-400 transition-colors"
+                  className="text-gray-200 text-sm font-medium hover:text-[#C9B086] transition-colors py-2.5 border-b border-white/5 last:border-0"
+                  style={{
+                    transitionDelay: mobileMenuOpen ? `${i * 30}ms` : '0ms',
+                    opacity: mobileMenuOpen ? 1 : 0,
+                    transform: mobileMenuOpen ? 'translateX(0)' : 'translateX(-8px)',
+                    transition: `opacity 0.35s ease ${i * 30}ms, transform 0.35s ease ${i * 30}ms, color 0.2s`,
+                  }}
                 >
                   {link.name}
                 </a>
@@ -171,13 +190,18 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
               <a
                 href="#floor-map"
                 onClick={() => setMobileMenuOpen(false)}
-                className="mt-4 w-full py-3 bg-gradient-to-r from-[#C9B086] to-[#A3B58E] text-[#120B08] font-bold text-center rounded-xl shadow-lg block"
+                className="mt-4 w-full py-3 bg-gradient-to-r from-[#C9B086] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-center rounded-2xl shadow-xl block transition-all duration-300"
+                style={{
+                  opacity: mobileMenuOpen ? 1 : 0,
+                  transform: mobileMenuOpen ? 'translateY(0)' : 'translateY(8px)',
+                  transition: `opacity 0.4s ease ${navLinks.length * 30}ms, transform 0.4s ease ${navLinks.length * 30}ms`,
+                }}
               >
                 Reserve Table
               </a>
             </nav>
           </div>
-        )}
+        </div>
       </header>
 
       {/* Logout Confirmation Recheck Modal */}

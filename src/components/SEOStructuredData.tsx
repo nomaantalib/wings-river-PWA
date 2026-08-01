@@ -7,11 +7,11 @@ export default function SEOStructuredData() {
     "@context": "https://schema.org",
     "@type": "Restaurant",
     "name": "Wings River Café",
-    "logo": "https://wings-river-cafe-blog.pages.dev/logo.png",
+    "logo": "https://wings-river-cafe-5qv.pages.dev/logo.png",
     "image": [
-      "https://wings-river-cafe-blog.pages.dev/logo.png",
-      "https://wings-river-cafe-blog.pages.dev/images/Screenshot_20260720-180544_Maps.png",
-      "https://wings-river-cafe-blog.pages.dev/images/Screenshot_20260720-180609_Maps.png"
+      "https://wings-river-cafe-5qv.pages.dev/logo.png",
+      "https://wings-river-cafe-5qv.pages.dev/images/Screenshot_20260720-180544_Maps.png",
+      "https://wings-river-cafe-5qv.pages.dev/images/Screenshot_20260720-180644_Maps.png"
     ],
     "@id": "https://wings-river-cafe-blog.pages.dev/#restaurant",
     "url": "https://wings-river-cafe-blog.pages.dev",

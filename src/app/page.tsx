@@ -23,12 +23,16 @@ import InstallPWAView from '@/views/InstallPWAView';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
 
 import UserAuthModal from '@/components/UserAuthModal';
+import PushNotifBanner from '@/components/PushNotifBanner';
 
 // SRS Modules
 import InteractiveFloorMap from '@/components/InteractiveFloorMap';
 import QROrderModal from '@/components/QROrderModal';
 import MyBookingsModal from '@/components/MyBookingsModal';
 import { Ticket, QrCode } from 'lucide-react';
+
+// Push Notification: register SW silently on page load
+import '@/lib/pushNotifications';
 
 export default function Home() {
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -149,6 +153,10 @@ export default function Home() {
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
       />
+
+      {/* Push Notification Permission Banner */}
+      <PushNotifBanner />
     </main>
   );
 }
+
