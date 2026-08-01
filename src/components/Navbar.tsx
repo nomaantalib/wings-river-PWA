@@ -12,7 +12,7 @@ interface NavbarProps {
 }
 
 export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
-  const [scrolled, setScrolled] = useState(false);
+  const [scrolled, setScrolled] = useState(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [user, setUser] = useState<UserSession | null>(null);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
@@ -25,16 +25,15 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
   }, []);
 
   useEffect(() => {
+    // Keep header background always active by default
+    setScrolled(true);
     const handleScroll = () => {
-      if (window.scrollY > 40) {
-        setScrolled(true);
-      } else {
-        setScrolled(false);
-      }
+      setScrolled(true);
     };
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
 
   const handleConfirmLogout = () => {
     clearUserSession();
