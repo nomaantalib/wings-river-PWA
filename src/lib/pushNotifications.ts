@@ -130,16 +130,7 @@ export async function showLocalNotification(payload: PushPayload): Promise<void>
 
   const reg = await navigator.serviceWorker.ready;
 
-  const iconMap: Record<PushNotifType, string> = {
-    booking_confirmed: '📋',
-    booking_reminder: '⏰',
-    order_ready: '🍽️',
-    table_ready: '🪑',
-    cancellation: '❌',
-    general: '🔔',
-  };
-
-  await reg.showNotification(`${iconMap[payload.type]} ${payload.title}`, {
+  await reg.showNotification(payload.title, {
     body: payload.body,
     icon: '/logo.png',
     badge: '/logo.png',
@@ -160,8 +151,8 @@ export async function notifyBookingConfirmed(opts: {
   bookingId?: string;
 }) {
   await showLocalNotification({
-    title: 'Booking Confirmed! 🎉',
-    body: `Hi ${opts.name}! Your table ${opts.table} is reserved for ${opts.date} at ${opts.time}. Show your QR code at reception. See you soon! 🌊`,
+    title: 'Booking Confirmed',
+    body: `Hi ${opts.name}! Your table ${opts.table} is reserved for ${opts.date} at ${opts.time}. Show your QR code at reception. See you soon!`,
     type: 'booking_confirmed',
     url: '/#floor-map',
     bookingId: opts.bookingId,
@@ -174,8 +165,8 @@ export async function notifyBookingReminder(opts: {
   time: string;
 }) {
   await showLocalNotification({
-    title: 'Reminder: Your Table at Wings River Café ⏰',
-    body: `Hi ${opts.name}! Don't forget — your table ${opts.table} is booked for ${opts.time} today. We're excited to see you! 🍽️`,
+    title: 'Reminder: Table Reservation',
+    body: `Hi ${opts.name}! Don't forget — your table ${opts.table} is booked for ${opts.time} today. We look forward to hosting you.`,
     type: 'booking_reminder',
     url: '/#floor-map',
   });
@@ -186,8 +177,8 @@ export async function notifyOrderReady(opts: {
   orderNumber: string;
 }) {
   await showLocalNotification({
-    title: 'Your Order is Ready! 🍽️',
-    body: `Order ${opts.orderNumber} for Table ${opts.table} is ready and on its way to you!`,
+    title: 'Your Order is Ready',
+    body: `Order ${opts.orderNumber} for Table ${opts.table} is ready and on its way to your table.`,
     type: 'order_ready',
     url: '/',
   });
@@ -195,8 +186,8 @@ export async function notifyOrderReady(opts: {
 
 export async function notifyTableReady(tableNumber: string) {
   await showLocalNotification({
-    title: 'Table Available Now! 🪑',
-    body: `Table ${tableNumber} is now clean and ready for booking. Reserve it now before someone else does!`,
+    title: 'Table Available Now',
+    body: `Table ${tableNumber} is now clean and available for booking.`,
     type: 'table_ready',
     url: '/#floor-map',
   });

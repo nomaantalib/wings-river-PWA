@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Users, Clock, Calendar, CheckCircle2, ShieldAlert,
   ArrowLeft, Home, Leaf, Sunset, ChevronRight, MapPin,
-  Timer, Sparkles, ChevronDown, ChevronUp,
+  Timer, Sparkles, Sun, Compass, Trees, Lock, IndianRupee, Receipt, LogOut
 } from 'lucide-react';
 import { calculateBookingPrice } from '@/lib/pricing';
 
@@ -106,14 +106,14 @@ const AREA_LAYOUTS: Record<string, string[][]> = {
 
 /* ─── Time Slot Presets ────────────────────────────────────── */
 const TIME_SLOTS = [
-  { value: '11:00', label: '11:00 AM', emoji: '☕', tag: 'Brunch' },
-  { value: '12:30', label: '12:30 PM', emoji: '🍽️', tag: 'Lunch' },
-  { value: '14:00', label: '02:00 PM', emoji: '🌤️', tag: 'Afternoon' },
-  { value: '17:30', label: '05:30 PM', emoji: '🌅', tag: 'Sunset' },
-  { value: '19:00', label: '07:00 PM', emoji: '🕯️', tag: 'Dinner' },
-  { value: '19:30', label: '07:30 PM', emoji: '✨', tag: 'Prime' },
-  { value: '21:00', label: '09:00 PM', emoji: '🌙', tag: 'Late Night' },
-  { value: 'custom', label: 'Custom Time', emoji: '⏰', tag: '' },
+  { value: '11:00', label: '11:00 AM', tag: 'Brunch' },
+  { value: '12:30', label: '12:30 PM', tag: 'Lunch' },
+  { value: '14:00', label: '02:00 PM', tag: 'Afternoon' },
+  { value: '17:30', label: '05:30 PM', tag: 'Sunset' },
+  { value: '19:00', label: '07:00 PM', tag: 'Dinner' },
+  { value: '19:30', label: '07:30 PM', tag: 'Prime' },
+  { value: '21:00', label: '09:00 PM', tag: 'Late Night' },
+  { value: 'custom', label: 'Custom Time', tag: '' },
 ];
 
 const DURATIONS = [
@@ -331,7 +331,6 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       : 'bg-[#1A1D24] border-[#C9B086]/25 text-[#D4C4A0]/80 hover:border-[#C9B086]/60 hover:text-[#E8DCB8] hover:bg-[#231710]/50'
                   }`}
                 >
-                  <span>{slot.emoji}</span>
                   <span>{slot.label}</span>
                   {slot.tag && <span className="opacity-60 text-[9px]">· {slot.tag}</span>}
                 </button>
@@ -415,8 +414,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       {/* ── STEP 1: Choose Area ──────────────────────────────── */}
       {step === 1 && (
         <div className="p-5 sm:p-7 space-y-3 animate-fade-in">
-          <p className="text-xs text-[#D4C4A0]/60 pb-1">
-            🌊 Select a dining area along the Gomti Riverfront
+          <p className="text-xs text-[#D4C4A0]/60 pb-1 flex items-center gap-1.5">
+            <Compass className="w-3.5 h-3.5 text-[#C9B086]" /> Select a dining area along the Gomti Riverfront
           </p>
           {AREAS.map(area => {
             const areaFreeTables = ALL_TABLES.filter(t => t.cluster_id === area.id && t.status === 'free').length;
@@ -511,6 +510,47 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             </div>
           </div>
 
+          {/* ── 3D Venue View — Top Context (River Side) ──────── */}
+          {selectedArea.id === 'indoor' && (
+            <div className="w-full rounded-xl overflow-hidden border border-[#4A7DA0]/40 mb-1 relative">
+              <div className="bg-gradient-to-r from-[#0D1E2F] via-[#1A3550] to-[#0D1E2F] px-4 py-3 flex items-center gap-3">
+                <Compass className="w-4 h-4 text-[#7BB8D4] shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7BB8D4]">River View — North Side</p>
+                  <p className="text-[9px] text-[#4A90C4]/80">Gomti Riverfront · Window-facing seats · Natural light</p>
+                </div>
+                <span className="ml-auto text-[9px] bg-[#1A3550] border border-[#4A7DA0]/50 text-[#7BB8D4] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↑</span>
+              </div>
+              <div className="h-1.5 bg-gradient-to-r from-[#1A3550] via-[#2A6FA8] to-[#1A3550] opacity-60" />
+            </div>
+          )}
+          {selectedArea.id === 'garden' && (
+            <div className="w-full rounded-xl overflow-hidden border border-[#3A6B2A]/40 mb-1 relative">
+              <div className="bg-gradient-to-r from-[#0A1A08] via-[#142810] to-[#0A1A08] px-4 py-3 flex items-center gap-3">
+                <Sun className="w-4 h-4 text-[#78C265] shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#78C265]">Ground Floor — Open Sky</p>
+                  <p className="text-[9px] text-[#5BA348]/80">Spacious outdoor layout · Canopy fairy lights · Open air</p>
+                </div>
+                <span className="ml-auto text-[9px] bg-[#142810] border border-[#3A6B2A]/50 text-[#78C265] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↑</span>
+              </div>
+              <div className="h-1.5 bg-gradient-to-r from-[#142810] via-[#2A6B1A] to-[#142810] opacity-60" />
+            </div>
+          )}
+          {selectedArea.id === 'rooftop' && (
+            <div className="w-full rounded-xl overflow-hidden border border-[#4A7DA0]/40 mb-1 relative">
+              <div className="bg-gradient-to-r from-[#0D1E2F] via-[#1A3550] to-[#0D1E2F] px-4 py-3 flex items-center gap-3">
+                <Compass className="w-4 h-4 text-[#7BB8D4] shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7BB8D4]">River View — Panoramic North</p>
+                  <p className="text-[9px] text-[#4A90C4]/80">Gomti Riverfront · 360° sky view · Sunset facing</p>
+                </div>
+                <span className="ml-auto text-[9px] bg-[#1A3550] border border-[#4A7DA0]/50 text-[#7BB8D4] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↑</span>
+              </div>
+              <div className="h-1.5 bg-gradient-to-r from-[#1A3550] via-[#2A6FA8] to-[#1A3550] opacity-60" />
+            </div>
+          )}
+
           {/* Riverfront label */}
           <div className="w-full py-2.5 px-5 rounded-t-xl bg-gradient-to-r from-[#18232F]/80 via-[#1E2D40]/80 to-[#18232F]/80 border border-[#4A7DA0]/30 mb-1">
             <p className="text-center text-[10px] tracking-[0.2em] text-[#8BB8D4] uppercase font-mono flex items-center justify-center gap-2">
@@ -562,6 +602,44 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             ))}
           </div>
 
+          {/* ── 3D Venue View — Bottom Context ──────────────── */}
+          {selectedArea.id === 'indoor' && (
+            <div className="w-full rounded-xl overflow-hidden border border-[#98A886]/40 mt-3 relative">
+              <div className="bg-gradient-to-r from-[#142211] via-[#1F331A] to-[#142211] px-4 py-3 flex items-center gap-3">
+                <Trees className="w-4 h-4 text-[#A8C49A] shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#A8C49A]">South View — Open Garden Area</p>
+                  <p className="text-[9px] text-[#86AA75]/80">Ground floor · Spacious outdoor lawn access · Glass entrance</p>
+                </div>
+                <span className="ml-auto text-[9px] bg-[#1F331A] border border-[#98A886]/50 text-[#A8C49A] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
+              </div>
+            </div>
+          )}
+          {selectedArea.id === 'garden' && (
+            <div className="w-full rounded-xl overflow-hidden border border-[#98A886]/40 mt-3 relative">
+              <div className="bg-gradient-to-r from-[#142211] via-[#1F331A] to-[#142211] px-4 py-3 flex items-center gap-3">
+                <Trees className="w-4 h-4 text-[#A8C49A] shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#A8C49A]">Green Garden 3D View</p>
+                  <p className="text-[9px] text-[#86AA75]/80">Lush green lawns · Riverside walkway · Ambient garden lights</p>
+                </div>
+                <span className="ml-auto text-[9px] bg-[#1F331A] border border-[#98A886]/50 text-[#A8C49A] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
+              </div>
+            </div>
+          )}
+          {selectedArea.id === 'rooftop' && (
+            <div className="w-full rounded-xl overflow-hidden border border-[#C9B086]/40 mt-3 relative">
+              <div className="bg-gradient-to-r from-[#231710] via-[#362419] to-[#231710] px-4 py-3 flex items-center gap-3">
+                <Sparkles className="w-4 h-4 text-[#E8DCB8] shrink-0" />
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E8DCB8]">Greenery & Canopy View</p>
+                  <p className="text-[9px] text-[#D4C4A0]/80">Overlooking garden canopy · Fairy lights glow · Elevated deck</p>
+                </div>
+                <span className="ml-auto text-[9px] bg-[#362419] border border-[#C9B086]/50 text-[#E8DCB8] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
+              </div>
+            </div>
+          )}
+
           <p className="text-center text-[11px] text-[#D4C4A0]/60 mt-4">
             <span className="inline-flex items-center gap-1.5">
               <span className="w-2 h-2 rounded-full bg-[#98A886] animate-pulse inline-block" />
@@ -589,7 +667,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                     <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className="text-sm font-serif font-bold text-[#E8DCB8]">Table on Hold 🔒</h4>
+                    <h4 className="text-sm font-serif font-bold text-[#E8DCB8] flex items-center gap-1.5">
+                      <Lock className="w-3.5 h-3.5 text-[#C9B086]" /> Table Locked for Booking
+                    </h4>
                     <p className="text-[11px] text-[#D4C4A0]/70">{selectedArea.label}</p>
                   </div>
                 </div>
@@ -601,19 +681,19 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               {/* Details grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {[
-                  { label: 'Table', value: selectedTable.table_number, icon: '🪑' },
-                  { label: 'Seats', value: `${selectedTable.capacity} max`, icon: '👤' },
-                  { label: 'Date', value: `${selectedDate} (${pricing.dayName.slice(0,3)})`, icon: '📅' },
-                  { label: 'Check-in', value: timeLabel, icon: '⏰' },
-                  { label: 'Check-out', value: checkoutLabel || '—', icon: '🚪' },
-                  { label: 'Duration', value: `${durationHrs} hr${durationHrs > 1 ? 's' : ''}`, icon: '⏱️' },
-                  { label: 'Guests', value: `${guestCount} people`, icon: '👥' },
-                  { label: 'Rate', value: `₹${pricing.perPersonRate}/person`, icon: '💰' },
-                  { label: 'Total', value: `₹${pricing.totalPrice}`, icon: '🧾' },
-                ].map(({ label, value, icon }) => (
+                  { label: 'Table', value: selectedTable.table_number, Icon: Home },
+                  { label: 'Seats', value: `${selectedTable.capacity} max`, Icon: Users },
+                  { label: 'Date', value: `${selectedDate} (${pricing.dayName.slice(0,3)})`, Icon: Calendar },
+                  { label: 'Check-in', value: timeLabel, Icon: Clock },
+                  { label: 'Check-out', value: checkoutLabel || '—', Icon: LogOut },
+                  { label: 'Duration', value: `${durationHrs} hr${durationHrs > 1 ? 's' : ''}`, Icon: Timer },
+                  { label: 'Guests', value: `${guestCount} people`, Icon: Users },
+                  { label: 'Rate', value: `₹${pricing.perPersonRate}/person`, Icon: IndianRupee },
+                  { label: 'Total', value: `₹${pricing.totalPrice}`, Icon: Receipt },
+                ].map(({ label, value, Icon }) => (
                   <div key={label} className="bg-[#131619]/80 rounded-xl px-3 py-2.5 border border-[#C9B086]/15">
                     <p className="text-[9px] text-[#D4C4A0]/50 uppercase tracking-wider flex items-center gap-1">
-                      <span>{icon}</span>{label}
+                      <Icon className="w-3 h-3 text-[#C9B086]" />{label}
                     </p>
                     <p className="text-xs font-bold text-[#E8DCB8] mt-0.5 truncate">{value}</p>
                   </div>

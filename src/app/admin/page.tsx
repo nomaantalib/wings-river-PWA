@@ -32,7 +32,7 @@ import {
   SiteSettings, PromoPage,
 } from '@/lib/db';
 import {
-  Lock, Utensils, Calendar, FileText, Star, Mail, Plus, Trash2, Edit3,
+  Lock, Utensils, Calendar, FileText, MessageSquare, Mail, Plus, Trash2, Edit3,
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
   Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen,
@@ -1062,7 +1062,7 @@ export default function AdminPage() {
     { id: 'faqs',       label: 'FAQs Management',    icon: <HelpCircle className="w-4 h-4 shrink-0" /> },
     { id: 'team',       label: 'Team Members',       icon: <Users className="w-4 h-4 shrink-0" /> },
     { id: 'bookings',   label: 'Reservations',       icon: <Calendar className="w-4 h-4 shrink-0" /> },
-    { id: 'reviews',    label: 'Customer Reviews',   icon: <Star className="w-4 h-4 shrink-0" /> },
+    { id: 'reviews',    label: 'Customer Reviews',   icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
     { id: 'contact',    label: 'Inquiries & Messages',icon:<Mail className="w-4 h-4 shrink-0" /> },
     { id: 'media',      label: 'Media Library',      icon: <FolderOpen className="w-4 h-4 shrink-0" /> },
     { id: 'audit',      label: 'Security Audit Logs',icon: <Database className="w-4 h-4 shrink-0" /> },

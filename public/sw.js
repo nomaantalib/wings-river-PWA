@@ -57,8 +57,8 @@ function getNotificationConfig(type) {
         tag: 'booking-confirmed',
         requireInteraction: true,
         actions: [
-          { action: 'view_booking', title: '📋 View Booking' },
-          { action: 'whatsapp', title: '💬 WhatsApp Us' },
+          { action: 'view_booking', title: 'View Booking' },
+          { action: 'whatsapp', title: 'WhatsApp Us' },
         ],
         vibrate: [300, 100, 300, 100, 300],
       };
@@ -69,8 +69,8 @@ function getNotificationConfig(type) {
         tag: 'booking-reminder',
         requireInteraction: true,
         actions: [
-          { action: 'view_booking', title: '⏰ View Details' },
-          { action: 'directions', title: '📍 Get Directions' },
+          { action: 'view_booking', title: 'View Details' },
+          { action: 'directions', title: 'Get Directions' },
         ],
         vibrate: [200, 100, 200],
       };
@@ -81,7 +81,7 @@ function getNotificationConfig(type) {
         tag: 'order-ready',
         requireInteraction: true,
         actions: [
-          { action: 'acknowledge', title: '✅ Got it!' },
+          { action: 'acknowledge', title: 'Acknowledge' },
         ],
         vibrate: [400, 100, 400],
       };
@@ -92,7 +92,7 @@ function getNotificationConfig(type) {
         tag: 'table-ready',
         requireInteraction: true,
         actions: [
-          { action: 'view_map', title: '🪑 Reserve Now' },
+          { action: 'view_map', title: 'Reserve Now' },
         ],
         vibrate: [300, 100, 300],
       };
@@ -103,7 +103,7 @@ function getNotificationConfig(type) {
         tag: 'cancellation',
         requireInteraction: false,
         actions: [
-          { action: 'rebook', title: '🔄 Book Again' },
+          { action: 'rebook', title: 'Book Again' },
         ],
         vibrate: [100, 100, 100],
       };
@@ -122,7 +122,7 @@ function getNotificationConfig(type) {
 // ── PUSH EVENT: Show rich notification ────────────────────────────────────────
 self.addEventListener('push', (event) => {
   let payload = {
-    title: '🍽️ Wings River Café',
+    title: 'Wings River Café',
     body: 'You have a new update from Wings River Café!',
     type: 'general',
     url: '/',

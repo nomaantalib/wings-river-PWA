@@ -1,9 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem, MENU_BOOKLET_PAGES, INITIAL_MENU_ITEMS } from '@/lib/db';
-import { ChevronLeft, ChevronRight, BookOpen, Download, Calendar, Maximize2, ZoomIn, X, Play, Pause, Sparkles } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { ChevronLeft, ChevronRight, BookOpen, Download, Calendar, Maximize2, X, Play, Pause } from 'lucide-react';
 
 interface MenuCardBookletProps {
   onOpenBooking: () => void;
@@ -11,11 +10,13 @@ interface MenuCardBookletProps {
 
 export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps) {
   const [currentPageIndex, setCurrentPageIndex] = useState(0);
+  const [prevPageIndex, setPrevPageIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeZoomImage, setActiveZoomImage] = useState<string | null>(null);
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
-  const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
   const [isHdMode, setIsHdMode] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
+  const transitionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Database client-side states to prevent hydration mismatch
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>(MENU_BOOKLET_PAGES);
@@ -54,16 +55,25 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
   const currentPage = menuPages[currentPageIndex] || menuPages[0];
 
+  const goToPage = (idx: number) => {
+    if (idx === currentPageIndex || isTransitioning) return;
+    if (transitionTimeout.current) clearTimeout(transitionTimeout.current);
+    setIsTransitioning(true);
+    setPrevPageIndex(currentPageIndex);
+    transitionTimeout.current = setTimeout(() => {
+      setCurrentPageIndex(idx);
+      setIsTransitioning(false);
+    }, 260); // half of 500ms total crossfade
+  };
+
   const nextPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
-    setFlipDirection('next');
-    setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
+    goToPage((currentPageIndex + 1) % menuPages.length);
   };
 
   const prevPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
-    setFlipDirection('prev');
-    setCurrentPageIndex((prev) => (prev - 1 + menuPages.length) % menuPages.length);
+    goToPage((currentPageIndex - 1 + menuPages.length) % menuPages.length);
   };
 
   // Find corresponding items for the current page
@@ -143,84 +153,63 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
               </div>
             </div>
 
-            {/* Menu Booklet Page Container */}
-
-
+            {/* Menu Booklet Page Container — CSS crossfade, no glitch */}
             <div className="relative group">
-              <div className="relative bg-dark-900 rounded-3xl overflow-hidden border-2 border-gold-400/40 shadow-2xl transition-all duration-700 aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center">
-                {/* Smooth Non-Glitch Horizontal Slide Transition */}
-                <AnimatePresence initial={false} mode="wait">
-                  <motion.div
-                    key={currentPageIndex}
-                    drag="x"
-                    dragConstraints={{ left: 0, right: 0 }}
-                    dragElastic={0.2}
-                    onDragEnd={(_, info) => {
-                      if (info.offset.x < -40) nextPage();
-                      else if (info.offset.x > 40) prevPage();
-                    }}
-                    initial={{
-                      x: flipDirection === 'next' ? 300 : -300,
-                      opacity: 0,
-                      scale: 0.96
-                    }}
-                    animate={{
-                      x: 0,
-                      opacity: 1,
-                      scale: 1
-                    }}
-                    exit={{
-                      x: flipDirection === 'next' ? -300 : 300,
-                      opacity: 0,
-                      scale: 0.96
-                    }}
-                    transition={{
-                      duration: 0.35,
-                      ease: [0.32, 0.72, 0, 1]
-                    }}
+              {/* Crossfade container — pure CSS, no layout shift */}
+              <div
+                className="relative bg-[#fdfaf5] rounded-3xl overflow-hidden border-2 border-[#C9A84C]/50 shadow-2xl transition-all duration-500 aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center"
+                style={{ minHeight: '280px' }}
+              >
+                {/* Outgoing page fades out */}
+                {isTransitioning && menuPages[prevPageIndex] && (
+                  <img
+                    key={`out-${prevPageIndex}`}
+                    src={menuPages[prevPageIndex].image}
+                    alt={menuPages[prevPageIndex].title}
                     style={{
-                      touchAction: 'pan-y',
-                      userSelect: 'none',
-                      cursor: 'grab'
+                      position: 'absolute', inset: 0, width: '100%', height: '100%',
+                      objectFit: 'contain',
+                      opacity: 0,
+                      transition: 'opacity 0.26s ease',
+                      padding: '8px',
                     }}
-                    className="w-full h-full relative overflow-hidden flex items-center justify-center p-2 bg-[#ffffff]"
-                  >
+                  />
+                )}
 
-                    <img
-                      src={currentPage.image}
-                      alt={currentPage.title}
-                      style={{
-                        imageRendering: '-webkit-optimize-contrast',
-                        transform: 'translateZ(0)',
-                      }}
-                      className={`w-full h-full object-contain filter drop-shadow-2xl rounded-xl pointer-events-none transition-all duration-300 ${
-                        isHdMode ? 'contrast-[1.06] brightness-[1.02] saturate-[1.04]' : ''
-                      }`}
-                    />
-
-                    {/* Left/Right Spine Shadow Overlay */}
-                    <div className={`absolute inset-y-0 w-16 bg-gradient-to-r from-black/10 to-transparent pointer-events-none ${
-                      flipDirection === 'next' ? 'left-0' : 'right-0'
-                    }`} />
-                  </motion.div>
-                </AnimatePresence>
+                {/* Current page fades in */}
+                <img
+                  key={`in-${currentPageIndex}`}
+                  src={menuPages[currentPageIndex]?.image || ''}
+                  alt={menuPages[currentPageIndex]?.title || ''}
+                  style={{
+                    imageRendering: '-webkit-optimize-contrast',
+                    position: 'absolute', inset: 0, width: '100%', height: '100%',
+                    objectFit: 'contain',
+                    opacity: isTransitioning ? 0 : 1,
+                    transition: 'opacity 0.5s ease',
+                    padding: '8px',
+                  }}
+                  className={`rounded-xl pointer-events-none ${
+                    isHdMode ? 'contrast-[1.05] brightness-[1.01] saturate-[1.03]' : ''
+                  }`}
+                />
 
                 {/* Left Navigation Arrow */}
                 <button
                   onClick={prevPage}
                   aria-label="Previous Page"
-                  className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 backdrop-blur-md border border-white/20 text-white hover:bg-gold-500 hover:text-dark-950 transition-all shadow-xl hover:scale-110"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#120B08]/70 backdrop-blur-sm border border-[#C9A84C]/40 text-[#F5EBE0] hover:bg-[#C9A84C] hover:text-[#120B08] transition-all shadow-xl hover:scale-110 active:scale-95"
                 >
-                  <ChevronLeft className="w-6 h-6" />
+                  <ChevronLeft className="w-5 h-5" />
                 </button>
 
                 {/* Right Navigation Arrow */}
                 <button
                   onClick={nextPage}
                   aria-label="Next Page"
-                  className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 backdrop-blur-md border border-white/20 text-white hover:bg-gold-500 hover:text-dark-950 transition-all shadow-xl hover:scale-110"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#120B08]/70 backdrop-blur-sm border border-[#C9A84C]/40 text-[#F5EBE0] hover:bg-[#C9A84C] hover:text-[#120B08] transition-all shadow-xl hover:scale-110 active:scale-95"
                 >
-                  <ChevronRight className="w-6 h-6" />
+                  <ChevronRight className="w-5 h-5" />
                 </button>
               </div>
 
@@ -230,7 +219,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                   <button
                     key={page.pageNumber}
                     onClick={() => {
-                      setCurrentPageIndex(idx);
+                      goToPage(idx);
                       setIsAutoFlipping(false);
                     }}
                     className={`relative rounded-xl overflow-hidden border-2 transition-all duration-300 shrink-0 w-16 h-12 ${

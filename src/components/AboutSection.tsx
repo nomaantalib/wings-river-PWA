@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Users, Star, IndianRupee, Clock, Award, ShieldCheck, HeartHandshake, Anchor } from 'lucide-react';
+import { Users, IndianRupee, Clock, Award, ShieldCheck, HeartHandshake, Anchor } from 'lucide-react';
 import CircularLogo from './CircularLogo';
 import { getStoredHeroSettings, HeroSettings, DEFAULT_HERO_SETTINGS } from '@/lib/db';
 

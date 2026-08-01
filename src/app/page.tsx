@@ -59,10 +59,40 @@ export default function Home() {
         setSelectedTableNumber(formattedTable);
         setIsQROrderOpen(true);
       }
+
+      // Launch vs Reload persistence:
+      // Fresh app launch (new tab/window) -> land at home screen (top)
+      // Page reload (F5 / refresh) -> stay on exact scroll position / section
+      const isSessionActive = sessionStorage.getItem('wings_app_session_active');
+      if (!isSessionActive) {
+        sessionStorage.setItem('wings_app_session_active', 'true');
+        window.scrollTo({ top: 0, behavior: 'instant' });
+        if (window.location.hash) {
+          history.replaceState(null, '', window.location.pathname);
+        }
+      } else {
+        const savedScroll = sessionStorage.getItem('wings_last_scroll_pos');
+        if (savedScroll) {
+          setTimeout(() => {
+            window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'instant' });
+          }, 100);
+        }
+      }
+
+      // Save scroll position for reload restoration
+      const handleScrollSave = () => {
+        sessionStorage.setItem('wings_last_scroll_pos', window.scrollY.toString());
+      };
+      window.addEventListener('scroll', handleScrollSave, { passive: true });
+      return () => {
+        window.removeEventListener('wings_db_sync', handleSync);
+        window.removeEventListener('scroll', handleScrollSave);
+      };
     }
 
     return () => window.removeEventListener('wings_db_sync', handleSync);
   }, []);
+
 
   const handleOpenBooking = (type: string = 'table_booking') => {
     setBookingInitialType(type);
