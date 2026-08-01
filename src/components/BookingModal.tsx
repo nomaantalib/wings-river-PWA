@@ -49,25 +49,29 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
         created_at: new Date().toISOString()
       };
 
-      // Import & launch Razorpay Checkout for token payment ₹500
+      // Import & launch Razorpay Checkout with calculated rate (₹300 weekday / ₹600 weekend per person)
+      const { calculateBookingPrice } = await import('@/lib/pricing');
+      const pricing = calculateBookingPrice(formData.date, Number(formData.guests) || 2);
+
       const { openRazorpayCheckout } = await import('@/lib/razorpay');
       await openRazorpayCheckout({
-        amount: 500,
-        name: 'Wings River Café Table Reservation Token',
-        description: `${bookingType.replace('_', ' ').toUpperCase()} • ${formData.date} at ${formData.time}`,
+        amount: pricing.totalPrice,
+        name: 'Wings River Café Reservation',
+        description: `${bookingType.replace('_', ' ').toUpperCase()} • ${formData.guests} Guests (${pricing.isWeekend ? 'Weekend ₹600/p' : 'Weekday ₹300/p'})`,
         customerName: formData.name,
         customerPhone: formData.phone,
         customerEmail: formData.email,
         onSuccess: async (paymentId) => {
           newBooking.status = 'confirmed';
           await saveReservation(newBooking);
-          setSuccessMsg(`Payment Successful! (Ref: ${paymentId}). Your reservation is confirmed.`);
+          setSuccessMsg(`Payment Successful! (Ref: ${paymentId}). Your reservation for ${formData.guests} guests (₹${pricing.totalPrice}) is confirmed.`);
         },
         onFailure: async () => {
           await saveReservation(newBooking);
-          setSuccessMsg('Reservation saved (Pay at venue). Our team will confirm shortly.');
+          setSuccessMsg(`Reservation saved for ${formData.guests} guests (Pay ₹${pricing.totalPrice} at venue). Our team will confirm shortly.`);
         }
       });
+
 
       setFormData({
         name: '',

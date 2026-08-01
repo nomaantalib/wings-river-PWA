@@ -5,6 +5,8 @@ import {
   Users, Clock, Calendar, CheckCircle2, ShieldAlert,
   ArrowLeft, Home, Leaf, Sunset, ChevronRight, MapPin,
 } from 'lucide-react';
+import { calculateBookingPrice } from '@/lib/pricing';
+
 
 /* ─── Data Types ─────────────────────────────────────────── */
 
@@ -420,63 +422,73 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
       )}
 
       {/* ── STEP 3: Confirm Booking ──────────────────────────── */}
-      {step === 3 && selectedTable && selectedArea && (
-        <div className="p-5 animate-fade-in space-y-4">
-          {/* Summary card */}
-          <div className="rounded-2xl bg-gradient-to-br from-amber-950/70 to-dark-950 border border-amber-500/40 p-5">
-            <div className="flex items-start gap-4">
-              <div className="text-4xl">{selectedArea.emoji}</div>
-              <div className="flex-1">
-                <h4 className="text-sm font-bold text-amber-200">Your Table is on Hold</h4>
-                <p className="text-[11px] text-slate-400 mt-0.5">{selectedArea.label}</p>
-                <div className="grid grid-cols-2 gap-2 mt-3">
-                  {[
-                    { label: 'Table', value: selectedTable.table_number },
-                    { label: 'Seats', value: `${selectedTable.capacity} max` },
-                    { label: 'Date', value: selectedDate },
-                    { label: 'Time', value: selectedTime },
-                    { label: 'Guests', value: `${guestCount} people` },
-                    { label: 'Token Fee', value: '₹500' },
-                  ].map(({ label, value }) => (
-                    <div key={label} className="bg-dark-900/80 rounded-lg px-3 py-2 border border-dark-700">
-                      <p className="text-[9px] text-slate-500 uppercase tracking-wider">{label}</p>
-                      <p className="text-xs font-bold text-amber-200 mt-0.5">{value}</p>
-                    </div>
-                  ))}
+      {step === 3 && selectedTable && selectedArea && (() => {
+        const pricing = calculateBookingPrice(selectedDate, guestCount);
+        return (
+          <div className="p-5 animate-fade-in space-y-4">
+            {/* Summary card */}
+            <div className="rounded-2xl bg-gradient-to-br from-amber-950/70 to-dark-950 border border-amber-500/40 p-5">
+              <div className="flex items-start gap-4">
+                <div className="text-4xl">{selectedArea.emoji}</div>
+                <div className="flex-1">
+                  <div className="flex items-center justify-between flex-wrap gap-2">
+                    <h4 className="text-sm font-bold text-amber-200">Your Table is on Hold</h4>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                      {pricing.isWeekend ? 'Weekend Rate (₹600/person)' : 'Weekday Rate (₹300/person)'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">{selectedArea.label}</p>
+                  
+                  <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-3">
+                    {[
+                      { label: 'Table', value: selectedTable.table_number },
+                      { label: 'Seats', value: `${selectedTable.capacity} max` },
+                      { label: 'Date', value: `${selectedDate} (${pricing.dayName.slice(0, 3)})` },
+                      { label: 'Time', value: selectedTime },
+                      { label: 'Guests', value: `${guestCount} people` },
+                      { label: 'Calculated Booking Fee', value: `₹${pricing.totalPrice} (₹${pricing.perPersonRate} x ${guestCount})` },
+                    ].map(({ label, value }) => (
+                      <div key={label} className="bg-dark-900/80 rounded-lg px-3 py-2 border border-dark-700">
+                        <p className="text-[9px] text-slate-500 uppercase tracking-wider">{label}</p>
+                        <p className="text-xs font-bold text-amber-200 mt-0.5">{value}</p>
+                      </div>
+                    ))}
+                  </div>
                 </div>
+              </div>
+
+              {/* Hold timer */}
+              <div className="mt-4 flex items-center gap-2 bg-dark-950/70 border border-amber-500/20 rounded-xl px-3 py-2">
+                <ShieldAlert className="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
+                <p className="text-[11px] text-slate-300 flex-1">
+                  Table <span className="text-amber-300 font-bold">{selectedTable.table_number}</span> is temporarily held for you
+                </p>
+                <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-lg">
+                  {holdLeft !== null ? fmtTime(holdLeft) : '5:00'}
+                </span>
               </div>
             </div>
 
-            {/* Hold timer */}
-            <div className="mt-4 flex items-center gap-2 bg-dark-950/70 border border-amber-500/20 rounded-xl px-3 py-2">
-              <ShieldAlert className="w-4 h-4 text-amber-400 animate-pulse shrink-0" />
-              <p className="text-[11px] text-slate-300 flex-1">
-                Table <span className="text-amber-300 font-bold">{selectedTable.table_number}</span> is temporarily held for you
-              </p>
-              <span className="font-mono text-xs font-bold text-amber-400 bg-amber-500/10 border border-amber-500/30 px-2 py-0.5 rounded-lg">
-                {holdLeft !== null ? fmtTime(holdLeft) : '5:00'}
-              </span>
+            {/* CTA Buttons */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <button
+                onClick={handleBack}
+                className="flex-1 py-2.5 rounded-xl border border-dark-700 text-slate-300 text-xs font-semibold hover:border-dark-600 hover:text-white transition flex items-center justify-center gap-2"
+              >
+                <ArrowLeft className="w-4 h-4" /> Change Table
+              </button>
+              <button
+                onClick={() => onSelectTable(selectedTable, selectedDate, selectedTime, guestCount)}
+                className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center justify-center gap-2"
+              >
+                <CheckCircle2 className="w-4 h-4" />
+                Pay ₹{pricing.totalPrice} &amp; Confirm
+              </button>
             </div>
           </div>
+        );
+      })()}
 
-          {/* CTA Buttons */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <button
-              onClick={handleBack}
-              className="flex-1 py-2.5 rounded-xl border border-dark-700 text-slate-300 text-xs font-semibold hover:border-dark-600 hover:text-white transition flex items-center justify-center gap-2"
-            >
-              <ArrowLeft className="w-4 h-4" /> Change Table
-            </button>
-            <button
-              onClick={() => onSelectTable(selectedTable, selectedDate, selectedTime, guestCount)}
-              className="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold text-xs uppercase tracking-wider shadow-lg shadow-amber-500/25 transition flex items-center justify-center gap-2"
-            >
-              <CheckCircle2 className="w-4 h-4" />
-              Pay ₹500 Token &amp; Confirm
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

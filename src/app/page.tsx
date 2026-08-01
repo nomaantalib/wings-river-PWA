@@ -93,7 +93,6 @@ export default function Home() {
       </div>
 
       <AboutSection />
-      <FeaturesSection />
 
       {/* SRS Interactive Table Reservation Floor Map Section */}
       <section id="floor-map" className="py-12 px-4 max-w-7xl mx-auto">
@@ -110,8 +109,11 @@ export default function Home() {
       <MenuCardBooklet key={`booklet-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       <FoodMenuSection key={`foodmenu-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
 
+      {/* Why Choose Wings River Cafe Horizontal Carousel */}
+      <FeaturesSection />
       
       <ReviewsSection key={`reviews-${syncKey}`} />
+
       <BlogSection key={`blog-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       <LocationSection />
       <ContactSection />
