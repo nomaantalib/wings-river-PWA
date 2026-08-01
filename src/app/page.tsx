@@ -22,7 +22,7 @@ import BookingModal from '@/components/BookingModal';
 import InstallPWAView from '@/views/InstallPWAView';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
 
-import UserAuthModal from '@/components/UserAuthModal';
+import UserAuthModal, { getStoredUserSession, UserSession } from '@/components/UserAuthModal';
 import PushNotifBanner from '@/components/PushNotifBanner';
 
 // SRS Modules
@@ -42,7 +42,7 @@ export default function Home() {
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [selectedTableNumber, setSelectedTableNumber] = useState('T1');
   const [syncKey, setSyncKey] = useState(0);
-
+  const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
 
   useEffect(() => {
     const handleSync = () => setSyncKey(prev => prev + 1);
@@ -57,12 +57,18 @@ export default function Home() {
           ? tableParam.toUpperCase()
           : `T${tableParam}`;
         setSelectedTableNumber(formattedTable);
-        setIsQROrderOpen(true);
+        
+        // Require auth before opening QR order
+        const session = getStoredUserSession();
+        if (!session || !session.loggedIn) {
+          setPendingAction(() => () => setIsQROrderOpen(true));
+          setIsAuthOpen(true);
+        } else {
+          setIsQROrderOpen(true);
+        }
       }
 
       // Launch vs Reload persistence:
-      // Fresh app launch (new tab/window) -> land at home screen (top)
-      // Page reload (F5 / refresh) -> stay on exact scroll position / section
       const isSessionActive = sessionStorage.getItem('wings_app_session_active');
       if (!isSessionActive) {
         sessionStorage.setItem('wings_app_session_active', 'true');
@@ -93,15 +99,41 @@ export default function Home() {
     return () => window.removeEventListener('wings_db_sync', handleSync);
   }, []);
 
+  const requireAuthAndExecute = (action: () => void) => {
+    const session = getStoredUserSession();
+    if (!session || !session.loggedIn) {
+      setPendingAction(() => action);
+      setIsAuthOpen(true);
+    } else {
+      action();
+    }
+  };
 
   const handleOpenBooking = (type: string = 'table_booking') => {
-    setBookingInitialType(type);
-    setIsBookingOpen(true);
+    requireAuthAndExecute(() => {
+      setBookingInitialType(type);
+      setIsBookingOpen(true);
+    });
+  };
+
+  const handleOpenQROrder = () => {
+    requireAuthAndExecute(() => {
+      setIsQROrderOpen(true);
+    });
+  };
+
+  const handleOpenMyBookings = () => {
+    requireAuthAndExecute(() => {
+      setIsMyBookingsOpen(true);
+    });
   };
 
   const handleSelectTableFromMap = (table: any) => {
-    setSelectedTableNumber(table.table_number);
-    handleOpenBooking('table_booking');
+    requireAuthAndExecute(() => {
+      setSelectedTableNumber(table.table_number);
+      setBookingInitialType('table_booking');
+      setIsBookingOpen(true);
+    });
   };
 
   return (
@@ -114,7 +146,7 @@ export default function Home() {
       {/* Quick Action Floating Bar for Customer Orders & Tickets */}
       <div className="flex items-center justify-center gap-3 py-4 bg-dark-950/60 backdrop-blur-md border-y border-amber-500/20 px-4 flex-wrap">
         <button
-          onClick={() => setIsQROrderOpen(true)}
+          onClick={handleOpenQROrder}
           className="flex items-center space-x-2 px-5 py-2 rounded-full bg-amber-500 text-dark-950 font-bold text-xs shadow-lg hover:bg-amber-400 transition"
         >
           <QrCode className="w-4 h-4" />
@@ -122,7 +154,7 @@ export default function Home() {
         </button>
 
         <button
-          onClick={() => setIsMyBookingsOpen(true)}
+          onClick={handleOpenMyBookings}
           className="flex items-center space-x-2 px-5 py-2 rounded-full bg-dark-900 border border-amber-500/40 text-amber-300 font-bold text-xs hover:bg-dark-800 transition"
         >
           <Ticket className="w-4 h-4" />
@@ -182,6 +214,12 @@ export default function Home() {
       <UserAuthModal
         isOpen={isAuthOpen}
         onClose={() => setIsAuthOpen(false)}
+        onSuccess={() => {
+          if (pendingAction) {
+            pendingAction();
+            setPendingAction(null);
+          }
+        }}
       />
 
       {/* Push Notification Permission Banner */}
