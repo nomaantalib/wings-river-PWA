@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { getStoredBlogs, BlogPost, INITIAL_BLOGS } from '@/lib/db';
-import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, BookOpen } from 'lucide-react';
+import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, BookOpen, Sparkles } from 'lucide-react';
 
 interface BlogSectionProps {
   onOpenBooking?: () => void;
@@ -16,6 +16,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   const [activeBlogImages, setActiveBlogImages] = useState<string[]>([]);
   const [isTransitioning, setIsTransitioning] = useState<boolean>(false);
   const [isPaused, setIsPaused] = useState<boolean>(false);
+  const [currentScrollIdx, setCurrentScrollIdx] = useState<number>(0);
 
   const carouselRef = useRef<HTMLDivElement>(null);
 
@@ -26,7 +27,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
     return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
-  // Horizontal Auto-sliding Carousel interval (scrolls 320px every 3.5 seconds)
+  // Horizontal Auto-sliding Carousel interval (scrolls 340px every 3.5 seconds)
   useEffect(() => {
     if (isPaused) return;
     const interval = setInterval(() => {
@@ -34,20 +35,26 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
       const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current;
       if (scrollLeft + clientWidth >= scrollWidth - 15) {
         carouselRef.current.scrollTo({ left: 0, behavior: 'smooth' });
+        setCurrentScrollIdx(0);
       } else {
-        carouselRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+        carouselRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+        setCurrentScrollIdx(prev => Math.min(prev + 1, filteredBlogs.length - 1));
       }
     }, 3500);
     return () => clearInterval(interval);
-  }, [isPaused]);
+  }, [isPaused, blogs, selectedCategory]);
 
   const scrollLeft = () => {
-    carouselRef.current?.scrollBy({ left: -320, behavior: 'smooth' });
-  };
-  const scrollRight = () => {
-    carouselRef.current?.scrollBy({ left: 320, behavior: 'smooth' });
+    if (!carouselRef.current) return;
+    carouselRef.current.scrollBy({ left: -340, behavior: 'smooth' });
+    setCurrentScrollIdx(prev => Math.max(0, prev - 1));
   };
 
+  const scrollRight = () => {
+    if (!carouselRef.current) return;
+    carouselRef.current.scrollBy({ left: 340, behavior: 'smooth' });
+    setCurrentScrollIdx(prev => Math.min(prev + 1, filteredBlogs.length - 1));
+  };
 
   const categories = ['All', ...Array.from(new Set(blogs.map(b => b.category)))];
 
@@ -119,20 +126,20 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
   }, [activeBlog, activeImageIndex, activeBlogImages]);
 
   return (
-    <section id="blog" className="py-16 sm:py-20 bg-[#0B0E14]/90 backdrop-blur-md relative overflow-hidden text-[#F5EBE0]">
-      {/* Background ambient lighting accents */}
-      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#F5D061]/10 rounded-full blur-3xl pointer-events-none" />
-      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#98A886]/10 rounded-full blur-3xl pointer-events-none" />
+    <section id="blog" className="my-12 sm:my-20 py-16 sm:py-24 bg-[#0B0E14] border-y border-[#F5D061]/25 relative overflow-hidden text-[#F5EBE0] shadow-2xl">
+      {/* Ambient background lighting accents */}
+      <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#F5D061]/15 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#98A886]/15 rounded-full blur-3xl pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Section Header */}
         <div className="text-center max-w-3xl mx-auto mb-10">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#F5D061]/30 text-[#E8DCB8] font-bold text-xs tracking-widest uppercase mb-3 shadow-md">
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#F5D061]/40 text-[#F8E7A1] font-bold text-xs tracking-widest uppercase mb-3 shadow-lg">
             <BookOpen className="w-3.5 h-3.5 text-[#F5D061]" />
-            <span>Riverside Journal & Blog</span>
+            <span>Riverside Journal &amp; Blog</span>
           </div>
-          <h2 className="font-serif text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#E8DCB8] tracking-tight mb-3">
-            Stories, Food News & Event Highlights
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F8E7A1] tracking-tight mb-3">
+            Stories, Gastronomy &amp; Event Highlights
           </h2>
           <p className="font-sans text-xs sm:text-sm text-[#D4C4A0]/80 leading-relaxed max-w-xl mx-auto">
             Discover restaurant stories, multicuisine recipes, party planning guides, Lucknow Water Sports ticket updates, and evening sunset vibes.
@@ -141,15 +148,18 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
 
         {/* Category Filter Tabs */}
         {categories.length > 1 && (
-          <div className="flex items-center justify-center flex-wrap gap-2 mb-8">
+          <div className="flex items-center justify-center flex-wrap gap-2 mb-10">
             {categories.map((cat) => (
               <button
                 key={cat}
-                onClick={() => setSelectedCategory(cat)}
+                onClick={() => {
+                  setSelectedCategory(cat);
+                  setCurrentScrollIdx(0);
+                }}
                 className={`px-4 py-2 rounded-full text-xs font-bold transition-all duration-300 ${
                   selectedCategory === cat
-                    ? 'bg-gradient-to-r from-[#F5D061] via-[#B8A07A] to-[#A3B58E] text-[#120B08] shadow-lg scale-105'
-                    : 'bg-[#14171D] text-[#D4C4A0]/80 hover:bg-[#1F242E] hover:text-[#E8DCB8] border border-[#F5D061]/20'
+                    ? 'bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#120B08] shadow-lg shadow-yellow-500/20 scale-105'
+                    : 'bg-[#151821] text-[#D4C4A0]/80 hover:bg-[#1F242E] hover:text-[#F8E7A1] border border-[#F5D061]/25'
                 }`}
               >
                 {cat === 'All' ? 'All Articles' : cat}
@@ -158,46 +168,46 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
           </div>
         )}
 
-        {/* Horizontal Auto-sliding Carousel Container */}
+        {/* Very Fancy Horizontal Carousel Container */}
         <div
-          className="relative group"
+          className="relative group px-1"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
         >
-          {/* Scroll Left Button */}
+          {/* Fancy Scroll Left Button */}
           <button
             onClick={scrollLeft}
             aria-label="Scroll left"
-            className="absolute -left-2 sm:-left-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#181B22]/90 border border-[#F5D061]/40 text-[#F5D061] shadow-2xl hover:bg-[#F5D061] hover:text-[#120B08] transition-all opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute -left-2 sm:-left-6 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] shadow-[0_0_25px_rgba(245,208,97,0.5)] hover:scale-110 active:scale-95 transition-all duration-300"
           >
-            <ChevronLeft className="w-5 h-5" />
+            <ChevronLeft className="w-5 h-5 font-bold" />
           </button>
 
-          {/* Scroll Right Button */}
+          {/* Fancy Scroll Right Button */}
           <button
             onClick={scrollRight}
             aria-label="Scroll right"
-            className="absolute -right-2 sm:-right-5 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#181B22]/90 border border-[#F5D061]/40 text-[#F5D061] shadow-2xl hover:bg-[#F5D061] hover:text-[#120B08] transition-all opacity-80 hover:opacity-100 hover:scale-110"
+            className="absolute -right-2 sm:-right-6 top-1/2 -translate-y-1/2 z-30 p-3 rounded-full bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] shadow-[0_0_25px_rgba(245,208,97,0.5)] hover:scale-110 active:scale-95 transition-all duration-300"
           >
-            <ChevronRight className="w-5 h-5" />
+            <ChevronRight className="w-5 h-5 font-bold" />
           </button>
 
           {/* Horizontal Track */}
           <div
             ref={carouselRef}
-            className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto no-scrollbar py-3 px-1 scroll-smooth snap-x snap-mandatory"
+            className="flex items-stretch gap-5 sm:gap-6 overflow-x-auto no-scrollbar py-4 px-2 scroll-smooth snap-x snap-mandatory"
           >
-            {filteredBlogs.map((post) => {
+            {filteredBlogs.map((post, idx) => {
               const postImages = safeImages(post.images, post.cover_image);
 
               return (
                 <div
                   key={post.id}
-                  className="snap-start shrink-0 w-[270px] sm:w-[310px] bg-[#12151C]/90 rounded-2xl overflow-hidden shadow-xl hover:shadow-2xl border border-[#F5D061]/20 transition-all duration-300 flex flex-col group/card hover:-translate-y-1"
+                  className="snap-start shrink-0 w-[290px] sm:w-[330px] bg-[#151821] rounded-3xl overflow-hidden shadow-2xl border border-[#F5D061]/30 hover:border-[#F5D061] hover:shadow-[0_15px_40px_rgba(245,208,97,0.2)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col group/card"
                 >
                   {/* Shorter Compact Image Banner */}
                   <div
-                    className="relative h-36 overflow-hidden bg-[#0A0C10] cursor-pointer flex items-center justify-center"
+                    className="relative h-44 overflow-hidden bg-[#0A0C10] cursor-pointer flex items-center justify-center"
                     onClick={() => openBlogReader(post)}
                   >
                     {/* Ambient Blur Layer */}
@@ -212,30 +222,30 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                     <img
                       src={post.cover_image}
                       alt={post.title}
-                      className="relative z-10 max-h-full max-w-full object-contain p-2 transition-transform duration-300 group-hover/card:scale-105"
+                      className="relative z-10 max-h-full max-w-full object-contain p-2 transition-transform duration-500 group-hover/card:scale-105"
                     />
 
                     {/* Category Tag */}
-                    <span className="absolute top-2 left-2 z-20 px-2 py-0.5 rounded-md bg-[#0A0C10]/80 backdrop-blur-sm text-[#E8DCB8] text-[9px] font-bold uppercase tracking-wider border border-[#F5D061]/30">
+                    <span className="absolute top-3 left-3 z-20 px-2.5 py-0.5 rounded-lg bg-[#0A0C10]/85 backdrop-blur-md text-[#F8E7A1] text-[9px] font-bold uppercase tracking-wider border border-[#F5D061]/40 shadow-md">
                       {post.category}
                     </span>
 
                     {/* Photo count badge */}
                     {postImages.length > 1 && (
-                      <span className="absolute top-2 right-2 z-20 px-2 py-0.5 rounded-md bg-[#F5D061] text-[#120B08] font-bold text-[9px] flex items-center gap-1 shadow-sm">
-                        <ImageIcon className="w-2.5 h-2.5" />
-                        <span>{postImages.length}</span>
+                      <span className="absolute top-3 right-3 z-20 px-2.5 py-0.5 rounded-lg bg-[#F5D061] text-[#120B08] font-bold text-[9px] flex items-center gap-1 shadow-md">
+                        <ImageIcon className="w-3 h-3" />
+                        <span>{postImages.length} Photos</span>
                       </span>
                     )}
                   </div>
 
                   {/* Compact Card Body */}
-                  <div className="p-4 flex-1 flex flex-col justify-between">
+                  <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
                       {/* Meta Date & Read time */}
-                      <div className="flex items-center space-x-2 text-[10px] text-[#D4C4A0]/60 mb-1.5 font-mono">
+                      <div className="flex items-center space-x-2 text-[10px] text-[#D4C4A0]/70 mb-2 font-mono">
                         <span className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3 text-[#98A886]" />
+                          <Calendar className="w-3 h-3 text-[#F5D061]" />
                           <span>{formatBlogDate(post.created_at)}</span>
                         </span>
                         <span>•</span>
@@ -245,31 +255,31 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                         </span>
                       </div>
 
-                      {/* Title — 2 lines */}
+                      {/* Title */}
                       <h3
-                        className="font-serif font-bold text-sm text-[#E8DCB8] mb-1.5 group-hover/card:text-[#F5D061] transition-colors line-clamp-2 cursor-pointer leading-tight"
+                        className="font-serif font-bold text-base text-[#F8E7A1] mb-2 group-hover/card:text-[#F5D061] transition-colors line-clamp-2 cursor-pointer leading-snug"
                         onClick={() => openBlogReader(post)}
                       >
                         {post.title}
                       </h3>
 
-                      {/* Excerpt — 2 lines */}
-                      <p className="font-sans text-[11px] text-[#D4C4A0]/70 leading-snug line-clamp-2 mb-3">
+                      {/* Excerpt */}
+                      <p className="font-sans text-xs text-[#D4C4A0]/80 leading-relaxed line-clamp-2 mb-4">
                         {post.excerpt}
                       </p>
                     </div>
 
                     {/* Read More Footer */}
-                    <div className="pt-2.5 border-t border-[#F5D061]/15 flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-[#98A886] font-mono">
+                    <div className="pt-3 border-t border-[#F5D061]/15 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-[#98A886] font-mono uppercase tracking-wider">
                         #{post.category}
                       </span>
                       <button
                         onClick={() => openBlogReader(post)}
-                        className="inline-flex items-center space-x-1 text-xs font-bold text-[#F5D061] hover:text-[#E8DCB8] transition-colors"
+                        className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#F5D061]/15 hover:bg-[#F5D061] text-[#F5D061] hover:text-[#120B08] font-bold text-xs transition-all duration-300"
                       >
-                        <span>Read</span>
-                        <ArrowRight className="w-3 h-3" />
+                        <span>Read Article</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -277,193 +287,134 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
               );
             })}
           </div>
+
+          {/* Fancy Progress Indicators */}
+          <div className="flex items-center justify-center gap-1.5 mt-6">
+            {filteredBlogs.map((_, idx) => (
+              <span
+                key={idx}
+                className={`h-1.5 rounded-full transition-all duration-300 ${
+                  currentScrollIdx % filteredBlogs.length === idx
+                    ? 'w-8 bg-[#F5D061]'
+                    : 'w-2 bg-white/20'
+                }`}
+              />
+            ))}
+          </div>
         </div>
       </div>
 
       {/* ═══ INTERACTIVE FANCY MULTI-IMAGE BLOG READER MODAL ═════════════════ */}
       {activeBlog && (
-        <div className="fixed inset-0 z-[200] bg-dark-950/90 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in">
-          <div className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col my-auto border border-amber-200">
+        <div className="fixed inset-0 z-[200] bg-dark-950/90 backdrop-blur-2xl flex items-center justify-center p-3 sm:p-6 overflow-y-auto animate-fade-in text-white">
+          <div className="relative w-full max-w-4xl bg-[#12151C] border border-[#F5D061]/40 rounded-3xl shadow-2xl overflow-hidden max-h-[94vh] flex flex-col my-auto text-white">
             {/* Modal Header Bar */}
-            <div className="flex items-center justify-between px-6 py-3.5 bg-dark-950 text-white border-b border-white/10 shrink-0">
+            <div className="flex items-center justify-between px-6 py-4 bg-[#181B22] border-b border-[#F5D061]/25 shrink-0">
               <div className="flex items-center space-x-3 min-w-0">
-                <span className="px-2.5 py-1 rounded-full bg-gold-400 text-dark-950 font-black text-[10px] uppercase tracking-wider shrink-0">
+                <span className="px-3 py-1 rounded-full bg-[#F5D061] text-[#120B08] font-extrabold text-[10px] uppercase tracking-wider shrink-0 shadow-md">
                   {activeBlog.category}
                 </span>
-                <span className="text-xs font-serif font-bold truncate text-gray-200">
+                <span className="text-sm font-serif font-bold truncate text-[#F8E7A1]">
                   {activeBlog.title}
                 </span>
               </div>
               <button
                 onClick={closeBlogReader}
-                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-gray-300 hover:text-white transition-colors shrink-0 ml-2"
+                className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#D4C4A0] hover:text-white transition-colors shrink-0 ml-2"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Scrollable Content Container */}
-            <div className="overflow-y-auto flex-1 p-6 sm:p-8 space-y-6">
-              
-              {/* Fancy Multi-Image Showcase (Full Image Display with Smooth Transitions) */}
+            {/* Modal Content Scroll Area */}
+            <div className="p-6 overflow-y-auto space-y-6 flex-1">
+              {/* Photo Slider */}
               {activeBlogImages.length > 0 && (
-                <div className="space-y-3">
-                  {/* Main Display Image Frame */}
-                  <div className="relative h-72 sm:h-[420px] w-full rounded-3xl overflow-hidden bg-dark-950 shadow-2xl flex items-center justify-center group border border-white/10">
-                    {/* Ambient Blurred Background Layer */}
-                    <img
-                      src={activeBlogImages[activeImageIndex]}
-                      alt=""
-                      aria-hidden="true"
-                      className={`absolute inset-0 w-full h-full object-cover filter blur-2xl opacity-40 scale-110 transition-all duration-700 ease-in-out ${
-                        isTransitioning ? 'opacity-0 scale-100' : 'opacity-40 scale-110'
-                      }`}
-                    />
-
-                    {/* Dark Vignette Gradient */}
-                    <div className="absolute inset-0 bg-gradient-to-t from-dark-950 via-transparent to-dark-950/40" />
-
-                    {/* Foreground Full Un-cropped Image */}
+                <div className="relative rounded-2xl overflow-hidden bg-black/60 border border-[#F5D061]/30 group">
+                  <div className="relative h-64 sm:h-96 flex items-center justify-center overflow-hidden">
                     <img
                       src={activeBlogImages[activeImageIndex]}
                       alt={activeBlog.title}
-                      className={`relative z-10 max-h-full max-w-full object-contain p-4 drop-shadow-2xl transition-all duration-500 ease-out transform ${
-                        isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+                      className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${
+                        isTransitioning ? 'opacity-0' : 'opacity-100'
                       }`}
                     />
-
-                    {/* Navigation Buttons */}
-                    {activeBlogImages.length > 1 && (
-                      <>
-                        <button
-                          onClick={prevImage}
-                          className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-gold-400 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
-                          title="Previous Photo"
-                        >
-                          <ChevronLeft className="w-5 h-5" />
-                        </button>
-                        <button
-                          onClick={nextImage}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-3 rounded-full bg-dark-950/80 hover:bg-gold-400 text-white hover:text-dark-950 transition-all shadow-xl hover:scale-110 border border-white/20"
-                          title="Next Photo"
-                        >
-                          <ChevronRight className="w-5 h-5" />
-                        </button>
-                        
-                        <div className="absolute bottom-4 right-4 z-20 px-3.5 py-1.5 rounded-full bg-dark-950/90 text-amber-300 font-extrabold text-xs backdrop-blur-md border border-amber-400/30 shadow-lg">
-                          Photo {activeImageIndex + 1} of {activeBlogImages.length}
-                        </div>
-
-                      </>
-                    )}
                   </div>
 
-                  {/* Thumbnail Row with Smooth Highlight */}
+                  {/* Nav Arrows if multiple */}
                   {activeBlogImages.length > 1 && (
-                    <div className="flex items-center justify-center space-x-3 overflow-x-auto py-2 no-scrollbar">
-                      {activeBlogImages.map((img, idx) => (
-                        <button
-                          key={idx}
-                          onClick={() => changeSlide(idx)}
-                          className={`relative w-20 h-16 rounded-2xl overflow-hidden shrink-0 border-2 transition-all duration-300 bg-dark-950 p-0.5 ${
-                            activeImageIndex === idx
-                              ? 'border-gold-400 scale-110 shadow-lg ring-2 ring-gold-400/50'
-                              : 'border-transparent opacity-50 hover:opacity-100'
-                          }`}
-                        >
-                          <img src={img} alt="" className="w-full h-full object-contain" />
-                        </button>
-                      ))}
-                    </div>
+                    <>
+                      <button
+                        onClick={prevImage}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-[#F5D061] hover:bg-[#F5D061] hover:text-black transition"
+                      >
+                        <ChevronLeft className="w-5 h-5" />
+                      </button>
+                      <button
+                        onClick={nextImage}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-[#F5D061] hover:bg-[#F5D061] hover:text-black transition"
+                      >
+                        <ChevronRight className="w-5 h-5" />
+                      </button>
+
+                      {/* Dots */}
+                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center space-x-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md">
+                        {activeBlogImages.map((_, i) => (
+                          <button
+                            key={i}
+                            onClick={() => changeSlide(i)}
+                            className={`w-2 h-2 rounded-full transition-all ${
+                              i === activeImageIndex ? 'bg-[#F5D061] w-5' : 'bg-white/40'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </>
                   )}
                 </div>
               )}
 
-              {/* Title & Metadata */}
+              {/* Blog Title & Meta */}
               <div>
-                <h1 className="font-serif font-extrabold text-2xl sm:text-3xl text-dark-900 mb-3 leading-snug">
+                <h2 className="font-serif font-extrabold text-2xl sm:text-3xl text-[#F8E7A1] mb-2">
                   {activeBlog.title}
-                </h1>
-
-                <div className="flex flex-wrap items-center gap-4 text-xs text-gray-500 border-b border-cream-200 pb-4">
-                  <span className="flex items-center space-x-1.5 font-medium">
-                    <User className="w-4 h-4 text-amber-600" />
-                    <span>By {activeBlog.author}</span>
+                </h2>
+                <div className="flex flex-wrap items-center gap-4 text-xs text-[#D4C4A0]/70 font-mono border-b border-[#F5D061]/20 pb-4">
+                  <span className="flex items-center space-x-1">
+                    <User className="w-3.5 h-3.5 text-[#F5D061]" />
+                    <span>{activeBlog.author}</span>
                   </span>
-                  <span className="flex items-center space-x-1.5 font-medium">
-                    <Calendar className="w-4 h-4 text-amber-600" />
+                  <span className="flex items-center space-x-1">
+                    <Calendar className="w-3.5 h-3.5 text-[#F5D061]" />
                     <span>{formatBlogDate(activeBlog.created_at)}</span>
                   </span>
-                  <span className="flex items-center space-x-1.5 font-medium">
-                    <Clock className="w-4 h-4 text-amber-600" />
+                  <span className="flex items-center space-x-1">
+                    <Clock className="w-3.5 h-3.5 text-[#98A886]" />
                     <span>{activeBlog.read_time}</span>
                   </span>
                 </div>
               </div>
 
-              {/* Excerpt Quote */}
-              <div className="p-4 rounded-2xl bg-amber-50 border-l-4 border-gold-400 text-amber-950 font-medium text-sm sm:text-base leading-relaxed">
-                "{activeBlog.excerpt}"
+              {/* Full Blog Content Paragraphs */}
+              <div className="font-sans text-sm sm:text-base text-[#D4C4A0] leading-relaxed space-y-4 whitespace-pre-line">
+                {activeBlog.content}
               </div>
 
-              {/* Glimpse Video Preview Player */}
-              {activeBlog.video_url && (
-                <div className="space-y-2 pt-2">
-                  <h4 className="text-xs font-bold uppercase tracking-wider text-amber-700 flex items-center space-x-1.5">
-                    <span>Experience Glimpse Video</span>
-                  </h4>
-
-                  <div className="rounded-3xl overflow-hidden bg-black border-2 border-amber-400/30 aspect-video shadow-2xl relative">
-                    <iframe
-                      src={
-                        activeBlog.video_url.includes('youtube.com') || activeBlog.video_url.includes('youtu.be')
-                          ? activeBlog.video_url.replace('watch?v=', 'embed/')
-                          : activeBlog.video_url
-                      }
-                      className="w-full h-full border-0"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                      title="Glimpse Video"
-                    />
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-4 text-gray-700 font-sans text-sm sm:text-base leading-relaxed">
-                {(activeBlog.content || '').split('\n').filter(Boolean).map((paragraph, idx) => (
-                  <p key={idx}>{paragraph}</p>
-                ))}
-              </div>
-
-              {/* Topic Tags */}
-              {activeBlog.tags && activeBlog.tags.length > 0 && (
-                <div className="pt-4 border-t border-cream-200 flex flex-wrap items-center gap-2">
-                  <Tag className="w-4 h-4 text-amber-600" />
-                  <span className="text-xs font-bold text-gray-500">Tags:</span>
-                  {activeBlog.tags.map(t => (
-                    <span key={t} className="px-2.5 py-1 rounded-lg bg-cream-200 text-dark-900 font-semibold text-xs">
-                      #{t}
-                    </span>
-                  ))}
-                </div>
-              )}
-
-              {/* CTA Footer */}
-              <div className="p-5 rounded-2xl bg-dark-950 text-white flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
+              {/* Bottom CTA */}
+              <div className="p-5 rounded-2xl bg-[#181B22] border border-[#F5D061]/30 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div>
-                  <h4 className="font-serif font-bold text-amber-400 text-base">Planning a visit or special occasion?</h4>
-                  <p className="text-xs text-gray-400">Book your table deck or water sports package directly at Wings River Café.</p>
+                  <h4 className="font-serif font-bold text-base text-[#F8E7A1]">Experience Wings River Café</h4>
+                  <p className="text-xs text-[#D4C4A0]/80">Reserve your Gomti riverfront deck table or party canopy today.</p>
                 </div>
-                {onOpenBooking && (
-                  <button
-                    onClick={() => { closeBlogReader(); onOpenBooking(); }}
-                    className="px-6 py-2.5 rounded-xl bg-gold-400 hover:bg-amber-400 text-dark-950 font-extrabold text-xs shadow-lg transition-all whitespace-nowrap flex items-center space-x-1.5"
-                  >
-                    <Calendar className="w-4 h-4" />
-                    <span>Reserve Table / Event</span>
-                  </button>
-                )}
-
+                <button
+                  onClick={() => {
+                    closeBlogReader();
+                    if (onOpenBooking) onOpenBooking();
+                  }}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-extrabold text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition"
+                >
+                  Reserve Table Now
+                </button>
               </div>
             </div>
           </div>
