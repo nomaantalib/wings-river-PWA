@@ -2,7 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem, MENU_BOOKLET_PAGES, INITIAL_MENU_ITEMS } from '@/lib/db';
-import { ChevronLeft, ChevronRight, BookOpen, Grid, Maximize2, Download, Calendar, ZoomIn, X, Play, Pause } from 'lucide-react';
+import { ChevronLeft, ChevronRight, BookOpen, Grid, Maximize2, Download, Calendar, ZoomIn, X, Play, Pause, Sparkles } from 'lucide-react';
+
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface MenuCardBookletProps {
@@ -15,6 +16,9 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [activeZoomImage, setActiveZoomImage] = useState<string | null>(null);
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
   const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
+  const [isHdMode, setIsHdMode] = useState(true);
+  const [zoomScale, setZoomScale] = useState(1);
+
 
   // Database client-side states to prevent hydration mismatch
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>(MENU_BOOKLET_PAGES);
@@ -152,6 +156,20 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
               </div>
 
               <div className="flex items-center space-x-2">
+                {/* HD Sharpness / Depixelate Mode Toggle */}
+                <button
+                  onClick={() => setIsHdMode(!isHdMode)}
+                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg border text-xs font-semibold transition-all ${
+                    isHdMode
+                      ? 'bg-amber-500 text-dark-950 border-amber-500 shadow-md font-bold'
+                      : 'bg-white/10 text-gray-200 border-white/20 hover:bg-white/20'
+                  }`}
+                  title="Toggle Ultra Sharp Depixelated View"
+                >
+                  <Sparkles className="w-3.5 h-3.5" />
+                  <span>{isHdMode ? 'HD Sharpness: ON' : 'HD Sharpness: OFF'}</span>
+                </button>
+
                 {/* Auto flip button */}
                 <button
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
@@ -167,7 +185,10 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
                 {/* Zoom Fullscreen */}
                 <button
-                  onClick={() => setActiveZoomImage(currentPage.image)}
+                  onClick={() => {
+                    setZoomScale(1);
+                    setActiveZoomImage(currentPage.image);
+                  }}
                   className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
                   title="Expand Full Screen"
                 >
@@ -236,13 +257,20 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                       userSelect: 'none',
                       cursor: 'grab'
                     }}
-                    className="w-full h-full relative overflow-hidden flex items-center justify-center p-2 bg-[#fbf5eb]"
+                    className="w-full h-full relative overflow-hidden flex items-center justify-center p-2 bg-[#ffffff]"
                   >
                     <img
                       src={currentPage.image}
                       alt={currentPage.title}
-                      className="w-full h-full object-contain filter drop-shadow-2xl rounded-xl pointer-events-none"
+                      style={{
+                        imageRendering: '-webkit-optimize-contrast',
+                        transform: 'translateZ(0)',
+                      }}
+                      className={`w-full h-full object-contain filter drop-shadow-2xl rounded-xl pointer-events-none transition-all duration-300 ${
+                        isHdMode ? 'contrast-[1.06] brightness-[1.02] saturate-[1.04]' : ''
+                      }`}
                     />
+
 
                     {/* Left/Right Spine Shadow Overlay */}
                     <div className={`absolute inset-y-0 w-16 bg-gradient-to-r from-black/10 to-transparent pointer-events-none ${
@@ -443,31 +471,67 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
       {/* Lightbox Zoom Viewer */}
       {activeZoomImage && (
         <div className="fixed inset-0 z-[120] bg-dark-950/95 backdrop-blur-xl flex items-center justify-center p-4">
-          <button
-            onClick={() => setActiveZoomImage(null)}
-            className="absolute top-6 right-6 p-3 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
-          >
-            <X className="w-6 h-6" />
-          </button>
+          <div className="absolute top-6 right-6 flex items-center space-x-2 z-30">
+            <button
+              onClick={() => setZoomScale(prev => Math.min(2.5, prev + 0.25))}
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/10 flex items-center space-x-1"
+              title="Zoom In"
+            >
+              <span>Zoom In +</span>
+            </button>
+            <button
+              onClick={() => setZoomScale(prev => Math.max(1, prev - 0.25))}
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/10 flex items-center space-x-1"
+              title="Zoom Out"
+            >
+              <span>Zoom Out -</span>
+            </button>
+            <button
+              onClick={() => setZoomScale(1)}
+              className="px-3 py-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/10"
+              title="Reset Zoom"
+            >
+              <span>Reset</span>
+            </button>
+            <button
+              onClick={() => {
+                setActiveZoomImage(null);
+                setZoomScale(1);
+              }}
+              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+            >
+              <X className="w-6 h-6" />
+            </button>
+          </div>
 
-          <div className="max-w-5xl w-full bg-cream-50 rounded-3xl overflow-hidden border border-white/20 shadow-2xl p-4 flex flex-col items-center">
-            <div className="max-h-[82vh] overflow-auto w-full flex justify-center">
+          <div className="max-w-6xl w-full bg-white rounded-3xl overflow-hidden border border-white/20 shadow-2xl p-4 flex flex-col items-center">
+            <div className="max-h-[80vh] overflow-auto w-full flex justify-center p-2">
               <img
                 src={activeZoomImage}
                 alt="High Resolution Menu Card Page"
-                className="max-h-[80vh] w-auto object-contain rounded-xl shadow-lg"
+                style={{
+                  imageRendering: '-webkit-optimize-contrast',
+                  transform: `scale(${zoomScale})`,
+                  transformOrigin: 'center center',
+                }}
+                className={`max-h-[78vh] w-auto object-contain rounded-xl shadow-xl transition-transform duration-300 ${
+                  isHdMode ? 'contrast-[1.06] brightness-[1.02]' : ''
+                }`}
               />
             </div>
-            <div className="w-full mt-3 flex items-center justify-between px-4">
-              <span className="text-xs font-bold text-dark-900">
-                Wings River Café & Lucknow Water Sports Official Menu Card
+            <div className="w-full mt-3 flex items-center justify-between px-4 pt-2 border-t border-gray-200">
+              <span className="text-xs font-bold text-dark-900 flex items-center space-x-2">
+                <span>Wings River Café & Lucknow Water Sports Official Menu Card</span>
+                <span className="bg-amber-500/20 text-amber-900 px-2 py-0.5 rounded text-[10px] font-mono">
+                  {Math.round(zoomScale * 100)}% Zoom
+                </span>
               </span>
               <a
                 href={activeZoomImage}
                 download
-                className="px-4 py-2 bg-mint-500 text-dark-950 font-bold text-xs rounded-xl shadow-md"
+                className="px-4 py-2 bg-amber-500 text-dark-950 font-bold text-xs rounded-xl shadow-md hover:bg-amber-400"
               >
-                Download Page Image
+                Download HD Page Image
               </a>
             </div>
           </div>
@@ -476,3 +540,4 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
     </section>
   );
 }
+
