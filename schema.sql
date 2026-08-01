@@ -293,4 +293,143 @@ CREATE TABLE IF NOT EXISTS audit_logs (
   created_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
+-- 19. Table Clusters Table
+CREATE TABLE IF NOT EXISTS table_clusters (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  description TEXT DEFAULT '',
+  display_order INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 20. Restaurant Floor Tables Table
+CREATE TABLE IF NOT EXISTS tables (
+  id TEXT PRIMARY KEY,
+  table_number TEXT UNIQUE NOT NULL,
+  cluster_id TEXT DEFAULT 'riverside',
+  capacity INTEGER DEFAULT 4,
+  shape TEXT DEFAULT 'rectangle', -- rectangle, round, canopy
+  x_position INTEGER DEFAULT 0,
+  y_position INTEGER DEFAULT 0,
+  status TEXT DEFAULT 'free', -- free, eating, needs_cleaning, reserved
+  is_active INTEGER DEFAULT 1,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_tables_status ON tables(status);
+
+-- 21. Table Hold Lock Timer Table
+CREATE TABLE IF NOT EXISTS table_holds (
+  id TEXT PRIMARY KEY,
+  table_id TEXT NOT NULL,
+  customer_name TEXT DEFAULT '',
+  customer_phone TEXT DEFAULT '',
+  hold_expires_at TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 22. Party & Canopy Bookings Table
+CREATE TABLE IF NOT EXISTS party_bookings (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  phone TEXT NOT NULL,
+  email TEXT DEFAULT '',
+  event_type TEXT DEFAULT 'Birthday', -- Birthday, Corporate, Anniversary, Celebration
+  event_date TEXT NOT NULL,
+  time_slot TEXT DEFAULT 'Evening 7:00 PM',
+  guest_count INTEGER DEFAULT 10,
+  canopy_name TEXT DEFAULT 'Riverside Canopy 1',
+  custom_notes TEXT DEFAULT '',
+  status TEXT DEFAULT 'pending', -- pending, approved, rejected, completed
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 23. Food Orders Table
+CREATE TABLE IF NOT EXISTS orders (
+  id TEXT PRIMARY KEY,
+  order_number TEXT UNIQUE NOT NULL,
+  table_id TEXT DEFAULT '',
+  table_number TEXT DEFAULT '',
+  customer_name TEXT DEFAULT '',
+  customer_phone TEXT DEFAULT '',
+  order_type TEXT DEFAULT 'qr_dine_in', -- qr_dine_in, waiter_dine_in, takeaway
+  status TEXT DEFAULT 'new', -- new, preparing, ready, served, completed, cancelled
+  total_amount REAL DEFAULT 0.0,
+  notes TEXT DEFAULT '',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_orders_status ON orders(status);
+
+-- 24. Order Items Table
+CREATE TABLE IF NOT EXISTS order_items (
+  id TEXT PRIMARY KEY,
+  order_id TEXT NOT NULL,
+  menu_item_id TEXT DEFAULT '',
+  item_name TEXT NOT NULL,
+  quantity INTEGER DEFAULT 1,
+  price REAL NOT NULL DEFAULT 0.0,
+  notes TEXT DEFAULT '',
+  status TEXT DEFAULT 'pending', -- pending, cooking, ready, served
+  FOREIGN KEY (order_id) REFERENCES orders(id) ON DELETE CASCADE
+);
+
+-- 25. Call Requests (Waiter Alert) Table
+CREATE TABLE IF NOT EXISTS call_requests (
+  id TEXT PRIMARY KEY,
+  table_id TEXT NOT NULL,
+  table_number TEXT NOT NULL,
+  request_type TEXT NOT NULL, -- water, spoon, tissue, waiter
+  status TEXT DEFAULT 'pending', -- pending, resolved
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  resolved_at TEXT,
+  resolved_by TEXT
+);
+
+-- 26. Bills & Payments Ledger Table
+CREATE TABLE IF NOT EXISTS bills (
+  id TEXT PRIMARY KEY,
+  receipt_number TEXT UNIQUE NOT NULL,
+  order_id TEXT DEFAULT '',
+  table_id TEXT DEFAULT '',
+  table_number TEXT DEFAULT '',
+  customer_name TEXT DEFAULT 'Guest',
+  customer_phone TEXT DEFAULT '',
+  subtotal REAL DEFAULT 0.0,
+  gst_amount REAL DEFAULT 0.0,
+  service_charge REAL DEFAULT 0.0,
+  discount_amount REAL DEFAULT 0.0,
+  total_amount REAL DEFAULT 0.0,
+  payment_method TEXT DEFAULT 'cash', -- cash, upi, card, online
+  payment_status TEXT DEFAULT 'pending', -- pending, paid, refunded
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  paid_at TEXT
+);
+
+-- 27. Table QR Codes Table
+CREATE TABLE IF NOT EXISTS qr_codes (
+  id TEXT PRIMARY KEY,
+  table_id TEXT UNIQUE NOT NULL,
+  table_number TEXT NOT NULL,
+  qr_image_url TEXT DEFAULT '',
+  redirect_url TEXT NOT NULL,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 28. Customer CRM Database Table
+CREATE TABLE IF NOT EXISTS customers (
+  id TEXT PRIMARY KEY,
+  phone TEXT UNIQUE NOT NULL,
+  name TEXT NOT NULL,
+  email TEXT DEFAULT '',
+  total_bookings INTEGER DEFAULT 0,
+  total_spent REAL DEFAULT 0.0,
+  vip_status INTEGER DEFAULT 0, -- 0 = normal, 1 = VIP
+  notes TEXT DEFAULT '',
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
 PRAGMA foreign_keys = ON;
+

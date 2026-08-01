@@ -3,8 +3,11 @@
 
 -- 1. Users (password_hash is SHA-256 of 'wingsriver@2026')
 INSERT OR REPLACE INTO users (id, username, password_hash, email, role, created_at, updated_at) VALUES
-('usr-admin', 'admin', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'admin@wingsrivercafe.com', 'Administrator', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
-('usr-editor', 'editor', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'editor@wingsrivercafe.com', 'Editor', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z');
+('usr-admin', 'admin', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'admin@wingsrivercafe.com', 'Admin', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('usr-manager', 'manager', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'manager@wingsrivercafe.com', 'Manager', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('usr-waiter1', 'waiter1', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'waiter1@wingsrivercafe.com', 'Waiter', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('usr-kitchen1', 'kitchen', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'kitchen@wingsrivercafe.com', 'Kitchen', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z');
+
 
 -- 2. Menu Categories
 INSERT OR REPLACE INTO menu_categories (id, name, slug, description, display_order, is_deleted, created_at, updated_at) VALUES
@@ -129,3 +132,42 @@ INSERT OR REPLACE INTO offers_discounts (id, title, code, description, discount_
 -- 13. Settings (Key-Value)
 INSERT OR REPLACE INTO settings (key, value) VALUES
 ('wings_hero', '{"badgeText":"✨ Lucknow’s Premier Waterfront Dining & Water Sports Destination","mainHeadline":"Wings River Café & Water Sports","subHeadline":"Multicuisine Gourmet Food, Riverside Deck & Thrilling Speedboat Rides","contactPhone":"07310008020","aboutBadge":"Premium Multicuisine & Waterfront Haven","aboutTitle":"Welcome to Wings River Café","aboutParagraph1":"Located inside Laxman Mela Ground at Laxman Jhula Park along the scenic Gomti River in Lucknow, Wings River Café is a premier destination where exquisite multicuisine gastronomy meets breathtaking riverside natural ambience and thrilling Lucknow Water Sports speedboat rides.","aboutParagraph2":"Whether you are planning a relaxed family gathering, a festive birthday party under our sparkling fairy-light canopy, or a romantic candlelit evening beside the gentle river waters, our elevated indoor & outdoor dining decks offer an unforgettable experience.","aboutPrimaryImage":"/images/Screenshot_20260720-180544_Maps.png","aboutSecondaryImage":"/images/Screenshot_20260720-180609_Maps.png"}');
+
+-- 14. Table Clusters
+INSERT OR REPLACE INTO table_clusters (id, name, description, display_order, created_at) VALUES
+('cluster-riverside', 'Riverside Deck', 'Open-air waterfront seating with sunset river views', 1, '2026-07-20T18:00:00Z'),
+('cluster-indoor', 'Indoor AC Hall', 'Climate-controlled lounge dining with glass facade', 2, '2026-07-20T18:00:00Z'),
+('cluster-canopy', 'VIP Private Canopy', 'Exclusive fairy-light gazebo for parties & candlelit dinners', 3, '2026-07-20T18:00:00Z');
+
+-- 15. Tables
+INSERT OR REPLACE INTO tables (id, table_number, cluster_id, capacity, shape, x_position, y_position, status, is_active, created_at) VALUES
+('tbl-1', 'T1', 'cluster-riverside', 4, 'rectangle', 10, 20, 'free', 1, '2026-07-20T18:00:00Z'),
+('tbl-2', 'T2', 'cluster-riverside', 4, 'rectangle', 35, 20, 'eating', 1, '2026-07-20T18:00:00Z'),
+('tbl-3', 'T3', 'cluster-riverside', 2, 'round', 60, 20, 'free', 1, '2026-07-20T18:00:00Z'),
+('tbl-4', 'T4', 'cluster-riverside', 6, 'rectangle', 85, 20, 'needs_cleaning', 1, '2026-07-20T18:00:00Z'),
+('tbl-5', 'T5', 'cluster-indoor', 4, 'rectangle', 10, 50, 'free', 1, '2026-07-20T18:00:00Z'),
+('tbl-6', 'T6', 'cluster-indoor', 4, 'rectangle', 35, 50, 'reserved', 1, '2026-07-20T18:00:00Z'),
+('tbl-7', 'T7', 'cluster-indoor', 2, 'round', 60, 50, 'free', 1, '2026-07-20T18:00:00Z'),
+('tbl-8', 'T8', 'cluster-indoor', 8, 'rectangle', 85, 50, 'free', 1, '2026-07-20T18:00:00Z'),
+('tbl-9', 'V1', 'cluster-canopy', 10, 'canopy', 20, 80, 'free', 1, '2026-07-20T18:00:00Z'),
+('tbl-10', 'V2', 'cluster-canopy', 12, 'canopy', 50, 80, 'reserved', 1, '2026-07-20T18:00:00Z'),
+('tbl-11', 'V3', 'cluster-canopy', 15, 'canopy', 80, 80, 'free', 1, '2026-07-20T18:00:00Z');
+
+-- 16. Customers
+INSERT OR REPLACE INTO customers (id, phone, name, email, total_bookings, total_spent, vip_status, notes, created_at, updated_at) VALUES
+('cust-1', '9876543210', 'Rahul Sharma', 'rahul@example.com', 5, 4850.0, 1, 'Prefers Riverside table T2, loves Virgin Mojito', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z'),
+('cust-2', '9123456789', 'Priya Verma', 'priya@example.com', 2, 1820.0, 0, 'Vegetarian, requested quiet corner', '2026-07-20T18:00:00Z', '2026-07-20T18:00:00Z');
+
+-- 17. Party Bookings
+INSERT OR REPLACE INTO party_bookings (id, name, phone, email, event_type, event_date, time_slot, guest_count, canopy_name, custom_notes, status, created_at) VALUES
+('pb-1', 'Ankit Saxena', '9876543210', 'ankit@example.com', 'Birthday', '2026-08-10', 'Evening 7:00 PM', 15, 'VIP Private Canopy V2', 'Fairy light decoration & chocolate cake setup', 'approved', '2026-07-20T18:00:00Z');
+
+-- 18. Orders & Order Items
+INSERT OR REPLACE INTO orders (id, order_number, table_id, table_number, customer_name, customer_phone, order_type, status, total_amount, notes, created_at, updated_at) VALUES
+('ord-101', 'ORD-101', 'tbl-2', 'T2', 'Rahul Sharma', '9876543210', 'qr_dine_in', 'preparing', 843.0, 'Extra spicy pav bhaji', '2026-08-01T18:30:00Z', '2026-08-01T18:30:00Z');
+
+INSERT OR REPLACE INTO order_items (id, order_id, menu_item_id, item_name, quantity, price, notes, status) VALUES
+('oi-1', 'ord-101', 'm7', 'Special Pav Bhaji', 2, 150.0, 'Extra butter', 'cooking'),
+('oi-2', 'ord-101', 'm12', 'Virgin Mojito', 2, 119.0, 'Less ice', 'pending'),
+('oi-3', 'ord-101', 'm25', 'Loaded Special Pizza', 1, 349.0, '', 'cooking');
+

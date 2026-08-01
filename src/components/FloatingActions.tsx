@@ -2,13 +2,11 @@
 
 import React from 'react';
 import { Phone, Instagram, MapPin } from 'lucide-react';
-import BackgroundMusic from './BackgroundMusic';
 
 export default function FloatingActions() {
   return (
     <div className="fixed bottom-6 right-6 z-[100] flex flex-col items-end space-y-3 pointer-events-auto">
-      {/* Sound On/Off Toggle Floating Button (Positioned Above WhatsApp) */}
-      <BackgroundMusic />
+
 
       {/* WhatsApp Quick Chat */}
       <a

@@ -13,8 +13,91 @@ function getDB(c) {
   return c.env.DB || c.env.DB_BINDING || c.env.wings_river_cafe_reservations || c.env.d1 || c.env.DATABASE || c.env.D1 || null;
 }
 
-// CORS Middleware for pure API responses
+// ── SECURITY & PERFORMANCE ENGINE DATA STRUCTURES ────────────────────────────
+
+// 1. High-Performance In-Memory Response Cache Map (O(1) Lookup with TTL Expiry)
+const apiCache = new Map(); // key -> { data: any, expiresAt: number }
+const CACHE_TTL_MS = 15000; // 15 seconds TTL for fast dynamic reads
+
+function getCached(key) {
+  const item = apiCache.get(key);
+  if (!item) return null;
+  if (Date.now() > item.expiresAt) {
+    apiCache.delete(key);
+    return null;
+  }
+  return item.data;
+}
+
+function setCache(key, data, ttlMs = CACHE_TTL_MS) {
+  apiCache.set(key, { data, expiresAt: Date.now() + ttlMs });
+}
+
+function invalidateCachePrefix(prefix) {
+  for (const key of apiCache.keys()) {
+    if (key.startsWith(prefix)) apiCache.delete(key);
+  }
+}
+
+// 2. Token Bucket Rate Limiter & Event Throttler (Prevent Denial of Service & Abuse)
+const rateLimitMap = new Map(); // ip -> { count: number, resetAt: number }
+const RATE_LIMIT_MAX = 100; // max 100 requests per window
+const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute window
+
+function checkRateLimit(ip) {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip) || { count: 0, resetAt: now + RATE_LIMIT_WINDOW_MS };
+
+  if (now > entry.resetAt) {
+    entry.count = 1;
+    entry.resetAt = now + RATE_LIMIT_WINDOW_MS;
+  } else {
+    entry.count += 1;
+  }
+
+  rateLimitMap.set(ip, entry);
+  const remaining = Math.max(0, RATE_LIMIT_MAX - entry.count);
+  const allowed = entry.count <= RATE_LIMIT_MAX;
+
+  return { allowed, remaining, resetInSeconds: Math.ceil((entry.resetAt - now) / 1000) };
+}
+
+// 3. String Input Sanitization & Anti-XSS Helper
+function sanitizeString(str) {
+  if (typeof str !== 'string') return str;
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
+    .replace(/\//g, '&#x2F;')
+    .trim();
+}
+
+// CORS & Security Headers Middleware
 app.use('*', async (c, next) => {
+  // Extract client IP address for Rate Limiting
+  const clientIP = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || '127.0.0.1';
+  const limitInfo = checkRateLimit(clientIP);
+
+  c.header('X-RateLimit-Limit', RATE_LIMIT_MAX.toString());
+  c.header('X-RateLimit-Remaining', limitInfo.remaining.toString());
+
+  if (!limitInfo.allowed) {
+    return c.json(
+      { success: false, error: 'Too many requests. Please slow down and try again later.' },
+      429,
+      { 'Retry-After': limitInfo.resetInSeconds.toString() }
+    );
+  }
+
+  // Security Headers
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('X-Frame-Options', 'DENY');
+  c.header('X-XSS-Protection', '1; mode=block');
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+
   if (c.req.method === 'OPTIONS') {
     return new Response(null, {
       status: 204,
@@ -26,11 +109,13 @@ app.use('*', async (c, next) => {
       },
     });
   }
+
   await next();
   c.header('Access-Control-Allow-Origin', '*');
   c.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
   c.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 });
+
 
 // Helper: Auto-Initialize & Seed D1 Tables if missing
 async function ensureTables(db) {

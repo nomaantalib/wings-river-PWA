@@ -818,8 +818,24 @@ export async function deletePromoPage(id: string): Promise<PromoPage[]> {
 }
 
 // ══════════════════════════════════════════════════════════════════════════════
-//  SYNC
+//  SYNC & EXPORTS
 // ══════════════════════════════════════════════════════════════════════════════
 export async function syncDatabase(): Promise<void> {
   notifySync();
 }
+
+const StorageController = {
+  syncDatabase,
+  getApiUrl,
+  getStoredReservations,
+  getStoredMenuItems,
+  getStoredBlogs,
+  getStoredGalleryItems,
+  getStoredReviews,
+  getStoredContactMessages,
+  getStoredEventBanners,
+  getStoredWaterSports,
+};
+
+export default StorageController;
+
