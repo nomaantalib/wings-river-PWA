@@ -70,9 +70,8 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
 
   const bookingOptions = [
     { id: 'table_booking', label: 'Table Booking', icon: Calendar },
-    { id: 'birthday_party', label: 'Birthday Party', icon: Sparkles },
-    { id: 'anniversary', label: 'Anniversary', icon: Sparkles },
-    { id: 'speedboat_ride', label: 'Speedboat Ride', icon: Anchor },
+    { id: 'birthday_party', label: 'Birthday Party', icon: Users },
+    { id: 'anniversary', label: 'Anniversary Party', icon: Users },
     { id: 'corporate_event', label: 'Corporate Event', icon: Users },
   ];
 
@@ -80,7 +79,7 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-dark-950/80 backdrop-blur-md animate-fade-in">
       <div className="relative w-full max-w-xl bg-white rounded-3xl shadow-2xl border border-mint-200 overflow-hidden max-h-[90vh] flex flex-col">
         {/* Header */}
-        <div className="bg-gradient-to-r from-mint-500 via-mint-600 to-dark-900 text-white p-6 relative">
+        <div className="bg-gradient-to-r from-amber-600 via-amber-700 to-dark-950 text-white p-6 relative">
           <button
             onClick={onClose}
             className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -88,14 +87,15 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
             <X className="w-5 h-5" />
           </button>
 
-          <span className="text-[11px] uppercase tracking-widest font-bold text-gold-300">
+          <span className="text-[11px] uppercase tracking-widest font-bold text-amber-300">
             Wings River Café • Reserve Online
           </span>
-          <h3 className="font-serif text-2xl font-bold mt-1">Book Your Experience</h3>
-          <p className="text-xs text-cream-200 mt-1">
-            Table Dining • Birthday Parties • Speedboat Water Sports
+          <h3 className="font-serif text-2xl font-bold mt-1">Book Table & Private Party</h3>
+          <p className="text-xs text-amber-100/80 mt-1">
+            Riverside Table Dining & VIP Private Canopy Event Bookings
           </p>
         </div>
+
 
         {/* Scrollable Form Body */}
         <div className="p-6 overflow-y-auto space-y-5">

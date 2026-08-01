@@ -142,8 +142,19 @@ async function ensureTables(db) {
     `CREATE INDEX IF NOT EXISTS idx_media_public_id ON media_library(public_id);`,
     `CREATE INDEX IF NOT EXISTS idx_media_category ON media_library(category);`,
     `CREATE TABLE IF NOT EXISTS settings (key TEXT PRIMARY KEY, value TEXT);`,
-    `CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`
+    `CREATE TABLE IF NOT EXISTS audit_logs (id TEXT PRIMARY KEY, user_id TEXT, action TEXT, details TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS table_clusters (id TEXT PRIMARY KEY, name TEXT, description TEXT, display_order INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS tables (id TEXT PRIMARY KEY, table_number TEXT UNIQUE, cluster_id TEXT, capacity INTEGER DEFAULT 4, shape TEXT DEFAULT 'rectangle', x_position INTEGER DEFAULT 0, y_position INTEGER DEFAULT 0, status TEXT DEFAULT 'free', is_active INTEGER DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS table_holds (id TEXT PRIMARY KEY, table_id TEXT, customer_name TEXT, customer_phone TEXT, hold_expires_at DATETIME, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS party_bookings (id TEXT PRIMARY KEY, name TEXT, phone TEXT, email TEXT, event_type TEXT, event_date TEXT, time_slot TEXT, guest_count INTEGER DEFAULT 10, canopy_name TEXT, custom_notes TEXT, status TEXT DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS orders (id TEXT PRIMARY KEY, order_number TEXT UNIQUE, table_id TEXT, table_number TEXT, customer_name TEXT, customer_phone TEXT, order_type TEXT DEFAULT 'qr_dine_in', status TEXT DEFAULT 'new', total_amount REAL DEFAULT 0.0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS order_items (id TEXT PRIMARY KEY, order_id TEXT, menu_item_id TEXT, item_name TEXT, quantity INTEGER DEFAULT 1, price REAL DEFAULT 0.0, notes TEXT, status TEXT DEFAULT 'pending');`,
+    `CREATE TABLE IF NOT EXISTS call_requests (id TEXT PRIMARY KEY, table_id TEXT, table_number TEXT, request_type TEXT, status TEXT DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, resolved_at DATETIME, resolved_by TEXT);`,
+    `CREATE TABLE IF NOT EXISTS bills (id TEXT PRIMARY KEY, receipt_number TEXT UNIQUE, order_id TEXT, table_id TEXT, table_number TEXT, customer_name TEXT, customer_phone TEXT, subtotal REAL DEFAULT 0.0, gst_amount REAL DEFAULT 0.0, service_charge REAL DEFAULT 0.0, discount_amount REAL DEFAULT 0.0, total_amount REAL DEFAULT 0.0, payment_method TEXT DEFAULT 'cash', payment_status TEXT DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, paid_at DATETIME);`,
+    `CREATE TABLE IF NOT EXISTS qr_codes (id TEXT PRIMARY KEY, table_id TEXT UNIQUE, table_number TEXT, qr_image_url TEXT, redirect_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, phone TEXT UNIQUE, name TEXT, email TEXT, total_bookings INTEGER DEFAULT 0, total_spent REAL DEFAULT 0.0, vip_status INTEGER DEFAULT 0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`
   ];
+
 
   for (const sql of tables) {
     try {
@@ -236,13 +247,50 @@ async function ensureTables(db) {
       const rides = [
         ['ride-1', 'Speedboat Rush', 'High Speed', 500, 'Per Person', 'High-speed thrilling ride on the Gomti Riverfront with certified safety gear.', 'Most Popular', 'https://images.unsplash.com/photo-1559136555-9303baea8ebd?auto=format&fit=crop&w=600&q=80', '🛥️', 1],
         ['ride-2', 'Jet Ski Adventure', 'Solo Ride', 800, 'Per 10 Mins', 'Feel the adrenaline wave splashing along the Lucknow riverfront skyline.', 'Thrill Seeker', 'https://images.unsplash.com/photo-1544551763-46a013bb70d5?auto=format&fit=crop&w=600&q=80', '🏄', 2],
-        ['ride-3', 'Banana Boat Ride', 'Group Fun', 400, 'Per Person', 'Perfect group fun ride for families & friends with full safety life jackets.', 'Family Choice', 'https://images.unsplash.com/photo-1520255870062-bd79d3865de7?auto=format&fit=crop&w=600&q=80', '🍌', 3],
-        ['ride-4', 'Ringo Towable Ride', 'Splash Ride', 450, 'Per Person', 'Twist, spin, and bounce over river waves on our high-energy inflatables.', 'Super Fun', 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=600&q=80', '⭕', 4]
+    // 5. Auto-seed Table Clusters & Tables if empty
+    const tableCheck = await db.prepare("SELECT COUNT(*) as cnt FROM tables").first();
+    if (!tableCheck || tableCheck.cnt === 0) {
+      const clusters = [
+        ['cluster-riverside', 'Riverside Deck', 'Open-air waterfront seating with sunset river views', 1],
+        ['cluster-indoor', 'Indoor AC Hall', 'Climate-controlled lounge dining with glass facade', 2],
+        ['cluster-canopy', 'VIP Private Canopy', 'Exclusive fairy-light gazebo for parties & candlelit dinners', 3]
       ];
-      for (const r of rides) {
-        await db.prepare("INSERT OR IGNORE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)").bind(...r).run();
+      for (const cl of clusters) {
+        await db.prepare("INSERT OR IGNORE INTO table_clusters (id, name, description, display_order) VALUES (?, ?, ?, ?)").bind(...cl).run();
+      }
+
+      const defaultTables = [
+        ['tbl-1', 'T1', 'cluster-riverside', 4, 'rectangle', 15, 25, 'free'],
+        ['tbl-2', 'T2', 'cluster-riverside', 4, 'rectangle', 40, 25, 'eating'],
+        ['tbl-3', 'T3', 'cluster-riverside', 2, 'round', 65, 25, 'free'],
+        ['tbl-4', 'T4', 'cluster-riverside', 6, 'rectangle', 88, 25, 'needs_cleaning'],
+        ['tbl-5', 'T5', 'cluster-indoor', 4, 'rectangle', 15, 55, 'free'],
+        ['tbl-6', 'T6', 'cluster-indoor', 4, 'rectangle', 40, 55, 'reserved'],
+        ['tbl-7', 'T7', 'cluster-indoor', 2, 'round', 65, 55, 'free'],
+        ['tbl-8', 'T8', 'cluster-indoor', 8, 'rectangle', 88, 55, 'free'],
+        ['tbl-9', 'V1', 'cluster-canopy', 10, 'canopy', 25, 85, 'free'],
+        ['tbl-10', 'V2', 'cluster-canopy', 12, 'canopy', 55, 85, 'reserved'],
+        ['tbl-11', 'V3', 'cluster-canopy', 15, 'canopy', 85, 85, 'free'],
+      ];
+      for (const t of defaultTables) {
+        await db.prepare("INSERT OR IGNORE INTO tables (id, table_number, cluster_id, capacity, shape, x_position, y_position, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?)").bind(...t).run();
       }
     }
+
+    // 6. Auto-seed Staff Users if empty
+    const userCheck = await db.prepare("SELECT COUNT(*) as cnt FROM users").first();
+    if (!userCheck || userCheck.cnt === 0) {
+      const staffUsers = [
+        ['usr-admin', 'admin', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'admin@wingsrivercafe.com', 'Admin'],
+        ['usr-manager', 'manager', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'manager@wingsrivercafe.com', 'Manager'],
+        ['usr-waiter1', 'waiter1', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'waiter1@wingsrivercafe.com', 'Waiter'],
+        ['usr-kitchen', 'kitchen', 'b2390f70f6be8345155f9e80209df95b3f886f371ea17300c3c861f652de4df5', 'kitchen@wingsrivercafe.com', 'Kitchen'],
+      ];
+      for (const u of staffUsers) {
+        await db.prepare("INSERT OR IGNORE INTO users (id, username, password_hash, email, role) VALUES (?, ?, ?, ?, ?)").bind(...u).run();
+      }
+    }
+
 
     // 4. Auto-seed Media Library if empty with Cloudinary URLs
     const mediaCheck = await db.prepare("SELECT COUNT(*) as cnt FROM media_library").first();
