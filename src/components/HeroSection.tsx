@@ -134,14 +134,6 @@ export default function HeroSection({ onOpenBooking }: HeroSectionProps) {
             <span>Book Party / Event</span>
           </button>
 
-          <button
-            onClick={() => onOpenBooking('speedboat_ride')}
-            className="flex items-center space-x-2 px-7 py-3.5 bg-white/15 backdrop-blur-md hover:bg-white/25 border border-white/30 text-white font-bold text-sm rounded-full shadow-lg hover:scale-105 transition-all duration-300"
-          >
-            <Anchor className="w-4 h-4 text-mint-300" />
-            <span>Speedboat Rides</span>
-          </button>
-
           <a
             href="#menu-card"
             className="flex items-center space-x-2 px-7 py-3.5 bg-dark-900/80 backdrop-blur-md border border-mint-400/40 text-cream-100 font-semibold text-sm rounded-full hover:bg-dark-800 transition-all duration-300"

@@ -109,7 +109,7 @@ export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
                     )}
                     <div className="pt-2">
                       <button
-                        onClick={() => onOpenBooking(banner.cta_link?.includes('watersports') ? 'speedboat_ride' : 'table_booking')}
+                        onClick={() => onOpenBooking('table_booking')}
                         className="inline-flex items-center space-x-2.5 px-6 py-3 bg-gradient-to-r from-gold-400 via-amber-500 to-gold-500 text-dark-950 font-bold text-xs sm:text-sm rounded-xl shadow-lg hover:shadow-amber-500/20 hover:scale-105 transition-all"
                       >
                         <span>{banner.cta_text || 'Claim Offer & Book Now'}</span>
@@ -247,7 +247,7 @@ export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
                   </div>
 
                   <button
-                    onClick={() => onOpenBooking(offer.title.toLowerCase().includes('water') ? 'speedboat_ride' : 'table_booking')}
+                    onClick={() => onOpenBooking('table_booking')}
                     className="w-full py-2.5 bg-white/5 hover:bg-amber-500 hover:text-dark-950 text-white font-bold text-xs rounded-xl border border-white/10 hover:border-amber-500 transition-all duration-300"
                   >
                     Apply Coupon & Reserve
