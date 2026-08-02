@@ -310,6 +310,9 @@ export default function StaffPWA() {
                             {order.order_number}
                           </span>
                           <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
+                          <p className="text-xs font-semibold text-slate-700 mt-0.5">
+                            Customer: {order.customer_name || 'Guest'} {order.customer_phone ? `(${order.customer_phone})` : ''}
+                          </p>
                         </div>
                         <span className="text-xs text-slate-500 font-mono flex items-center space-x-1">
                           <Clock className="w-3 h-3 text-slate-400" />
@@ -324,6 +327,12 @@ export default function StaffPWA() {
                             <span className="text-xs text-slate-500 font-mono">₹{item.price}</span>
                           </div>
                         ))}
+                        {order.total_amount && (
+                          <div className="pt-1.5 border-t border-slate-100 flex justify-between text-xs font-extrabold text-slate-900">
+                            <span>Total Bill:</span>
+                            <span className="text-amber-700">₹{order.total_amount} ({order.payment_status || 'Paid'})</span>
+                          </div>
+                        )}
                       </div>
 
                       <button
@@ -362,6 +371,9 @@ export default function StaffPWA() {
                             {order.order_number}
                           </span>
                           <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
+                          <p className="text-xs font-semibold text-slate-700 mt-0.5">
+                            Customer: {order.customer_name || 'Guest'} {order.customer_phone ? `(${order.customer_phone})` : ''}
+                          </p>
                         </div>
                         <span className="text-xs text-slate-500 font-mono flex items-center space-x-1">
                           <Clock className="w-3 h-3 text-amber-500 animate-spin" />
@@ -376,6 +388,12 @@ export default function StaffPWA() {
                             <span className="text-xs text-slate-500 font-mono">₹{item.price}</span>
                           </div>
                         ))}
+                        {order.total_amount && (
+                          <div className="pt-1.5 border-t border-slate-100 flex justify-between text-xs font-extrabold text-slate-900">
+                            <span>Total Bill:</span>
+                            <span className="text-amber-700">₹{order.total_amount} ({order.payment_status || 'Paid'})</span>
+                          </div>
+                        )}
                       </div>
 
                       <button
@@ -414,6 +432,9 @@ export default function StaffPWA() {
                             {order.order_number}
                           </span>
                           <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
+                          <p className="text-xs font-semibold text-slate-700 mt-0.5">
+                            Customer: {order.customer_name || 'Guest'} {order.customer_phone ? `(${order.customer_phone})` : ''}
+                          </p>
                         </div>
                         <span className="text-xs text-emerald-600 font-bold flex items-center">
                           <CheckCircle className="w-3.5 h-3.5 mr-1" /> Ready
@@ -436,6 +457,7 @@ export default function StaffPWA() {
                       </button>
                     </div>
                   ))}
+
                   {orders.filter(o => o.status === 'ready').length === 0 && (
                     <div className="p-6 text-center text-xs text-slate-500 bg-white/60 rounded-xl border border-dashed border-slate-300">
                       No orders awaiting waiter pickup.
