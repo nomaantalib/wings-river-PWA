@@ -1,7 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import LoadingScreen from '@/components/LoadingScreen';
+
 import Navbar from '@/components/Navbar';
 import HeroSection from '@/components/HeroSection';
 import AboutSection from '@/components/AboutSection';
@@ -37,7 +39,9 @@ import { initRealtimeBookingNotifier } from '@/lib/firebaseMessaging';
 import '@/lib/pushNotifications';
 
 export default function Home() {
+  const router = useRouter();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
+
   const [bookingInitialType, setBookingInitialType] = useState('table_booking');
   const [isQROrderOpen, setIsQROrderOpen] = useState(false);
   const [isMyBookingsOpen, setIsMyBookingsOpen] = useState(false);

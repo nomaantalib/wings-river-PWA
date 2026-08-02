@@ -1120,11 +1120,11 @@ export async function deletePromoPage(id: string): Promise<PromoPage[]> {
 // ══════════════════════════════════════════════════════════════════════════════
 //  FLOOR PLAN LAYOUT DESIGNER
 // ══════════════════════════════════════════════════════════════════════════════
-export async function getStoredFloorPlan(): Promise<FloorPlanLayout> {
+export async function getStoredFloorPlan(floorName: string = 'main'): Promise<FloorPlanLayout> {
   let cached: FloorPlanLayout | null = null;
   if (typeof window !== 'undefined') {
     try {
-      const raw = localStorage.getItem('wings_floor_plan_layout');
+      const raw = localStorage.getItem(`wings_floor_plan_${floorName}`) || localStorage.getItem('wings_floor_plan_layout');
       if (raw) {
         const parsed = JSON.parse(raw);
         if (parsed && Array.isArray(parsed.objects)) cached = parsed;
@@ -1133,9 +1133,10 @@ export async function getStoredFloorPlan(): Promise<FloorPlanLayout> {
   }
 
   try {
-    const res = await apiFetch('/api/floor-plan');
+    const res = await apiFetch(`/api/floor-plans/${floorName}`);
     if (res.success && res.data && Array.isArray(res.data.objects)) {
       if (typeof window !== 'undefined') {
+        localStorage.setItem(`wings_floor_plan_${floorName}`, JSON.stringify(res.data));
         localStorage.setItem('wings_floor_plan_layout', JSON.stringify(res.data));
       }
       return res.data;
@@ -1147,13 +1148,14 @@ export async function getStoredFloorPlan(): Promise<FloorPlanLayout> {
   return cached || INITIAL_FLOOR_PLAN;
 }
 
-export async function saveFloorPlan(layout: FloorPlanLayout): Promise<boolean> {
+export async function saveFloorPlan(layout: FloorPlanLayout, floorName: string = 'main'): Promise<boolean> {
   try {
     const payload = { ...layout, updatedAt: new Date().toISOString() };
     if (typeof window !== 'undefined') {
+      localStorage.setItem(`wings_floor_plan_${floorName}`, JSON.stringify(payload));
       localStorage.setItem('wings_floor_plan_layout', JSON.stringify(payload));
     }
-    const res = await apiPost('/api/floor-plan', payload);
+    const res = await apiPut(`/api/floor-plans/${floorName}`, payload);
     notifySync();
     return res.success;
   } catch (e) {
@@ -1162,6 +1164,7 @@ export async function saveFloorPlan(layout: FloorPlanLayout): Promise<boolean> {
     return true; // saved locally
   }
 }
+
 
 export interface DiningSession {
   id: string;

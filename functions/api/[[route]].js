@@ -162,8 +162,10 @@ async function ensureTables(db) {
     `CREATE TABLE IF NOT EXISTS bills (id TEXT PRIMARY KEY, receipt_number TEXT UNIQUE, order_id TEXT, table_id TEXT, table_number TEXT, customer_name TEXT, customer_phone TEXT, subtotal REAL DEFAULT 0.0, gst_amount REAL DEFAULT 0.0, service_charge REAL DEFAULT 0.0, discount_amount REAL DEFAULT 0.0, total_amount REAL DEFAULT 0.0, payment_method TEXT DEFAULT 'cash', payment_status TEXT DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, paid_at DATETIME);`,
     `CREATE TABLE IF NOT EXISTS qr_codes (id TEXT PRIMARY KEY, table_id TEXT UNIQUE, table_number TEXT, qr_image_url TEXT, redirect_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
     `CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, phone TEXT UNIQUE, name TEXT, email TEXT, total_bookings INTEGER DEFAULT 0, total_spent REAL DEFAULT 0.0, vip_status INTEGER DEFAULT 0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
-    `CREATE TABLE IF NOT EXISTS dining_sessions (id TEXT PRIMARY KEY, table_number TEXT, customer_name TEXT, customer_phone TEXT, started_at DATETIME DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME, status TEXT DEFAULT 'active');`
+    `CREATE TABLE IF NOT EXISTS dining_sessions (id TEXT PRIMARY KEY, table_number TEXT, customer_name TEXT, customer_phone TEXT, started_at DATETIME DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME, status TEXT DEFAULT 'active');`,
+    `CREATE TABLE IF NOT EXISTS floor_plans (id TEXT PRIMARY KEY, branch_id TEXT DEFAULT 'wings_main', floor_name TEXT UNIQUE, layout_json TEXT, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`
   ];
+
 
 
 
@@ -1849,6 +1851,56 @@ app.post('/tables/:tableNumber/call-waiter', async (c) => {
 });
 
 // ── 21. FLOOR PLAN LAYOUT JSON ENGINE ──────────────────────────────────────
+app.get('/floor-plans/:floor', async (c) => {
+  const floorName = c.req.param('floor') || 'main';
+  const db = getDB(c);
+  if (!db) return c.json({ success: true, data: null });
+  try {
+    await ensureTables(db);
+    const row = await db.prepare("SELECT layout_json FROM floor_plans WHERE floor_name = ?").bind(floorName).first();
+    if (row && row.layout_json) {
+      try {
+        return c.json({ success: true, data: JSON.parse(row.layout_json) });
+      } catch (err) {
+        return c.json({ success: true, data: null });
+      }
+    }
+    // Fallback to general settings
+    const fallbackRow = await db.prepare("SELECT value FROM settings WHERE key = ?").bind('floor_plan_layout').first();
+    if (fallbackRow && fallbackRow.value) {
+      return c.json({ success: true, data: JSON.parse(fallbackRow.value) });
+    }
+    return c.json({ success: true, data: null });
+  } catch (e) {
+    return c.json({ success: true, data: null, error: e.message });
+  }
+});
+
+app.put('/floor-plans/:floor', async (c) => {
+  const floorName = c.req.param('floor') || 'main';
+  const db = getDB(c);
+  if (!db) return c.json({ success: true, message: 'Saved locally' });
+  try {
+    await ensureTables(db);
+    const layoutData = await c.req.json();
+    const jsonString = JSON.stringify(layoutData);
+    const id = `fp-${floorName}-${Date.now()}`;
+    const now = new Date().toISOString();
+
+    await db.prepare(
+      "INSERT INTO floor_plans (id, branch_id, floor_name, layout_json, updated_at) VALUES (?, 'wings_main', ?, ?, ?) ON CONFLICT(floor_name) DO UPDATE SET layout_json = excluded.layout_json, updated_at = excluded.updated_at"
+    ).bind(id, floorName, jsonString, now).run();
+
+    await db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('floor_plan_layout', ?)").bind(jsonString).run();
+
+    invalidateCachePrefix('/api/floor-plan');
+    invalidateCachePrefix('/api/floor-plans');
+    return c.json({ success: true });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
 app.get('/floor-plan', async (c) => {
   const db = getDB(c);
   if (!db) return c.json({ success: true, data: null });
@@ -1877,11 +1929,13 @@ app.post('/floor-plan', async (c) => {
     const jsonString = JSON.stringify(layoutData);
     await db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES ('floor_plan_layout', ?)").bind(jsonString).run();
     invalidateCachePrefix('/api/floor-plan');
+    invalidateCachePrefix('/api/floor-plans');
     return c.json({ success: true });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }
 });
+
 
 // ── 22. MEDIA LIBRARY & CLOUDINARY MEDIA ENGINE ────────────────────────────
 const handleGetMedia = async (c) => {
