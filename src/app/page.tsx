@@ -65,16 +65,7 @@ export default function Home() {
         const formattedTable = tableParam.toUpperCase().startsWith('T') || tableParam.toUpperCase().startsWith('V')
           ? tableParam.toUpperCase()
           : `T${tableParam}`;
-        setSelectedTableNumber(formattedTable);
-        
-        // Require auth before opening QR order
-        const session = getStoredUserSession();
-        if (!session || !session.loggedIn) {
-          setPendingAction(() => () => setIsQROrderOpen(true));
-          setIsAuthOpen(true);
-        } else {
-          setIsQROrderOpen(true);
-        }
+        router.push(`/table/${formattedTable}`);
       }
 
       // Launch vs Reload persistence:
@@ -99,18 +90,15 @@ export default function Home() {
         sessionStorage.setItem('wings_last_scroll_pos', window.scrollY.toString());
       };
       window.addEventListener('scroll', handleScrollSave, { passive: true });
-      return () => {
-        window.removeEventListener('wings_db_sync', handleSync);
-        window.removeEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
-        window.removeEventListener('scroll', handleScrollSave);
-      };
     }
 
     return () => {
       window.removeEventListener('wings_db_sync', handleSync);
       window.removeEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
+      window.removeEventListener('wings_open_qr_order', handleOpenQREvent);
     };
   }, []);
+
 
   const requireAuthAndExecute = (action: () => void) => {
     const session = getStoredUserSession();

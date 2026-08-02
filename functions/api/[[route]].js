@@ -161,8 +161,10 @@ async function ensureTables(db) {
     `CREATE TABLE IF NOT EXISTS call_requests (id TEXT PRIMARY KEY, table_id TEXT, table_number TEXT, request_type TEXT, status TEXT DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, resolved_at DATETIME, resolved_by TEXT);`,
     `CREATE TABLE IF NOT EXISTS bills (id TEXT PRIMARY KEY, receipt_number TEXT UNIQUE, order_id TEXT, table_id TEXT, table_number TEXT, customer_name TEXT, customer_phone TEXT, subtotal REAL DEFAULT 0.0, gst_amount REAL DEFAULT 0.0, service_charge REAL DEFAULT 0.0, discount_amount REAL DEFAULT 0.0, total_amount REAL DEFAULT 0.0, payment_method TEXT DEFAULT 'cash', payment_status TEXT DEFAULT 'pending', created_at DATETIME DEFAULT CURRENT_TIMESTAMP, paid_at DATETIME);`,
     `CREATE TABLE IF NOT EXISTS qr_codes (id TEXT PRIMARY KEY, table_id TEXT UNIQUE, table_number TEXT, qr_image_url TEXT, redirect_url TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
-    `CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, phone TEXT UNIQUE, name TEXT, email TEXT, total_bookings INTEGER DEFAULT 0, total_spent REAL DEFAULT 0.0, vip_status INTEGER DEFAULT 0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`
+    `CREATE TABLE IF NOT EXISTS customers (id TEXT PRIMARY KEY, phone TEXT UNIQUE, name TEXT, email TEXT, total_bookings INTEGER DEFAULT 0, total_spent REAL DEFAULT 0.0, vip_status INTEGER DEFAULT 0, notes TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS dining_sessions (id TEXT PRIMARY KEY, table_number TEXT, customer_name TEXT, customer_phone TEXT, started_at DATETIME DEFAULT CURRENT_TIMESTAMP, expires_at DATETIME, status TEXT DEFAULT 'active');`
   ];
+
 
 
   for (const sql of tables) {
@@ -2127,6 +2129,107 @@ app.post('/verify-otp', async (c) => {
     return c.json({ success: false, error: e.message }, 500);
   }
 });
+
+// ── 23. DINING SESSIONS & TABLE QR API ──────────────────────────────────────
+app.get('/table/:tableId', async (c) => {
+  const tableId = c.req.param('tableId').toUpperCase();
+  const db = getDB(c);
+  if (!db) {
+    return c.json({
+      success: true,
+      table: {
+        table_number: tableId,
+        restaurant: 'Wings River Café',
+        branch: 'Gomti Riverfront Lucknow',
+        floor: 'Ground Waterfront Deck',
+        area: 'Gomti Riverfront Deck',
+        cluster: 'Waterfront Deck',
+        capacity: 4,
+        status: 'available'
+      }
+    });
+  }
+
+  try {
+    await ensureTables(db);
+    const activeSession = await db.prepare(
+      "SELECT * FROM dining_sessions WHERE table_number = ? AND status = 'active' ORDER BY started_at DESC LIMIT 1"
+    ).bind(tableId).first();
+
+    return c.json({
+      success: true,
+      table: {
+        table_number: tableId,
+        restaurant: 'Wings River Café',
+        branch: 'Gomti Riverfront Lucknow',
+        floor: 'Ground Waterfront Deck',
+        area: 'Gomti Riverfront Deck',
+        cluster: 'Waterfront Deck',
+        capacity: 4,
+        status: activeSession ? 'occupied' : 'available'
+      },
+      activeSession: activeSession || null
+    });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+app.post('/dining-session', async (c) => {
+  const db = getDB(c);
+  try {
+    const { table_number, customer_name, customer_phone } = await c.req.json();
+    const sessionId = `ds-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+    const now = new Date().toISOString();
+    const expiresAt = new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(); // 3 hrs
+
+    if (db) {
+      await ensureTables(db);
+      await db.prepare(
+        "INSERT INTO dining_sessions (id, table_number, customer_name, customer_phone, started_at, expires_at, status) VALUES (?, ?, ?, ?, ?, ?, 'active')"
+      ).bind(sessionId, table_number, customer_name || 'Valued Guest', customer_phone || '', now, expiresAt).run();
+
+      await db.prepare(
+        "UPDATE tables SET status = 'eating' WHERE table_number = ?"
+      ).bind(table_number).run().catch(() => {});
+    }
+
+    return c.json({
+      success: true,
+      session: {
+        id: sessionId,
+        table_number,
+        customer_name,
+        customer_phone,
+        started_at: now,
+        expires_at: expiresAt,
+        status: 'active'
+      }
+    });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
+app.post('/dining-session/close', async (c) => {
+  const db = getDB(c);
+  try {
+    const { session_id, table_number } = await c.req.json();
+    if (db) {
+      await ensureTables(db);
+      if (session_id) {
+        await db.prepare("UPDATE dining_sessions SET status = 'closed' WHERE id = ?").bind(session_id).run();
+      }
+      if (table_number) {
+        await db.prepare("UPDATE tables SET status = 'free' WHERE table_number = ?").bind(table_number).run().catch(() => {});
+      }
+    }
+    return c.json({ success: true, message: 'Dining session closed and table reset to available' });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
 
 export const onRequest = handle(app);
 

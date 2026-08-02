@@ -1163,12 +1163,59 @@ export async function saveFloorPlan(layout: FloorPlanLayout): Promise<boolean> {
   }
 }
 
-// ══════════════════════════════════════════════════════════════════════════════
-//  SYNC & EXPORTS
-// ══════════════════════════════════════════════════════════════════════════════
+export interface DiningSession {
+  id: string;
+  table_number: string;
+  customer_name?: string;
+  customer_phone?: string;
+  started_at: string;
+  expires_at: string;
+  status: 'active' | 'closed';
+}
+
+export async function createDiningSession(tableNumber: string, name?: string, phone?: string): Promise<DiningSession> {
+  const sessionId = `ds-${Date.now()}-${Math.floor(Math.random() * 1000)}`;
+  const session: DiningSession = {
+    id: sessionId,
+    table_number: tableNumber,
+    customer_name: name || 'Valued Guest',
+    customer_phone: phone || '',
+    started_at: new Date().toISOString(),
+    expires_at: new Date(Date.now() + 3 * 60 * 60 * 1000).toISOString(),
+    status: 'active'
+  };
+
+  if (typeof window !== 'undefined') {
+    localStorage.setItem(`wings_dining_session_${tableNumber}`, JSON.stringify(session));
+  }
+
+  try {
+    await apiPost('/api/dining-session', { table_number: tableNumber, customer_name: name, customer_phone: phone });
+  } catch (e) {
+    console.warn('[D1] createDiningSession fallback to local:', e);
+  }
+
+  notifySync();
+  return session;
+}
+
+export async function closeDiningSession(sessionId: string, tableNumber: string): Promise<boolean> {
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(`wings_dining_session_${tableNumber}`);
+  }
+  try {
+    await apiPost('/api/dining-session/close', { session_id: sessionId, table_number: tableNumber });
+  } catch (e) {
+    console.warn('[D1] closeDiningSession fallback:', e);
+  }
+  notifySync();
+  return true;
+}
+
 export async function syncDatabase(): Promise<void> {
   notifySync();
 }
+
 
 const StorageController = {
   syncDatabase,

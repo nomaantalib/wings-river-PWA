@@ -5,9 +5,10 @@ import {
   X, QrCode, Utensils, ShoppingBag, Bell, Receipt, CheckCircle, ChefHat,
   Camera, CameraOff, Loader2, Plus, Minus, AlertCircle, Zap, Scan
 } from 'lucide-react';
-import { getStoredMenuItems, getStoredCategories, saveOrder, saveCallRequest, MenuCategory } from '@/controllers/StorageController';
+import { getStoredMenuItems, getStoredCategories, createDiningSession, saveOrder, saveCallRequest, MenuCategory } from '@/controllers/StorageController';
 import { MenuItem } from '@/models/MenuModel';
 import { openRazorpayCheckout } from '@/lib/razorpay';
+
 
 
 
@@ -387,12 +388,14 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
                       Laxman Mela Ground · Wings River Café Gomti Waterfront
                     </p>
                     <button
-                      onClick={() => {
+                      onClick={async () => {
                         setTableNumber(manualTable);
+                        await createDiningSession(manualTable);
                         setPhase('order');
                       }}
                       className="w-full py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition hover:scale-[1.02] active:scale-95"
                     >
+
                       Confirm Table &amp; Open Menu ➔
                     </button>
                   </div>

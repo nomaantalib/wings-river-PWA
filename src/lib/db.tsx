@@ -111,14 +111,18 @@ export {
   getStoredPromoPages,
   savePromoPage,
   deletePromoPage,
-  // Floor Plan Layout
+  // Floor Plan Layout & Dining Sessions
   getStoredFloorPlan,
   saveFloorPlan,
   notifySync,
+  createDiningSession,
+  closeDiningSession,
 } from '@/controllers/StorageController';
 
 
 export type {
+  DiningSession,
+
   MenuCategory,
   OfferDiscount,
   FaqItem,
