@@ -220,6 +220,27 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
   // Floor Plan Layout state from Admin Builder / D1
   const [floorPlanLayout, setFloorPlanLayout] = useState<FloorPlanLayout | null>(null);
 
+  // Single download / print state
+  const [isPrinting, setIsPrinting] = useState<boolean>(false);
+
+  const handlePrintSaveTicket = () => {
+    if (isPrinting) return;
+    setIsPrinting(true);
+    try {
+      window.print();
+    } catch {}
+    setTimeout(() => setIsPrinting(false), 2500);
+  };
+
+  const handleCloseTicket = () => {
+    setTicketSlip(null);
+    setSelectedTable(null);
+    setSelectedArea(null);
+    setHoldLeft(null);
+    setFormError('');
+    setStep(1);
+  };
+
   // Area Gallery Modal Auto-sliding Carousel State
   const [carouselIndex, setCarouselIndex] = useState<number>(0);
   const [isCarouselPlaying, setIsCarouselPlaying] = useState<boolean>(true);
@@ -1105,7 +1126,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 </div>
               </div>
               <button
-                onClick={() => setTicketSlip(null)}
+                onClick={handleCloseTicket}
                 className="p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-[#120B08] transition-colors"
               >
                 <X className="w-4 h-4" />
@@ -1152,13 +1173,16 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               {/* Actions */}
               <div className="flex gap-2 pt-2">
                 <button
-                  onClick={() => window.print()}
-                  className="flex-1 py-3 rounded-xl bg-[#2A1D0E] border border-[#F5D061]/50 text-[#F5D061] font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#3D291C]"
+                  type="button"
+                  onClick={handlePrintSaveTicket}
+                  disabled={isPrinting}
+                  className="flex-1 py-3 rounded-xl bg-[#2A1D0E] border border-[#F5D061]/50 text-[#F5D061] font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#3D291C] disabled:opacity-50"
                 >
-                  <Download className="w-4 h-4" /> Print / Save Ticket
+                  <Download className="w-4 h-4" /> {isPrinting ? 'Generating...' : 'Print / Save Ticket'}
                 </button>
                 <button
-                  onClick={() => setTicketSlip(null)}
+                  type="button"
+                  onClick={handleCloseTicket}
                   className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-bold text-xs flex items-center justify-center gap-1.5 hover:opacity-90"
                 >
                   <CheckCircle2 className="w-4 h-4" /> Done
