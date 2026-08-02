@@ -4,14 +4,21 @@
 
 export interface RazorpayCheckoutOptions {
   amount: number; // in Rupees (e.g. 500)
-  name: string;
+  name?: string;
   description: string;
-  customerName: string;
-  customerPhone: string;
+  customerName?: string;
+  customerPhone?: string;
   customerEmail?: string;
+  prefill?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    contact?: string;
+  };
   onSuccess: (paymentId: string) => void;
   onFailure?: (error: any) => void;
 }
+
 
 export function loadRazorpayScript(): Promise<boolean> {
   return new Promise((resolve) => {
