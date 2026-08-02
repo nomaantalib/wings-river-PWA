@@ -259,6 +259,18 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     return () => window.removeEventListener('wings_db_sync', loadPlan);
   }, []);
 
+  // Pre-load gallery & map images into browser cache for 0-buffering instant rendering
+  useEffect(() => {
+    if (typeof window !== 'undefined' && Array.isArray(galleryItems)) {
+      galleryItems.forEach(item => {
+        if (item.image_url && !item.image_url.endsWith('.mp4')) {
+          const img = new Image();
+          img.src = item.image_url;
+        }
+      });
+    }
+  }, [galleryItems]);
+
   // Auto-slide effect for cluster gallery photos/videos
   useEffect(() => {
     if (!activeClusterGallery || !isCarouselPlaying) return;
@@ -1114,10 +1126,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         );
       })()}
 
-      {/* ── Official QR Ticket Slip Modal ────────────────────── */}
+      {/* ── Official QR Ticket Slip Modal (Guaranteed 1-Page Print) ────────────── */}
       {ticketSlip && (
         <div className="fixed inset-0 z-[120] bg-[#07090C]/90 backdrop-blur-lg flex items-center justify-center p-4 animate-fade-in">
-          <div className="relative w-full max-w-md bg-[#1F1810] border-2 border-[#F5D061] rounded-3xl overflow-hidden shadow-2xl text-white">
+          <div id="printable-ticket-wrapper" className="relative w-full max-w-md bg-[#1F1810] border-2 border-[#F5D061] rounded-3xl overflow-hidden shadow-2xl text-white">
 
             {/* Top Badge */}
             <div className="bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#120B08] px-6 py-4 flex items-center justify-between">
@@ -1130,7 +1142,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               </div>
               <button
                 onClick={handleCloseTicket}
-                className="p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-[#120B08] transition-colors"
+                className="p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-[#120B08] transition-colors no-print"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -1173,8 +1185,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-2 pt-2">
+              {/* Actions (Hidden on Print) */}
+              <div className="flex flex-col sm:flex-row gap-2 pt-2 no-print">
                 <button
                   type="button"
                   onClick={handlePrintSaveTicket}

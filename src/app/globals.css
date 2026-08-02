@@ -201,3 +201,49 @@
   outline-offset: 2px;
   border-radius: 4px;
 }
+
+/* ── PRINT MEDIA RULES (Single Page Ticket PDF Guarantee) ── */
+@media print {
+  @page {
+    size: portrait;
+    margin: 0;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+  }
+
+  /* Hide background elements, headers, navbars, footers */
+  header, footer, nav, section, main, .no-print {
+    display: none !important;
+  }
+
+  /* Isolate printable ticket container */
+  #printable-ticket-wrapper {
+    display: block !important;
+    position: absolute !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 12px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    border: none !important;
+    page-break-after: avoid !important;
+    page-break-before: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  #printable-ticket-wrapper * {
+    color: #000000 !important;
+    border-color: #cccccc !important;
+  }
+}
