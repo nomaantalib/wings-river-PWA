@@ -1074,32 +1074,56 @@ export default function AdminPage() {
     );
   }
 
-  const navTabs: { id: TabKey; label: string; icon: React.ReactNode }[] = [
-    { id: 'dashboard',  label: 'Dashboard Overview', icon: <Home className="w-4 h-4 shrink-0" /> },
-    { id: 'settings',   label: 'Site Settings',       icon: <Settings className="w-4 h-4 shrink-0" /> },
-    { id: 'hero',       label: 'Hero & About CMS',   icon: <Award className="w-4 h-4 shrink-0" /> },
-    { id: 'pages',      label: 'Dynamic Pages',      icon: <FileText className="w-4 h-4 shrink-0" /> },
-    { id: 'categories', label: 'Menu Categories',    icon: <Layers className="w-4 h-4 shrink-0" /> },
-    { id: 'menu',       label: 'Menu Items',         icon: <Utensils className="w-4 h-4 shrink-0" /> },
-    { id: 'menupages',  label: 'Booklet Pages',      icon: <BookOpen className="w-4 h-4 shrink-0" /> },
-    { id: 'promopages', label: 'Promo Pages',         icon: <Zap className="w-4 h-4 shrink-0" /> },
-    { id: 'blogs',      label: 'Blogs & News',       icon: <FileText className="w-4 h-4 shrink-0" /> },
-    { id: 'gallery',    label: 'Photo Gallery',      icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
-    { id: 'rides',      label: 'Water Sports Rides', icon: <Waves className="w-4 h-4 shrink-0" /> },
-    { id: 'banners',    label: 'Promo Banners',      icon: <Megaphone className="w-4 h-4 shrink-0" /> },
-    { id: 'offers',     label: 'Offers & Discounts', icon: <Tag className="w-4 h-4 shrink-0" /> },
-    { id: 'faqs',       label: 'FAQs Management',    icon: <HelpCircle className="w-4 h-4 shrink-0" /> },
-    { id: 'team',       label: 'Team Members',       icon: <Users className="w-4 h-4 shrink-0" /> },
-    { id: 'bookings',   label: 'Reservations',       icon: <Calendar className="w-4 h-4 shrink-0" /> },
-    { id: 'floorplan',  label: 'Floor Plan Designer',icon: <Compass className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
-    { id: 'users',      label: 'Users CRM Database', icon: <Users className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
-    { id: 'revenue',    label: 'Revenue & Refunds',   icon: <IndianRupee className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
-    { id: 'heatmap',    label: 'Booking Heatmap',     icon: <Activity className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
-    { id: 'database',   label: 'Full Database Console',icon: <Database className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
-    { id: 'reviews',    label: 'Customer Reviews',   icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
-    { id: 'contact',    label: 'Inquiries & Messages',icon:<Mail className="w-4 h-4 shrink-0" /> },
-    { id: 'media',      label: 'Media Library',      icon: <FolderOpen className="w-4 h-4 shrink-0" /> },
-    { id: 'audit',      label: 'Security Audit Logs',icon: <Database className="w-4 h-4 shrink-0" /> },
+  const masterCategories = [
+    {
+      title: '📝 CMS CONTENT MANAGER',
+      tabs: [
+        { id: 'menu' as TabKey,       label: 'Menu Items',         icon: <Utensils className="w-4 h-4 shrink-0" /> },
+        { id: 'categories' as TabKey, label: 'Menu Categories',    icon: <Layers className="w-4 h-4 shrink-0" /> },
+        { id: 'menupages' as TabKey,  label: 'Booklet Pages',      icon: <BookOpen className="w-4 h-4 shrink-0" /> },
+        { id: 'blogs' as TabKey,      label: 'Blogs & News',       icon: <FileText className="w-4 h-4 shrink-0" /> },
+        { id: 'gallery' as TabKey,    label: 'Photo Gallery',      icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
+        { id: 'banners' as TabKey,    label: 'Promo Banners',      icon: <Megaphone className="w-4 h-4 shrink-0" /> },
+        { id: 'rides' as TabKey,      label: 'Water Sports Rides', icon: <Waves className="w-4 h-4 shrink-0" /> },
+        { id: 'offers' as TabKey,     label: 'Offers & Discounts', icon: <Tag className="w-4 h-4 shrink-0" /> },
+        { id: 'promopages' as TabKey, label: 'Promo Pages',         icon: <Zap className="w-4 h-4 shrink-0" /> },
+        { id: 'hero' as TabKey,       label: 'Hero & About CMS',   icon: <Award className="w-4 h-4 shrink-0" /> },
+      ]
+    },
+    {
+      title: '📅 BOOKINGS & RESERVATIONS',
+      tabs: [
+        { id: 'bookings' as TabKey,   label: 'Table Bookings',     icon: <Calendar className="w-4 h-4 shrink-0" /> },
+        { id: 'floorplan' as TabKey,  label: 'Floor Plan Designer',icon: <Compass className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+        { id: 'heatmap' as TabKey,    label: 'Tables Heatmap',     icon: <Activity className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+      ]
+    },
+    {
+      title: '🎉 PARTY & EVENT BOOKINGS',
+      tabs: [
+        { id: 'contact' as TabKey,    label: 'Party Inquiries',    icon: <Mail className="w-4 h-4 shrink-0" /> },
+        { id: 'reviews' as TabKey,    label: 'Customer Reviews',   icon: <MessageSquare className="w-4 h-4 shrink-0" /> },
+      ]
+    },
+    {
+      title: '📊 SITE MANAGEMENT & ANALYTICS',
+      tabs: [
+        { id: 'dashboard' as TabKey,  label: 'Dashboard Overview', icon: <Home className="w-4 h-4 shrink-0" /> },
+        { id: 'revenue' as TabKey,    label: 'Revenue & Refunds',   icon: <IndianRupee className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+        { id: 'users' as TabKey,      label: 'Users CRM Database', icon: <Users className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+        { id: 'media' as TabKey,      label: 'Media Library',      icon: <FolderOpen className="w-4 h-4 shrink-0" /> },
+        { id: 'database' as TabKey,   label: 'Full DB Console',    icon: <Database className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
+        { id: 'audit' as TabKey,      label: 'Security Audit Logs',icon: <ShieldAlert className="w-4 h-4 shrink-0" /> },
+      ]
+    },
+    {
+      title: '⚙️ SITE SETTINGS',
+      tabs: [
+        { id: 'settings' as TabKey,   label: 'Site Settings',       icon: <Settings className="w-4 h-4 shrink-0" /> },
+        { id: 'faqs' as TabKey,       label: 'FAQs Management',    icon: <HelpCircle className="w-4 h-4 shrink-0" /> },
+        { id: 'team' as TabKey,       label: 'Team Members',       icon: <Users className="w-4 h-4 shrink-0" /> },
+      ]
+    }
   ];
 
   const getTabBadge = (tabId: TabKey): number => {
@@ -1165,41 +1189,50 @@ export default function AdminPage() {
           </button>
         </div>
 
-        {/* Sidebar Navigation Items with Count Badges */}
-        <nav className="flex-1 p-3 space-y-1 overflow-y-auto custom-scrollbar">
-          {navTabs.map((t) => {
-            const isActive = activeTab === t.id;
-            const badgeCount = getTabBadge(t.id);
-            return (
-              <button
-                key={t.id}
-                title={t.label}
-                onClick={() => {
-                  handleTabChange(t.id);
-                  setIsMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center relative ${
-                  isSidebarCollapsed ? 'justify-center px-0' : 'space-x-3 px-3'
-                } py-2.5 rounded-xl text-xs font-bold transition-all ${
-                  isActive
-                    ? 'bg-amber-500 text-dark-950 shadow-md scale-[1.02]'
-                    : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                {t.icon}
-                {!isSidebarCollapsed && <span className="truncate">{t.label}</span>}
-                {badgeCount > 0 && (
-                  <span
-                    className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-rose-500 text-white animate-pulse shadow-md ${
-                      isSidebarCollapsed ? 'absolute -top-1 -right-1' : 'ml-auto'
+        {/* Sidebar Navigation Items Grouped under 5 Categories */}
+        <nav className="flex-1 p-3 space-y-4 overflow-y-auto custom-scrollbar">
+          {masterCategories.map((group) => (
+            <div key={group.title} className="space-y-1">
+              {!isSidebarCollapsed && (
+                <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#F5D061] px-3 pt-2 pb-1 border-b border-white/5">
+                  {group.title}
+                </p>
+              )}
+              {group.tabs.map((t) => {
+                const isActive = activeTab === t.id;
+                const badgeCount = getTabBadge(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    title={t.label}
+                    onClick={() => {
+                      handleTabChange(t.id);
+                      setIsMobileMenuOpen(false);
+                    }}
+                    className={`w-full flex items-center relative ${
+                      isSidebarCollapsed ? 'justify-center px-0' : 'space-x-3 px-3'
+                    } py-2 rounded-xl text-xs font-bold transition-all ${
+                      isActive
+                        ? 'bg-amber-500 text-dark-950 shadow-md scale-[1.02]'
+                        : 'text-gray-400 hover:bg-white/5 hover:text-white'
                     }`}
                   >
-                    {badgeCount}
-                  </span>
-                )}
-              </button>
-            );
-          })}
+                    {t.icon}
+                    {!isSidebarCollapsed && <span className="truncate">{t.label}</span>}
+                    {badgeCount > 0 && (
+                      <span
+                        className={`px-2 py-0.5 text-[10px] font-extrabold rounded-full bg-rose-500 text-white animate-pulse shadow-md ${
+                          isSidebarCollapsed ? 'absolute -top-1 -right-1' : 'ml-auto'
+                        }`}
+                      >
+                        {badgeCount}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
         </nav>
 
         {/* Sidebar Health Widget & Footer */}

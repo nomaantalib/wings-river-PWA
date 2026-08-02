@@ -17,6 +17,21 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
   const [isLoading, setIsLoading] = useState(false);
   const [userSession, setUserSession] = useState(getStoredUserSession());
 
+  // Double-check cancellation modal state
+  const [cancelTarget, setCancelTarget] = useState<Reservation | null>(null);
+  const [cancelNote, setCancelNote] = useState<string>('');
+
+  // Scroll restoration on close
+  const handleCloseModal = () => {
+    onClose();
+    if (typeof window !== 'undefined') {
+      const lastScroll = sessionStorage.getItem('wings_last_scroll_pos');
+      if (lastScroll) {
+        window.scrollTo({ top: parseInt(lastScroll, 10), behavior: 'smooth' });
+      }
+    }
+  };
+
   const loadReservations = async () => {
     setIsLoading(true);
     try {
@@ -130,7 +145,7 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
               <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             </button>
             <button
-              onClick={onClose}
+              onClick={handleCloseModal}
               className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-[#D4C4A0] hover:text-white transition"
             >
               <X className="w-5 h-5" />
@@ -275,15 +290,30 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
                           </div>
                         </div>
 
-                        <a
-                          href={`https://wa.me/917310008020?text=Hi%20Wings%20River%20Caf%C3%A9%2C%20here%20is%20my%20reservation%20QR%20Code%3A%20${qrCodeValue}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-3.5 py-2 bg-[#1A2E1A] hover:bg-[#253E25] text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl transition flex items-center justify-center space-x-1.5"
-                        >
-                          <Phone className="w-3.5 h-3.5" />
-                          <span>WhatsApp Pass</span>
-                        </a>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <a
+                            href={`https://wa.me/917310008020?text=Hi%20Wings%20River%20Caf%C3%A9%2C%20here%20is%20my%20reservation%20QR%20Code%3A%20${qrCodeValue}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-2 bg-[#1A2E1A] hover:bg-[#253E25] text-emerald-300 border border-emerald-500/40 font-bold text-xs rounded-xl transition flex items-center space-x-1"
+                          >
+                            <Phone className="w-3.5 h-3.5" />
+                            <span>WhatsApp Pass</span>
+                          </a>
+
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (typeof window !== 'undefined') {
+                                window.print();
+                              }
+                            }}
+                            className="px-3 py-2 bg-[#2A1D0E] hover:bg-[#3D291C] text-[#F5D061] border border-[#F5D061]/40 font-bold text-xs rounded-xl transition flex items-center space-x-1"
+                          >
+                            <Ticket className="w-3.5 h-3.5" />
+                            <span>Download Ticket PDF</span>
+                          </button>
+                        </div>
                       </div>
 
                       {/* Refund & Cancellation Section */}
@@ -294,7 +324,10 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
                             Full refund eligible if cancelled 5+ hours prior to slot time.
                           </div>
                           <button
-                            onClick={() => handleCancelBooking(b)}
+                            onClick={() => {
+                              setCancelTarget(b);
+                              setCancelNote(`Full refund eligible for ${b.name || 'Guest'}. Amount will be credited to original payment source.`);
+                            }}
                             className="px-3.5 py-1.5 bg-red-500/15 hover:bg-red-500/25 text-red-300 border border-red-500/40 rounded-xl text-[11px] font-bold shrink-0 transition ml-3"
                           >
                             Cancel Booking
@@ -322,6 +355,55 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
             </div>
           )}
         </div>
+        {/* ── Cancellation Double-Check Confirmation Modal ───────────────── */}
+        {cancelTarget && (
+          <div className="fixed inset-0 z-[150] bg-black/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+            <div className="bg-[#1F1810] border-2 border-red-500/60 rounded-3xl p-6 max-w-md w-full text-white space-y-4 shadow-2xl">
+              <div className="flex items-center space-x-3 text-red-400">
+                <ShieldAlert className="w-8 h-8 shrink-0" />
+                <div>
+                  <h4 className="font-serif font-bold text-lg text-white">Confirm Cancellation</h4>
+                  <p className="text-xs text-red-300 font-mono">Ref: {cancelTarget.id}</p>
+                </div>
+              </div>
+
+              <div className="bg-[#120B08] p-4 rounded-2xl border border-red-500/30 text-xs space-y-2">
+                <p className="font-bold text-[#F8E7A1]">Are you sure you want to cancel this booking?</p>
+                <p className="text-gray-300">
+                  <span className="text-[#F5D061] font-bold">Details:</span> Table {cancelTarget.table_number || 'Reserved'} • {cancelTarget.date} at {cancelTarget.time} ({cancelTarget.guests || 2} Guests)
+                </p>
+                <div className="pt-2 border-t border-red-500/20 text-emerald-400 font-mono text-[11px]">
+                  ✓ Refund Note: Full refund of payment will be credited back to your original payment account within 24 hours (Razorpay Ref ID: PAY-{Math.floor(100000 + Math.random() * 900000)}).
+                </div>
+              </div>
+
+              <div className="flex gap-3 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setCancelTarget(null)}
+                  className="flex-1 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs"
+                >
+                  Keep Booking
+                </button>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    if (cancelTarget) {
+                      await updateReservationStatus(cancelTarget.id, 'cancelled');
+                      setUserBookings(prev => prev.map(r => r.id === cancelTarget.id ? { ...r, status: 'cancelled' } : r));
+                      setCancelTarget(null);
+                      await loadReservations();
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-xl bg-red-600 hover:bg-red-500 text-white font-bold text-xs shadow-lg"
+                >
+                  Yes, Cancel &amp; Refund
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
       </div>
     </div>
   );

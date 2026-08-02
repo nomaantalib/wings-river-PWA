@@ -109,8 +109,9 @@ export default function BookingModal({ isOpen, onClose, initialType = 'table_boo
 
   const bookingOptions = [
     { id: 'table_booking', label: 'Table Booking', icon: Calendar },
-    { id: 'birthday_party', label: 'Birthday Party', icon: Users },
-    { id: 'anniversary', label: 'Anniversary Party', icon: Users },
+    { id: 'birthday_party', label: 'Birthday Celebration 🎂', icon: Users },
+    { id: 'kitty_party', label: 'Kitty Party 🐱', icon: Users },
+    { id: 'anniversary', label: 'Anniversary Party 💍', icon: Users },
     { id: 'corporate_event', label: 'Corporate Event', icon: Users },
   ];
 
