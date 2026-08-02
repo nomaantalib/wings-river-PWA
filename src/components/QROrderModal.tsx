@@ -2,8 +2,9 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, QrCode, Utensils, ShoppingBag, Bell, Receipt, CheckCircle, Clock, ChefHat, Zap } from 'lucide-react';
-import StorageController, { getStoredMenuItems } from '@/controllers/StorageController';
+import StorageController, { getStoredMenuItems, saveOrder } from '@/controllers/StorageController';
 import { MenuItem } from '@/models/MenuModel';
+import { openRazorpayCheckout } from '@/lib/razorpay';
 
 interface QROrderModalProps {
   isOpen: boolean;
@@ -53,14 +54,53 @@ export default function QROrderModal({ isOpen, onClose, tableNumber = 'T4' }: QR
   const gstAmount = Math.round(cartTotal * 0.05);
   const totalBill = cartTotal + gstAmount;
 
-  const handlePlaceOrder = () => {
+  const handlePlaceOrderWithPayment = async (payMethod: 'online' | 'cash') => {
     if (cart.length === 0) return;
-    setOrderStatus('new');
-    setActiveTab('status');
+    const session = typeof window !== 'undefined' ? JSON.parse(localStorage.getItem('wings_user_session') || '{}') : {};
 
-    // Simulate real-time order progression (New -> Preparing -> Ready)
-    setTimeout(() => setOrderStatus('preparing'), 4000);
-    setTimeout(() => setOrderStatus('ready'), 10000);
+    if (payMethod === 'online') {
+      const launched = await openRazorpayCheckout({
+        amount: totalBill,
+        name: 'Wings River Café - Table Order',
+        description: `Food Order for Table ${tableNumber}`,
+        customerName: session.name || 'Valued Guest',
+        customerPhone: session.phone || '0000000000',
+        onSuccess: async (paymentId) => {
+          await saveOrder({
+            table_number: tableNumber,
+            customer_name: session.name || 'Valued Guest',
+            customer_phone: session.phone || '',
+            payment_status: 'paid',
+            payment_method: 'Online Razorpay',
+            razorpay_payment_id: paymentId,
+            total_amount: totalBill,
+            items: cart.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
+            status: 'new',
+          });
+          setOrderStatus('new');
+          setActiveTab('status');
+        },
+        onFailure: (err) => {
+          alert('Payment cancelled or failed. You can try paying via cash or re-try payment.');
+        }
+      });
+      if (!launched) {
+        alert('Could not launch payment window.');
+      }
+    } else {
+      await saveOrder({
+        table_number: tableNumber,
+        customer_name: session.name || 'Valued Guest',
+        customer_phone: session.phone || '',
+        payment_status: 'unpaid',
+        payment_method: 'Pay Cash at Table',
+        total_amount: totalBill,
+        items: cart.map(i => ({ name: i.name, quantity: i.quantity, price: i.price })),
+        status: 'new',
+      });
+      setOrderStatus('new');
+      setActiveTab('status');
+    }
   };
 
   const handleCallRequest = (type: string) => {
@@ -200,13 +240,21 @@ export default function QROrderModal({ isOpen, onClose, tableNumber = 'T4' }: QR
                     <span className="text-xs text-slate-400 block">Total ({cart.reduce((a, b) => a + b.quantity, 0)} items)</span>
                     <span className="text-lg font-bold text-amber-300">₹{totalBill} <span className="text-[10px] text-slate-400 font-normal">(incl. 5% GST)</span></span>
                   </div>
-                  <button
-                    onClick={handlePlaceOrder}
-                    className="px-6 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center space-x-2"
-                  >
-                    <ShoppingBag className="w-4 h-4" />
-                    <span>Send Order to Kitchen</span>
-                  </button>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => handlePlaceOrderWithPayment('cash')}
+                      className="px-3.5 py-2.5 bg-dark-800 hover:bg-dark-700 border border-slate-700 text-slate-200 font-bold text-xs rounded-xl transition"
+                    >
+                      Cash at Table
+                    </button>
+                    <button
+                      onClick={() => handlePlaceOrderWithPayment('online')}
+                      className="px-5 py-2.5 bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-dark-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg shadow-amber-500/20 transition flex items-center space-x-2"
+                    >
+                      <ShoppingBag className="w-4 h-4" />
+                      <span>Pay Online &amp; Order</span>
+                    </button>
+                  </div>
                 </div>
               )}
             </div>

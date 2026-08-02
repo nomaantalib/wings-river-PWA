@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ChefHat, UserCheck, LayoutDashboard, QrCode, LogOut, CheckCircle, Clock, AlertTriangle, Utensils, DollarSign, Bell, RefreshCw, Phone, Users, ShieldAlert, Sparkles, Filter } from 'lucide-react';
-import StorageController from '@/controllers/StorageController';
+import StorageController, { getStoredOrders, updateOrderStatus as syncUpdateOrderStatus, TableOrder } from '@/controllers/StorageController';
 import { notifyOrderReady, notifyTableReady } from '@/lib/pushNotifications';
 
 export default function StaffPWA() {
@@ -25,35 +25,7 @@ export default function StaffPWA() {
     { id: 'tbl-10', table_number: 'V2', cluster: 'VIP Canopy', capacity: 12, status: 'reserved' },
   ]);
 
-  const [orders, setOrders] = useState([
-    {
-      id: 'ord-101',
-      order_number: 'ORD-101',
-      table_number: 'T2',
-      customer_name: 'Rahul Sharma',
-      status: 'new',
-      total_amount: 843,
-      items: [
-        { name: 'Special Pav Bhaji', quantity: 2, price: 150 },
-        { name: 'Virgin Mojito', quantity: 2, price: 119 },
-        { name: 'Loaded Special Pizza', quantity: 1, price: 349 },
-      ],
-      time: '18:30',
-    },
-    {
-      id: 'ord-102',
-      order_number: 'ORD-102',
-      table_number: 'T4',
-      customer_name: 'Walk-in Guest',
-      status: 'preparing',
-      total_amount: 498,
-      items: [
-        { name: 'Chilli Paneer Dry', quantity: 1, price: 219 },
-        { name: 'Red Sauce Arrabiata Pasta', quantity: 1, price: 275 },
-      ],
-      time: '18:42',
-    },
-  ]);
+  const [orders, setOrders] = useState<any[]>([]);
 
   const [callRequests, setCallRequests] = useState([
     { id: 'call-1', table_number: 'T2', type: 'Drinking Water', time: '2 mins ago', status: 'pending' },
@@ -114,10 +86,25 @@ export default function StaffPWA() {
 
 
 
+  // Live sync effect for staff orders
+  const loadStaffOrders = async () => {
+    const liveOrders = await getStoredOrders();
+    setOrders(liveOrders);
+  };
+
+  useEffect(() => {
+    loadStaffOrders();
+    const handleSync = () => {
+      loadStaffOrders();
+    };
+    window.addEventListener('wings_db_sync', handleSync);
+    return () => window.removeEventListener('wings_db_sync', handleSync);
+  }, []);
+
   // Kitchen Order Status Flow — fire push notification when order is ready
-  const updateOrderStatus = (orderId: string, nextStatus: string) => {
+  const handleUpdateOrderStatus = async (orderId: string, nextStatus: any) => {
+    await syncUpdateOrderStatus(orderId, nextStatus);
     setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: nextStatus } : o));
-    // Notify customer when order is ready/served
     if (nextStatus === 'ready' || nextStatus === 'served') {
       const order = orders.find(o => o.id === orderId);
       if (order) {
@@ -304,7 +291,7 @@ export default function StaffPWA() {
                       </div>
 
                       <div className="border-t border-slate-100 pt-2 space-y-1">
-                        {order.items.map((item, idx) => (
+                        {(order.items || []).map((item: any, idx: number) => (
                           <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
                             <span>{item.quantity}x {item.name}</span>
                           </div>
@@ -312,7 +299,7 @@ export default function StaffPWA() {
                       </div>
 
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'preparing')}
+                        onClick={() => handleUpdateOrderStatus(order.id, 'preparing')}
                         className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition"
                       >
                         Start Preparing ➔
@@ -347,7 +334,7 @@ export default function StaffPWA() {
                       </div>
 
                       <div className="border-t border-slate-100 pt-2 space-y-1">
-                        {order.items.map((item, idx) => (
+                        {(order.items || []).map((item: any, idx: number) => (
                           <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
                             <span>{item.quantity}x {item.name}</span>
                           </div>
@@ -355,7 +342,7 @@ export default function StaffPWA() {
                       </div>
 
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'ready')}
+                        onClick={() => handleUpdateOrderStatus(order.id, 'ready')}
                         className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm uppercase rounded-xl shadow-md transition"
                       >
                         Mark Ready to Serve ➔
@@ -392,7 +379,7 @@ export default function StaffPWA() {
                       </div>
 
                       <button
-                        onClick={() => updateOrderStatus(order.id, 'completed')}
+                        onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
                         className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition"
                       >
                         Complete Order ✓

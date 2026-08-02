@@ -136,6 +136,21 @@ export interface EventBanner {
   created_at?: string;
 }
 
+export interface TableOrder {
+  id: string;
+  order_number: string;
+  table_number: string;
+  customer_name: string;
+  customer_phone: string;
+  status: 'new' | 'preparing' | 'ready' | 'served' | 'completed' | 'cancelled';
+  payment_status: 'paid' | 'unpaid';
+  payment_method?: string;
+  razorpay_payment_id?: string;
+  total_amount: number;
+  items: { name: string; quantity: number; price: number }[];
+  created_at: string;
+}
+
 // ── Zero-delay cross-tab & PWA synchronization ──────────────────────────────
 let syncChannel: BroadcastChannel | null = null;
 if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
@@ -225,6 +240,65 @@ async function apiDelete(url: string): Promise<any> {
   } catch (err: any) {
     return { success: false, error: err?.message || 'Network error' };
   }
+}
+
+// ── Core Orders API & Local Storage Sync ────────────────────────────────────
+export async function getStoredOrders(): Promise<TableOrder[]> {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem('wings_orders_db');
+  return raw ? JSON.parse(raw) : [
+    {
+      id: 'ord-101',
+      order_number: 'ORD-101',
+      table_number: 'T2',
+      customer_name: 'Rahul Sharma',
+      customer_phone: '9876543210',
+      status: 'new',
+      payment_status: 'paid',
+      payment_method: 'Online Razorpay',
+      total_amount: 843,
+      items: [
+        { name: 'Special Pav Bhaji', quantity: 2, price: 150 },
+        { name: 'Virgin Mojito', quantity: 2, price: 119 },
+        { name: 'Loaded Special Pizza', quantity: 1, price: 349 },
+      ],
+      created_at: new Date().toISOString(),
+    }
+  ];
+}
+
+export async function saveOrder(order: Partial<TableOrder>): Promise<TableOrder> {
+  const newOrder: TableOrder = {
+    id: order.id || `ord-${Date.now()}`,
+    order_number: order.order_number || `ORD-${Math.floor(100 + Math.random() * 900)}`,
+    table_number: order.table_number || 'T1',
+    customer_name: order.customer_name || 'Guest',
+    customer_phone: order.customer_phone || '',
+    status: order.status || 'new',
+    payment_status: order.payment_status || 'paid',
+    payment_method: order.payment_method || 'Online Razorpay',
+    razorpay_payment_id: order.razorpay_payment_id || '',
+    total_amount: order.total_amount || 0,
+    items: order.items || [],
+    created_at: new Date().toISOString(),
+  };
+
+  const current = await getStoredOrders();
+  const updated = [newOrder, ...current];
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('wings_orders_db', JSON.stringify(updated));
+  }
+  notifySync();
+  return newOrder;
+}
+
+export async function updateOrderStatus(orderId: string, status: TableOrder['status']): Promise<void> {
+  const current = await getStoredOrders();
+  const updated = current.map(o => o.id === orderId ? { ...o, status } : o);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('wings_orders_db', JSON.stringify(updated));
+  }
+  notifySync();
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

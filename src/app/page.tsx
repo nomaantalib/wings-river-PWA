@@ -50,9 +50,11 @@ export default function Home() {
     initRealtimeBookingNotifier();
     const handleSync = () => setSyncKey(prev => prev + 1);
     const handleOpenMyBookingsEvent = () => setIsMyBookingsOpen(true);
+    const handleOpenQREvent = () => setIsQROrderOpen(true);
 
     window.addEventListener('wings_db_sync', handleSync);
     window.addEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
+    window.addEventListener('wings_open_qr_order', handleOpenQREvent);
 
     // Auto-detect Table QR Code URL Scan (e.g. ?table=T4 or ?qr=T4)
     if (typeof window !== 'undefined') {
