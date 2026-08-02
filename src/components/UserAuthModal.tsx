@@ -75,7 +75,28 @@ export function saveRegisteredUser(user: RegisteredUser) {
 
 export function findRegisteredUser(phone: string): RegisteredUser | undefined {
   const clean = phone.replace(/\D/g, '');
-  return getRegisteredUsers().find(u => u.phone.replace(/\D/g, '') === clean);
+  const localUser = getRegisteredUsers().find(u => u.phone.replace(/\D/g, '') === clean);
+  if (localUser) return localUser;
+
+  // Search in stored reservations and bookings history
+  if (typeof window !== 'undefined') {
+    try {
+      const rawRes = localStorage.getItem('wings_reservations_db');
+      if (rawRes) {
+        const reservations: any[] = JSON.parse(rawRes);
+        const match = reservations.find((r: any) => (r.phone || '').replace(/\D/g, '') === clean);
+        if (match && match.name) {
+          return {
+            phone: clean,
+            name: match.name,
+            email: match.email || `${clean}@guest.wingsriver.com`,
+            registeredAt: match.created_at || new Date().toISOString()
+          };
+        }
+      }
+    } catch (e) {}
+  }
+  return undefined;
 }
 
 export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthModalProps) {
@@ -117,8 +138,8 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     }
   };
 
-  // Handle Send OTP
-  const handleSendOtp = (e: React.FormEvent) => {
+  // Handle Send Real MSG91 SMS OTP
+  const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanPhone = phoneInput.replace(/\D/g, '');
     if (cleanPhone.length !== 10) {
@@ -129,20 +150,29 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     setErrorMsg('');
     setIsSendingOtp(true);
 
-    // Automatic D1 & Local DB phone lookup: IF FOUND -> LOGIN, ELSE -> SIGNUP
     const existing = findRegisteredUser(cleanPhone);
     setMatchedUser(existing || null);
 
-    setTimeout(() => {
-      const code = String(Math.floor(100000 + Math.random() * 900000));
-      setGeneratedOtp(code);
+    try {
+      const res = await fetch('/api/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone })
+      });
+      const data = await res.json().catch(() => ({}));
       setIsSendingOtp(false);
-      setStep('otp');
-      setResendTimer(30);
 
-      // Auto-focus first box
-      setTimeout(() => otpRefs.current[0]?.focus(), 150);
-    }, 500);
+      if (res.ok && data.success) {
+        setStep('otp');
+        setResendTimer(30);
+        setTimeout(() => otpRefs.current[0]?.focus(), 150);
+      } else {
+        setErrorMsg(data.error || 'Failed to send MSG91 SMS OTP. Please check your mobile number.');
+      }
+    } catch (err: any) {
+      setIsSendingOtp(false);
+      setErrorMsg(err.message || 'SMS Gateway Connection Error.');
+    }
   };
 
   // Trigger Official MSG91 / Phone91 OTP Service Widget
@@ -163,7 +193,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       onSuccess: (data) => {
         setIsSendingOtp(false);
         if (existing) {
-          // Phone found -> Login directly without asking name/email!
           const session: UserSession = {
             phone: cleanPhone,
             name: existing.name,
@@ -175,7 +204,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           if (onSuccess) onSuccess(session);
           onClose();
         } else {
-          // Phone not found -> Go to Signup Profile Creation
           setStep('profile');
         }
       },
@@ -184,14 +212,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
         setErrorMsg(typeof err === 'string' ? err : 'OTP Verification failed or cancelled');
       },
     });
-  };
-
-  // One-click Auto Fill Demo OTP
-  const handleAutoFillDemoOtp = () => {
-    if (!generatedOtp) return;
-    const digits = generatedOtp.split('');
-    setOtpInput(digits);
-    setErrorMsg('');
   };
 
   // Handle OTP digit changes
@@ -213,42 +233,53 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     }
   };
 
-  // Handle Verify OTP
-  const handleVerifyOtp = (e: React.FormEvent) => {
+  // Handle Verify Real MSG91 SMS OTP
+  const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredCode = otpInput.join('');
     if (enteredCode.length !== 6) {
-      setErrorMsg('Please enter the 6-digit OTP code');
-      return;
-    }
-
-    if (enteredCode !== generatedOtp && enteredCode !== '123456') {
-      setErrorMsg(`Invalid OTP code. Click 'Auto-Fill Demo OTP' to test.`);
+      setErrorMsg('Please enter the 6-digit OTP code received via SMS');
       return;
     }
 
     setErrorMsg('');
     setIsVerifying(true);
 
-    setTimeout(() => {
+    const cleanPhone = phoneInput.replace(/\D/g, '');
+
+    try {
+      const res = await fetch('/api/verify-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: cleanPhone, otp: enteredCode })
+      });
+      const data = await res.json().catch(() => ({}));
       setIsVerifying(false);
-      if (matchedUser) {
-        // Phone found in DB -> LOGIN IMMEDIATELY! Do NOT ask for Name or Email!
-        const session: UserSession = {
-          phone: phoneInput.replace(/\D/g, ''),
-          name: matchedUser.name,
-          email: matchedUser.email,
-          loggedIn: true,
-          loggedInAt: new Date().toISOString(),
-        };
-        saveUserSession(session);
-        if (onSuccess) onSuccess(session);
-        onClose();
+
+      if (res.ok && data.success) {
+        const userFound = matchedUser || findRegisteredUser(cleanPhone);
+        if (userFound) {
+          const session: UserSession = {
+            phone: cleanPhone,
+            name: userFound.name || 'Valued Guest',
+            email: userFound.email || `${cleanPhone}@guest.wingsriver.com`,
+            loggedIn: true,
+            loggedInAt: new Date().toISOString(),
+          };
+          saveUserSession(session);
+          saveRegisteredUser(userFound);
+          if (onSuccess) onSuccess(session);
+          onClose();
+        } else {
+          setStep('profile');
+        }
       } else {
-        // Phone NOT found in DB -> SIGNUP (Ask for Full Name & Email to create account)
-        setStep('profile');
+        setErrorMsg(data.error || 'Invalid or expired OTP SMS code.');
       }
-    }, 500);
+    } catch (err: any) {
+      setIsVerifying(false);
+      setErrorMsg(err.message || 'OTP verification connection error.');
+    }
   };
 
   // Handle Sign Up Profile Submission
@@ -458,22 +489,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 </p>
               </div>
 
-              {/* Demo Helper Banner with One-Click Auto-Fill */}
-              {generatedOtp && (
-                <div className="p-3 bg-[#1A1D24] border border-[#F5D061]/35 rounded-2xl flex items-center justify-between text-xs">
-                  <div className="flex items-center space-x-2 text-[#F8E7A1]">
-                    <Sparkles className="w-4 h-4 text-[#F5D061] shrink-0" />
-                    <span>Demo OTP Code: <strong className="font-mono text-base text-[#98A886] ml-1">{generatedOtp}</strong></span>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleAutoFillDemoOtp}
-                    className="px-2.5 py-1 bg-[#F5D061] text-[#120B08] font-bold text-[10px] rounded-lg uppercase tracking-wider hover:bg-[#F8E7A1] transition"
-                  >
-                    Auto-Fill
-                  </button>
-                </div>
-              )}
+
 
               {/* 6 Digit Inputs */}
               <div className="flex items-center justify-center gap-2">

@@ -1049,10 +1049,20 @@ export default function AdminPage() {
             </div>
           )}
           <form onSubmit={handleLogin} className="space-y-4">
+            <input
+              type="text"
+              name="username"
+              autoComplete="username"
+              value="admin"
+              readOnly
+              className="sr-only"
+              aria-hidden="true"
+            />
             <div className="space-y-1">
               <label className={labelCls}>Administrator Password</label>
               <input
                 type="password"
+                name="password"
                 placeholder="••••••••••••"
                 value={passwordInput}
                 onChange={(e) => setPasswordInput(e.target.value)}

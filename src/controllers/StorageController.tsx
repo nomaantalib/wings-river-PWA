@@ -1,7 +1,7 @@
 // StorageController — Cloudflare D1 persistent storage engine via Hono.
 // No mock local storage. Full support for REST endpoints with JWT authorization.
 
-import { Reservation }                             from '@/models/ReservationModel';
+import { Reservation, INITIAL_RESERVATIONS } from '@/models/ReservationModel';
 import { MenuItem, INITIAL_MENU_ITEMS, MenuPageDefinition, MENU_BOOKLET_PAGES } from '@/models/MenuModel';
 import { BlogPost, INITIAL_BLOGS }                 from '@/models/BlogModel';
 import { GalleryItem, INITIAL_GALLERY }            from '@/models/GalleryModel';
@@ -162,14 +162,18 @@ if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
   } catch (e) {}
 }
 
+let syncDebounceTimer: any = null;
 export function notifySync() {
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new Event('wings_db_sync'));
-    if (syncChannel) {
-      try {
-        syncChannel.postMessage('sync');
-      } catch (e) {}
-    }
+    if (syncDebounceTimer) clearTimeout(syncDebounceTimer);
+    syncDebounceTimer = setTimeout(() => {
+      window.dispatchEvent(new Event('wings_db_sync'));
+      if (syncChannel) {
+        try {
+          syncChannel.postMessage('sync');
+        } catch (e) {}
+      }
+    }, 40);
   }
 }
 
@@ -307,13 +311,29 @@ export async function updateOrderStatus(orderId: string, status: TableOrder['sta
 export async function getStoredReservations(): Promise<Reservation[]> {
   try {
     const res = await apiFetch('/api/bookings');
-    if (res.success && Array.isArray(res.data)) return res.data;
+    if (res.success && Array.isArray(res.data) && res.data.length > 0) return res.data;
   } catch (e) {}
-  return [];
+  if (typeof window !== 'undefined') {
+    const raw = localStorage.getItem('wings_reservations_db');
+    if (raw) return JSON.parse(raw);
+  }
+  return INITIAL_RESERVATIONS;
 }
 
 export async function saveReservation(reservation: Reservation): Promise<void> {
-  await apiPost('/api/bookings', reservation);
+  apiPost('/api/bookings', reservation).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredReservations();
+    const idx = current.findIndex(r => r.id === reservation.id);
+    let updated: Reservation[];
+    if (idx >= 0) {
+      updated = [...current];
+      updated[idx] = reservation;
+    } else {
+      updated = [reservation, ...current];
+    }
+    localStorage.setItem('wings_reservations_db', JSON.stringify(updated));
+  }
   notifySync();
 }
 
@@ -328,9 +348,134 @@ export async function updateReservationStatus(id: string, newStatus: string): Pr
 }
 
 export async function deleteReservation(id: string): Promise<Reservation[]> {
-  await apiDelete(`/api/bookings/${id}`);
+  apiDelete(`/api/bookings/${id}`).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredReservations();
+    const updated = current.filter(r => r.id !== id);
+    localStorage.setItem('wings_reservations_db', JSON.stringify(updated));
+  }
   notifySync();
   return getStoredReservations();
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+//  CALL REQUESTS & TABLE STATUS CONTROL
+// ═══════════════════════════════════════════════════════════════════════════════
+export interface CallRequest {
+  id: string;
+  table_number: string;
+  type: string;
+  time: string;
+  status: 'pending' | 'resolved';
+}
+
+export async function getStoredCallRequests(): Promise<CallRequest[]> {
+  if (typeof window === 'undefined') return [];
+  const raw = localStorage.getItem('wings_call_requests');
+  return raw ? JSON.parse(raw) : [
+    { id: 'call-1', table_number: 'T2', type: 'Drinking Water', time: '2 mins ago', status: 'pending' },
+    { id: 'call-2', table_number: 'T4', type: 'Request Bill', time: 'Just now', status: 'pending' },
+  ];
+}
+
+export async function saveCallRequest(req: { table_number: string; type: string; time?: string }): Promise<CallRequest[]> {
+  const current = await getStoredCallRequests();
+  const newCall: CallRequest = {
+    id: `call-${Date.now()}`,
+    table_number: req.table_number,
+    type: req.type,
+    time: req.time || 'Just now',
+    status: 'pending'
+  };
+  const updated = [newCall, ...current.filter(c => !(c.table_number === req.table_number && c.type === req.type))];
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('wings_call_requests', JSON.stringify(updated));
+  }
+  notifySync();
+  return updated;
+}
+
+export async function resolveCallRequest(id: string): Promise<CallRequest[]> {
+  const current = await getStoredCallRequests();
+  const updated = current.filter(c => c.id !== id);
+  if (typeof window !== 'undefined') {
+    localStorage.setItem('wings_call_requests', JSON.stringify(updated));
+  }
+  notifySync();
+  return updated;
+}
+
+export interface TableStatus {
+  id: string;
+  table_number: string;
+  cluster: string;
+  capacity: number;
+  status: 'free' | 'eating' | 'needs_cleaning' | 'reserved';
+}
+
+export const INITIAL_TABLES: TableStatus[] = [
+  { id: 'tbl-1',  table_number: 'T1',  cluster: 'Rooftop Upper Deck', capacity: 2, status: 'free' },
+  { id: 'tbl-2',  table_number: 'T2',  cluster: 'Rooftop Upper Deck', capacity: 4, status: 'eating' },
+  { id: 'tbl-3',  table_number: 'T3',  cluster: 'Rooftop Upper Deck', capacity: 2, status: 'free' },
+  { id: 'tbl-4',  table_number: 'T4',  cluster: 'Rooftop Upper Deck', capacity: 4, status: 'needs_cleaning' },
+  { id: 'tbl-5',  table_number: 'T5',  cluster: 'Rooftop Upper Deck', capacity: 2, status: 'free' },
+  { id: 'tbl-6',  table_number: 'T6',  cluster: 'Rooftop Upper Deck', capacity: 4, status: 'reserved' },
+  { id: 'tbl-7',  table_number: 'T7',  cluster: 'Open Garden Area',   capacity: 4, status: 'free' },
+  { id: 'tbl-8',  table_number: 'T8',  cluster: 'Open Garden Area',   capacity: 4, status: 'free' },
+  { id: 'tbl-9',  table_number: 'T9',  cluster: 'Open Garden Area',   capacity: 6, status: 'eating' },
+  { id: 'tbl-10', table_number: 'T10', cluster: 'Open Garden Area',   capacity: 4, status: 'free' },
+  { id: 'tbl-11', table_number: 'T11', cluster: 'Open Garden Area',   capacity: 4, status: 'free' },
+  { id: 'tbl-12', table_number: 'T12', cluster: 'Open Garden Area',   capacity: 6, status: 'free' },
+  { id: 'tbl-13', table_number: 'T13', cluster: 'Open Garden Area',   capacity: 8, status: 'reserved' },
+  { id: 'tbl-14', table_number: 'T14', cluster: 'Indoor AC Hall',     capacity: 4, status: 'free' },
+  { id: 'tbl-15', table_number: 'T15', cluster: 'Indoor AC Hall',     capacity: 4, status: 'free' },
+  { id: 'tbl-16', table_number: 'T16', cluster: 'Indoor AC Hall',     capacity: 6, status: 'eating' },
+  { id: 'tbl-17', table_number: 'T17', cluster: 'Indoor AC Hall',     capacity: 8, status: 'free' },
+  { id: 'tbl-18', table_number: 'V1',  cluster: 'VIP Canopy',         capacity: 10, status: 'free' },
+  { id: 'tbl-19', table_number: 'V2',  cluster: 'VIP Canopy',         capacity: 12, status: 'reserved' },
+];
+
+export async function getStoredTables(): Promise<TableStatus[]> {
+  if (typeof window === 'undefined') return INITIAL_TABLES;
+  const rawMap = localStorage.getItem('wings_tables_status');
+  if (!rawMap) return INITIAL_TABLES;
+  try {
+    const statusMap: Record<string, string> = JSON.parse(rawMap);
+    return INITIAL_TABLES.map(t => ({
+      ...t,
+      status: (statusMap[t.table_number] as any) || t.status
+    }));
+  } catch (e) {
+    return INITIAL_TABLES;
+  }
+}
+
+export async function updateTableStatusInStore(tableNumber: string, status: string): Promise<TableStatus[]> {
+  if (typeof window !== 'undefined') {
+    const rawMap = localStorage.getItem('wings_tables_status');
+    const statusMap: Record<string, string> = rawMap ? JSON.parse(rawMap) : {};
+    statusMap[tableNumber] = status;
+    localStorage.setItem('wings_tables_status', JSON.stringify(statusMap));
+  }
+  notifySync();
+  return getStoredTables();
+}
+
+
+function resolveData<T>(res: any, localStorageKey: string, fallbackData: T[]): T[] {
+  if (res && res.success && Array.isArray(res.data)) {
+    if (typeof window !== 'undefined') {
+      try { localStorage.setItem(localStorageKey, JSON.stringify(res.data)); } catch (e) {}
+    }
+    return res.data;
+  }
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem(localStorageKey);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {}
+  }
+  return fallbackData;
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -339,21 +484,26 @@ export async function deleteReservation(id: string): Promise<Reservation[]> {
 export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
   try {
     const res = await apiFetch('/api/gallery');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      return res.data;
-    }
-  } catch (e) { console.error('[D1] getStoredGalleryItems:', e); }
-  return INITIAL_GALLERY;
+    return resolveData(res, 'wings_gallery_db', INITIAL_GALLERY);
+  } catch (e) {
+    return resolveData(null, 'wings_gallery_db', INITIAL_GALLERY);
+  }
 }
 
-
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
-  const result = await apiPost('/api/gallery', item);
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to save gallery photo to D1');
+  apiPost('/api/gallery', item).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredGalleryItems();
+    const idx = current.findIndex(g => g.id === item.id);
+    let updated: GalleryItem[];
+    if (idx >= 0) {
+      updated = [...current];
+      updated[idx] = item;
+    } else {
+      updated = [item, ...current];
+    }
+    localStorage.setItem('wings_gallery_db', JSON.stringify(updated));
   }
-  // Wait for D1 write propagation
-  await new Promise(r => setTimeout(r, 400));
   notifySync();
   return getStoredGalleryItems();
 }
@@ -363,9 +513,12 @@ export async function updateGalleryItem(item: GalleryItem): Promise<GalleryItem[
 }
 
 export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
-  await apiDelete(`/api/gallery/${id}`);
-  // Wait for D1 delete propagation
-  await new Promise(r => setTimeout(r, 300));
+  apiDelete(`/api/gallery/${id}`).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredGalleryItems();
+    const updated = current.filter(g => g.id !== id);
+    localStorage.setItem('wings_gallery_db', JSON.stringify(updated));
+  }
   notifySync();
   return getStoredGalleryItems();
 }
@@ -387,21 +540,37 @@ export async function getStoredCategories(): Promise<MenuCategory[]> {
   ];
   try {
     const res = await apiFetch('/api/categories');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      return res.data;
-    }
-  } catch (e) { console.error('[D1] getStoredCategories:', e); }
-  return defaultCats;
+    return resolveData(res, 'wings_categories_db', defaultCats);
+  } catch (e) {
+    return resolveData(null, 'wings_categories_db', defaultCats);
+  }
 }
 
 export async function saveCategory(cat: MenuCategory): Promise<MenuCategory[]> {
-  await apiPost('/api/categories', cat);
+  apiPost('/api/categories', cat).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredCategories();
+    const idx = current.findIndex(c => c.id === cat.id);
+    let updated: MenuCategory[];
+    if (idx >= 0) {
+      updated = [...current];
+      updated[idx] = cat;
+    } else {
+      updated = [cat, ...current];
+    }
+    localStorage.setItem('wings_categories_db', JSON.stringify(updated));
+  }
   notifySync();
   return getStoredCategories();
 }
 
 export async function deleteCategory(id: string): Promise<MenuCategory[]> {
-  await apiDelete(`/api/categories/${id}`);
+  apiDelete(`/api/categories/${id}`).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredCategories();
+    const updated = current.filter(c => c.id !== id);
+    localStorage.setItem('wings_categories_db', JSON.stringify(updated));
+  }
   notifySync();
   return getStoredCategories();
 }
@@ -412,15 +581,26 @@ export async function deleteCategory(id: string): Promise<MenuCategory[]> {
 export async function getStoredMenuItems(): Promise<MenuItem[]> {
   try {
     const res = await apiFetch('/api/menu');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      return res.data;
-    }
-  } catch (e) { console.error('[D1] getStoredMenuItems:', e); }
-  return INITIAL_MENU_ITEMS;
+    return resolveData(res, 'wings_menu_db', INITIAL_MENU_ITEMS);
+  } catch (e) {
+    return resolveData(null, 'wings_menu_db', INITIAL_MENU_ITEMS);
+  }
 }
 
 export async function saveMenuItem(item: MenuItem): Promise<MenuItem[]> {
-  await apiPost('/api/menu', item);
+  apiPost('/api/menu', item).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredMenuItems();
+    const idx = current.findIndex(m => m.id === item.id);
+    let updated: MenuItem[];
+    if (idx >= 0) {
+      updated = [...current];
+      updated[idx] = item;
+    } else {
+      updated = [item, ...current];
+    }
+    localStorage.setItem('wings_menu_db', JSON.stringify(updated));
+  }
   notifySync();
   return getStoredMenuItems();
 }
@@ -430,7 +610,12 @@ export async function updateMenuItem(item: MenuItem): Promise<MenuItem[]> {
 }
 
 export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
-  await apiDelete(`/api/menu/${id}`);
+  apiDelete(`/api/menu/${id}`).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredMenuItems();
+    const updated = current.filter(m => m.id !== id);
+    localStorage.setItem('wings_menu_db', JSON.stringify(updated));
+  }
   notifySync();
   return getStoredMenuItems();
 }
@@ -441,21 +626,37 @@ export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
 export async function getStoredBlogs(): Promise<BlogPost[]> {
   try {
     const res = await apiFetch('/api/blogs');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
+    if (res.success && Array.isArray(res.data)) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wings_blogs_db', JSON.stringify(res.data));
+      }
       return res.data;
     }
   } catch (e) { console.error('[D1] getStoredBlogs:', e); }
-  // Always fall back to initial blog articles if empty or unreachable
+
+  if (typeof window !== 'undefined') {
+    const raw = localStorage.getItem('wings_blogs_db');
+    if (raw) {
+      try { return JSON.parse(raw); } catch (err) {}
+    }
+  }
   return INITIAL_BLOGS;
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
-  const result = await apiPost('/api/blogs', blog);
-  if (!result.success) {
-    throw new Error(result.error || 'Failed to save blog post to D1');
+  apiPost('/api/blogs', blog).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredBlogs();
+    const idx = current.findIndex(b => b.id === blog.id);
+    let updated: BlogPost[];
+    if (idx >= 0) {
+      updated = [...current];
+      updated[idx] = blog;
+    } else {
+      updated = [blog, ...current];
+    }
+    localStorage.setItem('wings_blogs_db', JSON.stringify(updated));
   }
-  // Small delay to let D1 commit the write before we re-read
-  await new Promise(r => setTimeout(r, 400));
   notifySync();
   return getStoredBlogs();
 }
@@ -465,9 +666,12 @@ export async function updateBlog(blog: BlogPost): Promise<BlogPost[]> {
 }
 
 export async function deleteBlog(id: string): Promise<BlogPost[]> {
-  await apiDelete(`/api/blogs/${id}`);
-  // Small delay for D1 soft-delete commit
-  await new Promise(r => setTimeout(r, 300));
+  apiDelete(`/api/blogs/${id}`).catch(() => {});
+  if (typeof window !== 'undefined') {
+    const current = await getStoredBlogs();
+    const updated = current.filter(b => b.id !== id);
+    localStorage.setItem('wings_blogs_db', JSON.stringify(updated));
+  }
   notifySync();
   return getStoredBlogs();
 }

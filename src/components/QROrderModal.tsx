@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { X, QrCode, Utensils, ShoppingBag, Bell, Receipt, CheckCircle, Clock, ChefHat, Zap } from 'lucide-react';
-import StorageController, { getStoredMenuItems, saveOrder } from '@/controllers/StorageController';
+import StorageController, { getStoredMenuItems, saveOrder, saveCallRequest } from '@/controllers/StorageController';
 import { MenuItem } from '@/models/MenuModel';
 import { openRazorpayCheckout } from '@/lib/razorpay';
 
@@ -104,6 +104,7 @@ export default function QROrderModal({ isOpen, onClose, tableNumber = 'T4' }: QR
   };
 
   const handleCallRequest = (type: string) => {
+    saveCallRequest({ table_number: tableNumber, type, time: 'Just now' });
     setCallAlertSent(type);
     setTimeout(() => setCallAlertSent(null), 3500);
   };

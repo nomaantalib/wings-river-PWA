@@ -1,8 +1,20 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChefHat, UserCheck, LayoutDashboard, QrCode, LogOut, CheckCircle, Clock, AlertTriangle, Utensils, DollarSign, Bell, RefreshCw, Phone, Users, ShieldAlert, Sparkles, Filter } from 'lucide-react';
-import StorageController, { getStoredOrders, updateOrderStatus as syncUpdateOrderStatus, TableOrder } from '@/controllers/StorageController';
+import { ChefHat, UserCheck, LayoutDashboard, QrCode, LogOut, CheckCircle, Clock, AlertTriangle, Utensils, DollarSign, Bell, RefreshCw, Phone, Users, ShieldAlert, Sparkles, Filter, ExternalLink, Calendar, PlusCircle } from 'lucide-react';
+import StorageController, {
+  getStoredOrders,
+  updateOrderStatus as syncUpdateOrderStatus,
+  TableOrder,
+  getStoredTables,
+  updateTableStatusInStore,
+  TableStatus,
+  getStoredCallRequests,
+  resolveCallRequest,
+  CallRequest,
+  getStoredReservations
+} from '@/controllers/StorageController';
+import type { Reservation } from '@/models/ReservationModel';
 import { notifyOrderReady, notifyTableReady } from '@/lib/pushNotifications';
 
 export default function StaffPWA() {
@@ -14,23 +26,10 @@ export default function StaffPWA() {
   const [activeRole, setActiveRole] = useState<'Kitchen' | 'Waiter' | 'Manager'>('Kitchen');
 
   // Staff Data States
-  const [tables, setTables] = useState([
-    { id: 'tbl-1', table_number: 'T1', cluster: 'Riverside Deck', capacity: 4, status: 'free' },
-    { id: 'tbl-2', table_number: 'T2', cluster: 'Riverside Deck', capacity: 4, status: 'eating' },
-    { id: 'tbl-3', table_number: 'T3', cluster: 'Riverside Deck', capacity: 2, status: 'free' },
-    { id: 'tbl-4', table_number: 'T4', cluster: 'Riverside Deck', capacity: 6, status: 'needs_cleaning' },
-    { id: 'tbl-5', table_number: 'T5', cluster: 'Indoor AC', capacity: 4, status: 'free' },
-    { id: 'tbl-6', table_number: 'T6', cluster: 'Indoor AC', capacity: 4, status: 'reserved' },
-    { id: 'tbl-9', table_number: 'V1', cluster: 'VIP Canopy', capacity: 10, status: 'free' },
-    { id: 'tbl-10', table_number: 'V2', cluster: 'VIP Canopy', capacity: 12, status: 'reserved' },
-  ]);
-
-  const [orders, setOrders] = useState<any[]>([]);
-
-  const [callRequests, setCallRequests] = useState([
-    { id: 'call-1', table_number: 'T2', type: 'Drinking Water', time: '2 mins ago', status: 'pending' },
-    { id: 'call-2', table_number: 'T4', type: 'Request Bill', time: 'Just now', status: 'pending' },
-  ]);
+  const [tables, setTables] = useState<TableStatus[]>([]);
+  const [orders, setOrders] = useState<TableOrder[]>([]);
+  const [callRequests, setCallRequests] = useState<CallRequest[]>([]);
+  const [reservations, setReservations] = useState<Reservation[]>([]);
 
   const [walkinName, setWalkinName] = useState('');
   const [walkinPhone, setWalkinPhone] = useState('');
@@ -42,7 +41,6 @@ export default function StaffPWA() {
     setLoginError('');
 
     const u = loginForm.username.toLowerCase().trim();
-    const p = loginForm.password;
 
     if (u === 'kitchen' || u === 'chef') {
       const user = { username: 'Chef Suresh', role: 'Kitchen' as const };
@@ -52,12 +50,8 @@ export default function StaffPWA() {
       const user = { username: 'Waiter Amit', role: 'Waiter' as const };
       setCurrentUser(user);
       setActiveRole('Waiter');
-    } else if (u === 'manager' || u === 'reception') {
-      const user = { username: 'Manager Saxena', role: 'Manager' as const };
-      setCurrentUser(user);
-      setActiveRole('Manager');
-    } else if (u === 'admin') {
-      const user = { username: 'Administrator', role: 'Manager' as const };
+    } else if (u === 'manager' || u === 'reception' || u === 'admin') {
+      const user = { username: 'Manager Saxena (Main Admin)', role: 'Manager' as const };
       setCurrentUser(user);
       setActiveRole('Manager');
     } else {
@@ -66,36 +60,35 @@ export default function StaffPWA() {
   };
 
   // Staff Table Status Updates (Vacant / Ready / Occupied / Reserved / Cleaning)
-  const updateTableStatus = (id: string, newStatus: string) => {
-    setTables(prev => {
-      const updated = prev.map(t => t.id === id ? { ...t, status: newStatus } : t);
-      if (typeof window !== 'undefined') {
-        const statusMap: Record<string, string> = {};
-        updated.forEach(tbl => { statusMap[tbl.table_number] = tbl.status; });
-        localStorage.setItem('wings_tables_status', JSON.stringify(statusMap));
-        window.dispatchEvent(new Event('wings_db_sync'));
-      }
-      // 🔔 Notify customers when a table becomes free/available
-      if (newStatus === 'free') {
-        const tbl = tables.find(t => t.id === id);
-        if (tbl) notifyTableReady(tbl.table_number);
-      }
-      return updated;
-    });
+  const handleUpdateTableStatus = async (tableNumber: string, newStatus: any) => {
+    const updated = await updateTableStatusInStore(tableNumber, newStatus);
+    setTables(updated);
+
+    // 🔔 Notify customers when a table becomes free/available
+    if (newStatus === 'free') {
+      notifyTableReady(tableNumber);
+    }
   };
 
-
-
-  // Live sync effect for staff orders
-  const loadStaffOrders = async () => {
+  // Live sync effect for staff orders, tables, calls, reservations
+  const loadStaffData = async () => {
     const liveOrders = await getStoredOrders();
     setOrders(liveOrders);
+
+    const liveTables = await getStoredTables();
+    setTables(liveTables);
+
+    const liveCalls = await getStoredCallRequests();
+    setCallRequests(liveCalls);
+
+    const liveRes = await getStoredReservations();
+    setReservations(liveRes);
   };
 
   useEffect(() => {
-    loadStaffOrders();
+    loadStaffData();
     const handleSync = () => {
-      loadStaffOrders();
+      loadStaffData();
     };
     window.addEventListener('wings_db_sync', handleSync);
     return () => window.removeEventListener('wings_db_sync', handleSync);
@@ -117,17 +110,18 @@ export default function StaffPWA() {
   };
 
   // Resolve Call Request
-  const resolveCall = (id: string) => {
-    setCallRequests(prev => prev.filter(c => c.id !== id));
+  const handleResolveCall = async (id: string) => {
+    const updated = await resolveCallRequest(id);
+    setCallRequests(updated);
   };
 
   // Handle Walkin Registration
-  const handleWalkin = (e: React.FormEvent) => {
+  const handleWalkin = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!walkinName || !walkinPhone) return;
 
     // Update selected table status to eating
-    setTables(prev => prev.map(t => t.table_number === selectedWalkinTable ? { ...t, status: 'eating' } : t));
+    await handleUpdateTableStatus(selectedWalkinTable, 'eating');
     setWalkinName('');
     setWalkinPhone('');
   };
@@ -156,10 +150,12 @@ export default function StaffPWA() {
               <label className="block text-xs font-bold text-slate-700 mb-1">Staff Username</label>
               <input
                 type="text"
+                name="username"
+                autoComplete="username"
                 placeholder="kitchen / waiter / manager"
                 value={loginForm.username}
                 onChange={e => setLoginForm({ ...loginForm, username: e.target.value })}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-black placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
                 required
               />
             </div>
@@ -168,10 +164,12 @@ export default function StaffPWA() {
               <label className="block text-xs font-bold text-slate-700 mb-1">Passcode</label>
               <input
                 type="password"
+                name="password"
+                autoComplete="current-password"
                 placeholder="••••••••"
                 value={loginForm.password}
                 onChange={e => setLoginForm({ ...loginForm, password: e.target.value })}
-                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-amber-500"
+                className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-sm font-semibold text-black placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
               />
             </div>
 
@@ -196,10 +194,15 @@ export default function StaffPWA() {
     );
   }
 
+  // Calculate live manager dashboard stats
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0);
+  const totalSeated = tables.filter(t => t.status === 'eating').length;
+  const occupancyPercent = tables.length > 0 ? Math.round((totalSeated / tables.length) * 100) : 0;
+
   return (
     <div className="min-h-screen bg-slate-100 text-slate-900 font-sans">
       {/* High Contrast Header Bar */}
-      <header className="bg-slate-900 text-white px-6 py-4 flex items-center justify-between shadow-md">
+      <header className="bg-slate-900 text-white px-6 py-4 flex flex-col md:flex-row items-center justify-between shadow-md gap-4">
         <div className="flex items-center space-x-3">
           <div className="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center font-bold text-slate-950">
             W
@@ -211,56 +214,77 @@ export default function StaffPWA() {
         </div>
 
         {/* Role Switcher Tabs */}
-        <div className="flex items-center space-x-1 bg-slate-800 p-1 rounded-xl">
+        <div className="flex flex-wrap items-center gap-2 bg-slate-800 p-1.5 rounded-xl">
           <button
             onClick={() => setActiveRole('Kitchen')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
               activeRole === 'Kitchen' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-white'
             }`}
           >
-            👨‍🍳 Kitchen Queue ({orders.filter(o => o.status !== 'completed').length})
+            <ChefHat className="w-3.5 h-3.5" />
+            <span>Kitchen Queue ({orders.filter(o => o.status !== 'completed').length})</span>
           </button>
           <button
             onClick={() => setActiveRole('Waiter')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
               activeRole === 'Waiter' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-white'
             }`}
           >
-            💁 Waiter Floor Map
+            <UserCheck className="w-3.5 h-3.5" />
+            <span>Waiter Floor Map ({callRequests.length > 0 ? `🔔 ${callRequests.length}` : tables.length})</span>
           </button>
           <button
             onClick={() => setActiveRole('Manager')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition ${
+            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
               activeRole === 'Manager' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-white'
             }`}
           >
-            📊 Manager Dashboard
+            <LayoutDashboard className="w-3.5 h-3.5" />
+            <span>Manager Dashboard</span>
           </button>
+          
+          {/* Main Admin Direct Link */}
+          <a
+            href="/admin"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="px-3 py-1.5 rounded-lg text-xs font-bold bg-amber-400 text-slate-950 hover:bg-amber-300 transition flex items-center space-x-1 border border-amber-300"
+            title="Open Full Admin Portal"
+          >
+            <ShieldAlert className="w-3.5 h-3.5 text-slate-950" />
+            <span>Main Admin Portal</span>
+            <ExternalLink className="w-3 h-3 ml-0.5" />
+          </a>
         </div>
 
         <button
           onClick={() => setCurrentUser(null)}
-          className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800"
+          className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 flex items-center space-x-1 text-xs font-bold"
           title="Log Out"
         >
-          <LogOut className="w-5 h-5" />
+          <LogOut className="w-4 h-4" />
+          <span>Exit</span>
         </button>
       </header>
 
       {/* Main Staff Container */}
-      <main className="p-6 max-w-7xl mx-auto">
+      <main className="p-6 max-w-7xl mx-auto space-y-6">
         {/* ========================================================================= */}
-        {/* ROLE 1: KITCHEN PWA (3 SCREENS / VIEWS) */}
+        {/* ROLE 1: KITCHEN CHEF KDS DISPLAY */}
         {/* ========================================================================= */}
         {activeRole === 'Kitchen' && (
           <div className="space-y-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
               <div>
-                <h2 className="text-xl font-bold text-slate-900">Kitchen Display Order Queue</h2>
-                <p className="text-xs text-slate-500">Big-button 1-tap progression for chefs</p>
+                <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
+                  <ChefHat className="w-6 h-6 text-amber-500" />
+                  <span>Kitchen Display System (KDS Terminal)</span>
+                </h2>
+                <p className="text-xs text-slate-500">1-tap order status progression for chef workflow</p>
               </div>
-              <div className="text-xs font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 rounded-lg">
-                Live Kitchen Sync • {orders.length} Total Orders
+              <div className="text-xs font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-xl flex items-center space-x-2">
+                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-700" />
+                <span>Live Kitchen Sync • {orders.length} Total Orders</span>
               </div>
             </div>
 
@@ -270,9 +294,9 @@ export default function StaffPWA() {
               <div className="bg-slate-200/70 p-4 rounded-2xl border border-slate-300">
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-bold text-sm text-red-700 flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 mr-2" /> New Orders
+                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 mr-2 animate-ping" /> New Orders
                   </h3>
-                  <span className="text-xs font-bold bg-red-100 text-red-800 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full">
                     {orders.filter(o => o.status === 'new').length}
                   </span>
                 </div>
@@ -287,25 +311,34 @@ export default function StaffPWA() {
                           </span>
                           <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
                         </div>
-                        <span className="text-xs text-slate-400 font-mono">{order.time}</span>
+                        <span className="text-xs text-slate-500 font-mono flex items-center space-x-1">
+                          <Clock className="w-3 h-3 text-slate-400" />
+                          <span>{order.created_at ? new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</span>
+                        </span>
                       </div>
 
                       <div className="border-t border-slate-100 pt-2 space-y-1">
                         {(order.items || []).map((item: any, idx: number) => (
                           <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
                             <span>{item.quantity}x {item.name}</span>
+                            <span className="text-xs text-slate-500 font-mono">₹{item.price}</span>
                           </div>
                         ))}
                       </div>
 
                       <button
                         onClick={() => handleUpdateOrderStatus(order.id, 'preparing')}
-                        className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition"
+                        className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition flex items-center justify-center space-x-2"
                       >
-                        Start Preparing ➔
+                        <span>Start Preparing ➔</span>
                       </button>
                     </div>
                   ))}
+                  {orders.filter(o => o.status === 'new').length === 0 && (
+                    <div className="p-6 text-center text-xs text-slate-500 bg-white/60 rounded-xl border border-dashed border-slate-300">
+                      No new incoming orders right now.
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -315,7 +348,7 @@ export default function StaffPWA() {
                   <h3 className="font-bold text-sm text-amber-700 flex items-center">
                     <span className="w-2.5 h-2.5 rounded-full bg-amber-500 mr-2" /> Cooking in Progress
                   </h3>
-                  <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">
                     {orders.filter(o => o.status === 'preparing').length}
                   </span>
                 </div>
@@ -330,25 +363,34 @@ export default function StaffPWA() {
                           </span>
                           <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
                         </div>
-                        <span className="text-xs text-slate-400 font-mono">{order.time}</span>
+                        <span className="text-xs text-slate-500 font-mono flex items-center space-x-1">
+                          <Clock className="w-3 h-3 text-amber-500 animate-spin" />
+                          <span>Cooking</span>
+                        </span>
                       </div>
 
                       <div className="border-t border-slate-100 pt-2 space-y-1">
                         {(order.items || []).map((item: any, idx: number) => (
                           <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
                             <span>{item.quantity}x {item.name}</span>
+                            <span className="text-xs text-slate-500 font-mono">₹{item.price}</span>
                           </div>
                         ))}
                       </div>
 
                       <button
                         onClick={() => handleUpdateOrderStatus(order.id, 'ready')}
-                        className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm uppercase rounded-xl shadow-md transition"
+                        className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm uppercase rounded-xl shadow-md transition flex items-center justify-center space-x-2"
                       >
-                        Mark Ready to Serve ➔
+                        <span>Mark Ready to Serve ➔</span>
                       </button>
                     </div>
                   ))}
+                  {orders.filter(o => o.status === 'preparing').length === 0 && (
+                    <div className="p-6 text-center text-xs text-slate-500 bg-white/60 rounded-xl border border-dashed border-slate-300">
+                      No items currently cooking.
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -358,7 +400,7 @@ export default function StaffPWA() {
                   <h3 className="font-bold text-sm text-emerald-700 flex items-center">
                     <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2" /> Ready for Waiter Pickup
                   </h3>
-                  <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded-full">
+                  <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
                     {orders.filter(o => o.status === 'ready').length}
                   </span>
                 </div>
@@ -378,14 +420,27 @@ export default function StaffPWA() {
                         </span>
                       </div>
 
+                      <div className="border-t border-slate-100 pt-2 space-y-1">
+                        {(order.items || []).map((item: any, idx: number) => (
+                          <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
+                            <span>{item.quantity}x {item.name}</span>
+                          </div>
+                        ))}
+                      </div>
+
                       <button
                         onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
-                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition"
+                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition flex items-center justify-center space-x-2"
                       >
-                        Complete Order ✓
+                        <span>Complete Order ✓</span>
                       </button>
                     </div>
                   ))}
+                  {orders.filter(o => o.status === 'ready').length === 0 && (
+                    <div className="p-6 text-center text-xs text-slate-500 bg-white/60 rounded-xl border border-dashed border-slate-300">
+                      No orders awaiting waiter pickup.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -393,7 +448,7 @@ export default function StaffPWA() {
         )}
 
         {/* ========================================================================= */}
-        {/* ROLE 2: WAITER PWA (6 SCREENS / VIEWS) */}
+        {/* ROLE 2: WAITER PWA */}
         {/* ========================================================================= */}
         {activeRole === 'Waiter' && (
           <div className="space-y-6">
@@ -412,74 +467,99 @@ export default function StaffPWA() {
                   </div>
                 </div>
 
-                <div className="flex space-x-2">
+                <div className="flex flex-wrap gap-2">
                   {callRequests.map(c => (
                     <button
                       key={c.id}
-                      onClick={() => resolveCall(c.id)}
-                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition"
+                      onClick={() => handleResolveCall(c.id)}
+                      className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs rounded-xl shadow transition flex items-center space-x-1"
                     >
-                      Clear Table {c.table_number} ({c.type}) ✓
+                      <span>Clear Table {c.table_number} ({c.type})</span>
+                      <CheckCircle className="w-3.5 h-3.5 text-amber-400" />
                     </button>
                   ))}
                 </div>
               </div>
             )}
 
+            {/* Ready Food Orders Notification for Waiters */}
+            {orders.filter(o => o.status === 'ready').length > 0 && (
+              <div className="bg-emerald-600 text-white p-4 rounded-2xl shadow-lg border border-emerald-700 flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <Utensils className="w-6 h-6 animate-pulse text-amber-300" />
+                  <div>
+                    <h3 className="font-extrabold text-sm uppercase tracking-wider">
+                      {orders.filter(o => o.status === 'ready').length} Order(s) Ready for Table Delivery!
+                    </h3>
+                    <p className="text-xs text-emerald-100">
+                      Deliver to: {orders.filter(o => o.status === 'ready').map(o => `Table ${o.table_number}`).join(', ')}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
             {/* Floor Map Table Status Grid */}
             <div className="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-              <div className="flex items-center justify-between mb-6">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-3">
                 <div>
-                  <h3 className="text-lg font-bold text-slate-900">Waiter Floor Map & Table Control</h3>
-                  <p className="text-xs text-slate-500">Tap table status button to update live floor map</p>
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center space-x-2">
+                    <UserCheck className="w-5 h-5 text-amber-500" />
+                    <span>Waiter Floor Map & Live Table Control</span>
+                  </h3>
+                  <p className="text-xs text-slate-500">Tap status buttons to update floor occupancy instantly</p>
                 </div>
 
                 {/* Status Legend */}
-                <div className="flex items-center space-x-3 text-xs font-bold">
+                <div className="flex flex-wrap items-center gap-3 text-xs font-bold">
                   <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-emerald-500 mr-1" /> Free</span>
-                  <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-amber-500 mr-1" /> Eating</span>
+                  <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-amber-500 mr-1" /> Seated/Eating</span>
                   <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-red-500 mr-1" /> Cleaning Needed</span>
                   <span className="flex items-center"><span className="w-3 h-3 rounded-full bg-blue-500 mr-1" /> Reserved</span>
                 </div>
               </div>
 
               {/* Table Cards Grid */}
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
                 {tables.map(t => {
-                  let statusBg = 'bg-emerald-50 border-emerald-300 text-emerald-800';
-                  if (t.status === 'eating') statusBg = 'bg-amber-50 border-amber-300 text-amber-800';
-                  if (t.status === 'needs_cleaning') statusBg = 'bg-red-50 border-red-300 text-red-800';
-                  if (t.status === 'reserved') statusBg = 'bg-blue-50 border-blue-300 text-blue-800';
+                  let statusBg = 'bg-emerald-50 border-emerald-300 text-emerald-900';
+                  if (t.status === 'eating') statusBg = 'bg-amber-50 border-amber-300 text-amber-900';
+                  if (t.status === 'needs_cleaning') statusBg = 'bg-red-50 border-red-300 text-red-900';
+                  if (t.status === 'reserved') statusBg = 'bg-blue-50 border-blue-300 text-blue-900';
 
                   return (
-                    <div key={t.id} className={`p-4 rounded-xl border-2 shadow-sm space-y-3 ${statusBg}`}>
+                    <div key={t.id} className={`p-4 rounded-2xl border-2 shadow-sm space-y-3 transition hover:shadow-md ${statusBg}`}>
                       <div className="flex justify-between items-start">
                         <div>
-                          <h4 className="text-xl font-black">{t.table_number}</h4>
-                          <span className="text-[10px] uppercase font-bold opacity-80 block">{t.cluster}</span>
+                          <h4 className="text-2xl font-black">{t.table_number}</h4>
+                          <span className="text-[10px] uppercase font-bold opacity-80 block truncate max-w-[100px]">{t.cluster}</span>
                         </div>
-                        <span className="text-xs font-bold px-2 py-0.5 rounded uppercase bg-white/70">
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded uppercase bg-white/80 shadow-xs border border-black/10">
                           {t.status.replace('_', ' ')}
                         </span>
+                      </div>
+
+                      <div className="text-[11px] font-semibold opacity-75">
+                        Capacity: {t.capacity} Guests
                       </div>
 
                       {/* Waiter One-Tap Action Buttons */}
                       <div className="grid grid-cols-2 gap-1.5 pt-2 border-t border-slate-200/60 text-[10px] font-bold">
                         <button
-                          onClick={() => updateTableStatus(t.id, 'eating')}
-                          className="py-1.5 bg-amber-500 text-slate-950 rounded hover:bg-amber-400"
+                          onClick={() => handleUpdateTableStatus(t.table_number, 'eating')}
+                          className="py-1.5 bg-amber-500 text-slate-950 rounded-lg hover:bg-amber-400 transition"
                         >
                           Check In
                         </button>
                         <button
-                          onClick={() => updateTableStatus(t.id, 'needs_cleaning')}
-                          className="py-1.5 bg-red-500 text-white rounded hover:bg-red-600"
+                          onClick={() => handleUpdateTableStatus(t.table_number, 'needs_cleaning')}
+                          className="py-1.5 bg-red-500 text-white rounded-lg hover:bg-red-600 transition"
                         >
                           Need Clean
                         </button>
                         <button
-                          onClick={() => updateTableStatus(t.id, 'free')}
-                          className="py-1.5 bg-emerald-600 text-white rounded hover:bg-emerald-700 col-span-2"
+                          onClick={() => handleUpdateTableStatus(t.table_number, 'free')}
+                          className="py-1.5 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 col-span-2 transition"
                         >
                           Mark Free / Cleaned ✓
                         </button>
@@ -493,37 +573,40 @@ export default function StaffPWA() {
         )}
 
         {/* ========================================================================= */}
-        {/* ROLE 3: MANAGER / RECEPTION PWA (8 SCREENS / VIEWS) */}
+        {/* ROLE 3: MANAGER / MAIN ADMIN PWA */}
         {/* ========================================================================= */}
         {activeRole === 'Manager' && (
           <div className="space-y-6">
             {/* Manager Revenue & Occupancy Snapshot */}
-            <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-              <div className="bg-white p-5 rounded-2xl shadow border border-slate-200">
-                <span className="text-xs font-bold text-slate-400 uppercase">Today's Revenue</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">₹34,850</h3>
-                <span className="text-[10px] text-emerald-600 font-bold">+18% vs yesterday</span>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-2xl shadow-md border border-slate-200">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Live Total Revenue</span>
+                <h3 className="text-3xl font-black text-slate-900 mt-1">₹{totalRevenue.toLocaleString()}</h3>
+                <span className="text-xs text-emerald-600 font-bold mt-1 block">Real-time calculate from orders</span>
               </div>
-              <div className="bg-white p-5 rounded-2xl shadow border border-slate-200">
-                <span className="text-xs font-bold text-slate-400 uppercase">Current Floor Occupancy</span>
-                <h3 className="text-2xl font-black text-amber-600 mt-1">68%</h3>
-                <span className="text-[10px] text-slate-500">11 of 16 tables seated</span>
+              <div className="bg-white p-5 rounded-2xl shadow-md border border-slate-200">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Current Floor Occupancy</span>
+                <h3 className="text-3xl font-black text-amber-600 mt-1">{occupancyPercent}%</h3>
+                <span className="text-xs text-slate-500 mt-1 block">{totalSeated} of {tables.length} tables seated</span>
               </div>
-              <div className="bg-white p-5 rounded-2xl shadow border border-slate-200">
-                <span className="text-xs font-bold text-slate-400 uppercase">Today's Reservations</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">24 Bookings</h3>
-                <span className="text-[10px] text-blue-600 font-bold">4 VIP Canopies Confirmed</span>
+              <div className="bg-white p-5 rounded-2xl shadow-md border border-slate-200">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Table Reservations</span>
+                <h3 className="text-3xl font-black text-slate-900 mt-1">{reservations.length} Bookings</h3>
+                <span className="text-xs text-blue-600 font-bold mt-1 block">Live customer table reservations</span>
               </div>
-              <div className="bg-white p-5 rounded-2xl shadow border border-slate-200">
-                <span className="text-xs font-bold text-slate-400 uppercase">Walk-ins Today</span>
-                <h3 className="text-2xl font-black text-slate-900 mt-1">14 Parties</h3>
-                <span className="text-[10px] text-slate-500">Avg wait time 8 mins</span>
+              <div className="bg-white p-5 rounded-2xl shadow-md border border-slate-200">
+                <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">Active Food Orders</span>
+                <h3 className="text-3xl font-black text-slate-900 mt-1">{orders.length} Orders</h3>
+                <span className="text-xs text-amber-600 font-bold mt-1 block">Kitchen & QR live orders</span>
               </div>
             </div>
 
             {/* Reception Walk-in Quick Seating Form */}
             <div className="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
-              <h3 className="text-base font-bold text-slate-900 mb-4">Walk-in Guest Quick Seating</h3>
+              <h3 className="text-base font-bold text-slate-900 mb-4 flex items-center space-x-2">
+                <PlusCircle className="w-5 h-5 text-amber-500" />
+                <span>Walk-in Guest Quick Table Seating</span>
+              </h3>
               <form onSubmit={handleWalkin} className="grid grid-cols-1 sm:grid-cols-4 gap-4 items-end">
                 <div>
                   <label className="block text-xs font-bold text-slate-700 mb-1">Customer Name</label>
@@ -532,7 +615,7 @@ export default function StaffPWA() {
                     placeholder="Guest Name"
                     value={walkinName}
                     onChange={e => setWalkinName(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-black placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     required
                   />
                 </div>
@@ -543,7 +626,7 @@ export default function StaffPWA() {
                     placeholder="9876543210"
                     value={walkinPhone}
                     onChange={e => setWalkinPhone(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-black placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
                     required
                   />
                 </div>
@@ -552,20 +635,74 @@ export default function StaffPWA() {
                   <select
                     value={selectedWalkinTable}
                     onChange={e => setSelectedWalkinTable(e.target.value)}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold"
+                    className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-semibold text-black focus:outline-none focus:ring-2 focus:ring-amber-500"
                   >
                     {tables.filter(t => t.status === 'free').map(t => (
                       <option key={t.id} value={t.table_number}>{t.table_number} ({t.cluster})</option>
                     ))}
+                    {tables.filter(t => t.status === 'free').length === 0 && (
+                      <option value="T1">All tables currently occupied</option>
+                    )}
                   </select>
                 </div>
                 <button
                   type="submit"
-                  className="py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow"
+                  className="py-2.5 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl shadow transition flex items-center justify-center space-x-1"
                 >
-                  Seat Guest & Mark Occupied
+                  <span>Seat Guest & Mark Occupied</span>
                 </button>
               </form>
+            </div>
+
+            {/* Live Table Bookings Overview */}
+            <div className="bg-white p-6 rounded-2xl shadow-md border border-slate-200">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-bold text-slate-900 flex items-center space-x-2">
+                  <Calendar className="w-5 h-5 text-amber-500" />
+                  <span>Recent Table & Party Reservations ({reservations.length})</span>
+                </h3>
+              </div>
+
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-100 text-slate-700 font-bold uppercase tracking-wider border-b border-slate-200">
+                    <tr>
+                      <th className="p-3">Customer</th>
+                      <th className="p-3">Booking Type</th>
+                      <th className="p-3">Table / Area</th>
+                      <th className="p-3">Date & Time</th>
+                      <th className="p-3">Guests</th>
+                      <th className="p-3">Status</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {reservations.map(res => (
+                      <tr key={res.id} className="hover:bg-slate-50">
+                        <td className="p-3 font-bold text-slate-900">
+                          <div>{res.name}</div>
+                          <div className="text-[10px] text-slate-400 font-mono">{res.phone}</div>
+                        </td>
+                        <td className="p-3 font-semibold text-slate-700 uppercase">{res.booking_type.replace('_', ' ')}</td>
+                        <td className="p-3 font-bold text-amber-800">{res.table_number || res.cluster_name || 'Assigned at Venue'}</td>
+                        <td className="p-3 font-mono">{res.date} at {res.time}</td>
+                        <td className="p-3 font-bold">{res.guests} Guests</td>
+                        <td className="p-3">
+                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${
+                            res.status === 'confirmed' ? 'bg-emerald-100 text-emerald-800' : 'bg-amber-100 text-amber-800'
+                          }`}>
+                            {res.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))}
+                    {reservations.length === 0 && (
+                      <tr>
+                        <td colSpan={6} className="p-6 text-center text-slate-400">No active table reservations.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
         )}

@@ -43,3 +43,37 @@ export function validateReservation(res: Partial<Reservation>): string | null {
   if (!res.guests || res.guests < 1) return 'Please enter guest count (at least 1).';
   return null;
 }
+
+export const INITIAL_RESERVATIONS: Reservation[] = [
+  {
+    id: 'res-101',
+    name: 'Rahul Verma',
+    phone: '9876543210',
+    email: 'rahul.v@example.com',
+    booking_type: 'table_booking',
+    table_number: 'T2',
+    cluster_name: 'Rooftop Upper Deck',
+    date: new Date().toISOString().split('T')[0],
+    time: '20:00',
+    guests: 4,
+    special_requests: 'Riverside deck table with candle decor',
+    status: 'confirmed',
+    created_at: new Date(Date.now() - 3600000).toISOString()
+  },
+  {
+    id: 'res-102',
+    name: 'Priya Sharma',
+    phone: '9811223344',
+    email: 'priya.s@example.com',
+    booking_type: 'birthday_party',
+    table_number: 'V1',
+    cluster_name: 'VIP Canopy',
+    date: new Date().toISOString().split('T')[0],
+    time: '21:30',
+    guests: 8,
+    special_requests: 'Birthday cake arrangements & ambient lights',
+    status: 'pending',
+    created_at: new Date(Date.now() - 7200000).toISOString()
+  }
+];
+

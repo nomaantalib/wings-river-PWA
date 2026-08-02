@@ -8,27 +8,27 @@ export default function LocationSection() {
   const directMapsLink = "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA";
 
   return (
-    <section id="location" className="py-20 bg-[#FAF7F2] text-[#1F1810] relative border-t border-[#E5B82C]/30">
+    <section id="location" className="py-12 sm:py-16 bg-[#FAF7F2] text-[#1F1810] relative border-t border-[#E5B82C]/30">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
-        <div className="text-center max-w-3xl mx-auto mb-12">
-          <span className="inline-block px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#E5B82C]/50 text-[#F5D061] font-semibold text-xs tracking-widest uppercase mb-3">
+        <div className="text-center max-w-3xl mx-auto mb-10">
+          <span className="inline-block px-4 py-1 rounded-full bg-[#1F1810] border border-[#E5B82C]/50 text-[#F5D061] font-semibold text-xs tracking-widest uppercase mb-2 shadow-sm">
             Find Our Waterfront Venue
           </span>
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1F1810] tracking-tight mb-4">
-            Location & Directions
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#1F1810] tracking-tight mb-3">
+            Location &amp; Directions
           </h2>
-          <p className="font-sans text-[#7A5C3A] text-base">
+          <p className="font-sans text-[#7A5C3A] text-base font-medium">
             Situated right inside Laxman Mela Ground at Laxman Jhula Park along Gomti Riverfront.
           </p>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
           {/* Address Card */}
-          <div className="lg:col-span-5 bg-[#1F1810] border border-[#E5B82C]/30 p-8 rounded-3xl flex flex-col justify-between shadow-2xl">
+          <div className="lg:col-span-5 bg-[#1F1810] border border-[#E5B82C]/30 p-6 sm:p-8 rounded-3xl flex flex-col justify-between shadow-2xl">
             <div>
               <div className="flex items-center space-x-3 mb-6">
-                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center text-[#1F1810] shadow-lg">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center text-[#1F1810] shadow-lg shrink-0">
                   <MapPin className="w-6 h-6" />
                 </div>
                 <div>
@@ -79,7 +79,7 @@ export default function LocationSection() {
                 href={directMapsLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-4 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] text-[#1F1810] font-extrabold text-sm rounded-2xl shadow-xl flex items-center justify-center space-x-2 hover:scale-[1.02] transition-transform"
+                className="w-full py-3.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] text-[#1F1810] font-extrabold text-sm rounded-2xl shadow-xl flex items-center justify-center space-x-2 hover:scale-[1.02] active:scale-95 transition-all"
               >
                 <Navigation className="w-4 h-4" />
                 <span>Get Driving Directions on Google Maps</span>
@@ -87,12 +87,12 @@ export default function LocationSection() {
             </div>
           </div>
 
-          {/* Embedded Map (Medium/Large Screens Only) */}
-          <div className="hidden md:block lg:col-span-7 rounded-3xl overflow-hidden border border-[#E5B82C]/30 shadow-2xl min-h-[380px] bg-[#F0EAE0] relative">
+          {/* Embedded Map (Mobile & Desktop) */}
+          <div className="lg:col-span-7 rounded-3xl overflow-hidden border border-[#E5B82C]/30 shadow-2xl min-h-[300px] sm:min-h-[380px] bg-[#F0EAE0] relative">
             <iframe
               title="Wings River Cafe Google Maps"
               src={mapEmbedUrl}
-              className="w-full h-full min-h-[400px] border-0"
+              className="w-full h-full min-h-[300px] sm:min-h-[380px] border-0"
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
