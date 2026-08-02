@@ -102,7 +102,7 @@ export default function LocationSection() {
         </div>
 
         {/* ── Main grid: Info + Contact sidebar ───────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
 
           {/* Info card */}
           <div className="bg-[#1F1810] rounded-2xl p-5 border border-[#E5B82C]/25 shadow-xl flex flex-col gap-5">
@@ -160,23 +160,8 @@ export default function LocationSection() {
               </a>
             </div>
           </div>
-
-          {/* Landmark photo/directions card */}
-          <div className="rounded-2xl overflow-hidden border border-[#E5B82C]/25 shadow-xl relative min-h-[240px] bg-gradient-to-br from-[#1F1810] to-[#2A1D0E] flex flex-col items-center justify-center gap-4 p-6 text-center">
-            <div className="w-14 h-14 rounded-2xl bg-[#F5D061]/20 border border-[#F5D061]/40 flex items-center justify-center">
-              <MapPin className="w-7 h-7 text-[#F5D061]" />
-            </div>
-            <div>
-              <p className="font-serif font-bold text-[#F8E7A1] text-base mb-1">Laxman Mela Ground</p>
-              <p className="text-xs text-[#D4C4A0]/80">Inside the Laxman Jhula Park complex, right beside Lucknow Water Sports Dock on the Gomti Riverfront.</p>
-            </div>
-            <p className="text-[10px] text-[#D4C4A0]/60 font-semibold uppercase tracking-widest">Landmark: Water Sports Dock</p>
-            <a href={MAPS_LINK} target="_blank" rel="noopener noreferrer"
-              className="mt-2 flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#1F1810] font-extrabold text-xs rounded-xl shadow hover:opacity-90 transition">
-              <Navigation className="w-3.5 h-3.5" />Navigate Now
-            </a>
-          </div>
         </div>
+
 
         {/* ── Collapsible Inquiry Form ─────────────────────── */}
         {showForm && (

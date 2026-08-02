@@ -44,6 +44,7 @@ export default function AboutSection() {
               <img
                 src={settings.aboutPrimaryImage || '/images/Screenshot_20260720-180544_Maps.png'}
                 alt="Wings River Cafe Waterfront & Water Sports"
+                loading="lazy"
                 className="w-full h-[260px] sm:h-[320px] object-cover transition-transform duration-700 group-hover:scale-105"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1F1810]/90 via-transparent to-transparent" />
@@ -63,6 +64,7 @@ export default function AboutSection() {
               <img
                 src={settings.aboutSecondaryImage || '/images/Screenshot_20260720-180644_Maps.png'}
                 alt="Evening Party Canopy at Wings River Cafe"
+                loading="lazy"
                 className="w-full h-36 object-cover group-hover/sub:scale-110 transition-transform duration-700"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-[#1F1810]/80 via-transparent to-transparent" />

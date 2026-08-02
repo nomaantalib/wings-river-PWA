@@ -114,6 +114,7 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
                 <img
                   src="/images/watersports_menu.jpg"
                   alt="Lucknow Water Sports — Official Rate Poster"
+                  loading="lazy"
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
                 <div className="absolute inset-0 bg-dark-950/30 group-hover:bg-dark-950/10 transition-colors flex items-center justify-center">
@@ -285,6 +286,7 @@ export default function WaterSportsTickets({ onOpenBooking }: WaterSportsTickets
             <img
               src="/images/watersports_menu.jpg"
               alt="Lucknow Water Sports Official Rate Poster"
+              loading="lazy"
               className="max-h-[80vh] max-w-full object-contain rounded-2xl shadow-2xl border border-yellow-400/20 select-none"
               style={{
                 transform: `scale(${zoomLevel})`,

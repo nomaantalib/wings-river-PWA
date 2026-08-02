@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { getStoredGalleryItems, GalleryItem, INITIAL_GALLERY } from '@/lib/db';
+import { getStoredGalleryItems, GalleryItem } from '@/lib/db';
 import { getCloudinaryOptimizedUrl } from '@/controllers/StorageController';
 import { X, ZoomIn, Camera, Play, Pause, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 
 export default function GallerySection() {
-  const [items, setItems] = useState<GalleryItem[]>(INITIAL_GALLERY);
+  const [items, setItems] = useState<GalleryItem[]>([]);
   const [activePhoto, setActivePhoto] = useState<GalleryItem | null>(null);
 
   // Carousel States
@@ -20,7 +20,7 @@ export default function GallerySection() {
     return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
-  const displayItems = items && items.length > 0 ? items : INITIAL_GALLERY;
+  const displayItems = items;
 
   // Auto-play interval for Auto Slideshow (every 4s)
   useEffect(() => {
@@ -100,6 +100,8 @@ export default function GallerySection() {
                         <img
                           src={optimizedUrl}
                           alt={item.title}
+                          loading={isActive ? 'eager' : 'lazy'}
+                          fetchPriority={isActive ? 'high' : 'low'}
                           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         />
                       </div>

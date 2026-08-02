@@ -2040,50 +2040,44 @@ app.post('/send-otp', async (c) => {
       return c.json({ success: false, error: 'Valid 10-digit mobile number is required' }, 400);
     }
 
-    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || MSG91_DEFAULT_AUTHKEY;
-    const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || MSG91_DEFAULT_TEMPLATE_ID;
+    // Generate 6-digit OTP
+    const otp = String(Math.floor(100000 + Math.random() * 900000));
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 min
 
-    const fullMobile = `91${cleanPhone}`;
-
-    // Call Official MSG91 v5 OTP API
-    const msg91Res = await fetch(`https://control.msg91.com/api/v5/otp?template_id=${templateId}&mobile=${fullMobile}&authkey=${authKey}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'authkey': authKey
-      },
-      body: JSON.stringify({
-        otp_length: 6,
-        otp_expiry: 10
-      })
-    }).catch(err => {
-      console.warn('[MSG91 Send Network Exception]:', err);
-      return null;
-    });
-
-    let msgData = null;
-    if (msg91Res) {
-      msgData = await msg91Res.json().catch(() => null);
-    }
-
-    // Save active OTP request state in D1 settings
+    // Store OTP in D1
     const db = getDB(c);
     if (db) {
       await ensureTables(db);
-      const now = Date.now();
       await db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)")
-        .bind(`otp_${cleanPhone}`, JSON.stringify({ sent_at: now, mobile: fullMobile, msg91_type: msgData?.type || 'sent' }))
+        .bind(`otp_${cleanPhone}`, JSON.stringify({ otp, expires_at: expiresAt, mobile: `91${cleanPhone}` }))
         .run().catch(() => {});
     }
 
-    if (msgData && msgData.type === 'error') {
-      return c.json({ success: false, error: msgData.message || 'MSG91 SMS Provider Error' }, 400);
+    const fullMobile = `91${cleanPhone}`;
+    const authKey = c.env?.MSG91_AUTH_KEY;
+    const templateId = c.env?.MSG91_TEMPLATE_ID;
+    let smsSent = false;
+
+    // Try MSG91 only if both keys are configured
+    if (authKey && templateId) {
+      try {
+        const msg91Res = await fetch(
+          `https://control.msg91.com/api/v5/otp?template_id=${templateId}&mobile=${fullMobile}&authkey=${authKey}&otp=${otp}`,
+          { method: 'POST', headers: { 'Content-Type': 'application/json', 'authkey': authKey } }
+        );
+        const msgData = await msg91Res.json().catch(() => ({}));
+        if (msgData?.type !== 'error') smsSent = true;
+      } catch (e) {
+        console.warn('[OTP] MSG91 send failed:', e);
+      }
     }
 
     return c.json({
       success: true,
-      message: `Real MSG91 SMS OTP sent to +91 ${cleanPhone.slice(0, 2)}****${cleanPhone.slice(-4)}`,
-      msg91_status: msgData?.type || 'success'
+      message: `OTP sent to +91 ${cleanPhone.slice(0, 2)}****${cleanPhone.slice(-4)}`,
+      sms_sent: smsSent,
+      // In dev/no SMS: surface OTP only on non-prod for testing
+      ...((!smsSent && c.env?.ENVIRONMENT !== 'production') ? { dev_otp: otp } : {})
     });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);

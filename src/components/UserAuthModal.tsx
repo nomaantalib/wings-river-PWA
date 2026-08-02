@@ -167,7 +167,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
         setResendTimer(30);
         setTimeout(() => otpRefs.current[0]?.focus(), 150);
       } else {
-        setErrorMsg(data.error || 'Failed to send MSG91 SMS OTP. Please check your mobile number.');
+        setErrorMsg(data.error || 'Failed to send OTP. Please check your mobile number.');
       }
     } catch (err: any) {
       setIsSendingOtp(false);
@@ -444,15 +444,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 )}
               </button>
 
-              <button
-                type="button"
-                onClick={handleMsg91Otp}
-                disabled={isSendingOtp || phoneInput.length !== 10}
-                className="w-full py-3.5 rounded-2xl bg-[#1A1D24] border border-[#F5D061]/50 text-[#F5D061] hover:bg-[#231710] font-bold text-xs uppercase tracking-wider transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed"
-              >
-                <ShieldCheck className="w-4 h-4 text-[#F5D061]" />
-                <span>Instant MSG91 OTP Verification</span>
-              </button>
             </form>
           )}
 

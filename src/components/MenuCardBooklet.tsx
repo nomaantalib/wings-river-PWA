@@ -163,6 +163,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     key={`out-${prevPageIndex}`}
                     src={menuPages[prevPageIndex].image}
                     alt={menuPages[prevPageIndex].title}
+                    loading="lazy"
                     style={{
                       position: 'absolute', inset: 0, width: '100%', height: '100%',
                       objectFit: 'contain',
@@ -225,7 +226,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                         : 'border-white/20 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={page.image} alt={page.title} className="w-full h-full object-cover" />
+                    <img src={page.image} alt={page.title} loading="lazy" className="w-full h-full object-cover" />
                     <span className="absolute bottom-0 right-0 bg-dark-950/80 text-[9px] font-bold px-1 text-gold-300">
                       {idx + 1}
                     </span>
