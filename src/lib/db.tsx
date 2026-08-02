@@ -67,9 +67,9 @@ export {
   // Hero Settings
   getStoredHeroSettings,
   saveHeroSettings,
-  DEFAULT_HERO_SETTINGS,
 
   // Menu Categories
+
   getStoredCategories,
   saveCategory,
   deleteCategory,
