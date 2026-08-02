@@ -800,6 +800,10 @@ export default function AdminPage() {
       title: galleryModal.title || '',
       category: galleryModal.category || 'Restaurant',
       image_url: galleryModal.image_url || '',
+      media_type: galleryModal.media_type || (galleryModal.video_url ? 'video' : 'image'),
+      video_url: galleryModal.video_url || '',
+      about: galleryModal.about || '',
+      cluster_id: galleryModal.cluster_id || '',
       featured: galleryModal.featured || false,
       display_order: Number(galleryModal.display_order) || 0
     };
@@ -3195,11 +3199,49 @@ export default function AdminPage() {
                   <option value="rooftop">Rooftop Upper Deck</option>
                 </select>
               </div>
-              <ImageUploader
-                label="Photo Image (URL or Upload File)"
-                value={galleryModal.image_url || ''}
-                onChange={(val) => setGalleryModal({ ...galleryModal, image_url: val })}
-              />
+              <div>
+                <label className={labelCls}>Media Type</label>
+                <select
+                  value={galleryModal.media_type || (galleryModal.video_url ? 'video' : 'image')}
+                  onChange={(e) => setGalleryModal({ ...galleryModal, media_type: e.target.value as any })}
+                  className={inputCls}
+                >
+                  <option value="image">Photo Image</option>
+                  <option value="video">Ambience Video Stream</option>
+                </select>
+              </div>
+
+              {galleryModal.media_type === 'video' ? (
+                <div>
+                  <label className={labelCls}>Video Stream URL / Upload MP4</label>
+                  <input
+                    type="text"
+                    value={galleryModal.video_url || ''}
+                    onChange={(e) => setGalleryModal({ ...galleryModal, video_url: e.target.value })}
+                    className={inputCls}
+                    placeholder="e.g. /wings background/gemini_generated_video_d2d858f7.mp4 or Cloudinary Video URL"
+                  />
+                  <p className="text-[10px] text-gray-400 mt-1">Upload or paste video link for area tour or promotional clip.</p>
+                </div>
+              ) : (
+                <ImageUploader
+                  label="Photo Image (URL or Upload File)"
+                  value={galleryModal.image_url || ''}
+                  onChange={(val) => setGalleryModal({ ...galleryModal, image_url: val })}
+                />
+              )}
+
+              <div>
+                <label className={labelCls}>Description / Caption</label>
+                <textarea
+                  rows={3}
+                  value={galleryModal.about || ''}
+                  onChange={(e) => setGalleryModal({ ...galleryModal, about: e.target.value })}
+                  className={inputCls}
+                  placeholder="Describe how the area looks, table layout, atmosphere..."
+                />
+              </div>
+
               <div>
                 <label className="flex items-center space-x-2 text-xs text-white">
                   <input type="checkbox" checked={galleryModal.featured || false} onChange={(e) => setGalleryModal({ ...galleryModal, featured: e.target.checked })} />

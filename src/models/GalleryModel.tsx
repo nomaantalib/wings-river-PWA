@@ -4,6 +4,8 @@ export interface GalleryItem {
   title: string;
   category: string;
   image_url: string;
+  media_type?: 'image' | 'video';
+  video_url?: string;
   about?: string;
   description?: string;
   featured?: boolean;
@@ -34,6 +36,17 @@ export const INITIAL_GALLERY: GalleryItem[] = [
     featured: true
   },
   {
+    id: 'area-indoor-video-1',
+    title: 'Indoor AC Ambience Video Tour',
+    category: 'Indoor AC',
+    cluster_id: 'indoor',
+    image_url: '/images/Screenshot_20260720-180621_Maps.png',
+    media_type: 'video',
+    video_url: '/wings background/gemini_generated_video_d2d858f7.mp4',
+    about: 'Live video view of the luxury air-conditioned hall and window dining tables.',
+    featured: true
+  },
+  {
     id: 'area-garden-1',
     title: 'Open Garden Area — Riverside Breeze & Lawns',
     category: 'Garden Area',
@@ -58,6 +71,17 @@ export const INITIAL_GALLERY: GalleryItem[] = [
     cluster_id: 'rooftop',
     image_url: '/images/Screenshot_20260720-180737_Maps.png',
     about: 'Elevated rooftop upper deck with 360° starlit sky views and unobstructed Gomti riverfront sunset dining.',
+    featured: true
+  },
+  {
+    id: 'area-rooftop-video-1',
+    title: 'Riverside Sunset Atmosphere Video',
+    category: 'Rooftop Deck',
+    cluster_id: 'rooftop',
+    image_url: '/images/Screenshot_20260720-180737_Maps.png',
+    media_type: 'video',
+    video_url: '/wings background/gemini_generated_video_5c810dd6.mp4',
+    about: 'Dynamic sunset video stream from our rooftop upper deck overlooking Gomti Riverfront.',
     featured: true
   },
   {

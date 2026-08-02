@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Users, Clock, Calendar, CheckCircle2, ShieldAlert,
-  ArrowLeft, Home, Leaf, Sunset, ChevronRight, MapPin,
+  ArrowLeft, Home, Leaf, Sunset, ChevronRight, ChevronLeft, MapPin,
   Timer, Sparkles, Sun, Compass, Trees, Lock, IndianRupee, Receipt, LogOut,
   Camera, X, User, Phone, Mail, Loader2, Download, QrCode, ShieldCheck, Ticket
 } from 'lucide-react';
@@ -71,8 +71,8 @@ const AREAS: AreaCard[] = [
     tag: 'Most Popular',
     iconType: 'home',
     gradient: 'from-[#2A1E17] via-[#1E140F] to-[#120B08]',
-    borderStyle: 'border-[#F5D061]/35 hover:border-[#E8DCB8]',
-    tagStyle: 'bg-[#F5D061]/20 text-[#E8DCB8] border border-[#F5D061]/40',
+    borderStyle: 'border-[#6B8E5E] hover:border-[#8A9A78]',
+    tagStyle: 'bg-[#6B8E5E] text-[#FFF8E7] border border-[#4F6C44] font-extrabold shadow-md px-2.5 py-1 rounded-lg',
     tables: 'T14 – T17',
     tableIds: ['tbl-14','tbl-15','tbl-16','tbl-17'],
   },
@@ -83,8 +83,8 @@ const AREAS: AreaCard[] = [
     tag: 'Family Favourite',
     iconType: 'leaf',
     gradient: 'from-[#212C1B] via-[#182213] to-[#0E150B]',
-    borderStyle: 'border-[#98A886]/40 hover:border-[#B2C2A1]',
-    tagStyle: 'bg-[#98A886]/20 text-[#D8E2CD] border border-[#98A886]/40',
+    borderStyle: 'border-[#8A9A78] hover:border-[#98A886]',
+    tagStyle: 'bg-[#E5B82C] text-[#120B08] border border-[#F5D061] font-extrabold shadow-md px-2.5 py-1 rounded-lg',
     tables: 'T7 – T13',
     tableIds: ['tbl-7','tbl-8','tbl-9','tbl-10','tbl-11','tbl-12','tbl-13'],
   },
@@ -95,8 +95,8 @@ const AREAS: AreaCard[] = [
     tag: 'Premium View',
     iconType: 'sunset',
     gradient: 'from-[#332216] via-[#24160C] to-[#120A05]',
-    borderStyle: 'border-[#D4C4A0]/40 hover:border-[#F5EBE0]',
-    tagStyle: 'bg-[#D4C4A0]/20 text-[#F5EBE0] border border-[#D4C4A0]/40',
+    borderStyle: 'border-[#4A7DA0] hover:border-[#7BB8D4]',
+    tagStyle: 'bg-[#1A3550] text-[#7BB8D4] border border-[#4A7DA0] font-extrabold shadow-md px-2.5 py-1 rounded-lg',
     tables: 'T1 – T6',
     tableIds: ['tbl-1','tbl-2','tbl-3','tbl-4','tbl-5','tbl-6'],
   },
@@ -219,6 +219,10 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
   // Floor Plan Layout state from Admin Builder / D1
   const [floorPlanLayout, setFloorPlanLayout] = useState<FloorPlanLayout | null>(null);
 
+  // Area Gallery Modal Auto-sliding Carousel State
+  const [carouselIndex, setCarouselIndex] = useState<number>(0);
+  const [isCarouselPlaying, setIsCarouselPlaying] = useState<boolean>(true);
+
   useEffect(() => {
     const loadPlan = () => {
       getStoredFloorPlan().then((plan) => {
@@ -229,6 +233,21 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     window.addEventListener('wings_db_sync', loadPlan);
     return () => window.removeEventListener('wings_db_sync', loadPlan);
   }, []);
+
+  // Auto-slide effect for cluster gallery photos/videos
+  useEffect(() => {
+    if (!activeClusterGallery || !isCarouselPlaying) return;
+    const items = galleryItems.filter(
+      item => !item.cluster_id || item.cluster_id === activeClusterGallery || item.category?.toLowerCase().includes(activeClusterGallery)
+    );
+    if (items.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCarouselIndex(prev => (prev + 1) % items.length);
+    }, 3500);
+
+    return () => clearInterval(timer);
+  }, [activeClusterGallery, isCarouselPlaying, galleryItems]);
 
   // Sync staff/admin table readiness updates
   useEffect(() => {
@@ -888,53 +907,141 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         );
       })()}
 
-      {/* ── Area / Cluster Gallery Modal ────────────────────── */}
-      {activeClusterGallery && (
-        <div className="fixed inset-0 z-[110] bg-[#0A0C10]/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
-          <div className="relative w-full max-w-3xl bg-[#FAF7F2] rounded-3xl border-2 border-[#E5B82C] overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
-            {/* Header */}
-            <div className="bg-[#1F1810] border-b border-[#F5D061]/30 p-5 flex items-center justify-between text-[#F8E7A1]">
-              <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center text-[#1F1810]">
-                  <Camera className="w-5 h-5" />
+      {/* ── Area / Cluster Gallery Auto-Sliding Modal ────────────────────── */}
+      {activeClusterGallery && (() => {
+        const clusterItems = galleryItems.filter(
+          item => !item.cluster_id || item.cluster_id === activeClusterGallery || item.category?.toLowerCase().includes(activeClusterGallery)
+        );
+        const currentItem = clusterItems[carouselIndex % Math.max(1, clusterItems.length)];
+        const areaInfo = AREAS.find(a => a.id === activeClusterGallery);
+
+        return (
+          <div className="fixed inset-0 z-[110] bg-[#07090C]/90 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+            <div className="relative w-full max-w-4xl bg-[#1A1209] rounded-3xl border-2 border-[#F5D061] overflow-hidden shadow-2xl flex flex-col">
+              
+              {/* Modal Header */}
+              <div className="bg-[#120B08] border-b border-[#F5D061]/30 p-5 flex items-center justify-between text-[#F8E7A1]">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center text-[#120B08] shadow-md">
+                    <Camera className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-serif font-bold text-lg text-[#F8E7A1]">
+                      {areaInfo?.label} Gallery &amp; Video Tour
+                    </h3>
+                    <p className="text-xs text-[#D4C4A0]/80">Auto-sliding gallery • Gomti Riverfront Ambience</p>
+                  </div>
                 </div>
-                <div>
-                  <h3 className="font-serif font-bold text-lg text-[#F8E7A1]">
-                    {AREAS.find(a => a.id === activeClusterGallery)?.label} Photos
-                  </h3>
-                  <p className="text-xs text-[#D4C4A0]/80">Explore venue ambience &amp; riverfront seating</p>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsCarouselPlaying(!isCarouselPlaying)}
+                    className="px-3 py-1.5 rounded-xl bg-[#2A1D0E] border border-[#F5D061]/40 text-[#F5D061] text-xs font-bold flex items-center gap-1.5 hover:bg-[#3D291C]"
+                  >
+                    <Sparkles className="w-3.5 h-3.5" />
+                    <span>{isCarouselPlaying ? 'Pause Slides' : 'Auto Play'}</span>
+                  </button>
+                  <button
+                    onClick={() => { setActiveClusterGallery(null); setCarouselIndex(0); }}
+                    className="p-2 rounded-full bg-white/10 hover:bg-[#F5D061] hover:text-[#120B08] text-white transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
                 </div>
               </div>
-              <button
-                onClick={() => setActiveClusterGallery(null)}
-                className="p-2 rounded-full bg-white/10 hover:bg-[#F5D061] hover:text-[#120B08] text-white transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            {/* Gallery Grid */}
-            <div className="p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {galleryItems
-                .filter(item => !item.cluster_id || item.cluster_id === activeClusterGallery || item.category?.toLowerCase().includes(activeClusterGallery))
-                .slice(0, 8)
-                .map((photo, i) => (
-                  <div key={photo.id || i} className="group relative rounded-2xl overflow-hidden border border-[#E5B82C]/40 shadow-md bg-white">
-                    <img
-                      src={photo.image_url}
-                      alt={photo.title}
-                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
-                    <div className="p-3 bg-[#1F1810] text-white">
-                      <h4 className="text-xs font-bold text-[#F8E7A1]">{photo.title}</h4>
-                      {photo.about && <p className="text-[10px] text-[#D4C4A0]/80 mt-0.5 line-clamp-2">{photo.about}</p>}
+              {/* Main Carousel Display Stage */}
+              <div className="relative w-full h-[400px] sm:h-[460px] bg-[#0B0C0E] overflow-hidden flex items-center justify-center">
+                {currentItem && (
+                  <div className="relative w-full h-full transition-opacity duration-700 ease-in-out">
+                    {currentItem.media_type === 'video' || currentItem.video_url || currentItem.image_url?.endsWith('.mp4') ? (
+                      <div className="relative w-full h-full">
+                        <video
+                          src={currentItem.video_url || currentItem.image_url}
+                          autoPlay
+                          loop
+                          muted
+                          playsInline
+                          controls
+                          className="w-full h-full object-cover"
+                        />
+                        <div className="absolute top-4 left-4 bg-[#120B08]/90 border border-[#F5D061] text-[#F5D061] px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1.5 shadow-lg">
+                          <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" /> Live Ambience Video
+                        </div>
+                      </div>
+                    ) : (
+                      <img
+                        src={currentItem.image_url}
+                        alt={currentItem.title}
+                        className="w-full h-full object-cover"
+                      />
+                    )}
+
+                    {/* Content Overlay */}
+                    <div className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-[#0F0A06] via-[#0F0A06]/80 to-transparent p-6 text-white">
+                      <div className="flex items-center justify-between gap-4">
+                        <div>
+                          <h4 className="font-serif font-bold text-lg text-[#F8E7A1]">{currentItem.title}</h4>
+                          {currentItem.about && (
+                            <p className="text-xs text-[#D4C4A0]/90 mt-1 max-w-2xl">{currentItem.about}</p>
+                          )}
+                        </div>
+                        <span className="text-xs font-mono font-bold text-[#F5D061] bg-[#120B08]/80 px-3 py-1 rounded-full border border-[#F5D061]/30">
+                          {(carouselIndex % clusterItems.length) + 1} / {clusterItems.length}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                ))}
+                )}
+
+                {/* Left & Right Controls */}
+                {clusterItems.length > 1 && (
+                  <>
+                    <button
+                      onClick={() => setCarouselIndex((prev) => (prev - 1 + clusterItems.length) % clusterItems.length)}
+                      className="absolute left-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[#120B08]/80 border border-[#F5D061]/50 text-[#F5D061] hover:bg-[#F5D061] hover:text-[#120B08] transition-all shadow-xl"
+                    >
+                      <ChevronLeft className="w-6 h-6" />
+                    </button>
+                    <button
+                      onClick={() => setCarouselIndex((prev) => (prev + 1) % clusterItems.length)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 p-3 rounded-full bg-[#120B08]/80 border border-[#F5D061]/50 text-[#F5D061] hover:bg-[#F5D061] hover:text-[#120B08] transition-all shadow-xl"
+                    >
+                      <ChevronRight className="w-6 h-6" />
+                    </button>
+                  </>
+                )}
+              </div>
+
+              {/* Thumbnails Footer */}
+              <div className="bg-[#120B08] p-4 border-t border-[#F5D061]/20 flex items-center justify-between gap-2 overflow-x-auto">
+                <div className="flex items-center gap-2">
+                  {clusterItems.map((item, idx) => (
+                    <button
+                      key={item.id || idx}
+                      onClick={() => setCarouselIndex(idx)}
+                      className={`relative w-16 h-12 rounded-xl overflow-hidden border-2 transition-all shrink-0 ${
+                        carouselIndex % clusterItems.length === idx
+                          ? 'border-[#F5D061] scale-105 ring-2 ring-white'
+                          : 'border-white/20 opacity-60 hover:opacity-100'
+                      }`}
+                    >
+                      <img src={item.image_url} alt={item.title} className="w-full h-full object-cover" />
+                      {item.media_type === 'video' && (
+                        <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[#F5D061]">
+                          ▶
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
 
       {/* ── Official QR Ticket Slip Modal ────────────────────── */}
       {ticketSlip && (
