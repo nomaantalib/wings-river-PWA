@@ -161,7 +161,10 @@ export default function Home() {
       <AboutSection />
 
       {/* ── Reserve a Table — Collapsible Floor Map ──────────────────────── */}
-      <section id="floor-map" className="py-10 sm:py-14 bg-[#FAF7F2] text-[#1F1810] border-y border-[#E5B82C]/30">
+      <section id="floor-map" className="py-10 sm:py-14 bg-[#FAF7F2] text-[#1F1810] border-y border-[#E5B82C]/30 relative">
+        <span id="floor-plan" className="absolute -top-16" aria-hidden="true" />
+        <span id="reserve-your-table" className="absolute -top-16" aria-hidden="true" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {!showFloorMap ? (
             /* ── Collapsed CTA Card ── */

@@ -418,15 +418,14 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                   <h4 className="font-serif font-bold text-base text-[#F8E7A1]">Experience Wings River Café</h4>
                   <p className="text-xs text-[#D4C4A0]/80">Reserve your Gomti riverfront deck table or party canopy today.</p>
                 </div>
-                <button
-                  onClick={() => {
-                    closeBlogReader();
-                    if (onOpenBooking) onOpenBooking();
-                  }}
+                <a
+                  href="#floor-map"
+                  onClick={() => closeBlogReader()}
                   className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-extrabold text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition"
                 >
                   Reserve Table Now
-                </button>
+                </a>
+
               </div>
             </div>
           </div>

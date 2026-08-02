@@ -133,13 +133,14 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
         {/* CTA Button Group — Vertical Stack (One Below Another) filled with Golden Yellow */}
         <div className="w-full max-w-sm mx-auto px-4 mb-6">
           <div className="flex flex-col items-center justify-center space-y-2.5">
-            <button
-              onClick={() => onOpenBooking('table_booking')}
+            <a
+              href="#floor-map"
               className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
             >
               <Calendar className="w-4 h-4 shrink-0" />
               <span>Reserve Table</span>
-            </button>
+            </a>
+
 
             <button
               onClick={() => onOpenBooking('birthday_party')}

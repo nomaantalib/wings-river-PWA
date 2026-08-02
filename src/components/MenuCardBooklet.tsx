@@ -242,13 +242,14 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                   <h4 className="font-serif font-bold text-lg text-gold-400">
                     Dishes Featured On Page {currentPage.pageNumber}
                   </h4>
-                  <button
-                    onClick={onOpenBooking}
+                  <a
+                    href="#floor-map"
                     className="flex items-center space-x-1 px-3 py-1 bg-mint-400 text-dark-950 font-bold text-xs rounded-full"
                   >
                     <Calendar className="w-3.5 h-3.5" />
                     <span>Reserve Table</span>
-                  </button>
+                  </a>
+
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 text-xs">
