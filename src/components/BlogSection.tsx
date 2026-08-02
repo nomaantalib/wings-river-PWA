@@ -215,11 +215,11 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
               return (
                 <div
                   key={post.id}
-                  className="snap-start shrink-0 w-[230px] sm:w-[320px] bg-[#151821] rounded-3xl overflow-hidden shadow-2xl border border-[#F5D061]/30 hover:border-[#F5D061] hover:shadow-[0_15px_40px_rgba(245,208,97,0.2)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col group/card"
+                  className="snap-start shrink-0 w-[230px] sm:w-[320px] bg-[#FAF3EA] rounded-3xl overflow-hidden shadow-xl border border-[#D4AF37]/40 hover:border-[#D4AF37] hover:shadow-[0_15px_35px_rgba(212,175,55,0.25)] hover:-translate-y-1.5 transition-all duration-300 flex flex-col group/card"
                 >
                   {/* Shorter Compact Image Banner */}
                   <div
-                    className="relative h-44 overflow-hidden bg-[#0A0C10] cursor-pointer flex items-center justify-center"
+                    className="relative h-44 overflow-hidden bg-[#1E1610] cursor-pointer flex items-center justify-center"
                     onClick={() => openBlogReader(post)}
                   >
                     {/* Ambient Blur Layer */}
@@ -238,13 +238,13 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                     />
 
                     {/* Category Tag */}
-                    <span className="absolute top-3 left-3 z-20 px-2.5 py-0.5 rounded-lg bg-[#0A0C10]/85 backdrop-blur-md text-[#F8E7A1] text-[9px] font-bold uppercase tracking-wider border border-[#F5D061]/40 shadow-md">
+                    <span className="absolute top-3 left-3 z-20 px-2.5 py-0.5 rounded-lg bg-[#2A1D13]/90 backdrop-blur-md text-[#F8E7A1] text-[9px] font-bold uppercase tracking-wider border border-[#F5D061]/50 shadow-md">
                       {post.category}
                     </span>
 
                     {/* Photo count badge */}
                     {postImages.length > 1 && (
-                      <span className="absolute top-3 right-3 z-20 px-2.5 py-0.5 rounded-lg bg-[#F5D061] text-[#120B08] font-bold text-[9px] flex items-center gap-1 shadow-md">
+                      <span className="absolute top-3 right-3 z-20 px-2.5 py-0.5 rounded-lg bg-[#D4AF37] text-[#120B08] font-bold text-[9px] flex items-center gap-1 shadow-md">
                         <ImageIcon className="w-3 h-3" />
                         <span>{postImages.length} Photos</span>
                       </span>
@@ -255,40 +255,40 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                   <div className="p-5 flex-1 flex flex-col justify-between">
                     <div>
                       {/* Meta Date & Read time */}
-                      <div className="flex items-center space-x-2 text-[10px] text-[#D4C4A0]/70 mb-2 font-mono">
+                      <div className="flex items-center space-x-2 text-[10px] text-[#7A5C3A] mb-2 font-mono font-medium">
                         <span className="flex items-center space-x-1">
-                          <Calendar className="w-3 h-3 text-[#F5D061]" />
+                          <Calendar className="w-3 h-3 text-[#B3871E]" />
                           <span>{formatBlogDate(post.created_at)}</span>
                         </span>
                         <span>•</span>
                         <span className="flex items-center space-x-1">
-                          <Clock className="w-3 h-3 text-[#98A886]" />
+                          <Clock className="w-3 h-3 text-[#5C7040]" />
                           <span>{post.read_time}</span>
                         </span>
                       </div>
 
                       {/* Title */}
                       <h3
-                        className="font-serif font-bold text-base text-[#F8E7A1] mb-2 group-hover/card:text-[#F5D061] transition-colors line-clamp-2 cursor-pointer leading-snug"
+                        className="font-serif font-bold text-base text-[#2A1D13] mb-2 group-hover/card:text-[#B3871E] transition-colors line-clamp-2 cursor-pointer leading-snug"
                         onClick={() => openBlogReader(post)}
                       >
                         {post.title}
                       </h3>
 
                       {/* Excerpt */}
-                      <p className="font-sans text-xs text-[#D4C4A0]/80 leading-relaxed line-clamp-2 mb-4">
+                      <p className="font-sans text-xs text-[#5A4A3A] leading-relaxed line-clamp-2 mb-4">
                         {post.excerpt}
                       </p>
                     </div>
 
                     {/* Read More Footer */}
-                    <div className="pt-3 border-t border-[#F5D061]/15 flex items-center justify-between">
-                      <span className="text-[10px] font-bold text-[#98A886] font-mono uppercase tracking-wider">
+                    <div className="pt-3 border-t border-[#D4AF37]/30 flex items-center justify-between">
+                      <span className="text-[10px] font-bold text-[#6B5744] font-mono uppercase tracking-wider">
                         #{post.category}
                       </span>
                       <button
                         onClick={() => openBlogReader(post)}
-                        className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-xl bg-[#F5D061]/15 hover:bg-[#F5D061] text-[#F5D061] hover:text-[#120B08] font-bold text-xs transition-all duration-300"
+                        className="inline-flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-[#2A1D13] hover:bg-[#D4AF37] text-[#F8E7A1] hover:text-[#120B08] font-bold text-xs transition-all duration-300 shadow-sm"
                       >
                         <span>Read Article</span>
                         <ArrowRight className="w-3.5 h-3.5" />

@@ -16,7 +16,6 @@ import MenuCardBooklet from '@/components/MenuCardBooklet';
 import GallerySection from '@/components/GallerySection';
 import ReviewsSection from '@/components/ReviewsSection';
 import BlogSection from '@/components/BlogSection';
-import LocationSection from '@/components/LocationSection';
 
 import Footer from '@/components/Footer';
 import FloatingActions from '@/components/FloatingActions';
@@ -212,7 +211,6 @@ export default function Home() {
       <ReviewsSection key={`reviews-${syncKey}`} />
 
       <BlogSection key={`blog-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
-      <LocationSection />
       
       <Footer />
       <FloatingActions />
