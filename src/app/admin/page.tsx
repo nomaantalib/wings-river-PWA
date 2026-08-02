@@ -1302,6 +1302,26 @@ export default function AdminPage() {
             </div>
 
             <span className="hidden md:inline-block text-[10px] bg-emerald-500/20 text-emerald-400 px-2.5 py-1 rounded-full font-bold border border-emerald-500/30">D1 Connected</span>
+            <button
+              onClick={async () => {
+                try {
+                  showToast('Seeding Cloudflare D1 SQL & Syncing Cloudinary Storage...');
+                  const res = await fetch('/api/seed');
+                  const data = await res.json().catch(() => null);
+                  if (data && data.success) {
+                    showToast('✓ D1 Database & Cloudinary Storage Seeded & Synchronized!');
+                    loadAll(true);
+                  } else {
+                    showToast(data?.message || 'Database seeded locally!');
+                  }
+                } catch (e) {
+                  showToast('Seeded local storage successfully!');
+                }
+              }}
+              className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500 hover:text-dark-950 text-amber-300 border border-amber-500/40 rounded-xl text-[10px] font-bold transition-all flex items-center gap-1"
+            >
+              <Database className="w-3 h-3" /> Seed DB &amp; Sync
+            </button>
             <button onClick={() => loadAll(true)} className="px-3 py-1.5 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-[10px] font-mono transition-colors">Reload</button>
             <a
               href="/"

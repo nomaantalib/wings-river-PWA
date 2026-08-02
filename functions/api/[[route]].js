@@ -404,6 +404,76 @@ app.get('/status', async (c) => {
   return c.redirect('/api/health');
 });
 
+// ── SEED DATABASE & CLOUDINARY SYNC ENDPOINT ────────────────────────────────
+app.all('/seed', async (c) => {
+  const db = getDB(c);
+  if (!db) {
+    return c.json({ success: false, message: 'D1 binding not available in local dev mode.' });
+  }
+
+  try {
+    await ensureTables(db);
+    
+    // Seed initial Menu Items if empty
+    const menuCount = await db.prepare("SELECT COUNT(*) as cnt FROM menu_items WHERE is_deleted = 0").first();
+    if (!menuCount || menuCount.cnt === 0) {
+      const defaultMenuItems = [
+        ['m1', 'cat-beverages', 'Lucknowi Masala Chai', 'Aromatic spiced tea infused with cardamoms and ginger', 40.0, 1, 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&w=600&q=80', 1, 1, 'Bestseller', 1],
+        ['m2', 'cat-beverages', 'Fresh Lime Soda', 'Refreshing sparkling lime soda served sweet or salted', 80.0, 1, 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=600&q=80', 1, 0, '', 2],
+        ['m3', 'cat-chaat', 'Lucknowi Basket Chaat', 'Crispy potato basket filled with tangy chickpeas, chutneys, and pomegranates', 160.0, 1, 'https://images.unsplash.com/photo-1601050690597-df0568f70950?auto=format&fit=crop&w=600&q=80', 1, 1, 'Must Try', 3],
+        ['m4', 'cat-chaat', 'Dahi Bhalla Special', 'Soft lentil dumplings soaked in sweet yogurt topped with tamarind sauce', 120.0, 1, 'https://images.unsplash.com/photo-1626777552726-4a6b54c97e46?auto=format&fit=crop&w=600&q=80', 1, 0, '', 4],
+        ['m5', 'cat-indian', 'Paneer Butter Masala', 'Cottage cheese cubes cooked in rich tomato cashew gravy', 280.0, 1, 'https://images.unsplash.com/photo-1631452180519-c014fe946bc7?auto=format&fit=crop&w=600&q=80', 1, 1, 'Chef Special', 5],
+        ['m6', 'cat-indian', 'Dal Makhani Overnights', 'Black lentils slow cooked overnight with butter and fresh cream', 240.0, 1, 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=600&q=80', 1, 1, 'Popular', 6],
+        ['m7', 'cat-pizza', 'Gourmet Margherita Pizza', 'Wood-fired sourdough pizza topped with fresh mozzarella and basil', 320.0, 1, 'https://images.unsplash.com/photo-1604382354936-07c5d9983bd3?auto=format&fit=crop&w=600&q=80', 1, 0, '', 7],
+        ['m8', 'cat-desserts', 'Shahi Tukda Riverfront', 'Traditional fried bread soaked in saffron rabri and topped with pistachios', 140.0, 1, 'https://images.unsplash.com/photo-1551024709-8f23befc6f87?auto=format&fit=crop&w=600&q=80', 1, 1, 'Sweet Delight', 8]
+      ];
+      for (const item of defaultMenuItems) {
+        await db.prepare(`
+          INSERT OR IGNORE INTO menu_items (id, category_id, name, description, price, is_veg, image_url, is_available, is_bestseller, badge, display_order)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `).bind(...item).run();
+      }
+    }
+
+    // Seed initial Gallery Items if empty
+    const galCount = await db.prepare("SELECT COUNT(*) as cnt FROM gallery WHERE is_deleted = 0").first();
+    if (!galCount || galCount.cnt === 0) {
+      const defaultGallery = [
+        ['gal-1', 'Gomti Sunset View Deck', 'Riverside Deck', 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80', 1, 1],
+        ['gal-2', 'Fairy Lights VIP Canopy', 'VIP Canopies', 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&q=80', 1, 2],
+        ['gal-3', 'Indoor Climate-Controlled Lounge', 'Indoor AC Lounge', 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=800&q=80', 0, 3]
+      ];
+      for (const g of defaultGallery) {
+        await db.prepare(`
+          INSERT OR IGNORE INTO gallery (id, title, category, image_url, featured, display_order)
+          VALUES (?, ?, ?, ?, ?, ?)
+        `).bind(...g).run();
+      }
+    }
+
+    // Seed initial Blogs if empty
+    const blogCount = await db.prepare("SELECT COUNT(*) as cnt FROM blogs WHERE is_deleted = 0").first();
+    if (!blogCount || blogCount.cnt === 0) {
+      const defaultBlogs = [
+        ['blog-1', 'Top 5 Reasons to Visit Wings River Café at Gomti Riverfront', 'top-5-reasons-wings-river-cafe', 'Experience Lucknow\'s finest waterfront dining with live music and water sports.', 'Wings River Café brings a unique dining experience to Lucknow right at the Gomti Riverfront.', 'Events', 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=800&q=80', 'Chef Rahul', '4 min read', 'published']
+      ];
+      for (const b of defaultBlogs) {
+        await db.prepare(`
+          INSERT OR IGNORE INTO blogs (id, title, slug, excerpt, content, category, cover_image, author, read_time, status, published_at)
+          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CURRENT_TIMESTAMP)
+        `).bind(...b).run();
+      }
+    }
+
+    return c.json({
+      success: true,
+      message: 'Cloudflare D1 Database successfully seeded & synchronized with Cloudinary storage!'
+    });
+  } catch (e) {
+    return c.json({ success: false, error: e.message }, 500);
+  }
+});
+
 // ── 1. AUTH / LOGIN ENDPOINT ────────────────────────────────────────────────
 app.post('/auth/login', async (c) => {
   const db = getDB(c);

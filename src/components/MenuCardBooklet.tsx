@@ -93,12 +93,9 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
             <span>Our Delicacies &amp; Offerings</span>
           </div>
 
-          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F8E7A1] tracking-tight mb-4">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F8E7A1] tracking-tight mb-2">
             Our Delicacies &amp; Offerings
           </h2>
-          <p className="font-sans text-[#D4C4A0]/80 text-base">
-            Swipe or use arrows to flip through our official café menu booklet with smooth 3D page-roll animation.
-          </p>
         </div>
 
         {/* BOOKLET FLIP VIEW */}
@@ -111,7 +108,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                   Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
                 <span className="text-gray-400">|</span>
-                <span className="text-gray-200 truncate">{currentPage.title}</span>
+                <span className="text-[#F5D061] font-bold text-sm truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
               </div>
 
               <div className="flex items-center space-x-2">
