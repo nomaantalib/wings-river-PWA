@@ -590,6 +590,39 @@ export default function AdminPage() {
     }
   }, []);
 
+  // Swipe Gestures for Mobile Sidebar (Swipe Right to Open, Swipe Left to Close)
+  useEffect(() => {
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      touchStartX = e.changedTouches[0].screenX;
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      touchEndX = e.changedTouches[0].screenX;
+      const swipeDistance = touchEndX - touchStartX;
+
+      // Swipe Right from left edge -> Open Sidebar Drawer
+      if (swipeDistance > 50 && touchStartX < 90) {
+        setIsMobileMenuOpen(true);
+      }
+      // Swipe Left -> Close Sidebar Drawer
+      if (swipeDistance < -50) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+
+    window.addEventListener('touchstart', handleTouchStart, { passive: true });
+    window.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      window.removeEventListener('touchstart', handleTouchStart);
+      window.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, []);
+
+
   // Sync & Real-time 10s Polling Listener for New Form Submissions (Enquiries, Bookings, Reviews)
   useEffect(() => {
     let pollInterval: any = null;
