@@ -4,9 +4,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Users, Clock, Calendar, CheckCircle2, ShieldAlert,
   ArrowLeft, Home, Leaf, Sunset, ChevronRight, MapPin,
-  Timer, Sparkles, Sun, Compass, Trees, Lock, IndianRupee, Receipt, LogOut
+  Timer, Sparkles, Sun, Compass, Trees, Lock, IndianRupee, Receipt, LogOut,
+  Camera, X, User, Phone, Mail, Loader2, Download, QrCode, ShieldCheck, Ticket
 } from 'lucide-react';
 import { calculateBookingPrice } from '@/lib/pricing';
+import { getStoredUserSession } from './UserAuthModal';
+import { saveReservation, Reservation, getStoredGalleryItems, GalleryItem, INITIAL_GALLERY } from '@/lib/db';
+import { notifyBookingConfirmed } from '@/lib/pushNotifications';
 
 /* ─── Data Types ─────────────────────────────────────────── */
 
@@ -177,7 +181,47 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
   const [durationHrs, setDurationHrs] = useState<number>(2);
   const [guestCount, setGuestCount] = useState<number>(2);
 
+  // User contact details & autofill
+  const [userName, setUserName] = useState<string>('');
+  const [userPhone, setUserPhone] = useState<string>('');
+  const [userEmail, setUserEmail] = useState<string>('');
+  const [isLoggedInUser, setIsLoggedInUser] = useState<boolean>(false);
+  const [formError, setFormError] = useState<string>('');
+
+  // Area Gallery Modal state
+  const [activeClusterGallery, setActiveClusterGallery] = useState<string | null>(null);
+  const [galleryItems, setGalleryItems] = useState<GalleryItem[]>(INITIAL_GALLERY);
+
+  // Ticket generation state
+  const [isProcessingBooking, setIsProcessingBooking] = useState<boolean>(false);
+  const [ticketSlip, setTicketSlip] = useState<any>(null);
+
   const stepRef = useRef<HTMLDivElement>(null);
+
+  // Load user session details automatically
+  useEffect(() => {
+    const syncUser = () => {
+      const sess = getStoredUserSession();
+      if (sess && sess.loggedIn) {
+        setIsLoggedInUser(true);
+        if (sess.name) setUserName(sess.name);
+        if (sess.phone) setUserPhone(sess.phone);
+        if (sess.email) setUserEmail(sess.email);
+      } else {
+        setIsLoggedInUser(false);
+      }
+    };
+    syncUser();
+    window.addEventListener('wings_auth_change', syncUser);
+    return () => window.removeEventListener('wings_auth_change', syncUser);
+  }, []);
+
+  // Fetch gallery items for cluster preview
+  useEffect(() => {
+    getStoredGalleryItems().then(items => {
+      if (items && items.length > 0) setGalleryItems(items);
+    });
+  }, []);
 
   // Sync staff/admin table readiness updates
   useEffect(() => {
@@ -226,12 +270,92 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     else { setSelectedArea(null); setSelectedTable(null); setStep(1); }
   };
 
-  const STEP_LABELS = ['Choose Area', 'Pick Table', 'Confirm'];
+  const handleConfirmReservation = async () => {
+    setFormError('');
+    if (!userName.trim()) {
+      setFormError('Please enter your full name for the booking ticket.');
+      return;
+    }
+    if (!userPhone.trim() || userPhone.trim().length < 8) {
+      setFormError('Please enter a valid phone number for table reservation confirmation.');
+      return;
+    }
+
+    if (!selectedTable || !selectedArea) return;
+
+    setIsProcessingBooking(true);
+    const pricing = calculateBookingPrice(selectedDate, guestCount);
+    const resId = 'WR-' + Math.floor(100000 + Math.random() * 900000);
+    const checkoutLabel = formatCheckout(effectiveTime, durationHrs);
+    const timeLabel = TIME_SLOTS.find(s => s.value === effectiveTime)?.label || effectiveTime;
+
+    const reservationObj: Reservation = {
+      id: resId,
+      name: userName,
+      phone: userPhone,
+      email: userEmail || '',
+      booking_type: 'table_booking',
+      date: selectedDate,
+      time: effectiveTime,
+      guests: guestCount,
+      table_number: selectedTable.table_number,
+      cluster_id: selectedArea.id,
+      special_requests: `Area: ${selectedArea.label} • Duration: ${durationHrs} hrs (Checkout ~${checkoutLabel})`,
+      status: 'confirmed',
+      created_at: new Date().toISOString()
+    };
+
+    try {
+      // 1. Save to D1 Database persistently
+      await saveReservation(reservationObj);
+
+      // 2. Trigger Push Notifications & SMS alerts
+      await notifyBookingConfirmed({
+        name: userName,
+        table: `${selectedTable.table_number} (${selectedArea.label})`,
+        date: selectedDate,
+        time: timeLabel,
+        bookingId: resId,
+      }).catch(() => {});
+
+      // 3. Generate QR Code Ticket Payload & URL
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+        `WINGS-RIVER-CAFE|${resId}|TABLE-${selectedTable.table_number}|${selectedDate}|${effectiveTime}|GUESTS-${guestCount}|${userName}`
+      )}`;
+
+      setTicketSlip({
+        bookingId: resId,
+        guestName: userName,
+        guestPhone: userPhone,
+        guestEmail: userEmail,
+        areaName: selectedArea.label,
+        tableNumber: selectedTable.table_number,
+        date: selectedDate,
+        timeLabel: timeLabel,
+        checkoutLabel: checkoutLabel,
+        durationHrs: durationHrs,
+        guestCount: guestCount,
+        totalAmount: pricing.totalPrice,
+        perPersonRate: pricing.perPersonRate,
+        qrUrl: qrUrl,
+        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+      });
+
+      // Also trigger parent callback
+      onSelectTable(selectedTable, selectedDate, effectiveTime, guestCount);
+    } catch (err: any) {
+      setFormError(err.message || 'Failed to confirm reservation. Please try again.');
+    } finally {
+      setIsProcessingBooking(false);
+    }
+  };
+
+  const STEP_LABELS = ['Choose Area', 'Pick Table', 'Confirm & QR Ticket'];
 
   return (
     <div
       ref={stepRef}
-      className="bg-[#FAF7F2] border border-[#E5B82C]/40 rounded-3xl shadow-2xl text-[#1F1810] overflow-hidden"
+      className="bg-[#FAF7F2] border border-[#E5B82C]/40 rounded-3xl shadow-2xl text-[#1F1810] overflow-hidden relative"
     >
 
       {/* ── Section Header ───────────────────────────────────── */}
@@ -392,7 +516,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           );
         })}
 
-        {/* ── BACK BUTTON — Highlighted & Accessible ─────────── */}
+        {/* ── BACK BUTTON ─────────────────────────── */}
         {step > 1 && (
           <button
             onClick={handleBack}
@@ -422,21 +546,12 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             const totalTables    = ALL_TABLES.filter(t => t.cluster_id === area.id).length;
             const occupied = areaFreeTables === 0;
             return (
-              <button
+              <div
                 key={area.id}
-                onClick={() => handleAreaSelect(area)}
-                disabled={occupied}
-                aria-label={`Select ${area.label} — ${areaFreeTables} tables available`}
-                className={`w-full text-left rounded-2xl border bg-white/80
-                  p-5 transition-all duration-300 group relative overflow-hidden shadow-sm
-                  focus:outline-none focus:ring-2 focus:ring-[#E5B82C]/60
-                  ${occupied ? 'opacity-50 cursor-not-allowed border-gray-300' : 'border-[#E5B82C]/50 hover:border-[#E5B82C] hover:shadow-lg hover:shadow-[#E5B82C]/20 hover:scale-[1.01] active:scale-[0.99]'}
-                `}>
-                {/* Shimmer highlight on hover */}
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-[#F5D061]/8 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-700 ease-in-out" />
-
-                <div className="flex items-center justify-between gap-4 relative z-10">
-                  {/* Left */}
+                className="rounded-2xl border bg-white/90 border-[#E5B82C]/50 overflow-hidden shadow-sm hover:shadow-lg transition-all duration-300 group relative"
+              >
+                <div className="p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  {/* Left info */}
                   <div className="flex items-center gap-4">
                     <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 bg-[#1F1810] border border-[#E5B82C]/40 p-3 shadow-md">
                       <AreaIcon type={area.iconType} className="w-6 h-6 text-[#F5D061]" />
@@ -458,27 +573,38 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                     </div>
                   </div>
 
-                  {/* Right: donut + arrow */}
-                  <div className="flex flex-col items-center gap-2 shrink-0">
-                    <div className="relative w-12 h-12">
-                      <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                        <circle cx="18" cy="18" r="14" fill="none" stroke="rgba(229,184,44,0.15)" strokeWidth="3"/>
-                        <circle cx="18" cy="18" r="14" fill="none"
-                          stroke={areaFreeTables > 0 ? '#6B8E5E' : '#dc2626'}
-                          strokeWidth="3"
-                          strokeDasharray={`${(areaFreeTables / totalTables) * 87.96} 87.96`}
-                          strokeLinecap="round"
-                          className="transition-all duration-700"
-                        />
-                      </svg>
-                      <span className="absolute inset-0 flex items-center justify-center text-[11px] font-bold font-mono text-[#1F1810]">
-                        {areaFreeTables}/{totalTables}
-                      </span>
-                    </div>
-                    <ChevronRight className={`w-4 h-4 transition-all duration-200 ${occupied ? 'text-gray-400' : 'text-[#E5B82C] group-hover:text-[#1F1810] group-hover:translate-x-1'}`} />
+                  {/* Actions & Donut */}
+                  <div className="flex items-center gap-3 self-end sm:self-center">
+                    {/* View Area Photos Button */}
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setActiveClusterGallery(area.id);
+                      }}
+                      className="px-3 py-1.5 rounded-xl bg-[#FAF7F2] border border-[#E5B82C]/60 text-[#1F1810] text-[11px] font-bold flex items-center gap-1.5 hover:bg-[#F5D061]/20 hover:border-[#F5D061] transition-all"
+                    >
+                      <Camera className="w-3.5 h-3.5 text-[#E5B82C]" />
+                      <span>View Photos</span>
+                    </button>
+
+                    {/* Choose Area CTA */}
+                    <button
+                      type="button"
+                      onClick={() => handleAreaSelect(area)}
+                      disabled={occupied}
+                      className={`px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 transition-all shadow ${
+                        occupied
+                          ? 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                          : 'bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#120B08] hover:scale-105 active:scale-95 shadow-[#F5D061]/30'
+                      }`}
+                    >
+                      <span>Select Area</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
 
@@ -496,29 +622,43 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         <div className="p-5 sm:p-7 animate-fade-in">
 
           {/* Area header */}
-          <div className="flex items-center gap-3 mb-5 p-3.5 bg-[#1F1810] rounded-2xl border border-[#E5B82C]/40">
-            <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#F5D061] to-[#E5B82C] shadow-md p-2 shrink-0">
-              <AreaIcon type={selectedArea.iconType} className="w-5 h-5 text-[#1F1810]" />
+          <div className="flex items-center justify-between gap-3 mb-5 p-3.5 bg-[#1F1810] rounded-2xl border border-[#E5B82C]/40">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center bg-gradient-to-br from-[#F5D061] to-[#E5B82C] shadow-md p-2 shrink-0">
+                <AreaIcon type={selectedArea.iconType} className="w-5 h-5 text-[#1F1810]" />
+              </div>
+              <div>
+                <h4 className="text-sm font-serif font-bold text-[#F8E7A1]">{selectedArea.label}</h4>
+                <p className="text-[11px] text-[#D4C4A0]/80">{selectedArea.subtitle}</p>
+              </div>
             </div>
-            <div className="flex-1">
-              <h4 className="text-sm font-serif font-bold text-[#F8E7A1]">{selectedArea.label}</h4>
-              <p className="text-[11px] text-[#D4C4A0]/80">{selectedArea.subtitle}</p>
-            </div>
-            <div className={`text-xs font-bold px-3 py-1.5 rounded-xl border ${freeCount > 0 ? 'text-[#98A886] border-[#98A886]/40 bg-[#98A886]/10' : 'text-red-400 border-red-400/30 bg-red-400/10'}`}>
-              {freeCount > 0 ? `${freeCount} free` : 'Full'}
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setActiveClusterGallery(selectedArea.id)}
+                className="px-3 py-1.5 rounded-xl bg-[#2A1D0E] border border-[#F5D061]/50 text-[#F5D061] text-xs font-bold flex items-center gap-1.5 hover:bg-[#3D291C]"
+              >
+                <Camera className="w-3.5 h-3.5" />
+                <span>Area Gallery</span>
+              </button>
+              <div className={`text-xs font-bold px-3 py-1.5 rounded-xl border ${freeCount > 0 ? 'text-[#98A886] border-[#98A886]/40 bg-[#98A886]/10' : 'text-red-400 border-red-400/30 bg-red-400/10'}`}>
+                {freeCount > 0 ? `${freeCount} free` : 'Full'}
+              </div>
             </div>
           </div>
 
-          {/* ── 3D Venue View — Top Context (River Side) ──────── */}
+          {/* ── Realistic Venue View — Top Context (No 3D View text label) ──────── */}
           {selectedArea.id === 'indoor' && (
             <div className="w-full rounded-xl overflow-hidden border border-[#4A7DA0]/40 mb-1 relative">
               <div className="bg-gradient-to-r from-[#0D1E2F] via-[#1A3550] to-[#0D1E2F] px-4 py-3 flex items-center gap-3">
                 <Compass className="w-4 h-4 text-[#7BB8D4] shrink-0" />
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7BB8D4]">River View — North Side</p>
-                  <p className="text-[9px] text-[#4A90C4]/80">Gomti Riverfront · Window-facing seats · Natural light</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7BB8D4]">Gomti Riverfront — Window Deck View</p>
+                  <p className="text-[9px] text-[#4A90C4]/80">Window-facing tables · Natural waterfront light · Air conditioned</p>
                 </div>
-                <span className="ml-auto text-[9px] bg-[#1A3550] border border-[#4A7DA0]/50 text-[#7BB8D4] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↑</span>
+                <span className="ml-auto flex items-center gap-1 bg-[#1A3550] border border-[#4A7DA0]/50 text-[#7BB8D4] px-2.5 py-1 rounded-lg text-[10px] font-semibold">
+                  <Compass className="w-3 h-3 text-[#7BB8D4]" /> Waterfront Panorama
+                </span>
               </div>
               <div className="h-1.5 bg-gradient-to-r from-[#1A3550] via-[#2A6FA8] to-[#1A3550] opacity-60" />
             </div>
@@ -528,10 +668,12 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               <div className="bg-gradient-to-r from-[#0A1A08] via-[#142810] to-[#0A1A08] px-4 py-3 flex items-center gap-3">
                 <Sun className="w-4 h-4 text-[#78C265] shrink-0" />
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#78C265]">Ground Floor — Open Sky</p>
-                  <p className="text-[9px] text-[#5BA348]/80">Spacious outdoor layout · Canopy fairy lights · Open air</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#78C265]">Ground Lawn — Open Canopy</p>
+                  <p className="text-[9px] text-[#5BA348]/80">Spacious outdoor layout · Canopy fairy lights · Open air breeze</p>
                 </div>
-                <span className="ml-auto text-[9px] bg-[#142810] border border-[#3A6B2A]/50 text-[#78C265] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↑</span>
+                <span className="ml-auto flex items-center gap-1 bg-[#142810] border border-[#3A6B2A]/50 text-[#78C265] px-2.5 py-1 rounded-lg text-[10px] font-semibold">
+                  <Sun className="w-3 h-3 text-[#78C265]" /> Open Sky Lawn
+                </span>
               </div>
               <div className="h-1.5 bg-gradient-to-r from-[#142810] via-[#2A6B1A] to-[#142810] opacity-60" />
             </div>
@@ -541,22 +683,16 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               <div className="bg-gradient-to-r from-[#0D1E2F] via-[#1A3550] to-[#0D1E2F] px-4 py-3 flex items-center gap-3">
                 <Compass className="w-4 h-4 text-[#7BB8D4] shrink-0" />
                 <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7BB8D4]">River View — Panoramic North</p>
-                  <p className="text-[9px] text-[#4A90C4]/80">Gomti Riverfront · 360° sky view · Sunset facing</p>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#7BB8D4]">Upper Deck — Panoramic Sunset Deck</p>
+                  <p className="text-[9px] text-[#4A90C4]/80">Gomti Riverfront · 360° sky view · Sunset facing VIP tables</p>
                 </div>
-                <span className="ml-auto text-[9px] bg-[#1A3550] border border-[#4A7DA0]/50 text-[#7BB8D4] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↑</span>
+                <span className="ml-auto flex items-center gap-1 bg-[#1A3550] border border-[#4A7DA0]/50 text-[#7BB8D4] px-2.5 py-1 rounded-lg text-[10px] font-semibold">
+                  <Sunset className="w-3 h-3 text-[#7BB8D4]" /> Sunset Deck
+                </span>
               </div>
               <div className="h-1.5 bg-gradient-to-r from-[#1A3550] via-[#2A6FA8] to-[#1A3550] opacity-60" />
             </div>
           )}
-
-          {/* Riverfront label */}
-          <div className="w-full py-2.5 px-5 rounded-t-xl bg-gradient-to-r from-[#18232F]/80 via-[#1E2D40]/80 to-[#18232F]/80 border border-[#4A7DA0]/30 mb-1">
-            <p className="text-center text-[10px] tracking-[0.2em] text-[#8BB8D4] uppercase font-mono flex items-center justify-center gap-2">
-              <MapPin className="w-3 h-3 text-[#5B9EC9]" />
-              Gomti Riverfront — {selectedArea.label}
-            </p>
-          </div>
 
           {/* Table grid */}
           <div className="bg-white/70 border border-[#E5B82C]/30 rounded-b-xl rounded-tr-xl p-6 space-y-5">
@@ -578,22 +714,17 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                         focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50
                         ${statusClasses(tbl.status, isSelected)}`}
                     >
-                      {/* Availability pulse dot */}
                       {suitable && tbl.status === 'free' && !isSelected && (
-                        <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#98A886] border-2 border-[#141820] animate-pulse" />
+                        <span className="absolute -top-1.5 -right-1.5 w-3.5 h-3.5 rounded-full bg-[#6B8E5E] border-2 border-[#FAF7F2] animate-pulse" />
                       )}
                       <span className="text-base font-bold font-mono">{tbl.table_number}</span>
                       <span className="text-[10px] opacity-80 flex items-center gap-0.5 mt-0.5">
                         <Users className="w-3 h-3" />{tbl.capacity} Seats
                       </span>
                       <span className={`text-[9px] mt-1 font-bold ${
-                        tbl.status === 'free' ? 'text-[#98A886]' :
-                        tbl.status === 'eating' ? 'text-[#F5D061]' : 'text-red-300'
+                        tbl.status === 'free' ? 'text-[#2D6A4F]' :
+                        tbl.status === 'eating' ? 'text-[#7A5C3A]' : 'text-red-700'
                       }`}>{statusLabel(tbl.status)}</span>
-                      {/* Unsuitable capacity indicator */}
-                      {!suitable && tbl.status === 'free' && (
-                        <span className="text-[8px] text-amber-400 mt-0.5">Low capacity</span>
-                      )}
                     </button>
                   );
                 })}
@@ -601,54 +732,16 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
             ))}
           </div>
 
-          {/* ── 3D Venue View — Bottom Context ──────────────── */}
-          {selectedArea.id === 'indoor' && (
-            <div className="w-full rounded-xl overflow-hidden border border-[#98A886]/40 mt-3 relative">
-              <div className="bg-gradient-to-r from-[#142211] via-[#1F331A] to-[#142211] px-4 py-3 flex items-center gap-3">
-                <Trees className="w-4 h-4 text-[#A8C49A] shrink-0" />
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#A8C49A]">South View — Open Garden Area</p>
-                  <p className="text-[9px] text-[#86AA75]/80">Ground floor · Spacious outdoor lawn access · Glass entrance</p>
-                </div>
-                <span className="ml-auto text-[9px] bg-[#1F331A] border border-[#98A886]/50 text-[#A8C49A] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
-              </div>
-            </div>
-          )}
-          {selectedArea.id === 'garden' && (
-            <div className="w-full rounded-xl overflow-hidden border border-[#98A886]/40 mt-3 relative">
-              <div className="bg-gradient-to-r from-[#142211] via-[#1F331A] to-[#142211] px-4 py-3 flex items-center gap-3">
-                <Trees className="w-4 h-4 text-[#A8C49A] shrink-0" />
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#A8C49A]">Green Garden 3D View</p>
-                  <p className="text-[9px] text-[#86AA75]/80">Lush green lawns · Riverside walkway · Ambient garden lights</p>
-                </div>
-                <span className="ml-auto text-[9px] bg-[#1F331A] border border-[#98A886]/50 text-[#A8C49A] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
-              </div>
-            </div>
-          )}
-          {selectedArea.id === 'rooftop' && (
-            <div className="w-full rounded-xl overflow-hidden border border-[#F5D061]/40 mt-3 relative">
-              <div className="bg-gradient-to-r from-[#231710] via-[#362419] to-[#231710] px-4 py-3 flex items-center gap-3">
-                <Sparkles className="w-4 h-4 text-[#E8DCB8] shrink-0" />
-                <div>
-                  <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#E8DCB8]">Greenery & Canopy View</p>
-                  <p className="text-[9px] text-[#D4C4A0]/80">Overlooking garden canopy · Fairy lights glow · Elevated deck</p>
-                </div>
-                <span className="ml-auto text-[9px] bg-[#362419] border border-[#F5D061]/50 text-[#E8DCB8] px-2 py-0.5 rounded-lg font-mono">3D VIEW ↓</span>
-              </div>
-            </div>
-          )}
-
           <p className="text-center text-[11px] text-[#5A6A50] mt-4 font-semibold">
             <span className="inline-flex items-center gap-1.5">
-              <span className="w-2 h-2 rounded-full bg-[#3D7A50] animate-pulse inline-block" />
-              Green tables fit your party of <span className="text-[#1F1810] font-bold mx-1">{guestCount}</span>. Tap to select.
+              <span className="w-2 h-2 rounded-full bg-[#6B8E5E] animate-pulse inline-block" />
+              Green tables fit your party of <span className="text-[#1F1810] font-bold mx-1">{guestCount}</span>. Tap to pick your table.
             </span>
           </p>
         </div>
       )}
 
-      {/* ── STEP 3: Confirm Booking ──────────────────────────── */}
+      {/* ── STEP 3: Confirm Booking & Generate Ticket ─────────── */}
       {step === 3 && selectedTable && selectedArea && (() => {
         const pricing = calculateBookingPrice(selectedDate, guestCount);
         const checkoutLabel = formatCheckout(effectiveTime, durationHrs);
@@ -657,24 +750,64 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           <div className="p-5 sm:p-7 animate-fade-in space-y-4">
 
             {/* Confirmation card */}
-            <div className="rounded-3xl bg-[#1F1810] border border-[#F5D061]/40 p-5 shadow-2xl">
+            <div className="rounded-3xl bg-[#1F1810] border border-[#F5D061]/40 p-5 shadow-2xl space-y-4">
 
               {/* Top badge */}
-              <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <div className="w-10 h-10 rounded-2xl flex items-center justify-center bg-black/40 border border-[#F5D061]/30 p-2 shrink-0">
-                    <AreaIcon type={selectedArea.iconType} className="w-5 h-5" />
+                    <AreaIcon type={selectedArea.iconType} className="w-5 h-5 text-[#F5D061]" />
                   </div>
                   <div>
                     <h4 className="text-sm font-serif font-bold text-[#E8DCB8] flex items-center gap-1.5">
                       <Lock className="w-3.5 h-3.5 text-[#F5D061]" /> Table Locked for Booking
                     </h4>
-                    <p className="text-[11px] text-[#D4C4A0]/70">{selectedArea.label}</p>
+                    <p className="text-[11px] text-[#D4C4A0]/70">{selectedArea.label} • Table {selectedTable.table_number}</p>
                   </div>
                 </div>
                 <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-xl bg-[#98A886]/15 text-[#D8E2CD] border border-[#98A886]/40">
                   {pricing.isWeekend ? '₹600/person' : '₹300/person'}
                 </span>
+              </div>
+
+              {/* Contact Information Form (Autofilled if logged in) */}
+              <div className="bg-[#2A1D0E] border border-[#F5D061]/40 rounded-2xl p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <h5 className="text-xs font-bold uppercase tracking-wider text-[#F5D061] flex items-center gap-1.5">
+                    <User className="w-4 h-4 text-[#F5D061]" /> Guest Details for QR Ticket
+                  </h5>
+                  {isLoggedInUser && (
+                    <span className="text-[10px] bg-[#6B8E5E]/20 text-[#98A886] border border-[#6B8E5E]/40 px-2 py-0.5 rounded-md font-bold flex items-center gap-1">
+                      <ShieldCheck className="w-3 h-3" /> Autofilled from Login
+                    </span>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#FFF8E7] mb-1">Your Full Name *</label>
+                    <input
+                      type="text"
+                      required
+                      placeholder="e.g. Rahul Sharma"
+                      value={userName}
+                      onChange={e => setUserName(e.target.value)}
+                      className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#1F1810] border border-[#E5B82C]/50 text-[#FFF8E7] font-bold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F5D061]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-[11px] font-bold text-[#FFF8E7] mb-1">Phone Number *</label>
+                    <input
+                      type="tel"
+                      required
+                      placeholder="e.g. 07310008020"
+                      value={userPhone}
+                      onChange={e => setUserPhone(e.target.value)}
+                      className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#1F1810] border border-[#E5B82C]/50 text-[#FFF8E7] font-bold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-[#F5D061]"
+                    />
+                  </div>
+                </div>
               </div>
 
               {/* Details grid */}
@@ -699,66 +832,180 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 ))}
               </div>
 
-              {/* Hold timer */}
-              <div className="mt-4 flex items-center gap-3 bg-[#0D1118]/80 border border-[#F5D061]/25 rounded-2xl px-4 py-3">
-                <ShieldAlert className="w-4 h-4 text-[#F5D061] animate-pulse shrink-0" />
-                <p className="text-xs text-[#F5EBE0] flex-1">
-                  Table <span className="text-[#E8DCB8] font-bold">{selectedTable.table_number}</span> is locked for you
-                </p>
-                <span className={`font-mono text-sm font-bold px-3 py-1 rounded-xl border ${
-                  holdLeft !== null && holdLeft < 60
-                    ? 'bg-red-900/40 border-red-500/50 text-red-300'
-                    : 'bg-[#231710] border-[#F5D061]/40 text-[#E8DCB8]'
-                }`}>
-                  {holdLeft !== null ? fmtTimer(holdLeft) : '5:00'}
-                </span>
-              </div>
+              {formError && (
+                <div className="p-3 bg-red-900/40 border border-red-500/50 rounded-xl text-red-200 text-xs font-bold text-center">
+                  {formError}
+                </div>
+              )}
             </div>
 
             {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-3 pt-1">
-              {/* Highlighted Back button */}
               <button
                 onClick={handleBack}
                 aria-label="Go back to pick a different table"
                 className="flex-1 py-3.5 rounded-2xl
                   border-2 border-[#F5D061]/50 hover:border-[#F5D061]
-                  bg-gradient-to-r from-[#1A1209] to-[#231710] hover:from-[#231710] hover:to-[#2E1F0E]
-                  text-[#F5D061] hover:text-[#F5EBE0]
+                  bg-[#1A1209] text-[#F5D061] hover:text-[#F5EBE0]
                   text-xs font-bold uppercase tracking-wider
                   flex items-center justify-center gap-2
-                  shadow hover:shadow-lg hover:shadow-[#F5D061]/15
-                  transition-all duration-200 active:scale-95
-                  focus:outline-none focus:ring-2 focus:ring-[#F5D061]/40"
+                  shadow transition-all duration-200 active:scale-95"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Change Table
               </button>
 
-              {/* Confirm CTA */}
               <button
-                onClick={() => onSelectTable(selectedTable, selectedDate, effectiveTime, guestCount)}
+                onClick={handleConfirmReservation}
+                disabled={isProcessingBooking}
                 aria-label={`Confirm booking and pay ₹${pricing.totalPrice}`}
                 className="flex-2 sm:flex-[2] py-3.5 rounded-2xl
-                  bg-gradient-to-r from-[#F5D061] via-[#B8A07A] to-[#A3B58E]
-                  hover:from-[#E8DCB8] hover:via-[#D4C4A0] hover:to-[#B2C2A1]
+                  bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37]
+                  hover:from-[#F8E7A1] hover:to-[#F5D061]
                   text-[#120B08] font-bold text-xs uppercase tracking-wider
                   shadow-xl shadow-[#F5D061]/30 hover:shadow-[#F5D061]/50
                   flex items-center justify-center gap-2
                   transition-all duration-200 active:scale-95
-                  focus:outline-none focus:ring-2 focus:ring-[#E8DCB8]/50"
+                  disabled:opacity-50"
               >
-                <CheckCircle2 className="w-4 h-4" />
-                Pay ₹{pricing.totalPrice} &amp; Confirm
+                {isProcessingBooking ? (
+                  <><Loader2 className="w-4 h-4 animate-spin" /> Generating QR Ticket…</>
+                ) : (
+                  <><CheckCircle2 className="w-4 h-4" /> Confirm &amp; Lock Table (₹{pricing.totalPrice})</>
+                )}
               </button>
             </div>
-
-            <p className="text-center text-[10px] text-[#D4C4A0]/50 pb-1">
-              ✦ Cancellation eligible up to 5 hours before check-in · Secure payment via Razorpay
-            </p>
           </div>
         );
       })()}
+
+      {/* ── Area / Cluster Gallery Modal ────────────────────── */}
+      {activeClusterGallery && (
+        <div className="fixed inset-0 z-[110] bg-[#0A0C10]/85 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in">
+          <div className="relative w-full max-w-3xl bg-[#FAF7F2] rounded-3xl border-2 border-[#E5B82C] overflow-hidden shadow-2xl max-h-[85vh] flex flex-col">
+            {/* Header */}
+            <div className="bg-[#1F1810] border-b border-[#F5D061]/30 p-5 flex items-center justify-between text-[#F8E7A1]">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center text-[#1F1810]">
+                  <Camera className="w-5 h-5" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-lg text-[#F8E7A1]">
+                    {AREAS.find(a => a.id === activeClusterGallery)?.label} Photos
+                  </h3>
+                  <p className="text-xs text-[#D4C4A0]/80">Explore venue ambience &amp; riverfront seating</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveClusterGallery(null)}
+                className="p-2 rounded-full bg-white/10 hover:bg-[#F5D061] hover:text-[#120B08] text-white transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Gallery Grid */}
+            <div className="p-6 overflow-y-auto grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {galleryItems
+                .filter(item => !item.cluster_id || item.cluster_id === activeClusterGallery || item.category?.toLowerCase().includes(activeClusterGallery))
+                .slice(0, 8)
+                .map((photo, i) => (
+                  <div key={photo.id || i} className="group relative rounded-2xl overflow-hidden border border-[#E5B82C]/40 shadow-md bg-white">
+                    <img
+                      src={photo.image_url}
+                      alt={photo.title}
+                      className="w-full h-48 object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                    <div className="p-3 bg-[#1F1810] text-white">
+                      <h4 className="text-xs font-bold text-[#F8E7A1]">{photo.title}</h4>
+                      {photo.about && <p className="text-[10px] text-[#D4C4A0]/80 mt-0.5 line-clamp-2">{photo.about}</p>}
+                    </div>
+                  </div>
+                ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Official QR Ticket Slip Modal ────────────────────── */}
+      {ticketSlip && (
+        <div className="fixed inset-0 z-[120] bg-[#07090C]/90 backdrop-blur-lg flex items-center justify-center p-4 animate-fade-in">
+          <div className="relative w-full max-w-md bg-[#1F1810] border-2 border-[#F5D061] rounded-3xl overflow-hidden shadow-2xl text-white">
+
+            {/* Top Badge */}
+            <div className="bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#120B08] px-6 py-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Ticket className="w-6 h-6 shrink-0" />
+                <div>
+                  <h3 className="font-serif font-extrabold text-sm uppercase tracking-wider">Wings River Café Ticket</h3>
+                  <p className="text-[10px] opacity-90 font-mono">Ref: {ticketSlip.bookingId}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setTicketSlip(null)}
+                className="p-1.5 rounded-full bg-black/20 hover:bg-black/40 text-[#120B08] transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Ticket Body */}
+            <div className="p-6 space-y-4 text-center">
+
+              {/* Scannable QR Code */}
+              <div className="bg-white p-4 rounded-2xl inline-block shadow-xl border-4 border-[#F5D061]/50">
+                <img
+                  src={ticketSlip.qrUrl}
+                  alt={`QR Code ${ticketSlip.bookingId}`}
+                  className="w-44 h-44 mx-auto"
+                />
+                <p className="text-[10px] font-mono text-gray-600 mt-1 font-bold">SCAN AT VENUE GATE</p>
+              </div>
+
+              {/* Ticket Details */}
+              <div className="bg-[#120B08] border border-[#F5D061]/30 rounded-2xl p-4 text-left space-y-2">
+                <div className="flex justify-between items-center border-b border-[#F5D061]/20 pb-2">
+                  <span className="text-[10px] text-[#D4C4A0] uppercase font-bold">Guest Name</span>
+                  <span className="text-xs font-extrabold text-[#F8E7A1]">{ticketSlip.guestName}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-[#F5D061]/20 pb-2">
+                  <span className="text-[10px] text-[#D4C4A0] uppercase font-bold">Phone Number</span>
+                  <span className="text-xs font-extrabold text-[#F8E7A1]">{ticketSlip.guestPhone}</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-[#F5D061]/20 pb-2">
+                  <span className="text-[10px] text-[#D4C4A0] uppercase font-bold">Reserved Table</span>
+                  <span className="text-xs font-extrabold text-[#F5D061]">{ticketSlip.tableNumber} ({ticketSlip.areaName})</span>
+                </div>
+                <div className="flex justify-between items-center border-b border-[#F5D061]/20 pb-2">
+                  <span className="text-[10px] text-[#D4C4A0] uppercase font-bold">Check-in Slot</span>
+                  <span className="text-xs font-extrabold text-[#98A886]">{ticketSlip.date} • {ticketSlip.timeLabel}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-[10px] text-[#D4C4A0] uppercase font-bold">Booking Amount</span>
+                  <span className="text-xs font-extrabold text-[#F5D061]">₹{ticketSlip.totalAmount} (Confirmed)</span>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-2 pt-2">
+                <button
+                  onClick={() => window.print()}
+                  className="flex-1 py-3 rounded-xl bg-[#2A1D0E] border border-[#F5D061]/50 text-[#F5D061] font-bold text-xs flex items-center justify-center gap-1.5 hover:bg-[#3D291C]"
+                >
+                  <Download className="w-4 h-4" /> Print / Save Ticket
+                </button>
+                <button
+                  onClick={() => setTicketSlip(null)}
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-bold text-xs flex items-center justify-center gap-1.5 hover:opacity-90"
+                >
+                  <CheckCircle2 className="w-4 h-4" /> Done
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

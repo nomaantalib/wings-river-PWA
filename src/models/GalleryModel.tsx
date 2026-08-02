@@ -7,12 +7,69 @@ export interface GalleryItem {
   about?: string;
   description?: string;
   featured?: boolean;
+  cluster_id?: 'indoor' | 'garden' | 'rooftop' | string;
   display_order?: number;
   is_deleted?: number;
   created_at?: string;
 }
 
 export const INITIAL_GALLERY: GalleryItem[] = [
+  // Cluster-specific photos for Area Gallery View
+  {
+    id: 'area-indoor-1',
+    title: 'Indoor AC Hall — Cozy River View Seating',
+    category: 'Indoor AC',
+    cluster_id: 'indoor',
+    image_url: '/images/Screenshot_20260720-180621_Maps.png',
+    about: 'Fully air-conditioned indoor dining hall with panoramic window tables facing Gomti Riverfront.',
+    featured: true
+  },
+  {
+    id: 'area-indoor-2',
+    title: 'Indoor AC Dining & Fine Ambience',
+    category: 'Indoor AC',
+    cluster_id: 'indoor',
+    image_url: '/images/Screenshot_20260720-180630_Maps.png',
+    about: 'Luxurious indoor seating with plush sofas, warm lighting, and private dining comfort.',
+    featured: true
+  },
+  {
+    id: 'area-garden-1',
+    title: 'Open Garden Area — Riverside Breeze & Lawns',
+    category: 'Garden Area',
+    cluster_id: 'garden',
+    image_url: '/images/Screenshot_20260720-180644_Maps.png',
+    about: 'Spacious outdoor garden seating under canopy fairy lights beside Gomti River walkway.',
+    featured: true
+  },
+  {
+    id: 'area-garden-2',
+    title: 'Canopy Party Setup — Open Garden Area',
+    category: 'Garden Area',
+    cluster_id: 'garden',
+    image_url: '/images/Screenshot_20260720-180724_Maps.png',
+    about: 'Private canopy setups in our open garden for birthdays, anniversaries, and family celebrations.',
+    featured: true
+  },
+  {
+    id: 'area-rooftop-1',
+    title: 'Rooftop Upper Deck — Panoramic Sunset View',
+    category: 'Rooftop Deck',
+    cluster_id: 'rooftop',
+    image_url: '/images/Screenshot_20260720-180737_Maps.png',
+    about: 'Elevated rooftop upper deck with 360° starlit sky views and unobstructed Gomti riverfront sunset dining.',
+    featured: true
+  },
+  {
+    id: 'area-rooftop-2',
+    title: 'VIP Upper Deck Sunset Table',
+    category: 'Rooftop Deck',
+    cluster_id: 'rooftop',
+    image_url: '/images/Screenshot_20260720-180927_Instagram.png',
+    about: 'Lucknow premier rooftop dining experience overlooking the riverfront promenade.',
+    featured: true
+  },
+
   // Water Sports
   {
     id: 'g1',

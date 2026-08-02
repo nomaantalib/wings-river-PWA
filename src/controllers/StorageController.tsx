@@ -686,6 +686,37 @@ export async function deletePage(id: string, hard: boolean = false): Promise<Sit
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function uploadMediaFile(file: File, category: string = 'general', altText: string = ''): Promise<{ success: boolean; url?: string; media_id?: string; error?: string }> {
   try {
+    let cloudName = 'wingsrivercafe';
+    let uploadPreset = 'wings_river_pwa';
+
+    try {
+      const siteCfg = await getSiteSettings();
+      if (siteCfg?.cloudinary_cloud_name) cloudName = siteCfg.cloudinary_cloud_name;
+      if (siteCfg?.cloudinary_upload_preset) uploadPreset = siteCfg.cloudinary_upload_preset;
+    } catch {}
+
+    // Try direct Cloudinary upload
+    const cRes = await uploadCloudinaryFile(file, cloudName, uploadPreset);
+    if (cRes.success && cRes.url) {
+      const mediaItem: MediaItem = {
+        id: 'med-' + Date.now(),
+        public_id: file.name || `upload_${Date.now()}.jpg`,
+        secure_url: cRes.url,
+        url: cRes.url,
+        category: category,
+        alt_text: altText || file.name || 'Cloudinary Media',
+        created_at: new Date().toISOString()
+      };
+      await apiPost('/api/admin/media', mediaItem).catch(() => {});
+      notifySync();
+      return { success: true, url: cRes.url, media_id: mediaItem.id };
+    }
+  } catch (e) {
+    console.warn('[Cloudinary Direct Upload Notice]:', e);
+  }
+
+  // Fallback to local server upload endpoint
+  try {
     const fileName = (file.name && file.name.trim()) ? file.name : `upload_${Date.now()}.jpg`;
     const formData = new FormData();
     formData.append('file', file, fileName);

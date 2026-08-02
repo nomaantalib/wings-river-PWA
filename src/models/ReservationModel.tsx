@@ -7,6 +7,7 @@ export interface Reservation {
   booking_type: string;
   table_number?: string;
   cluster_name?: string;
+  cluster_id?: string;
   duration_hours?: number;
   qr_code?: string;
   amount?: number;

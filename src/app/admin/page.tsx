@@ -3171,7 +3171,20 @@ export default function AdminPage() {
               </div>
               <div>
                 <label className={labelCls}>Category</label>
-                <input type="text" value={galleryModal.category || ''} onChange={(e) => setGalleryModal({ ...galleryModal, category: e.target.value })} className={inputCls} />
+                <input type="text" value={galleryModal.category || ''} onChange={(e) => setGalleryModal({ ...galleryModal, category: e.target.value })} className={inputCls} placeholder="e.g. Indoor AC, Garden Area, Water Sports" />
+              </div>
+              <div>
+                <label className={labelCls}>Dining Area / Cluster (For Floor Map Gallery)</label>
+                <select
+                  value={galleryModal.cluster_id || ''}
+                  onChange={(e) => setGalleryModal({ ...galleryModal, cluster_id: e.target.value })}
+                  className={inputCls}
+                >
+                  <option value="">General (All Areas)</option>
+                  <option value="indoor">Indoor AC Hall</option>
+                  <option value="garden">Open Garden Area</option>
+                  <option value="rooftop">Rooftop Upper Deck</option>
+                </select>
               </div>
               <ImageUploader
                 label="Photo Image (URL or Upload File)"
