@@ -184,7 +184,10 @@ async function ensureTables(db) {
     `ALTER TABLE blogs ADD COLUMN video_url TEXT;`,
     `ALTER TABLE blogs ADD COLUMN version INTEGER DEFAULT 1;`,
     `ALTER TABLE blogs ADD COLUMN is_deleted INTEGER DEFAULT 0;`,
-    `ALTER TABLE blogs ADD COLUMN images TEXT DEFAULT '[]';`
+    `ALTER TABLE blogs ADD COLUMN images TEXT DEFAULT '[]';`,
+    `ALTER TABLE gallery ADD COLUMN cluster_id TEXT DEFAULT 'cluster-riverside';`,
+    `ALTER TABLE gallery ADD COLUMN media_type TEXT DEFAULT 'image';`,
+    `ALTER TABLE gallery ADD COLUMN video_url TEXT DEFAULT '';`
   ];
 
   for (const alterSql of columnsToAdd) {
@@ -720,9 +723,20 @@ app.post('/gallery', async (c) => {
     const data = await c.req.json();
     const id = data.id || `gal-${Date.now()}`;
     await db.prepare(`
-      INSERT OR REPLACE INTO gallery (id, title, category, image_url, featured, display_order, is_deleted)
-      VALUES (?, ?, ?, ?, ?, ?, ?)
-    `).bind(id, data.title || '', data.category || 'Restaurant', data.image_url || '', data.featured ? 1 : 0, Number(data.display_order) || 0, Number(data.is_deleted) || 0).run();
+      INSERT OR REPLACE INTO gallery (id, title, category, cluster_id, image_url, video_url, media_type, featured, display_order, is_deleted)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      id,
+      data.title || '',
+      data.category || 'Restaurant',
+      data.cluster_id || 'cluster-riverside',
+      data.image_url || '',
+      data.video_url || '',
+      data.media_type || 'image',
+      data.featured ? 1 : 0,
+      Number(data.display_order) || 0,
+      Number(data.is_deleted) || 0
+    ).run();
     return c.json({ success: true, id });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
