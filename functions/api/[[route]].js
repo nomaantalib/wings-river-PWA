@@ -330,10 +330,219 @@ app.all('/seed', async (c) => {
   }
   try {
     await ensureTables(db);
-    return c.json({
-      success: true,
-      message: 'Cloudflare D1 Database schema verified successfully!'
-    });
+    const seeded = { categories: 0, menu: 0, gallery: 0, watersports: 0, blogs: 0, banners: 0, faqs: 0, clusters: 0, tables: 0 };
+
+    // 1. Menu Categories
+    const existingCats = await db.prepare('SELECT COUNT(*) as cnt FROM menu_categories').first();
+    if (!existingCats || existingCats.cnt === 0) {
+      const cats = [
+        ['cat-beverages','Beverages','beverages','Hot teas, fresh lime, and soft drinks',1],
+        ['cat-breakfast','Breakfast','breakfast','Parathas, Jalebi, and Bun Makkhan',2],
+        ['cat-chaat','Chaat & Starters','chaat-starters','Lucknowi basket chaat, Agra bhalla, and golgappe',3],
+        ['cat-drinks','Coolers & Mocktails','coolers-mocktails','Mojitos, iced teas, and pina colada',4],
+        ['cat-coffee','Coffee & Shakes','coffee-shakes','Cold brew, espresso, and chocolate cookie shakes',5],
+        ['cat-indian','Indian Main Course','indian-main-course','Dal Makhani, Paneer Lababdar, and deluxe thalis',6],
+        ['cat-pizza','Pizza & Burgers','pizza-burgers','Wood-fired pizzas and gourmet cottage cheese burgers',7],
+        ['cat-chinese','Chinese Wok & Waffles','chinese-wok-waffles','Hakka noodles, chilli paneer, and continental sizzlers',8],
+        ['cat-desserts','Desserts','desserts','Shahi Tukda, Gulab Jamun, and ice creams',9],
+      ];
+      for (const [id, name, slug, desc, ord] of cats) {
+        await db.prepare('INSERT OR REPLACE INTO menu_categories (id, name, slug, description, display_order, is_deleted) VALUES (?,?,?,?,?,0)')
+          .bind(id, name, slug, desc, ord).run();
+      }
+      seeded.categories = cats.length;
+    }
+
+    // 2. Menu Items
+    const existingMenu = await db.prepare('SELECT COUNT(*) as cnt FROM menu_items').first();
+    if (!existingMenu || existingMenu.cnt === 0) {
+      const MENU_IMG = 'https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_400/wings_river_cafe/menu_default.jpg';
+      const items = [
+        ['m1','cat-beverages','Special Masala Chai','Freshly brewed kulhad tea with cardamoms & ginger.',50,1,MENU_IMG,1,1,1],
+        ['m2','cat-beverages','Fresh Lime Soda','Sweet or salted sparkling fresh lime soda.',60,1,MENU_IMG,1,2,0],
+        ['m3','cat-breakfast','Bun Makkhan','Soft toasted bun stuffed with rich farm butter.',60,1,MENU_IMG,1,1,0],
+        ['m4','cat-breakfast','Special Chola Bhatura','Piping hot fluffy bhaturas with spicy Amritsari chole.',150,1,MENU_IMG,1,2,1],
+        ['m5','cat-breakfast','Paneer Paratha','Stuffed cottage cheese paratha with curd & pickle.',110,1,MENU_IMG,1,3,0],
+        ['m6','cat-breakfast','Dahi Jalebi (200gm)','Crispy golden jalebis paired with fresh thick curd.',150,1,MENU_IMG,1,4,0],
+        ['m7','cat-chaat','Special Pav Bhaji','Butter-loaded spicy mashed vegetable bhaji with toasted pavs.',150,1,MENU_IMG,1,1,1],
+        ['m8','cat-chaat','Cheese Butter Pav Bhaji','Gratinated melted cheese topped over butter pav bhaji.',170,1,MENU_IMG,1,2,0],
+        ['m9','cat-chaat','Agra Ka Special Bhalla','Crispy potato bhalla with sweet curd & mint chutney.',80,1,MENU_IMG,1,3,0],
+        ['m10','cat-chaat','Lucknowi Basket Chaat','Crispy potato basket filled with tikkis, sprouts & curd.',150,1,MENU_IMG,1,4,1],
+        ['m11','cat-chaat','Gol Gappe (6 Pcs)','Crispy puris filled with spicy mint water & tangy chutney.',40,1,MENU_IMG,1,5,0],
+        ['m12','cat-drinks','Virgin Mojito','Fresh mint, lime wedges, crushed ice & sparkling soda.',119,1,MENU_IMG,1,1,1],
+        ['m13','cat-drinks','Blue Lagoon Cooler','Refreshing curacao blue citrus cooler with lemon zest.',129,1,MENU_IMG,1,2,0],
+        ['m14','cat-drinks','Watermelon Sunset Mojito','Fresh watermelon extract, mint & chat masala fizz.',129,1,MENU_IMG,1,3,0],
+        ['m15','cat-drinks','Peach Iced Tea','Slow brewed tea infused with natural peach nectar.',129,1,MENU_IMG,1,4,0],
+        ['m16','cat-drinks','Virgin Pina Colada','Creamy coconut milk & pineapple juice mocktail.',129,1,MENU_IMG,1,5,0],
+        ['m17','cat-coffee','Riverside Cold Brew Coffee','Chilled rich espresso blended with vanilla cream.',149,1,MENU_IMG,1,1,1],
+        ['m18','cat-desserts','Oreo Cream Shake','Rich chocolate cookie shake topped with whipped cream.',149,1,MENU_IMG,1,1,0],
+        ['m19','cat-chaat','Veg Manchow Soup','Spicy Indo-Chinese soup with crispy fried noodles.',149,1,MENU_IMG,1,6,0],
+        ['m20','cat-chaat','Lemon Coriander Soup','Vitamin-C rich clear soup with fresh coriander & lime.',149,1,MENU_IMG,1,7,0],
+        ['m21','cat-indian','Dal Makhani Shahi','Slow-cooked black lentils in rich cream & butter.',265,1,MENU_IMG,1,1,1],
+        ['m22','cat-indian','Paneer Lababdar','Soft paneer cubes simmered in onion-tomato cashew gravy.',315,1,MENU_IMG,1,2,1],
+        ['m23','cat-indian','Handi Soya Chaap Gravy','Tandoori soya chaap pieces cooked in claypot spices.',305,1,MENU_IMG,1,3,0],
+        ['m24','cat-indian','Deluxe Veg Thali','Paneer, Dal Makhani, Mix Veg, Naan, Rice, Raita & Sweet.',345,1,MENU_IMG,1,4,1],
+        ['m25','cat-pizza','Loaded Special Pizza','Loaded wood-fired pizza with mozzarella, paneer & peppers.',349,1,MENU_IMG,1,1,1],
+        ['m26','cat-pizza','Gourmet Paneer Burger','Crispy cottage cheese patty, cheddar, jalapenos & dip.',329,1,MENU_IMG,1,2,0],
+        ['m27','cat-pizza','Cheese Garlic Bread (4 Pcs)','Toasted baguette topped with garlic butter & mozzarella.',235,1,MENU_IMG,1,3,0],
+        ['m28','cat-chinese','Chilli Paneer Dry','Paneer wok-tossed with capsicum, garlic & Schezwan.',219,1,MENU_IMG,1,1,0],
+        ['m29','cat-chinese','Veg Hakka Noodles','Stir-fried noodles loaded with crunchy veggies & light soy.',249,1,MENU_IMG,1,2,0],
+        ['m30','cat-chinese','Cottage Cheese Sizzler','Paneer steak, herb rice, sautéed veggies & french fries.',449,1,MENU_IMG,1,3,0],
+        ['m31','cat-chinese','Red Sauce Arrabiata Pasta','Penne pasta tossed in spicy basil tomato concasse.',275,1,MENU_IMG,1,4,0],
+        ['m32','cat-chinese','Paneer Tikka Charcoal Grilled','Classic marinated paneer skewers roasted in tandoor.',299,1,MENU_IMG,1,5,1],
+        ['m33','cat-desserts','Hot Gulab Jamun (2 Pcs)','Soft milk solids dumplings in hot cardamom syrup.',99,1,MENU_IMG,1,2,0],
+        ['m34','cat-desserts','Royal Shahi Tukda','Saffron bread topped with thick rabri & pistachios.',169,1,MENU_IMG,1,3,1],
+      ];
+      for (const [id, cat, name, desc, price, veg, img, avail, ord, best] of items) {
+        await db.prepare('INSERT OR REPLACE INTO menu_items (id,category_id,name,description,price,is_veg,image_url,is_available,display_order,is_bestseller,is_deleted) VALUES (?,?,?,?,?,?,?,?,?,?,0)')
+          .bind(id, cat, name, desc, price, veg, img, avail, ord, best).run();
+      }
+      seeded.menu = items.length;
+    }
+
+    // 3. Gallery with proper cluster_id values
+    const existingGallery = await db.prepare('SELECT COUNT(*) as cnt FROM gallery').first();
+    if (!existingGallery || existingGallery.cnt === 0) {
+      const gallery = [
+        // cluster-indoor — Indoor AC Hall
+        ['g-in-1','Indoor AC Hall — Cozy River View Seating','Indoor AC','cluster-indoor','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/indoor_ac_hall_1.jpg','image',1,1],
+        ['g-in-2','Indoor Dining & Fine Ambience','Indoor AC','cluster-indoor','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/indoor_ac_hall_2.jpg','image',1,2],
+        ['g-in-3','Cozy Indoor Lounge Seating','Indoor AC','cluster-indoor','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/indoor_lounge.jpg','image',0,3],
+        // cluster-riverside — Riverside Deck
+        ['g-rs-1','Sunset Gomti Riverfront Lounge','River View','cluster-riverside','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/riverside_deck_sunset.jpg','image',1,4],
+        ['g-rs-2','Riverside Deck Evening Ambience','Evening','cluster-riverside','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/riverside_evening.jpg','image',1,5],
+        ['g-rs-3','Waterfront Fairy Light Setup','Evening','cluster-riverside','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/fairy_light_canopy.jpg','image',1,6],
+        ['g-rs-4','Outdoor Riverside Garden Tables','Outdoor Seating','cluster-riverside','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/garden_tables.jpg','image',0,7],
+        // cluster-canopy — VIP Private Canopy
+        ['g-cn-1','VIP Private Canopy Birthday Setup','VIP Canopy','cluster-canopy','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/vip_canopy_birthday.jpg','image',1,8],
+        ['g-cn-2','Candlelit Anniversary Canopy Dinner','VIP Canopy','cluster-canopy','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/vip_canopy_anniversary.jpg','image',1,9],
+        // watersports — Water Sports
+        ['g-ws-1','Jet Ski Thrill Ride — Gomti River','Water Sports','watersports','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/jetski_action.jpg','image',1,10],
+        ['g-ws-2','Speedboat Action Shot — Gomti','Water Sports','watersports','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/speedboat_action.jpg','image',1,11],
+        ['g-ws-3','Motorboat Cruise — Laxman Jhula','Water Sports','watersports','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/motorboat_cruise.jpg','image',1,12],
+        // General food
+        ['g-fd-1','Chef Special Gourmet Food Spread','Food','','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/food_gourmet_spread.jpg','image',1,13],
+        ['g-fd-2','Signature Drinks & Mocktail Bar','Food','','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_800/wings_river_cafe/mocktail_bar.jpg','image',1,14],
+      ];
+      for (const [id, title, cat, cluster, url, mtype, feat, ord] of gallery) {
+        await db.prepare('INSERT OR REPLACE INTO gallery (id,title,category,cluster_id,image_url,media_type,featured,display_order,is_deleted) VALUES (?,?,?,?,?,?,?,?,0)')
+          .bind(id, title, cat, cluster, url, mtype, feat, ord).run();
+      }
+      seeded.gallery = gallery.length;
+    }
+
+    // 4. Water Sports Rides
+    const existingRides = await db.prepare('SELECT COUNT(*) as cnt FROM water_sports').first();
+    if (!existingRides || existingRides.cnt === 0) {
+      const rides = [
+        ['ride-1','Jetski Thrill Ride','Water Sports',350,'Per Person 1 Round','High speed jet ski on Gomti river with certified instructor & life jacket.','Most Popular','🏄',1],
+        ['ride-2','Speed Boat Ride','Water Sports',250,'Per Person 1 Round','Twin-engine speedboat ride with panoramic riverfront views.','Family Favorite','⚡',2],
+        ['ride-3','Motor Boat Cruise','Water Sports',200,'Per Person 1 Round','Smooth motor boat cruise around Laxman Jhula riverfront.','Scenic Cruise','🚤',3],
+        ['ride-4','Panda Train','Other Activities',50,'Per Person 1 Round','Fun musical track train ride for toddlers, kids & families.','Kids Zone','🐼',4],
+        ['ride-5','Electric Kids Car','Other Activities',50,'Per Person 1 Round','Illuminated battery-powered drive cars for young adventurers.','Kids Fun','🚗',5],
+        ['ride-6','Trampoline Jump','Other Activities',50,'Per Person 1 Round','Safety netting high-bounce jumping trampoline enclosure.','Active Play','🤸',6],
+      ];
+      for (const [id, name, cat, price, unit, desc, badge, emoji, ord] of rides) {
+        await db.prepare('INSERT OR REPLACE INTO water_sports (id,name,category,price,unit,description,badge,emoji,display_order,is_deleted) VALUES (?,?,?,?,?,?,?,?,?,0)')
+          .bind(id, name, cat, price, unit, desc, badge, emoji, ord).run();
+      }
+      seeded.watersports = rides.length;
+    }
+
+    // 5. Blogs
+    const existingBlogs = await db.prepare('SELECT COUNT(*) as cnt FROM blogs').first();
+    if (!existingBlogs || existingBlogs.cnt === 0) {
+      const blogs = [
+        ['b1','Experience Lucknow\'s Finest Riverside Dining & Speedboat Rides','riverside-dining-lucknow','Discover why Wings River Café at Laxman Jhula offers unforgettable riverside dining.','Wings River Café is a complete sensory destination situated right along the Gomti River. Guests enjoy mouthwatering multicuisine dishes on our elevated riverside deck while watching speedboats zip across the water.','Riverside Experience','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_1200/wings_river_cafe/blog_riverside_dining.jpg','Wings River Team','4 min read','published','2026-07-15'],
+        ['b2','Host Unforgettable Birthday Parties by the Gomti River','birthday-parties-wings-river','From fairy light canopies to custom buffet menus, turn your birthday into a magical evening.','Wings River Café offers exclusive outdoor canopy setups, personalized lighting arches, DJ audio, and customizable multicuisine buffet spreads for up to 200 guests.','Events & Parties','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_1200/wings_river_cafe/blog_birthday_party.jpg','Event Coordinator','3 min read','published','2026-07-10'],
+        ['b3','Nightlife & Evening Ambiance at Laxman Jhula Waterfront','nightlife-evening-ambiance','Experience stunning night illumination, cool Gomti breezes, and candlelit outdoor tables.','As sunset sets over the Gomti River, Wings River Café transforms into a glowing haven. Enjoy wood-fired pizzas, gourmet cocktails, and soothing music.','Nightlife','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_1200/wings_river_cafe/blog_nightlife.jpg','Lifestyle Editor','3 min read','published','2026-07-08'],
+        ['b4','Official Lucknow Water Sports Ticket Rates & Speedboat Guide','lucknow-water-sports-guide','Official ride tokens for Jetskis, Speedboats, Motorboats, and kids rides.','Lucknow Water Sports operating at Wings River Café counter offers safe and thrilling rides. All rides come with life jackets and certified captains.','Water Sports','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_1200/wings_river_cafe/blog_water_sports.jpg','Water Sports Captain','5 min read','published','2026-07-05'],
+      ];
+      for (const [id, title, slug, excerpt, content, cat, cover, author, readTime, status, date] of blogs) {
+        await db.prepare('INSERT OR REPLACE INTO blogs (id,title,slug,excerpt,content,category,cover_image,images,author,read_time,status,version,is_deleted,published_at,created_at,updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?,1,0,?,?,?)')
+          .bind(id, title, slug, excerpt, content, cat, cover, '[]', author, readTime, status, date, date, date).run();
+      }
+      seeded.blogs = blogs.length;
+    }
+
+    // 6. Event Banners
+    const existingBanners = await db.prepare('SELECT COUNT(*) as cnt FROM event_banners').first();
+    if (!existingBanners || existingBanners.cnt === 0) {
+      await db.prepare('INSERT OR REPLACE INTO event_banners (id,title,subtitle,image_url,cta_text,cta_link,status,display_order,is_deleted) VALUES (?,?,?,?,?,?,?,?,0)')
+        .bind('eb-1','🎉 Weekend Riverside Fiesta!','Live music, gourmet BBQ & unlimited mocktails every Saturday & Sunday evening.','https://res.cloudinary.com/vrgblmky/image/upload/f_auto,q_auto,w_1400/wings_river_cafe/weekend_fiesta_banner.jpg','Reserve Your Spot','#booking','published',1).run();
+      seeded.banners = 1;
+    }
+
+    // 7. FAQs
+    const existingFaqs = await db.prepare('SELECT COUNT(*) as cnt FROM faqs').first();
+    if (!existingFaqs || existingFaqs.cnt === 0) {
+      const faqs = [
+        ['faq-1','Where is Wings River Café located?','We are at Laxman Mela Ground, Laxman Jhula Park, Gomti River Front, Hazratganj, Lucknow, UP 226001.',1],
+        ['faq-2','Are water sports safe?','Yes, all rides are conducted by certified captains. Every passenger is provided a standard safety life jacket.',2],
+        ['faq-3','Do you take private party reservations?','Yes! We host birthday parties, anniversaries, candlelit dinners, and corporate events with custom catering.',3],
+        ['faq-4','What are the opening hours?','We are open all 7 days from 11:00 AM to 11:59 PM.',4],
+        ['faq-5','Is parking available?','Yes, parking is available at Laxman Mela Ground premises.',5],
+      ];
+      for (const [id, q, a, ord] of faqs) {
+        await db.prepare('INSERT OR REPLACE INTO faqs (id,question,answer,display_order,is_deleted) VALUES (?,?,?,?,0)')
+          .bind(id, q, a, ord).run();
+      }
+      seeded.faqs = faqs.length;
+    }
+
+    // 8. Table Clusters
+    const existingClusters = await db.prepare('SELECT COUNT(*) as cnt FROM table_clusters').first();
+    if (!existingClusters || existingClusters.cnt === 0) {
+      const clusters = [
+        ['cluster-riverside','Riverside Deck','Open-air waterfront seating with sunset river views',1],
+        ['cluster-indoor','Indoor AC Hall','Climate-controlled lounge dining with glass facade',2],
+        ['cluster-canopy','VIP Private Canopy','Exclusive fairy-light gazebo for parties & candlelit dinners',3],
+      ];
+      for (const [id, name, desc, ord] of clusters) {
+        await db.prepare('INSERT OR REPLACE INTO table_clusters (id,name,description,display_order) VALUES (?,?,?,?)')
+          .bind(id, name, desc, ord).run();
+      }
+      seeded.clusters = clusters.length;
+    }
+
+    // 9. Tables
+    const existingTables = await db.prepare('SELECT COUNT(*) as cnt FROM tables').first();
+    if (!existingTables || existingTables.cnt === 0) {
+      const tables = [
+        ['tbl-1','T1','cluster-riverside',4,'free'],['tbl-2','T2','cluster-riverside',4,'eating'],
+        ['tbl-3','T3','cluster-riverside',2,'free'],['tbl-4','T4','cluster-riverside',6,'needs_cleaning'],
+        ['tbl-5','T5','cluster-riverside',4,'free'],['tbl-6','T6','cluster-riverside',4,'reserved'],
+        ['tbl-7','T7','cluster-indoor',4,'free'],['tbl-8','T8','cluster-indoor',4,'free'],
+        ['tbl-9','T9','cluster-indoor',6,'eating'],['tbl-10','T10','cluster-indoor',4,'free'],
+        ['tbl-11','T11','cluster-indoor',4,'free'],['tbl-12','T12','cluster-indoor',8,'free'],
+        ['tbl-13','V1','cluster-canopy',10,'free'],['tbl-14','V2','cluster-canopy',12,'reserved'],
+        ['tbl-15','V3','cluster-canopy',15,'free'],
+      ];
+      for (const [id, num, cluster, cap, status] of tables) {
+        await db.prepare('INSERT OR REPLACE INTO tables (id,table_number,cluster_id,capacity,status,is_active) VALUES (?,?,?,?,?,1)')
+          .bind(id, num, cluster, cap, status).run();
+      }
+      seeded.tables = tables.length;
+    }
+
+    // 10. Seed default users
+    const sha256 = async (msg) => {
+      const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(msg));
+      return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2, '0')).join('');
+    };
+    const adminHash = await sha256('wingsriver@2026');
+    const waiterHash = await sha256('wings123');
+    await db.prepare('INSERT OR IGNORE INTO users (id,username,password_hash,email,role) VALUES (?,?,?,?,?)')
+      .bind('usr-admin','admin', adminHash,'admin@wingsrivercafe.com','Administrator').run();
+    await db.prepare('INSERT OR IGNORE INTO users (id,username,password_hash,email,role) VALUES (?,?,?,?,?)')
+      .bind('usr-manager','manager', adminHash,'manager@wingsrivercafe.com','Manager').run();
+    await db.prepare('INSERT OR IGNORE INTO users (id,username,password_hash,email,role) VALUES (?,?,?,?,?)')
+      .bind('usr-waiter','waiter', waiterHash,'waiter@wingsrivercafe.com','Waiter').run();
+    await db.prepare('INSERT OR IGNORE INTO users (id,username,password_hash,email,role) VALUES (?,?,?,?,?)')
+      .bind('usr-kitchen','kitchen', waiterHash,'kitchen@wingsrivercafe.com','Kitchen').run();
+
+    invalidateCachePrefix('');
+    return c.json({ success: true, message: 'Wings River Café D1 database seeded successfully!', seeded });
   } catch (e) {
     return c.json({ success: false, error: e.message }, 500);
   }

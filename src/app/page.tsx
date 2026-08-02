@@ -15,7 +15,7 @@ import GallerySection from '@/components/GallerySection';
 import ReviewsSection from '@/components/ReviewsSection';
 import BlogSection from '@/components/BlogSection';
 import LocationSection from '@/components/LocationSection';
-import ContactSection from '@/components/ContactSection';
+
 import Footer from '@/components/Footer';
 import FloatingActions from '@/components/FloatingActions';
 import BookingModal from '@/components/BookingModal';
@@ -45,6 +45,7 @@ export default function Home() {
   const [selectedTableNumber, setSelectedTableNumber] = useState('T1');
   const [syncKey, setSyncKey] = useState(0);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
+  const [showFloorMap, setShowFloorMap] = useState(false);
 
   useEffect(() => {
     initRealtimeBookingNotifier();
@@ -159,10 +160,44 @@ export default function Home() {
 
       <AboutSection />
 
-      {/* SRS Interactive Table Reservation Floor Map Section — Beige, Black & Golden Theme */}
-      <section id="floor-map" className="py-14 sm:py-20 bg-[#FAF7F2] text-[#1F1810] border-y border-[#E5B82C]/30 shadow-xl">
-        <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-          <InteractiveFloorMap onSelectTable={handleSelectTableFromMap} />
+      {/* ── Reserve a Table — Collapsible Floor Map ──────────────────────── */}
+      <section id="floor-map" className="py-10 sm:py-14 bg-[#FAF7F2] text-[#1F1810] border-y border-[#E5B82C]/30">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {!showFloorMap ? (
+            /* ── Collapsed CTA Card ── */
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-5 bg-[#1F1810] rounded-2xl px-6 py-6 border border-[#E5B82C]/30 shadow-xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center shadow-lg shrink-0">
+                  <Ticket className="w-6 h-6 text-[#1F1810]" />
+                </div>
+                <div>
+                  <h3 className="font-serif font-bold text-lg text-[#F8E7A1] leading-tight">Reserve Your Table</h3>
+                  <p className="text-xs text-[#D4C4A0]/80 mt-0.5">Choose your area, pick a table, pay & get instant QR ticket</p>
+                </div>
+              </div>
+              <button
+                onClick={() => requireAuthAndExecute(() => setShowFloorMap(true))}
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] text-[#1F1810] font-extrabold text-sm rounded-xl shadow-xl hover:opacity-90 active:scale-95 transition-all"
+              >
+                <Ticket className="w-4 h-4" />
+                Reserve a Table Now
+              </button>
+            </div>
+          ) : (
+            /* ── Expanded Floor Map ── */
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="font-serif font-bold text-lg text-[#1F1810]">Reserve Your Table</h3>
+                <button
+                  onClick={() => setShowFloorMap(false)}
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#E5B82C]/40 bg-white text-[#7A5C3A] text-xs font-semibold hover:bg-[#FFF8E7] transition"
+                >
+                  ✕ Close
+                </button>
+              </div>
+              <InteractiveFloorMap onSelectTable={handleSelectTableFromMap} />
+            </div>
+          )}
         </div>
       </section>
 
@@ -183,7 +218,6 @@ export default function Home() {
 
       <BlogSection key={`blog-${syncKey}`} onOpenBooking={() => handleOpenBooking('table_booking')} />
       <LocationSection />
-      <ContactSection />
       
       <Footer />
       <FloatingActions />

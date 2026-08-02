@@ -1,0 +1,111 @@
+name: Deploy Wings River Café to Cloudflare Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    name: Build & Deploy
+    steps:
+      # ── 1. Checkout ────────────────────────────────────────────────────────
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ── 2. Setup Node ──────────────────────────────────────────────────────
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      # ── 3. Install dependencies ────────────────────────────────────────────
+      - name: Install dependencies
+        run: npm ci
+
+      # ── 4. Build Next.js static export ────────────────────────────────────
+      - name: Build
+        env:
+          NEXT_PUBLIC_SITE_NAME: ${{ secrets.NEXT_PUBLIC_SITE_NAME }}
+          NEXT_PUBLIC_SLOGAN: ${{ secrets.NEXT_PUBLIC_SLOGAN }}
+          NEXT_PUBLIC_PHONE: ${{ secrets.NEXT_PUBLIC_PHONE }}
+          NEXT_PUBLIC_WHATSAPP: ${{ secrets.NEXT_PUBLIC_WHATSAPP }}
+          NEXT_PUBLIC_MAPS_URL: ${{ secrets.NEXT_PUBLIC_MAPS_URL }}
+          NEXT_PUBLIC_INSTAGRAM_URL: ${{ secrets.NEXT_PUBLIC_INSTAGRAM_URL }}
+          NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME: ${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}
+          NEXT_PUBLIC_RAZORPAY_KEY_ID: ${{ secrets.NEXT_PUBLIC_RAZORPAY_KEY_ID }}
+          NEXT_PUBLIC_FIREBASE_VAPID_KEY: ${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}
+          NEXT_PUBLIC_FCM_SENDER_ID: ${{ secrets.NEXT_PUBLIC_FCM_SENDER_ID }}
+          NEXT_PUBLIC_MSG91_WIDGET_ID: ${{ secrets.NEXT_PUBLIC_MSG91_WIDGET_ID }}
+          NEXT_PUBLIC_MSG91_TOKEN_AUTH: ${{ secrets.NEXT_PUBLIC_MSG91_TOKEN_AUTH }}
+        run: npm run build
+
+      # ── 5. Deploy to Cloudflare Pages ─────────────────────────────────────
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: ${{ secrets.CF_PAGES_PROJECT_NAME }}
+          directory: out
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          wranglerVersion: '3'
+
+      # ── 6. Set Cloudflare Pages secret env vars (runs only on deploy) ──────
+      - name: Set Cloudflare Pages secrets via API
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_PROJECT_NAME: ${{ secrets.CF_PAGES_PROJECT_NAME }}
+        run: |
+          set_env_var() {
+            local name=$1
+            local value=$2
+            local type=${3:-"plain_text"}  # plain_text or secret_text
+            curl -s -X PATCH \
+              "https://api.cloudflare.com/client/v4/accounts/$CF_ACCOUNT_ID/pages/projects/$CF_PROJECT_NAME" \
+              -H "Authorization: Bearer $CF_API_TOKEN" \
+              -H "Content-Type: application/json" \
+              --data "{\"deployment_configs\":{\"production\":{\"env_vars\":{\"$name\":{\"value\":\"$value\",\"type\":\"$type\"}}}}}" \
+              | python3 -c "import sys,json; d=json.load(sys.stdin); print('✓' if d.get('success') else '✗ ' + str(d.get('errors','')))" \
+              && echo " $name"
+          }
+
+          echo "Setting Cloudflare Pages environment variables..."
+
+          # ── Cloudinary ────────────────────────────────────────────────────
+          set_env_var "CLOUDINARY_CLOUD_NAME"   "${{ secrets.CLOUDINARY_CLOUD_NAME }}"   "secret_text"
+          set_env_var "CLOUDINARY_API_KEY"      "${{ secrets.CLOUDINARY_API_KEY }}"      "secret_text"
+          set_env_var "CLOUDINARY_API_SECRET"   "${{ secrets.CLOUDINARY_API_SECRET }}"   "secret_text"
+
+          # ── Admin CMS ─────────────────────────────────────────────────────
+          set_env_var "ADMIN_SECRET_KEY"        "${{ secrets.ADMIN_SECRET_KEY }}"        "secret_text"
+          set_env_var "ADMIN_PASSWORD"          "${{ secrets.ADMIN_PASSWORD }}"          "secret_text"
+
+          # ── MSG91 OTP ─────────────────────────────────────────────────────
+          set_env_var "MSG91_TOKEN_AUTH"        "${{ secrets.MSG91_TOKEN_AUTH }}"        "secret_text"
+          set_env_var "MSG91_WIDGET_ID"         "${{ secrets.MSG91_WIDGET_ID }}"         "secret_text"
+          set_env_var "MSG91_AUTH_KEY"          "${{ secrets.MSG91_TOKEN_AUTH }}"        "secret_text"
+
+          # ── Razorpay ──────────────────────────────────────────────────────
+          set_env_var "RAZORPAY_KEY_SECRET"     "${{ secrets.RAZORPAY_KEY_SECRET }}"     "secret_text"
+
+          # ── Firebase FCM ──────────────────────────────────────────────────
+          set_env_var "FCM_PRIVATE_KEY"         "${{ secrets.FCM_PRIVATE_KEY }}"         "secret_text"
+
+          # ── Public vars ───────────────────────────────────────────────────
+          set_env_var "NEXT_PUBLIC_SITE_NAME"              "${{ secrets.NEXT_PUBLIC_SITE_NAME }}"              "plain_text"
+          set_env_var "NEXT_PUBLIC_PHONE"                  "${{ secrets.NEXT_PUBLIC_PHONE }}"                  "plain_text"
+          set_env_var "NEXT_PUBLIC_WHATSAPP"               "${{ secrets.NEXT_PUBLIC_WHATSAPP }}"               "plain_text"
+          set_env_var "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME"  "${{ secrets.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME }}"  "plain_text"
+          set_env_var "NEXT_PUBLIC_RAZORPAY_KEY_ID"        "${{ secrets.NEXT_PUBLIC_RAZORPAY_KEY_ID }}"        "plain_text"
+          set_env_var "NEXT_PUBLIC_FIREBASE_VAPID_KEY"     "${{ secrets.NEXT_PUBLIC_FIREBASE_VAPID_KEY }}"     "plain_text"
+          set_env_var "NEXT_PUBLIC_FCM_SENDER_ID"          "${{ secrets.NEXT_PUBLIC_FCM_SENDER_ID }}"          "plain_text"
+          set_env_var "NEXT_PUBLIC_MSG91_WIDGET_ID"        "${{ secrets.NEXT_PUBLIC_MSG91_WIDGET_ID }}"        "plain_text"
+          set_env_var "NEXT_PUBLIC_MSG91_TOKEN_AUTH"       "${{ secrets.NEXT_PUBLIC_MSG91_TOKEN_AUTH }}"       "plain_text"
+          set_env_var "NEXT_PUBLIC_MAPS_URL"               "${{ secrets.NEXT_PUBLIC_MAPS_URL }}"               "plain_text"
+          set_env_var "NEXT_PUBLIC_INSTAGRAM_URL"          "${{ secrets.NEXT_PUBLIC_INSTAGRAM_URL }}"          "plain_text"
+
+          echo "All environment variables configured ✅"
