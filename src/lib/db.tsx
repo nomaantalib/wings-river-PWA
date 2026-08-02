@@ -67,6 +67,8 @@ export {
   // Hero Settings
   getStoredHeroSettings,
   saveHeroSettings,
+  DEFAULT_HERO_SETTINGS,
+
   // Menu Categories
   getStoredCategories,
   saveCategory,
@@ -98,6 +100,8 @@ export {
   // Site Settings & Dashboard
   getSiteSettings,
   saveSiteSettings,
+  SITE_SETTINGS_DEFAULTS,
+
   getDashboardStats,
   uploadMediaFile,
   uploadCloudinaryFile,

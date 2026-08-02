@@ -1028,7 +1028,7 @@ export interface SiteSettings {
   [key: string]: any;
 }
 
-const SITE_SETTINGS_DEFAULTS: SiteSettings = {
+export const SITE_SETTINGS_DEFAULTS: SiteSettings = {
   site_title: 'Wings River Café',
   slogan: 'Taste • Eat • Rides',
   logo_url: '/logo.png',

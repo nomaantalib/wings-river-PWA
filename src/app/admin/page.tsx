@@ -12,7 +12,7 @@ import {
   getStoredEventBanners, saveEventBanner, updateEventBanner, deleteEventBanner, toggleEventBanner,
   getStoredWaterSports, saveWaterSports, updateWaterSports, deleteWaterSports,
   getStoredMenuPages, saveMenuPage, updateMenuPage, deleteMenuPage,
-  getStoredHeroSettings, saveHeroSettings,
+  getStoredHeroSettings, saveHeroSettings, DEFAULT_HERO_SETTINGS,
   // New CMS exports
   getStoredCategories, saveCategory, deleteCategory,
   getStoredFaqs, saveFaq, deleteFaq,
@@ -23,7 +23,8 @@ import {
   getStoredPages, savePage, deletePage,
   getApiUrl,
   // Site Settings & Dashboard
-  getSiteSettings, saveSiteSettings, getDashboardStats, uploadMediaFile, uploadCloudinaryFile,
+  getSiteSettings, saveSiteSettings, SITE_SETTINGS_DEFAULTS, getDashboardStats, uploadMediaFile, uploadCloudinaryFile,
+
   // Promo Pages
   getStoredPromoPages, savePromoPage, deletePromoPage,
   // Types
@@ -499,8 +500,9 @@ export default function AdminPage() {
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [pages, setPages] = useState<SitePage[]>([]);
   const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
-  const [heroSettings, setHeroSettings] = useState<HeroSettings | null>(null);
-  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(null);
+  const [heroSettings, setHeroSettings] = useState<HeroSettings | null>(DEFAULT_HERO_SETTINGS);
+  const [siteSettings, setSiteSettings] = useState<SiteSettings | null>(SITE_SETTINGS_DEFAULTS);
+
   const [dashboardStats, setDashboardStats] = useState<any>(null);
 
   // Edit / Creation modals state
@@ -644,8 +646,9 @@ export default function AdminPage() {
       setOffers(resOffers);
       setMedia(resMedia);
       setPages(resPages);
-      setHeroSettings(resHero);
-      setSiteSettings(resSiteSettings);
+      setHeroSettings(resHero || DEFAULT_HERO_SETTINGS);
+      setSiteSettings(resSiteSettings || SITE_SETTINGS_DEFAULTS);
+
       setDashboardStats(resStats);
       setRegisteredUsersList(getRegisteredUsers());
 

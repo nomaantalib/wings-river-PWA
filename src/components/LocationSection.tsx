@@ -101,11 +101,9 @@ export default function LocationSection() {
           </div>
         </div>
 
-        {/* ── Main grid: Info + Contact sidebar ───────────── */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-
-          {/* Info card */}
-          <div className="bg-[#1F1810] rounded-2xl p-5 border border-[#E5B82C]/25 shadow-xl flex flex-col gap-5">
+        {/* ── Location & Address Info ───────────── */}
+        <div className="max-w-2xl mx-auto">
+          <div className="bg-[#1F1810] rounded-2xl p-6 border border-[#E5B82C]/25 shadow-xl flex flex-col gap-5">
             <div className="space-y-4">
               <InfoRow icon={<MapPin className="w-4 h-4" />} label="Address">
                 {cfg.address}
@@ -118,49 +116,19 @@ export default function LocationSection() {
               </InfoRow>
             </div>
 
-            <div className="mt-auto pt-4 border-t border-[#E5B82C]/20">
+            <div className="pt-4 border-t border-[#E5B82C]/20 flex flex-col sm:flex-row gap-3">
               <a href={MAPS_LINK} target="_blank" rel="noopener noreferrer"
-                className="w-full flex items-center justify-center gap-2 py-2.5 bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#1F1810] font-extrabold text-xs rounded-xl shadow hover:opacity-90 transition">
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#1F1810] font-extrabold text-xs rounded-xl shadow hover:opacity-90 transition">
                 <Navigation className="w-3.5 h-3.5" />Open in Google Maps
               </a>
-            </div>
-          </div>
-
-          {/* Contact sidebar */}
-          <div className="bg-white rounded-2xl p-5 border border-[#E5B82C]/25 shadow-xl flex flex-col gap-4">
-            <p className="text-[10px] font-extrabold uppercase tracking-widest text-[#E5B82C]">Get In Touch</p>
-            <h3 className="font-serif font-bold text-lg text-[#1F1810] leading-snug -mt-1">
-              We'd love to hear from you
-            </h3>
-            <p className="text-xs text-[#7A5C3A]">
-              Questions about birthday canopies, party menus, or speedboat tickets? Reach out directly.
-            </p>
-
-            {/* Contact links */}
-            <div className="flex flex-col gap-2 mt-auto">
-              <a href={`tel:${cfg.phone}`}
-                className="flex items-center gap-3 px-4 py-3 bg-[#FAF7F2] border border-[#E5B82C]/30 rounded-xl text-sm font-bold text-[#1F1810] hover:bg-[#FFF8E7] transition">
-                <Phone className="w-4 h-4 text-[#E5B82C] shrink-0" />
-                Direct Call — {cfg.phone}
-              </a>
               <a href={WA_LINK} target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 px-4 py-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm font-bold text-emerald-800 hover:bg-emerald-100 transition">
-                <MessageCircle className="w-4 h-4 text-emerald-600 shrink-0 fill-current" />
-                WhatsApp Chat
-              </a>
-              <a href="https://www.instagram.com/wingsriver" target="_blank" rel="noopener noreferrer"
-                className="flex items-center gap-3 px-4 py-3 bg-gradient-to-r from-amber-50 to-rose-50 border border-rose-200/60 rounded-xl text-sm font-bold text-rose-800 hover:opacity-90 transition">
-                <Instagram className="w-4 h-4 text-rose-500 shrink-0" />
-                @wingsriver on Instagram
-              </a>
-              {/* Scroll to footer link */}
-              <a href="#footer"
-                className="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl border border-[#E5B82C]/40 text-xs font-bold text-[#7A5C3A] hover:bg-[#FFF8E7] transition">
-                <ArrowDown className="w-3.5 h-3.5" />More Info in Footer
+                className="flex-1 flex items-center justify-center gap-2 py-3 bg-emerald-700 text-white font-extrabold text-xs rounded-xl shadow hover:bg-emerald-800 transition">
+                <MessageCircle className="w-3.5 h-3.5 fill-current" />WhatsApp Inquiry
               </a>
             </div>
           </div>
         </div>
+
 
 
         {/* ── Collapsible Inquiry Form ─────────────────────── */}
