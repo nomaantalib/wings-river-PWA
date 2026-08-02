@@ -11,6 +11,7 @@ import { calculateBookingPrice } from '@/lib/pricing';
 import { getStoredUserSession } from './UserAuthModal';
 import { saveReservation, Reservation, getStoredGalleryItems, GalleryItem, INITIAL_GALLERY, getStoredFloorPlan, FloorPlanLayout, FloorObject } from '@/lib/db';
 import { notifyBookingConfirmed } from '@/lib/pushNotifications';
+import { openRazorpayCheckout } from '@/lib/razorpay';
 
 /* ─── Data Types ─────────────────────────────────────────── */
 
@@ -315,64 +316,92 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     const checkoutLabel = formatCheckout(effectiveTime, durationHrs);
     const timeLabel = TIME_SLOTS.find(s => s.value === effectiveTime)?.label || effectiveTime;
 
-    const reservationObj: Reservation = {
-      id: resId,
-      name: userName,
-      phone: userPhone,
-      email: userEmail || '',
-      booking_type: 'table_booking',
-      date: selectedDate,
-      time: effectiveTime,
-      guests: guestCount,
-      table_number: selectedTable.table_number,
-      cluster_id: selectedArea.id,
-      special_requests: `Area: ${selectedArea.label} • Duration: ${durationHrs} hrs (Checkout ~${checkoutLabel})`,
-      status: 'confirmed',
-      created_at: new Date().toISOString()
-    };
-
     try {
-      // 1. Save to D1 Database persistently
-      await saveReservation(reservationObj);
+      // 1. Launch Razorpay Payment Gateway Checkout first
+      const launched = await openRazorpayCheckout({
+        amount: pricing.totalPrice,
+        name: 'Wings River Café Table Reservation',
+        description: `Table ${selectedTable.table_number} (${selectedArea.label}) for ${guestCount} guests`,
+        customerName: userName,
+        customerPhone: userPhone,
+        customerEmail: userEmail || 'guest@wingsrivercafe.com',
+        onSuccess: async (paymentId: string) => {
+          try {
+            const reservationObj: Reservation = {
+              id: resId,
+              name: userName,
+              phone: userPhone,
+              email: userEmail || '',
+              booking_type: 'table_booking',
+              date: selectedDate,
+              time: effectiveTime,
+              guests: guestCount,
+              table_number: selectedTable.table_number,
+              cluster_id: selectedArea.id,
+              special_requests: `Area: ${selectedArea.label} • PaymentId: ${paymentId} • Duration: ${durationHrs} hrs (Checkout ~${checkoutLabel})`,
+              status: 'confirmed',
+              created_at: new Date().toISOString()
+            };
 
-      // 2. Trigger Push Notifications & SMS alerts
-      await notifyBookingConfirmed({
-        name: userName,
-        table: `${selectedTable.table_number} (${selectedArea.label})`,
-        date: selectedDate,
-        time: timeLabel,
-        bookingId: resId,
-      }).catch(() => {});
+            // 2. Save to D1 Database persistently
+            await saveReservation(reservationObj);
 
-      // 3. Generate QR Code Ticket Payload & URL
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
-        `WINGS-RIVER-CAFE|${resId}|TABLE-${selectedTable.table_number}|${selectedDate}|${effectiveTime}|GUESTS-${guestCount}|${userName}`
-      )}`;
+            // 3. Trigger Push Notifications & SMS alerts
+            await notifyBookingConfirmed({
+              name: userName,
+              table: `${selectedTable.table_number} (${selectedArea.label})`,
+              date: selectedDate,
+              time: timeLabel,
+              bookingId: resId,
+            }).catch(() => {});
 
-      setTicketSlip({
-        bookingId: resId,
-        guestName: userName,
-        guestPhone: userPhone,
-        guestEmail: userEmail,
-        areaName: selectedArea.label,
-        tableNumber: selectedTable.table_number,
-        date: selectedDate,
-        timeLabel: timeLabel,
-        checkoutLabel: checkoutLabel,
-        durationHrs: durationHrs,
-        guestCount: guestCount,
-        totalAmount: pricing.totalPrice,
-        perPersonRate: pricing.perPersonRate,
-        qrUrl: qrUrl,
-        createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            // 4. Generate QR Code Ticket Payload & URL
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(
+              `WINGS-RIVER-CAFE|${resId}|TABLE-${selectedTable.table_number}|${selectedDate}|${effectiveTime}|PAYMENT-${paymentId}|GUESTS-${guestCount}|${userName}`
+            )}`;
+
+            setTicketSlip({
+              bookingId: resId,
+              guestName: userName,
+              guestPhone: userPhone,
+              guestEmail: userEmail,
+              areaName: selectedArea.label,
+              tableNumber: selectedTable.table_number,
+              date: selectedDate,
+              timeLabel: timeLabel,
+              checkoutLabel: checkoutLabel,
+              durationHrs: durationHrs,
+              guestCount: guestCount,
+              totalAmount: pricing.totalPrice,
+              perPersonRate: pricing.perPersonRate,
+              qrUrl: qrUrl,
+              createdAt: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+            });
+
+            // Stop hold timer
+            setHoldLeft(null);
+
+            // Trigger parent callback
+            onSelectTable(selectedTable, selectedDate, effectiveTime, guestCount);
+          } catch (err: any) {
+            setFormError(err.message || 'Payment recorded but ticket generation failed.');
+          } finally {
+            setIsProcessingBooking(false);
+          }
+        },
+        onFailure: (err: any) => {
+          setIsProcessingBooking(false);
+          setFormError('Payment was not completed. Your table remains on 5-minute hold. Please try paying again.');
+        }
       });
 
-      // Also trigger parent callback
-      onSelectTable(selectedTable, selectedDate, effectiveTime, guestCount);
+      if (!launched) {
+        setIsProcessingBooking(false);
+        setFormError('Failed to launch Razorpay Payment window. Please check connection.');
+      }
     } catch (err: any) {
-      setFormError(err.message || 'Failed to confirm reservation. Please try again.');
-    } finally {
       setIsProcessingBooking(false);
+      setFormError(err.message || 'Failed to initiate Razorpay checkout. Please try again.');
     }
   };
 
@@ -777,6 +806,24 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         return (
           <div className="p-5 sm:p-7 animate-fade-in space-y-4">
 
+            {/* 5-Minute Hold Timer Warning Banner */}
+            {holdLeft !== null && holdLeft > 0 && (
+              <div className="bg-amber-950/80 border-2 border-[#F5D061] rounded-2xl p-3.5 flex items-center justify-between text-white shadow-lg">
+                <div className="flex items-center gap-2.5">
+                  <Timer className="w-5 h-5 text-[#F5D061] shrink-0 animate-spin" />
+                  <div>
+                    <p className="text-xs font-bold text-[#F8E7A1]">
+                      Table {selectedTable.table_number} Hold Timer: <span className="font-mono text-[#F5D061] font-black">{fmtTimer(holdLeft)}</span>
+                    </p>
+                    <p className="text-[10px] text-amber-200/80">Complete Razorpay payment to generate your official QR Ticket Slip.</p>
+                  </div>
+                </div>
+                <span className="font-mono text-sm font-black text-[#F5D061] bg-[#120B08] px-3 py-1 rounded-xl border border-[#F5D061]/50 shrink-0 shadow">
+                  {fmtTimer(holdLeft)}
+                </span>
+              </div>
+            )}
+
             {/* Confirmation card */}
             <div className="rounded-3xl bg-[#1F1810] border border-[#F5D061]/40 p-5 shadow-2xl space-y-4">
 
@@ -885,8 +932,8 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
 
               <button
                 onClick={handleConfirmReservation}
-                disabled={isProcessingBooking}
-                aria-label={`Confirm booking and pay ₹${pricing.totalPrice}`}
+                disabled={isProcessingBooking || (holdLeft !== null && holdLeft <= 0)}
+                aria-label={`Pay ₹${pricing.totalPrice} via Razorpay and get QR Ticket Slip`}
                 className="flex-2 sm:flex-[2] py-3.5 rounded-2xl
                   bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37]
                   hover:from-[#F8E7A1] hover:to-[#F5D061]
@@ -897,9 +944,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                   disabled:opacity-50"
               >
                 {isProcessingBooking ? (
-                  <><Loader2 className="w-4 h-4 animate-spin" /> Generating QR Ticket…</>
+                  <><Loader2 className="w-4 h-4 animate-spin text-[#120B08]" /> Launching Razorpay Payment…</>
                 ) : (
-                  <><CheckCircle2 className="w-4 h-4" /> Confirm &amp; Lock Table (₹{pricing.totalPrice})</>
+                  <><QrCode className="w-4 h-4 text-[#120B08]" /> Pay ₹{pricing.totalPrice} Online &amp; Get QR Ticket Slip</>
                 )}
               </button>
             </div>
