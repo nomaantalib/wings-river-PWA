@@ -30,11 +30,14 @@ export {
   saveGalleryItem,
   updateGalleryItem,
   deleteGalleryItem,
-  // Menu
+  // Menu & Orders
   getStoredMenuItems,
   saveMenuItem,
   updateMenuItem,
   deleteMenuItem,
+  saveOrder,
+  saveCallRequest,
+
   // Blogs
   getStoredBlogs,
   saveBlog,
