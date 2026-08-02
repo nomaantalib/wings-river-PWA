@@ -3259,10 +3259,14 @@ export default function AdminPage() {
                   onChange={(e) => setGalleryModal({ ...galleryModal, cluster_id: e.target.value })}
                   className={inputCls}
                 >
-                  <option value="cluster-riverside">Riverside Deck (Waterfront)</option>
-                  <option value="cluster-indoor">Indoor AC Hall</option>
-                  <option value="cluster-canopy">VIP Private Canopy</option>
+                  <option value="">General / All Areas</option>
+                  <option value="indoor">Indoor AC Hall</option>
+                  <option value="rooftop">Rooftop Upper Deck</option>
+                  <option value="garden">Open Garden Area</option>
+                  <option value="canopy">VIP Private Canopy</option>
+                  <option value="riverside">Riverside Deck (Waterfront)</option>
                   <option value="watersports">Water Sports &amp; Speedboats</option>
+
                 </select>
               </div>
               <div>
