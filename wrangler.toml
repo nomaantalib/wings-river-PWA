@@ -2,6 +2,7 @@ name = "wings-river-pwa"
 compatibility_date = "2026-07-21"
 compatibility_flags = ["nodejs_compat"]
 
+main = "entrypoint.js"
 pages_build_output_dir = "out"
 
 # ── Cloudflare D1 Database ──────────────────────────────────────────────────
