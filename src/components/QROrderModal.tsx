@@ -179,22 +179,36 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
     };
 
     if (method === 'online') {
-      await openRazorpayCheckout({
-        amount: totalBill,
-        name: 'Wings River Café – Table Order',
-        description: `Food Order · Table ${tableNumber} · ${cartCount} items`,
-        customerName: session.name || 'Guest',
-        customerPhone: session.phone || '0000000000',
-        onSuccess: async (paymentId) => {
-          await saveOrder({ ...orderPayload, payment_status: 'paid', payment_method: 'Razorpay', razorpay_payment_id: paymentId });
+      try {
+        const launched = await openRazorpayCheckout({
+          amount: totalBill,
+          name: 'Wings River Café – Table Order',
+          description: `Food Order · Table ${tableNumber} · ${cartCount} items`,
+          customerName: session.name || 'Guest',
+          customerPhone: session.phone || '',
+          onSuccess: async (paymentId) => {
+            await saveOrder({ ...orderPayload, payment_status: 'paid', payment_method: 'Razorpay', razorpay_payment_id: paymentId });
+            setOrderStatus('new'); setActiveTab('status');
+          },
+          onFailure: async () => {
+            // Save as Cash at Table fallback so order is sent to kitchen
+            await saveOrder({ ...orderPayload, payment_status: 'unpaid', payment_method: 'Cash at Table' });
+            setOrderStatus('new'); setActiveTab('status');
+          },
+        });
+        if (!launched) {
+          await saveOrder({ ...orderPayload, payment_status: 'unpaid', payment_method: 'Cash at Table' });
           setOrderStatus('new'); setActiveTab('status');
-        },
-        onFailure: () => alert('Payment cancelled. You can pay cash at the table.'),
-      });
+        }
+      } catch {
+        await saveOrder({ ...orderPayload, payment_status: 'unpaid', payment_method: 'Cash at Table' });
+        setOrderStatus('new'); setActiveTab('status');
+      }
     } else {
       await saveOrder({ ...orderPayload, payment_status: 'unpaid', payment_method: 'Cash at Table' });
       setOrderStatus('new'); setActiveTab('status');
     }
+
   };
 
   const handleCallRequest = (type: string) => {
