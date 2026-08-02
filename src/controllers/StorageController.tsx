@@ -199,18 +199,62 @@ function getHeaders(): Record<string, string> {
 // ── Core D1 API fetch helpers ──────────────────────────────────────────────────
 async function apiFetch(url: string): Promise<any> {
   try {
-    const res = await fetch(getApiUrl(url), {
-      headers: getHeaders(),
-      cache: 'no-store'
-    });
+    const res = await fetch(getApiUrl(url), { headers: getHeaders(), cache: 'no-store' });
     const result = await res.json().catch(() => null);
-    if (!res.ok) {
-      return { success: false, data: [], error: result?.error || `HTTP error ${res.status}` };
-    }
+    if (!res.ok) return { success: false, data: [], error: result?.error || `HTTP ${res.status}` };
     return result || { success: true, data: [] };
   } catch (err: any) {
     return { success: false, data: [], error: err?.message || 'Network error' };
   }
+}
+
+// ── Cache-first SWR helpers — zero buffering on reload ──────────────────────────
+// readCache: returns parsed localStorage value instantly (sync)
+function readCache<T>(key: string): T[] {
+  if (typeof window === 'undefined') return [];
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : []; } catch { return []; }
+}
+// readCacheObj: for single objects (settings, hero)
+function readCacheObj<T>(key: string, fallback: T): T {
+  if (typeof window === 'undefined') return fallback;
+  try { const r = localStorage.getItem(key); return r ? JSON.parse(r) : fallback; } catch { return fallback; }
+}
+// writeCache: persist D1 result to localStorage
+function writeCache(key: string, data: any) {
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(key, JSON.stringify(data)); } catch {}
+}
+// revalidateInBackground: fetch D1, write cache, notify sync if changed
+function revalidateInBackground(url: string, cacheKey: string, transform?: (d: any) => any) {
+  if (typeof window === 'undefined') return;
+  // Use requestIdleCallback when available for non-urgent revalidation
+  const run = () => {
+    apiFetch(url).then(res => {
+      if (res.success && Array.isArray(res.data)) {
+        const data = transform ? transform(res.data) : res.data;
+        const prev = localStorage.getItem(cacheKey);
+        const next = JSON.stringify(data);
+        if (prev !== next) { writeCache(cacheKey, data); notifySync(); }
+      }
+    }).catch(() => {});
+  };
+  if ('requestIdleCallback' in window) (window as any).requestIdleCallback(run, { timeout: 3000 });
+  else setTimeout(run, 100);
+}
+// revalidateObjInBackground: for single-object endpoints
+function revalidateObjInBackground(url: string, cacheKey: string) {
+  if (typeof window === 'undefined') return;
+  const run = () => {
+    apiFetch(url).then(res => {
+      if (res.success && res.data && typeof res.data === 'object') {
+        const prev = localStorage.getItem(cacheKey);
+        const next = JSON.stringify(res.data);
+        if (prev !== next) { writeCache(cacheKey, res.data); notifySync(); }
+      }
+    }).catch(() => {});
+  };
+  if ('requestIdleCallback' in window) (window as any).requestIdleCallback(run, { timeout: 3000 });
+  else setTimeout(run, 100);
 }
 
 async function apiPost(url: string, data: any): Promise<any> {
@@ -247,28 +291,8 @@ async function apiDelete(url: string): Promise<any> {
 }
 
 // ── Core Orders API & Local Storage Sync ────────────────────────────────────
-export async function getStoredOrders(): Promise<TableOrder[]> {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem('wings_orders_db');
-  return raw ? JSON.parse(raw) : [
-    {
-      id: 'ord-101',
-      order_number: 'ORD-101',
-      table_number: 'T2',
-      customer_name: 'Rahul Sharma',
-      customer_phone: '9876543210',
-      status: 'new',
-      payment_status: 'paid',
-      payment_method: 'Online Razorpay',
-      total_amount: 843,
-      items: [
-        { name: 'Special Pav Bhaji', quantity: 2, price: 150 },
-        { name: 'Virgin Mojito', quantity: 2, price: 119 },
-        { name: 'Loaded Special Pizza', quantity: 1, price: 349 },
-      ],
-      created_at: new Date().toISOString(),
-    }
-  ];
+export function getStoredOrders(): Promise<TableOrder[]> {
+  return Promise.resolve(readCache<TableOrder>('wings_orders_db'));
 }
 
 export async function saveOrder(order: Partial<TableOrder>): Promise<TableOrder> {
@@ -306,18 +330,11 @@ export async function updateOrderStatus(orderId: string, status: TableOrder['sta
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  RESERVATIONS / BOOKINGS
+//  RESERVATIONS / BOOKINGS — cache-first
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredReservations(): Promise<Reservation[]> {
-  try {
-    const res = await apiFetch('/api/bookings');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) return res.data;
-  } catch (e) {}
-  if (typeof window !== 'undefined') {
-    const raw = localStorage.getItem('wings_reservations_db');
-    if (raw) return JSON.parse(raw);
-  }
-  return INITIAL_RESERVATIONS;
+export function getStoredReservations(): Promise<Reservation[]> {
+  revalidateInBackground('/api/bookings', 'wings_reservations_db');
+  return Promise.resolve(readCache<Reservation>('wings_reservations_db'));
 }
 
 export async function saveReservation(reservation: Reservation): Promise<void> {
@@ -369,13 +386,8 @@ export interface CallRequest {
   status: 'pending' | 'resolved';
 }
 
-export async function getStoredCallRequests(): Promise<CallRequest[]> {
-  if (typeof window === 'undefined') return [];
-  const raw = localStorage.getItem('wings_call_requests');
-  return raw ? JSON.parse(raw) : [
-    { id: 'call-1', table_number: 'T2', type: 'Drinking Water', time: '2 mins ago', status: 'pending' },
-    { id: 'call-2', table_number: 'T4', type: 'Request Bill', time: 'Just now', status: 'pending' },
-  ];
+export function getStoredCallRequests(): Promise<CallRequest[]> {
+  return Promise.resolve(readCache<CallRequest>('wings_call_requests'));
 }
 
 export async function saveCallRequest(req: { table_number: string; type: string; time?: string }): Promise<CallRequest[]> {
@@ -462,32 +474,21 @@ export async function updateTableStatusInStore(tableNumber: string, status: stri
 }
 
 
-function resolveData<T>(res: any, localStorageKey: string, fallbackData: T[]): T[] {
+// resolveData is kept only for write-path helpers that still need sync resolve
+function resolveData<T>(res: any, localStorageKey: string): T[] {
   if (res && res.success && Array.isArray(res.data)) {
-    if (typeof window !== 'undefined') {
-      try { localStorage.setItem(localStorageKey, JSON.stringify(res.data)); } catch (e) {}
-    }
+    writeCache(localStorageKey, res.data);
     return res.data;
   }
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem(localStorageKey);
-      if (raw) return JSON.parse(raw);
-    } catch (e) {}
-  }
-  return fallbackData;
+  return readCache<T>(localStorageKey);
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  GALLERY
+//  GALLERY — cache-first, no mock fallback
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredGalleryItems(): Promise<GalleryItem[]> {
-  try {
-    const res = await apiFetch('/api/gallery');
-    return resolveData(res, 'wings_gallery_db', INITIAL_GALLERY);
-  } catch (e) {
-    return resolveData(null, 'wings_gallery_db', INITIAL_GALLERY);
-  }
+export function getStoredGalleryItems(): Promise<GalleryItem[]> {
+  revalidateInBackground('/api/gallery', 'wings_gallery_db');
+  return Promise.resolve(readCache<GalleryItem>('wings_gallery_db'));
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
@@ -524,26 +525,11 @@ export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  MENU CATEGORIES
+//  MENU CATEGORIES — cache-first, no hardcoded fallback
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredCategories(): Promise<MenuCategory[]> {
-  const defaultCats = [
-    { id: 'cat-beverages', name: 'Beverages', slug: 'beverages', description: 'Hot teas, fresh lime, and soft drinks', display_order: 1 },
-    { id: 'cat-breakfast', name: 'Breakfast', slug: 'breakfast', description: 'Parathas, Jalebi, and Bun Makkhan', display_order: 2 },
-    { id: 'cat-chaat', name: 'Chaat & Starters', slug: 'chaat-starters', description: 'Lucknowi basket chaat, Agra bhalla, and golgappe', display_order: 3 },
-    { id: 'cat-drinks', name: 'Coolers & Mocktails', slug: 'coolers-mocktails', description: 'Mojitos, iced teas, and pina colada', display_order: 4 },
-    { id: 'cat-coffee', name: 'Coffee & Shakes', slug: 'coffee-shakes', description: 'Cold brew, espresso, and chocolate cookie shakes', display_order: 5 },
-    { id: 'cat-indian', name: 'Indian Main Course', slug: 'indian-main-course', description: 'Dal Makhani, Paneer Lababdar, and deluxe thalis', display_order: 6 },
-    { id: 'cat-pizza', name: 'Pizza & Burgers', slug: 'pizza-burgers', description: 'Wood-fired pizzas and gourmet cottage cheese burgers', display_order: 7 },
-    { id: 'cat-chinese', name: 'Chinese Wok & Waffles', slug: 'chinese-wok-waffles', description: 'Hakka noodles, chilli paneer, and continental sizzlers', display_order: 8 },
-    { id: 'cat-desserts', name: 'Desserts', slug: 'desserts', description: 'Shahi Tukda, Gulab Jamun, and ice creams', display_order: 9 }
-  ];
-  try {
-    const res = await apiFetch('/api/categories');
-    return resolveData(res, 'wings_categories_db', defaultCats);
-  } catch (e) {
-    return resolveData(null, 'wings_categories_db', defaultCats);
-  }
+export function getStoredCategories(): Promise<MenuCategory[]> {
+  revalidateInBackground('/api/categories', 'wings_categories_db');
+  return Promise.resolve(readCache<MenuCategory>('wings_categories_db'));
 }
 
 export async function saveCategory(cat: MenuCategory): Promise<MenuCategory[]> {
@@ -576,15 +562,11 @@ export async function deleteCategory(id: string): Promise<MenuCategory[]> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  MENU ITEMS
+//  MENU ITEMS — cache-first, no mock fallback
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredMenuItems(): Promise<MenuItem[]> {
-  try {
-    const res = await apiFetch('/api/menu');
-    return resolveData(res, 'wings_menu_db', INITIAL_MENU_ITEMS);
-  } catch (e) {
-    return resolveData(null, 'wings_menu_db', INITIAL_MENU_ITEMS);
-  }
+export function getStoredMenuItems(): Promise<MenuItem[]> {
+  revalidateInBackground('/api/menu', 'wings_menu_db');
+  return Promise.resolve(readCache<MenuItem>('wings_menu_db'));
 }
 
 export async function saveMenuItem(item: MenuItem): Promise<MenuItem[]> {
@@ -621,26 +603,11 @@ export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  BLOGS
+//  BLOGS — cache-first
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredBlogs(): Promise<BlogPost[]> {
-  try {
-    const res = await apiFetch('/api/blogs');
-    if (res.success && Array.isArray(res.data)) {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('wings_blogs_db', JSON.stringify(res.data));
-      }
-      return res.data;
-    }
-  } catch (e) { console.error('[D1] getStoredBlogs:', e); }
-
-  if (typeof window !== 'undefined') {
-    const raw = localStorage.getItem('wings_blogs_db');
-    if (raw) {
-      try { return JSON.parse(raw); } catch (err) {}
-    }
-  }
-  return INITIAL_BLOGS;
+export function getStoredBlogs(): Promise<BlogPost[]> {
+  revalidateInBackground('/api/blogs', 'wings_blogs_db');
+  return Promise.resolve(readCache<BlogPost>('wings_blogs_db'));
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
@@ -677,14 +644,11 @@ export async function deleteBlog(id: string): Promise<BlogPost[]> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  REVIEWS / TESTIMONIALS
+//  REVIEWS / TESTIMONIALS — cache-first
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredReviews(): Promise<Review[]> {
-  try {
-    const res = await apiFetch('/api/reviews');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) return res.data;
-  } catch (e) {}
-  return INITIAL_REVIEWS;
+export function getStoredReviews(): Promise<Review[]> {
+  revalidateInBackground('/api/reviews', 'wings_reviews_db');
+  return Promise.resolve(readCache<Review>('wings_reviews_db'));
 }
 
 export async function saveReview(review: Review): Promise<Review[]> {
@@ -761,14 +725,9 @@ export async function toggleEventBanner(id: string): Promise<EventBanner[]> {
 // ═══════════════════════════════════════════════════════════════════════════════
 //  WATER SPORTS RIDES
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredWaterSports(): Promise<RideTicket[]> {
-  try {
-    const res = await apiFetch('/api/watersports');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      return res.data;
-    }
-  } catch (e) { console.error('[D1] getStoredWaterSports:', e); }
-  return WATER_SPORTS_RIDES;
+export function getStoredWaterSports(): Promise<RideTicket[]> {
+  revalidateInBackground('/api/watersports', 'wings_watersports_db');
+  return Promise.resolve(readCache<RideTicket>('wings_watersports_db'));
 }
 
 export async function saveWaterSports(ride: RideTicket): Promise<RideTicket[]> {
@@ -790,26 +749,17 @@ export async function deleteWaterSports(id: string): Promise<RideTicket[]> {
 // ═══════════════════════════════════════════════════════════════════════════════
 //  MENU BOOKLET PAGES
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
-  try {
-    const res = await apiFetch('/api/menupages');
-    if (res.success && Array.isArray(res.data) && res.data.length > 0) {
-      return res.data.map((item: any) => {
-        let cats = [];
-        if (typeof item.categories === 'string') {
-          try { cats = JSON.parse(item.categories); } catch (e) { cats = []; }
-        } else if (Array.isArray(item.categories)) {
-          cats = item.categories;
-        }
-        return {
-          ...item,
-          pageNumber: item.page_number ?? item.pageNumber,
-          categories: cats
-        };
-      });
-    }
-  } catch (e) { console.error('[D1] getStoredMenuPages:', e); }
-  return MENU_BOOKLET_PAGES;
+export function getStoredMenuPages(): Promise<MenuPageDefinition[]> {
+  revalidateInBackground('/api/menupages', 'wings_menupages_db', (data: any[]) =>
+    data.map((item: any) => ({
+      ...item,
+      pageNumber: item.page_number ?? item.pageNumber,
+      categories: typeof item.categories === 'string'
+        ? (() => { try { return JSON.parse(item.categories); } catch { return []; } })()
+        : (Array.isArray(item.categories) ? item.categories : []),
+    }))
+  );
+  return Promise.resolve(readCache<MenuPageDefinition>('wings_menupages_db'));
 }
 
 export async function saveMenuPage(page: MenuPageDefinition): Promise<MenuPageDefinition[]> {
@@ -840,14 +790,9 @@ export async function deleteMenuPage(pageNumber: number): Promise<MenuPageDefini
 // ═══════════════════════════════════════════════════════════════════════════════
 //  SITE SETTINGS & HERO
 // ═══════════════════════════════════════════════════════════════════════════════
-export async function getStoredHeroSettings(): Promise<HeroSettings> {
-  try {
-    const res = await apiFetch('/api/hero');
-    if (res.success && res.data && Object.keys(res.data).length > 0) {
-      return res.data as HeroSettings;
-    }
-  } catch (e) { console.error('[D1] getStoredHeroSettings:', e); }
-  return DEFAULT_HERO_SETTINGS;
+export function getStoredHeroSettings(): Promise<HeroSettings> {
+  revalidateObjInBackground('/api/hero', 'wings_hero_db');
+  return Promise.resolve(readCacheObj<HeroSettings>('wings_hero_db', DEFAULT_HERO_SETTINGS));
 }
 
 export async function saveHeroSettings(settings: HeroSettings): Promise<HeroSettings> {
@@ -1083,32 +1028,46 @@ export interface SiteSettings {
   [key: string]: any;
 }
 
-export async function getSiteSettings(): Promise<SiteSettings> {
-  try {
-    const res = await apiFetch('/api/settings');
-    if (res.success && res.data && res.data.site_settings) {
-      return res.data.site_settings;
-    }
-  } catch (e) {}
-  return {
-    site_title: "Wings River Café",
-    slogan: "Taste • Eat • Rides",
-    logo_url: "/logo.png",
-    favicon_url: "/favicon.ico",
-    phone: "07310008020",
-    whatsapp: "917310008020",
-    email: "wingsrivercafe@gmail.com",
-    address: "Lucknow Water Sports, Laxman Mela Ground, Gomti Riverfront, Lucknow",
-    opening_hours: "11:00 AM – 11:59 PM (Open All 7 Days)",
-    instagram_url: "https://www.instagram.com/wingsriver",
-    facebook_url: "https://facebook.com",
-    google_maps_url: "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA",
-    hero_bg_image: "/images/Screenshot_20260720-180621_Maps.png",
-    menu_booklet_cover: "/images/food_menu_collage.jpg",
-    seo_meta_title: "Wings River Café | Multicuisine Restaurant & Water Sports Lucknow",
-    seo_meta_description: "Lucknow's premier riverside café offering gourmet food, live music, and thrilling Gomti riverfront water sports rides."
-  };
+const SITE_SETTINGS_DEFAULTS: SiteSettings = {
+  site_title: 'Wings River Café',
+  slogan: 'Taste • Eat • Rides',
+  logo_url: '/logo.png',
+  favicon_url: '/favicon.ico',
+  phone: '07310008020',
+  whatsapp: '917310008020',
+  email: 'wingsrivercafe@gmail.com',
+  address: 'Laxman Mela Ground, Gomti Riverfront, Lucknow UP 226001',
+  opening_hours: '11:00 AM – 11:59 PM (Open All 7 Days)',
+  instagram_url: 'https://www.instagram.com/wingsriver',
+  facebook_url: 'https://facebook.com',
+  google_maps_url: 'https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA',
+  hero_bg_image: '/images/Screenshot_20260720-180621_Maps.png',
+  menu_booklet_cover: '/images/food_menu_collage.jpg',
+  seo_meta_title: 'Wings River Café | Multicuisine Restaurant & Water Sports Lucknow',
+  seo_meta_description: "Lucknow's premier riverside café offering gourmet food, live music, and thrilling Gomti riverfront water sports rides.",
+};
+
+export function getSiteSettings(): Promise<SiteSettings> {
+  // Revalidate from D1 in background, return cache instantly (no buffering)
+  if (typeof window !== 'undefined') {
+    const run = () => {
+      apiFetch('/api/settings').then(res => {
+        if (res.success && res.data?.site_settings) {
+          const prev = localStorage.getItem('wings_site_settings');
+          const next = JSON.stringify(res.data.site_settings);
+          if (prev !== next) {
+            try { localStorage.setItem('wings_site_settings', next); } catch {}
+            notifySync();
+          }
+        }
+      }).catch(() => {});
+    };
+    if ('requestIdleCallback' in window) (window as any).requestIdleCallback(run, { timeout: 3000 });
+    else setTimeout(run, 100);
+  }
+  return Promise.resolve(readCacheObj<SiteSettings>('wings_site_settings', SITE_SETTINGS_DEFAULTS));
 }
+
 
 export async function saveSiteSettings(settings: SiteSettings): Promise<SiteSettings> {
   await apiPost('/api/settings', { key: 'site_settings', value: settings });

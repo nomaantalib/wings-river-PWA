@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import CircularLogo from './CircularLogo';
-import { Menu as MenuIcon, X, Calendar, User, LogOut, CheckCircle2, QrCode } from 'lucide-react';
+import { Menu as MenuIcon, X, Calendar, User, LogOut, CheckCircle2 } from 'lucide-react';
 
 import { getStoredUserSession, clearUserSession, UserSession } from './UserAuthModal';
 
@@ -97,18 +97,6 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
 
           {/* Right Action Cluster */}
           <div className="flex items-center space-x-3">
-            {/* Table QR Food Order Button */}
-            <button
-              onClick={() => {
-                if (typeof window !== 'undefined') {
-                  window.dispatchEvent(new Event('wings_open_qr_order'));
-                }
-              }}
-              className="hidden sm:flex items-center space-x-1.5 px-3.5 py-2 bg-[#2A1D0E] border border-[#F5D061]/60 text-[#F5D061] hover:bg-[#3D291C] font-bold text-xs rounded-full shadow-lg hover:scale-105 transition-all duration-300"
-            >
-              <QrCode className="w-3.5 h-3.5" />
-              <span>📷 Table QR Food Order</span>
-            </button>
 
             {/* Reserve CTA Button */}
             <a
