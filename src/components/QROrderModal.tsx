@@ -5,9 +5,10 @@ import {
   X, QrCode, Utensils, ShoppingBag, Bell, Receipt, CheckCircle, ChefHat,
   Camera, CameraOff, Loader2, Plus, Minus, AlertCircle, Zap, Scan
 } from 'lucide-react';
-import { getStoredMenuItems, saveOrder, saveCallRequest } from '@/controllers/StorageController';
-import { MenuItem } from '@/models/MenuModel';
+import { getStoredMenuItems, getStoredCategories, saveOrder, saveCallRequest } from '@/controllers/StorageController';
+import { MenuItem, MenuCategory } from '@/models/MenuModel';
 import { openRazorpayCheckout } from '@/lib/razorpay';
+
 
 interface QROrderModalProps {
   isOpen: boolean;
@@ -53,6 +54,8 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
   const [manualTable, setManualTable] = useState('');
   const [activeTab, setActiveTab] = useState<'menu' | 'status' | 'bill'>('menu');
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [categories, setCategories] = useState<MenuCategory[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [menuSearch, setMenuSearch] = useState('');
   const [cart, setCart] = useState<{ id: string; name: string; price: number; quantity: number }[]>([]);
   const [orderStatus, setOrderStatus] = useState<'none' | 'new' | 'preparing' | 'ready' | 'served'>('none');
@@ -68,16 +71,21 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
   const streamRef = useRef<MediaStream | null>(null);
   const rafRef = useRef<number | null>(null);
 
-  // ── Load menu items ──────────────────────────────────────────────────────
+  // ── Load menu items & admin categories ──────────────────────────────────
   useEffect(() => {
-    const fetchMenu = async () => {
-      const items = await getStoredMenuItems();
+    const fetchMenuData = async () => {
+      const [items, cats] = await Promise.all([
+        getStoredMenuItems(),
+        getStoredCategories()
+      ]);
       setMenuItems(items.filter(i => i.is_available !== false));
+      setCategories(cats);
     };
-    if (isOpen) fetchMenu();
-    window.addEventListener('wings_db_sync', fetchMenu);
-    return () => window.removeEventListener('wings_db_sync', fetchMenu);
+    if (isOpen) fetchMenuData();
+    window.addEventListener('wings_db_sync', fetchMenuData);
+    return () => window.removeEventListener('wings_db_sync', fetchMenuData);
   }, [isOpen]);
+
 
   // ── Reset on open ────────────────────────────────────────────────────────
   useEffect(() => {
@@ -219,9 +227,17 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
 
   if (!isOpen) return null;
 
+  const categoryFilteredMenu = menuItems.filter(item => {
+    if (selectedCategory === 'all') return true;
+    const catName = (item.category || '').toLowerCase();
+    const catId = (item.category_id || '').toLowerCase();
+    const sel = selectedCategory.toLowerCase();
+    return catName === sel || catId === sel || catName.includes(sel);
+  });
+
   const filteredMenu = menuSearch
-    ? menuItems.filter(i => i.name.toLowerCase().includes(menuSearch.toLowerCase()) || (i.category || '').toLowerCase().includes(menuSearch.toLowerCase()))
-    : menuItems;
+    ? categoryFilteredMenu.filter(i => i.name.toLowerCase().includes(menuSearch.toLowerCase()) || (i.category || '').toLowerCase().includes(menuSearch.toLowerCase()))
+    : categoryFilteredMenu;
 
   // Group by category
   const grouped = filteredMenu.reduce<Record<string, MenuItem[]>>((acc, item) => {
@@ -230,6 +246,7 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
     acc[cat].push(item);
     return acc;
   }, {});
+
 
   return (
     <div className="fixed inset-0 z-[200] flex items-end sm:items-center justify-center bg-black/85 backdrop-blur-md">
@@ -340,35 +357,47 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
                 <hr className="flex-1 border-white/10" />
               </div>
 
-              {/* Manual Table Entry */}
-              <div className="max-w-xs mx-auto space-y-3">
-                <div className="flex gap-2">
+              {/* Manual Table Entry & Table Object Confirmation */}
+              <div className="max-w-xs mx-auto space-y-4">
+                <div className="space-y-2">
+                  <label className="block text-xs font-bold text-[#F8E7A1]">Select Table Number</label>
                   <select
                     value={manualTable}
-                    onChange={e => setManualTable(e.target.value)}
-                    className="flex-1 px-3 py-2.5 rounded-xl bg-white/10 border border-[#F5D061]/30 text-[#F8E7A1] text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#F5D061]/40"
+                    onChange={e => {
+                      setManualTable(e.target.value);
+                      if (e.target.value) setTableNumber(e.target.value);
+                    }}
+                    className="w-full px-3.5 py-3 rounded-xl bg-white/10 border border-[#F5D061]/40 text-[#F8E7A1] text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                   >
-                    <option value="">Select Table…</option>
+                    <option value="">Select Your Table Number…</option>
                     {['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12','V1','V2','V3'].map(t => (
-                      <option key={t} value={t} className="bg-[#120B08]">{t}</option>
+                      <option key={t} value={t} className="bg-[#120B08]">Table {t} — Gomti Riverfront Deck</option>
                     ))}
                   </select>
-                  <button
-                    onClick={() => {
-                      if (!manualTable) return;
-                      setTableNumber(manualTable);
-                      setPhase('order');
-                    }}
-                    disabled={!manualTable}
-                    className="px-4 py-2.5 bg-[#F5D061] text-[#120B08] font-extrabold text-sm rounded-xl hover:bg-[#E5B82C] transition disabled:opacity-40"
-                  >
-                    Go →
-                  </button>
                 </div>
-                <p className="text-[10px] text-[#D4C4A0]/50 text-center">
-                  Select your table number from the label on the table
-                </p>
+
+                {manualTable && (
+                  <div className="bg-[#1F1810] border border-[#F5D061]/40 rounded-2xl p-4 space-y-3 text-center shadow-lg">
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+                      <h4 className="text-base font-extrabold text-[#F8E7A1]">Table {manualTable} Confirmed</h4>
+                    </div>
+                    <p className="text-[11px] text-[#D4C4A0]/80 leading-relaxed">
+                      Laxman Mela Ground · Wings River Café Gomti Waterfront
+                    </p>
+                    <button
+                      onClick={() => {
+                        setTableNumber(manualTable);
+                        setPhase('order');
+                      }}
+                      className="w-full py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition hover:scale-[1.02] active:scale-95"
+                    >
+                      Confirm Table &amp; Open Menu ➔
+                    </button>
+                  </div>
+                )}
               </div>
+
             </div>
           </div>
         )}
@@ -411,6 +440,34 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
                     onChange={e => setMenuSearch(e.target.value)}
                     className="w-full px-3.5 py-2.5 rounded-xl bg-white/8 border border-white/10 text-[#F8E7A1] text-xs font-medium placeholder:text-[#D4C4A0]/40 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/30"
                   />
+
+                  {/* Horizontal Scrollable Category Filter Pills (Managed via Admin Panel) */}
+                  <div className="flex items-center gap-2 overflow-x-auto pb-1.5 no-scrollbar">
+                    <button
+                      onClick={() => setSelectedCategory('all')}
+                      className={`px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition ${
+                        selectedCategory === 'all'
+                          ? 'bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] shadow-md'
+                          : 'bg-white/10 text-white/70 hover:bg-white/20'
+                      }`}
+                    >
+                      All Items ({menuItems.length})
+                    </button>
+                    {categories.map((c) => (
+                      <button
+                        key={c.id || c.slug}
+                        onClick={() => setSelectedCategory(c.name)}
+                        className={`px-3.5 py-1.5 rounded-full text-xs font-bold shrink-0 transition ${
+                          selectedCategory === c.name
+                            ? 'bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] shadow-md'
+                            : 'bg-white/10 text-white/70 hover:bg-white/20'
+                        }`}
+                      >
+                        {c.name}
+                      </button>
+                    ))}
+                  </div>
+
 
                   {/* Menu Items by Category */}
                   {Object.keys(grouped).length === 0 ? (
