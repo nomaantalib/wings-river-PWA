@@ -526,12 +526,27 @@ export async function deleteGalleryItem(id: string): Promise<GalleryItem[]> {
   return getStoredGalleryItems();
 }
 
+const DEFAULT_CATEGORIES: MenuCategory[] = [
+  { id: 'cat-starters', name: 'Starters & Tandoor', slug: 'starters-tandoor', description: 'Crispy rolls, kebabs, tandoori tikka & momos', display_order: 1 },
+  { id: 'cat-indian', name: 'Indian Main Course', slug: 'indian-main-course', description: 'Authentic paneer, rich curries & garlic naan', display_order: 2 },
+  { id: 'cat-chinese', name: 'Chinese & Asian', slug: 'chinese-asian', description: 'Hakka noodles, Manchurian, fried rice & chilli paneer', display_order: 3 },
+  { id: 'cat-[#1]', name: 'Pizza & Italian Pasta', slug: 'pizza-italian-pasta', description: 'Wood-fired gourmet pizzas & creamy pastas', display_order: 4 },
+  { id: 'cat-[#2]', name: 'Burgers, Rolls & Snacks', slug: 'burgers-rolls-snacks', description: 'Crispy veggie burgers, kathak rolls & fries', display_order: 5 },
+  { id: 'cat-[#3]', name: 'Biryani & Pulao', slug: 'biryani-pulao', description: 'Aromatic Dum Biryani with spiced raita', display_order: 6 },
+  { id: 'cat-[#4]', name: 'Desserts & Ice Cream', slug: 'desserts-ice-cream', description: 'Hot Gulab Jamun, Sizzling Brownie & Ice Creams', display_order: 7 },
+  { id: 'cat-beverages', name: 'Mocktails, Tea & Coffee', slug: 'mocktails-tea-coffee', description: 'Chilled Mojito, Cold Coffee & Spiced Chai', display_order: 8 },
+  { id: 'cat-[#5]', name: 'Water Sports Rides', slug: 'water-sports-rides', description: 'Gomti River Speedboat & Jet Ski Ride Tickets', display_order: 9 }
+];
+
 // ═══════════════════════════════════════════════════════════════════════════════
-//  MENU CATEGORIES — cache-first, no hardcoded fallback
+//  MENU CATEGORIES — auto seed if empty
 // ═══════════════════════════════════════════════════════════════════════════════
 export function getStoredCategories(): Promise<MenuCategory[]> {
   revalidateInBackground('/api/categories', 'wings_categories_db');
-  return Promise.resolve(readCache<MenuCategory>('wings_categories_db'));
+  const cached = readCache<MenuCategory>('wings_categories_db');
+  if (cached && cached.length > 0) return Promise.resolve(cached);
+  if (typeof window !== 'undefined') localStorage.setItem('wings_categories_db', JSON.stringify(DEFAULT_CATEGORIES));
+  return Promise.resolve(DEFAULT_CATEGORIES);
 }
 
 export async function saveCategory(cat: MenuCategory): Promise<MenuCategory[]> {
@@ -564,12 +579,16 @@ export async function deleteCategory(id: string): Promise<MenuCategory[]> {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-//  MENU ITEMS — cache-first, no mock fallback
+//  MENU ITEMS — auto seed if empty
 // ═══════════════════════════════════════════════════════════════════════════════
 export function getStoredMenuItems(): Promise<MenuItem[]> {
   revalidateInBackground('/api/menu', 'wings_menu_db');
-  return Promise.resolve(readCache<MenuItem>('wings_menu_db'));
+  const cached = readCache<MenuItem>('wings_menu_db');
+  if (cached && cached.length > 0) return Promise.resolve(cached);
+  if (typeof window !== 'undefined') localStorage.setItem('wings_menu_db', JSON.stringify(INITIAL_MENU_ITEMS));
+  return Promise.resolve(INITIAL_MENU_ITEMS);
 }
+
 
 export async function saveMenuItem(item: MenuItem): Promise<MenuItem[]> {
   apiPost('/api/menu', item).catch(() => {});

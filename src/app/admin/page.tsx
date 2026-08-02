@@ -1384,6 +1384,34 @@ export default function AdminPage() {
           </div>
         </header>
 
+        {/* Mobile Horizontal Quick Tab Bar (Beige, Black, Gold & Pista Green Theme) */}
+        <div className="lg:hidden flex items-center gap-2 overflow-x-auto p-2.5 bg-[#120B08] border-b border-[#F5D061]/20 no-scrollbar">
+          {masterCategories.flatMap(g => g.tabs).map(t => {
+            const isActive = activeTab === t.id;
+            const badge = getTabBadge(t.id);
+            return (
+              <button
+                key={t.id}
+                onClick={() => setActiveTab(t.id)}
+                className={`px-3.5 py-1.5 rounded-full text-xs font-extrabold shrink-0 flex items-center gap-1.5 transition ${
+                  isActive
+                    ? 'bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#6B8E5E] text-[#120B08] shadow-md scale-105'
+                    : 'bg-[#1F1810] text-[#FAF7F2]/80 border border-[#F5D061]/20 hover:border-[#6B8E5E]/40'
+                }`}
+              >
+                {t.icon}
+                <span>{t.label}</span>
+                {badge > 0 && (
+                  <span className="px-1.5 py-0.5 rounded-full bg-red-500 text-white text-[9px] font-bold">
+                    {badge}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+
+
         {/* Floating Toast Notification */}
         {toastMsg && (
           <div className="fixed top-5 right-5 z-[400] px-4 py-3 rounded-2xl bg-emerald-500 text-dark-950 font-extrabold text-xs shadow-2xl flex items-center space-x-2 animate-fade-in border border-emerald-400">
