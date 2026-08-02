@@ -980,7 +980,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                   disabled:opacity-50"
               >
                 {isProcessingBooking ? (
-                  <><Loader2 className="w-4 h-4 animate-spin text-[#120B08]" /> Launching Razorpay Payment…</>
+                  <><Loader2 className="w-4 h-4 animate-spin text-[#120B08]" /> Hold on, booking confirmation on the way…</>
                 ) : (
                   <><QrCode className="w-4 h-4 text-[#120B08]" /> Pay ₹{pricing.totalPrice} Online &amp; Get QR Ticket Slip</>
                 )}
@@ -989,6 +989,29 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           </div>
         );
       })()}
+
+      {/* ── Processing Booking & Razorpay Gateway Loading Overlay ─────────── */}
+      {isProcessingBooking && (
+        <div className="fixed inset-0 z-[200] bg-[#07090C]/95 backdrop-blur-xl flex items-center justify-center p-6 text-center animate-fade-in">
+          <div className="bg-[#1F1810] border-2 border-[#F5D061] rounded-3xl p-8 max-w-sm w-full space-y-5 shadow-2xl text-white">
+            <div className="relative w-20 h-20 mx-auto flex items-center justify-center">
+              <div className="absolute inset-0 rounded-full border-4 border-[#F5D061]/30 border-t-[#F5D061] animate-spin" />
+              <img src="/logo.png" alt="Wings Logo" className="w-12 h-12 object-contain" />
+            </div>
+            <div>
+              <h3 className="font-serif font-extrabold text-lg text-[#F8E7A1]">
+                Hold on, your booking confirmation is on the way...
+              </h3>
+              <p className="text-xs text-[#D4C4A0]/80 mt-2">
+                Securing table {selectedTable?.table_number} on Gomti Riverfront &amp; connecting to Razorpay...
+              </p>
+            </div>
+            <div className="px-3 py-1.5 rounded-full bg-[#120B08] border border-[#F5D061]/30 text-[10px] text-amber-300 font-mono">
+              ⚡ Guaranteed 0-Delay ACID Cloudflare D1 Synchronization
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* ── Area / Cluster Gallery Auto-Sliding Modal ────────────────────── */}
       {activeClusterGallery && (() => {

@@ -9,6 +9,7 @@ export interface MenuItem {
   is_veg: boolean;
   image_url: string;
   is_available: boolean;
+  is_bestseller?: boolean;
   display_order?: number;
   version?: number;
   is_deleted?: number;

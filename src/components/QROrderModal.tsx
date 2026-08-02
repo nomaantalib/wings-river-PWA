@@ -1,8 +1,9 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, QrCode, Utensils, ShoppingBag, Bell, Receipt, CheckCircle, Clock, ChefHat, Sparkles } from 'lucide-react';
-import StorageController from '@/controllers/StorageController';
+import { X, QrCode, Utensils, ShoppingBag, Bell, Receipt, CheckCircle, Clock, ChefHat, Zap } from 'lucide-react';
+import StorageController, { getStoredMenuItems } from '@/controllers/StorageController';
+import { MenuItem } from '@/models/MenuModel';
 
 interface QROrderModalProps {
   isOpen: boolean;
@@ -16,15 +17,17 @@ export default function QROrderModal({ isOpen, onClose, tableNumber = 'T4' }: QR
   const [orderStatus, setOrderStatus] = useState<'none' | 'new' | 'preparing' | 'ready' | 'served'>('none');
   const [callAlertSent, setCallAlertSent] = useState<string | null>(null);
 
-  // Demo menu items
-  const menuItems = [
-    { id: 'm7', name: 'Special Pav Bhaji', category: 'Chaat', price: 150, is_veg: true, is_bestseller: true },
-    { id: 'm12', name: 'Virgin Mojito', category: 'Beverages', price: 119, is_veg: true, is_bestseller: true },
-    { id: 'm21', name: 'Dal Makhani Shahi', category: 'Main Course', price: 265, is_veg: true, is_bestseller: true },
-    { id: 'm25', name: 'Loaded Special Pizza', category: 'Pizza', price: 349, is_veg: true, is_bestseller: false },
-    { id: 'm28', name: 'Chilli Paneer Dry', category: 'Chinese', price: 219, is_veg: true, is_bestseller: false },
-    { id: 'm34', name: 'Royal Shahi Tukda', category: 'Desserts', price: 169, is_veg: true, is_bestseller: true },
-  ];
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+
+  useEffect(() => {
+    const fetchMenu = async () => {
+      const items = await getStoredMenuItems();
+      setMenuItems(items);
+    };
+    fetchMenu();
+    window.addEventListener('wings_db_sync', fetchMenu);
+    return () => window.removeEventListener('wings_db_sync', fetchMenu);
+  }, []);
 
   if (!isOpen) return null;
 

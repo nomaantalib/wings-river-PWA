@@ -54,8 +54,17 @@ export async function openRazorpayCheckout(options: RazorpayCheckoutOptions): Pr
       email: options.customerEmail || 'guest@wingsrivercafe.com',
     },
     theme: {
-      color: '#f59e0b',
+      color: '#F5D061',
+      backdrop_color: '#120B08',
+      hide_topbar: false
     },
+    modal: {
+      ondismiss: function () {
+        if (options.onFailure) options.onFailure({ error: 'Checkout window closed' });
+      },
+      confirm_close: true,
+      animation: true
+    }
   };
 
   try {
