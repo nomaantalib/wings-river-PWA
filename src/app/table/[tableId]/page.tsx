@@ -168,8 +168,9 @@ export default function TableLandingPage() {
       total_amount: grandTotal,
       notes: `Session: ${session?.id || 'N/A'} | Invoice: ${invoiceNum} | Pay: ${payMethod.toUpperCase()}`,
       payment_method: payMethod,
-      payment_status: payMethod === 'online' ? 'PAID' : 'PENDING'
+      payment_status: (payMethod === 'online' ? 'paid' : 'unpaid') as 'paid' | 'unpaid'
     };
+
 
     if (payMethod === 'online') {
       const launched = await openRazorpayCheckout({
