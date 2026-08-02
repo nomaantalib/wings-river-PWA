@@ -105,79 +105,77 @@ export default function ContactSection() {
             </div>
           </div>
 
-          {/* Form Side — Compact Pista Green Background */}
-          <div className="lg:col-span-7 bg-gradient-to-br from-[#5A7A4B] via-[#6B8E5E] to-[#4F6C44] rounded-3xl p-5 sm:p-6 border-2 border-[#4F6C44] shadow-2xl text-white">
+          {/* Form Side — Luxury Black Background */}
+          <div className="lg:col-span-7 bg-[#1F1810] rounded-3xl p-5 sm:p-6 border border-[#E5B82C]/30 shadow-2xl text-white">
             {success ? (
               <div className="p-6 text-center space-y-3">
                 <CheckCircle2 className="w-10 h-10 text-[#F5D061] mx-auto" />
-                <h3 className="font-serif font-bold text-xl text-[#FAF7F2]">Message Sent Successfully!</h3>
-                <p className="text-xs text-[#E8F0E4]">
+                <h3 className="font-serif font-bold text-xl text-[#F8E7A1]">Message Sent Successfully!</h3>
+                <p className="text-xs text-[#D4C4A0]">
                   Thank you for writing to Wings River Café. Our team will respond shortly.
                 </p>
                 <button
                   onClick={() => setSuccess(false)}
-                  className="px-5 py-2 bg-[#F5D061] text-[#120B08] font-bold rounded-xl text-xs hover:bg-[#E5B82C]"
+                  className="px-5 py-2 bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#1F1810] font-bold rounded-xl text-xs"
                 >
                   Send Another Message
                 </button>
               </div>
             ) : (
               <form onSubmit={handleSubmit} className="space-y-3">
-                <h3 className="font-serif font-bold text-xl text-[#FAF7F2] mb-3 flex items-center gap-2">
-                  <span>Send an Inquiry</span>
-                </h3>
+                <h3 className="font-serif font-bold text-xl text-[#F8E7A1] mb-3">Send an Inquiry</h3>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#FAF7F2] mb-1">Your Name *</label>
+                    <label className="block text-[11px] font-semibold text-[#D4C4A0] mb-1">Your Name *</label>
                     <input
                       type="text"
                       required
                       placeholder="e.g. Priyanshu Singh"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#4F6C44]/80 border border-white/30 text-white font-semibold placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-[#F5D061]"
+                      className="w-full px-3.5 py-2 text-xs rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-bold uppercase tracking-wider text-[#FAF7F2] mb-1">Phone Number *</label>
+                    <label className="block text-[11px] font-semibold text-[#D4C4A0] mb-1">Phone Number *</label>
                     <input
                       type="tel"
                       required
                       placeholder="e.g. 07310008020"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#4F6C44]/80 border border-white/30 text-white font-semibold placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-[#F5D061]"
+                      className="w-full px-3.5 py-2 text-xs rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                     />
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#FAF7F2] mb-1">Email Address</label>
+                  <label className="block text-[11px] font-semibold text-[#D4C4A0] mb-1">Email Address</label>
                   <input
                     type="email"
                     placeholder="name@example.com"
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#4F6C44]/80 border border-white/30 text-white font-semibold placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-[#F5D061]"
+                    className="w-full px-3.5 py-2 text-xs rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                   />
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-bold uppercase tracking-wider text-[#FAF7F2] mb-1">Message / Event Details *</label>
+                  <label className="block text-[11px] font-semibold text-[#D4C4A0] mb-1">Message / Event Details *</label>
                   <textarea
                     required
                     rows={2.5 as any}
                     placeholder="Write your inquiry or party requirements..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-3.5 py-2 text-xs rounded-xl bg-[#4F6C44]/80 border border-white/30 text-white font-semibold placeholder:text-white/60 focus:outline-none focus:ring-2 focus:ring-[#F5D061]"
+                    className="w-full px-3.5 py-2 text-xs rounded-xl bg-white/10 border border-[#E5B82C]/30 text-[#F8E7A1] font-semibold placeholder:text-[#D4C4A0]/50 focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
                   />
                 </div>
 
                 {error && (
-                  <div className="p-2.5 bg-rose-900/40 border border-rose-400/50 rounded-xl text-rose-200 text-xs text-center font-bold">
+                  <div className="p-2.5 bg-rose-500/10 border border-rose-500/30 rounded-xl text-rose-300 text-xs text-center font-bold">
                     {error}
                   </div>
                 )}
@@ -185,7 +183,7 @@ export default function ContactSection() {
                 <button
                   type="submit"
                   disabled={loading}
-                  className="w-full py-2.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] hover:from-[#E5B82C] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 active:scale-98"
+                  className="w-full py-2.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] hover:from-[#E5B82C] hover:to-[#F5D061] text-[#1F1810] font-bold text-xs rounded-xl shadow-lg transition-all flex items-center justify-center space-x-2 active:scale-98"
                 >
                   <Send className="w-3.5 h-3.5" />
                   <span>{loading ? 'Sending...' : 'Send Message'}</span>
