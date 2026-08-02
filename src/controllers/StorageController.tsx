@@ -148,8 +148,10 @@ export interface TableOrder {
   razorpay_payment_id?: string;
   total_amount: number;
   items: { name: string; quantity: number; price: number }[];
+  notes?: string;
   created_at: string;
 }
+
 
 // ── Zero-delay cross-tab & PWA synchronization ──────────────────────────────
 let syncChannel: BroadcastChannel | null = null;
