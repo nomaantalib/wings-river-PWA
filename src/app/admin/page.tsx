@@ -612,7 +612,7 @@ export default function AdminPage() {
   }, [isAuthenticated]);
 
   const loadAll = async (isInitial: boolean = false) => {
-    if (isInitial) setIsLoading(true);
+    setIsLoading(false);
     try {
       const [
         resBookings, resMenu, resCategories, resBlogs, resGallery,

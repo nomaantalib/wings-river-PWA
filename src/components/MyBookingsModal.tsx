@@ -33,7 +33,6 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
   };
 
   const loadReservations = async () => {
-    setIsLoading(true);
     try {
       const session = getStoredUserSession();
       setUserSession(session);
