@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import { getStoredBlogs, BlogPost, INITIAL_BLOGS } from '@/lib/db';
-import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, BookOpen, Sparkles } from 'lucide-react';
+import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, BookOpen, Zap } from 'lucide-react';
 
 interface BlogSectionProps {
   onOpenBooking?: () => void;

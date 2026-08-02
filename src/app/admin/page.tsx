@@ -36,7 +36,7 @@ import {
   Lock, Utensils, Calendar, FileText, MessageSquare, Mail, Plus, Trash2, Edit3,
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
-  Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen, Compass,
+  Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen, Compass, Zap, Loader2,
   ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3, Code, Terminal
 } from 'lucide-react';
 import { getRegisteredUsers, saveRegisteredUser, RegisteredUser } from '@/components/UserAuthModal';
@@ -1077,12 +1077,12 @@ export default function AdminPage() {
   const navTabs: { id: TabKey; label: string; icon: React.ReactNode }[] = [
     { id: 'dashboard',  label: 'Dashboard Overview', icon: <Home className="w-4 h-4 shrink-0" /> },
     { id: 'settings',   label: 'Site Settings',       icon: <Settings className="w-4 h-4 shrink-0" /> },
-    { id: 'hero',       label: 'Hero & About CMS',   icon: <Sparkles className="w-4 h-4 shrink-0" /> },
+    { id: 'hero',       label: 'Hero & About CMS',   icon: <Award className="w-4 h-4 shrink-0" /> },
     { id: 'pages',      label: 'Dynamic Pages',      icon: <FileText className="w-4 h-4 shrink-0" /> },
     { id: 'categories', label: 'Menu Categories',    icon: <Layers className="w-4 h-4 shrink-0" /> },
     { id: 'menu',       label: 'Menu Items',         icon: <Utensils className="w-4 h-4 shrink-0" /> },
     { id: 'menupages',  label: 'Booklet Pages',      icon: <BookOpen className="w-4 h-4 shrink-0" /> },
-    { id: 'promopages', label: 'Promo Pages',         icon: <Sparkles className="w-4 h-4 shrink-0" /> },
+    { id: 'promopages', label: 'Promo Pages',         icon: <Zap className="w-4 h-4 shrink-0" /> },
     { id: 'blogs',      label: 'Blogs & News',       icon: <FileText className="w-4 h-4 shrink-0" /> },
     { id: 'gallery',    label: 'Photo Gallery',      icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
     { id: 'rides',      label: 'Water Sports Rides', icon: <Waves className="w-4 h-4 shrink-0" /> },
@@ -1326,8 +1326,8 @@ export default function AdminPage() {
           {isLoading ? (
             <div className="min-h-[500px] flex flex-col items-center justify-center p-12 space-y-6 text-center">
               <div className="relative">
-                <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl animate-pulse">
-                  <Sparkles className="w-10 h-10 animate-spin" />
+                <div className="w-20 h-20 rounded-3xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-400 shadow-2xl">
+                  <Loader2 className="w-10 h-10 animate-spin text-amber-400" />
                 </div>
                 <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-emerald-500 border-2 border-dark-900 flex items-center justify-center text-[10px] text-dark-950 font-bold">
                   ✓
@@ -2147,7 +2147,7 @@ export default function AdminPage() {
                   </div>
                   {promoPages.length === 0 && (
                     <div className="text-center py-16 text-gray-500 text-sm">
-                      <Sparkles className="w-10 h-10 mx-auto mb-3 opacity-30" />
+                      <Megaphone className="w-10 h-10 mx-auto mb-3 opacity-30 text-amber-400" />
                       <p>No promo pages yet. Add your first promotional page!</p>
                     </div>
                   )}
@@ -2388,7 +2388,7 @@ export default function AdminPage() {
                       <div className="bg-dark-900 border border-amber-500/30 rounded-2xl p-5 shadow-xl">
                         <div className="flex items-center justify-between mb-2">
                           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Net Revenue</span>
-                          <Sparkles className="w-5 h-5 text-amber-400" />
+                          <IndianRupee className="w-5 h-5 text-amber-400" />
                         </div>
                         <p className="font-serif text-3xl font-extrabold text-amber-300">₹{netRevenue.toLocaleString()}</p>
                         <p className="text-[11px] text-amber-400 mt-1">Net Realized Earnings</p>

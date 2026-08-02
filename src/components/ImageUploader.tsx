@@ -173,9 +173,13 @@ export default function ImageUploader({
           }`}
         >
           {loading ? (
-            <div className="flex flex-col items-center space-y-2">
-              <Loader2 className="w-8 h-8 text-amber-400 animate-spin" />
-              <p className="text-xs text-gray-400 font-medium">Processing image…</p>
+            <div className="flex flex-col items-center justify-center p-6 space-y-3 bg-[#120B08]/95 rounded-2xl border-2 border-[#F5D061]/50 shadow-2xl">
+              <Loader2 className="w-8 h-8 text-[#F5D061] animate-spin" />
+              <p className="text-xs font-bold text-[#F8E7A1] uppercase tracking-wider">Fast Cloudinary &amp; D1 Sync...</p>
+              <div className="w-48 h-2 bg-black/60 rounded-full overflow-hidden border border-[#F5D061]/30">
+                <div className="h-full bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] animate-pulse w-4/5" />
+              </div>
+              <p className="text-[10px] text-[#D4C4A0]/80 font-mono">Compressing &amp; Uploading Image</p>
             </div>
           ) : hasImage ? (
             <>

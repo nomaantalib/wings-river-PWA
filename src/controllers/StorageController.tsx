@@ -136,10 +136,25 @@ export interface EventBanner {
   created_at?: string;
 }
 
-// ── Event dispatch helper to notify all open UI components instantly ─────────
-function notifySync() {
+// ── Zero-delay cross-tab & PWA synchronization ──────────────────────────────
+let syncChannel: BroadcastChannel | null = null;
+if (typeof window !== 'undefined' && 'BroadcastChannel' in window) {
+  try {
+    syncChannel = new BroadcastChannel('wings_pwa_sync_channel');
+    syncChannel.onmessage = () => {
+      window.dispatchEvent(new Event('wings_db_sync'));
+    };
+  } catch (e) {}
+}
+
+export function notifySync() {
   if (typeof window !== 'undefined') {
     window.dispatchEvent(new Event('wings_db_sync'));
+    if (syncChannel) {
+      try {
+        syncChannel.postMessage('sync');
+      } catch (e) {}
+    }
   }
 }
 

@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Move, Plus, Trash2, Copy, Lock, Unlock, RotateCw, ZoomIn, ZoomOut, Maximize2,
   Save, Download, Upload, RefreshCw, Layers, Grid, Compass, Check, AlertCircle,
-  QrCode, Calendar, Users, Home, Leaf, Sunset, Sparkles, MapPin, Eye, FileText, CheckCircle2, Shield
+  QrCode, Calendar, Users, Home, Leaf, Sunset, Zap, MapPin, Eye, FileText, CheckCircle2, Shield
 } from 'lucide-react';
 import { FloorPlanLayout, FloorObject, ObjectCategory, ObjectShape, INITIAL_FLOOR_PLAN } from '@/models/FloorPlanModel';
 import { getStoredFloorPlan, saveFloorPlan } from '@/lib/db';

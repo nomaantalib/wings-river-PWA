@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Award, Users, Star, DollarSign, Clock, ShieldCheck, Anchor, MapPin } from 'lucide-react';
+import { Award, Users, DollarSign, Clock, ShieldCheck, Anchor, MapPin } from 'lucide-react';
 import CircularLogo from './CircularLogo';
 import { getStoredHeroSettings, HeroSettings } from '@/lib/db';
 
@@ -28,7 +28,7 @@ export default function AboutSection() {
       subText: 'Satisfied Diners & Parties'
     },
     {
-      icon: Star,
+      icon: Award,
       value: '4.9 / 5.0',
       label: 'Guest Rating',
       subText: 'Based on 500+ Reviews'

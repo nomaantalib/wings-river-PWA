@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Calendar, Clock, Users, User, Phone, Mail, Sparkles, Anchor, CheckCircle2, AlertCircle } from 'lucide-react';
+import { X, Calendar, Clock, Users, User, Phone, Mail, Zap, Anchor, CheckCircle2, AlertCircle } from 'lucide-react';
 import { saveReservation, Reservation } from '@/lib/db';
 import { notifyBookingConfirmed } from '@/lib/pushNotifications';
 

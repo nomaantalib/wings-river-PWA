@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { X, Calendar, QrCode, Ticket, CheckCircle, Clock, MapPin, Phone, RefreshCw, AlertCircle, ShieldAlert, Sparkles, User } from 'lucide-react';
+import { X, Calendar, QrCode, Ticket, CheckCircle, Clock, MapPin, Phone, RefreshCw, AlertCircle, ShieldAlert, Zap, User } from 'lucide-react';
 import { getStoredReservations, updateReservationStatus, Reservation } from '@/lib/db';
 import { getStoredUserSession } from '@/components/UserAuthModal';
 import { isEligibleForRefundCancellation } from '@/lib/notifications';
@@ -235,7 +235,7 @@ export default function MyBookingsModal({ isOpen, onClose }: MyBookingsModalProp
                     <div>
                       {isEating && (
                         <span className="text-xs font-bold text-amber-300 bg-amber-950/70 border border-amber-500/40 px-3 py-1 rounded-xl flex items-center shadow-sm animate-pulse">
-                          <Sparkles className="w-3.5 h-3.5 mr-1.5" /> Dining Now
+                          <Zap className="w-3.5 h-3.5 mr-1.5" /> Dining Now
                         </span>
                       )}
                       {isConfirmed && (

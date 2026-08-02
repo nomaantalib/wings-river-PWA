@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import {
   Users, Clock, Calendar, CheckCircle2, ShieldAlert,
   ArrowLeft, Home, Leaf, Sunset, ChevronRight, ChevronLeft, MapPin,
-  Timer, Sparkles, Sun, Compass, Trees, Lock, IndianRupee, Receipt, LogOut,
+  Timer, Zap, Sun, Compass, Trees, Lock, IndianRupee, Receipt, LogOut,
   Camera, X, User, Phone, Mail, Loader2, Download, QrCode, ShieldCheck, Ticket
 } from 'lucide-react';
 import { calculateBookingPrice } from '@/lib/pricing';
@@ -568,9 +568,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         </div>
       </div>
 
-      {/* ── Step Breadcrumb (Single Line on PWA / Mobile) ──────────────────────────── */}
-      <div className="flex items-center justify-between px-3 sm:px-7 py-3 border-b border-[#4F6C44] bg-gradient-to-r from-[#5A7A4B] via-[#6B8E5E] to-[#5A7A4B] shadow-inner text-white overflow-hidden">
-        <div className="flex items-center gap-1.5 sm:gap-4 overflow-x-auto no-scrollbar whitespace-nowrap flex-nowrap w-full py-0.5">
+      {/* ── Step Breadcrumb (Single Line & Center-Aligned on PWA / Mobile) ──────────────────────────── */}
+      <div className="flex items-center justify-center px-3 sm:px-7 py-3 border-b border-[#4F6C44] bg-gradient-to-r from-[#5A7A4B] via-[#6B8E5E] to-[#5A7A4B] shadow-inner text-white overflow-hidden text-center">
+        <div className="flex items-center justify-center gap-1.5 sm:gap-4 overflow-x-auto no-scrollbar whitespace-nowrap flex-nowrap w-full py-0.5 max-w-2xl mx-auto">
           {STEP_LABELS.map((s, i) => {
             const num = i + 1;
             const done   = step > num;
@@ -1010,7 +1010,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                     onClick={() => setIsCarouselPlaying(!isCarouselPlaying)}
                     className="px-3 py-1.5 rounded-xl bg-[#2A1D0E] border border-[#F5D061]/40 text-[#F5D061] text-xs font-bold flex items-center gap-1.5 hover:bg-[#3D291C]"
                   >
-                    <Sparkles className="w-3.5 h-3.5" />
+                    <Zap className="w-3.5 h-3.5" />
                     <span>{isCarouselPlaying ? 'Pause Slides' : 'Auto Play'}</span>
                   </button>
                   <button

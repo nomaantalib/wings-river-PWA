@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { getStoredHeroSettings, HeroSettings, DEFAULT_HERO_SETTINGS, DEFAULT_HERO_SLIDES } from '@/lib/db';
-import { Calendar, Utensils, Anchor, ChevronDown, Sparkles, ChevronRight, ChevronLeft, BookOpen, Ticket } from 'lucide-react';
+import { Calendar, Utensils, Anchor, ChevronDown, Zap, ChevronRight, ChevronLeft, BookOpen, Ticket } from 'lucide-react';
 import CircularLogo from './CircularLogo';
 
 interface HeroSectionProps {
