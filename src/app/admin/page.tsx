@@ -1873,44 +1873,147 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {/* TAB 5: MENU ITEMS */}
+              {/* TAB: MENU ITEMS GROUPED BY CATEGORY */}
               {activeTab === 'menu' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-serif font-bold text-base">Menu Food Dishes</h3>
-                    <button onClick={() => setMenuModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Menu Item</span></button>
+                <div className="space-y-8">
+                  {/* Top Bar Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#140E0A] border border-[#F5D061]/30 p-5 rounded-2xl shadow-xl">
+                    <div>
+                      <h3 className="font-serif font-black text-lg text-[#F8E7A1]">Category-Wise Menu Management</h3>
+                      <p className="text-xs text-[#D4C4A0]/80">Manage food items grouped under their respective admin categories with instant live PWA sync.</p>
+                    </div>
+                    <button
+                      onClick={() => setMenuModal({ is_available: true, is_veg: true, price: 150 })}
+                      className="px-4 py-2.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#6B8E5E] text-[#120B08] font-black text-xs uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 transition flex items-center gap-1.5 shrink-0"
+                    >
+                      <Plus className="w-4 h-4" /> Add New Food Dish
+                    </button>
                   </div>
-                  <div className="bg-dark-900/50 border border-white/10 rounded-2xl p-6 overflow-x-auto">
-                    <table className="w-full text-xs text-left">
-                      <thead>
-                        <tr className="border-b border-white/10 text-gray-400">
-                          <th className="py-2.5">Dish Name</th>
-                          <th className="py-2.5">Category ID</th>
-                          <th className="py-2.5">Price</th>
-                          <th className="py-2.5">Type</th>
-                          <th className="py-2.5">Availability</th>
-                          <th className="py-2.5">Actions</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-white/5">
-                        {menuItems.map((m) => (
-                          <tr key={m.id} className="hover:bg-white/5">
-                            <td className="py-2.5 font-bold text-white">{m.name}</td>
-                            <td className="py-2.5 text-gray-400 font-mono">{m.category_id}</td>
-                            <td className="py-2.5">₹{m.price}</td>
-                            <td className="py-2.5">{m.is_veg ? '🟢 Veg' : '🔴 Non-Veg'}</td>
-                            <td className="py-2.5">{m.is_available ? '✅ In Stock' : '❌ Out of Stock'}</td>
-                            <td className="py-2.5 flex items-center space-x-2">
-                              <button onClick={() => setMenuModal(m)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
-                              <button onClick={() => setDeleteTarget({ label: m.name, action: async () => { await deleteMenuItem(m.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
+
+                  {/* Render Food Items Grouped by Category */}
+                  {(categories.length > 0 ? categories : [
+                    { id: 'cat-starters', name: 'Starters & Tandoor', description: 'Crispy rolls, kebabs, tandoori tikka & momos' },
+                    { id: 'cat-indian', name: 'Indian Main Course', description: 'Authentic paneer, rich curries & garlic naan' },
+                    { id: 'cat-chinese', name: 'Chinese & Asian', description: 'Hakka noodles, Manchurian, fried rice & chilli paneer' },
+                    { id: 'cat-beverages', name: 'Mocktails, Tea & Coffee', description: 'Chilled Mojito, Cold Coffee & Spiced Chai' }
+                  ]).map((cat) => {
+                    const catItems = menuItems.filter(
+                      m => (m.category_id || '').toLowerCase() === cat.id.toLowerCase() ||
+                           (m.category || '').toLowerCase() === cat.name.toLowerCase() ||
+                           (m.category || '').toLowerCase().includes(cat.name.toLowerCase().slice(0, 5))
+                    );
+
+                    return (
+                      <div key={cat.id} className="bg-[#140E0A] border border-[#F5D061]/20 rounded-2xl p-5 space-y-4 shadow-xl">
+                        {/* Category Header */}
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#F5D061]/20 pb-3 gap-2">
+                          <div className="space-y-1">
+                            <div className="flex items-center gap-2">
+                              <span className="w-2.5 h-2.5 rounded-full bg-[#6B8E5E]" />
+                              <h4 className="font-serif font-black text-base text-[#F8E7A1]">{cat.name}</h4>
+                              <span className="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-full bg-[#F5D061]/15 text-[#F5D061] border border-[#F5D061]/30">
+                                {catItems.length} Dishes
+                              </span>
+                            </div>
+                            {cat.description && (
+                              <p className="text-xs text-[#D4C4A0]/70 pl-4">{cat.description}</p>
+                            )}
+                          </div>
+
+                          <button
+                            onClick={() => setMenuModal({ category_id: cat.id, category: cat.name, is_available: true, is_veg: true, price: 150 })}
+                            className="px-3 py-1.5 bg-white/5 hover:bg-white/10 text-[#F5D061] border border-[#F5D061]/30 text-xs font-bold rounded-xl transition flex items-center gap-1.5 shrink-0"
+                          >
+                            <Plus className="w-3.5 h-3.5" /> Add Dish to {cat.name}
+                          </button>
+                        </div>
+
+                        {/* Food Items Grid for this Category */}
+                        {catItems.length === 0 ? (
+                          <div className="py-6 text-center text-[#D4C4A0]/50 text-xs italic bg-white/5 rounded-xl border border-dashed border-white/10">
+                            No dishes added to &apos;{cat.name}&apos; yet. Click &apos;Add Dish&apos; to create one!
+                          </div>
+                        ) : (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                            {catItems.map((m) => (
+                              <div key={m.id} className="bg-[#1A130D] border border-white/10 hover:border-[#F5D061]/40 rounded-xl p-3.5 flex flex-col justify-between gap-3 shadow-md group transition">
+                                <div className="flex gap-3">
+                                  {m.image_url ? (
+                                    <img src={m.image_url} alt={m.name} className="w-16 h-16 rounded-lg object-cover shrink-0 border border-white/10" />
+                                  ) : (
+                                    <div className="w-16 h-16 rounded-lg bg-white/5 border border-white/10 flex items-center justify-center text-xl shrink-0">🍽️</div>
+                                  )}
+
+                                  <div className="flex-1 min-w-0 space-y-1">
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className={`w-2 h-2 rounded-full ${m.is_veg !== false ? 'bg-[#6B8E5E]' : 'bg-red-500'}`} />
+                                      <h5 className="font-bold text-xs text-white truncate">{m.name}</h5>
+                                    </div>
+                                    <p className="text-[10px] text-[#D4C4A0]/70 line-clamp-2 leading-relaxed">{m.description}</p>
+                                    <div className="flex items-center justify-between pt-1">
+                                      <span className="text-sm font-black text-[#F5D061]">₹{m.price}</span>
+                                      <span className={`text-[9px] font-extrabold uppercase px-2 py-0.5 rounded-full ${
+                                        m.is_available !== false
+                                          ? 'bg-[#6B8E5E]/20 text-[#6B8E5E] border border-[#6B8E5E]/30'
+                                          : 'bg-red-500/20 text-red-400 border border-red-500/30'
+                                      }`}>
+                                        {m.is_available !== false ? 'In Stock' : 'Out of Stock'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Action Toolbar */}
+                                <div className="flex items-center justify-between pt-2 border-t border-white/5 gap-1.5 text-xs">
+                                  <button
+                                    onClick={async () => {
+                                      const updated = { ...m, is_available: !m.is_available };
+                                      await saveMenuItem(updated);
+                                      loadAll();
+                                    }}
+                                    className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-[10px] font-bold text-[#D4C4A0]"
+                                  >
+                                    {m.is_available !== false ? 'Mark Out of Stock' : 'Mark In Stock'}
+                                  </button>
+
+                                  <div className="flex items-center gap-1">
+                                    <button
+                                      onClick={() => setMenuModal(m)}
+                                      className="p-1.5 rounded-lg bg-[#F5D061]/10 text-[#F5D061] hover:bg-[#F5D061]/20"
+                                      title="Edit Dish"
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={async () => {
+                                        const dup = { ...m, id: `menu-${Date.now()}`, name: `${m.name} (Copy)` };
+                                        await saveMenuItem(dup);
+                                        loadAll();
+                                      }}
+                                      className="p-1.5 rounded-lg bg-white/5 text-[#D4C4A0] hover:bg-white/10"
+                                      title="Duplicate Dish"
+                                    >
+                                      <Copy className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={() => setDeleteTarget({ label: m.name, action: async () => { await deleteMenuItem(m.id); loadAll(); } })}
+                                      className="p-1.5 rounded-lg bg-red-500/10 text-red-400 hover:bg-red-500/20"
+                                      title="Delete Dish"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               )}
+
 
               {/* OTHER TABS OMITTED FOR BRIEFNESS BUT INCLUDED IN THE FULL CODE */}
               {activeTab === 'blogs' && (
