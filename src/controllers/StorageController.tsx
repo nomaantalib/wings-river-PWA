@@ -1157,7 +1157,8 @@ export async function saveFloorPlan(layout: FloorPlanLayout, floorName: string =
       localStorage.setItem(`wings_floor_plan_${floorName}`, JSON.stringify(payload));
       localStorage.setItem('wings_floor_plan_layout', JSON.stringify(payload));
     }
-    const res = await apiPut(`/api/floor-plans/${floorName}`, payload);
+    const res = await apiPost(`/api/floor-plans/${floorName}`, payload);
+
     notifySync();
     return res.success;
   } catch (e) {
