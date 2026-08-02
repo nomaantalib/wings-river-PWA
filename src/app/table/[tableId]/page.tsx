@@ -161,10 +161,11 @@ export default function TableLandingPage() {
       customer_phone: customerPhone || session?.customer_phone || '',
       items: cart.map(c => ({
         menu_item_id: c.item.id,
-        item_name: `${c.item.name}${c.customizations.length ? ` (${c.customizations.join(', ')})` : ''}`,
+        name: `${c.item.name}${c.customizations.length ? ` (${c.customizations.join(', ')})` : ''}`,
         quantity: c.quantity,
         price: c.item.price
       })),
+
       total_amount: grandTotal,
       notes: `Session: ${session?.id || 'N/A'} | Invoice: ${invoiceNum} | Pay: ${payMethod.toUpperCase()}`,
       payment_method: payMethod,
