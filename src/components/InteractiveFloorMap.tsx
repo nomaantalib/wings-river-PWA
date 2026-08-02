@@ -9,7 +9,7 @@ import {
 } from 'lucide-react';
 import { calculateBookingPrice } from '@/lib/pricing';
 import { getStoredUserSession } from './UserAuthModal';
-import { saveReservation, Reservation, getStoredGalleryItems, GalleryItem, INITIAL_GALLERY } from '@/lib/db';
+import { saveReservation, Reservation, getStoredGalleryItems, GalleryItem, INITIAL_GALLERY, getStoredFloorPlan, FloorPlanLayout, FloorObject } from '@/lib/db';
 import { notifyBookingConfirmed } from '@/lib/pushNotifications';
 
 /* ─── Data Types ─────────────────────────────────────────── */
@@ -216,11 +216,18 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     return () => window.removeEventListener('wings_auth_change', syncUser);
   }, []);
 
-  // Fetch gallery items for cluster preview
+  // Floor Plan Layout state from Admin Builder / D1
+  const [floorPlanLayout, setFloorPlanLayout] = useState<FloorPlanLayout | null>(null);
+
   useEffect(() => {
-    getStoredGalleryItems().then(items => {
-      if (items && items.length > 0) setGalleryItems(items);
-    });
+    const loadPlan = () => {
+      getStoredFloorPlan().then((plan) => {
+        if (plan && Array.isArray(plan.objects)) setFloorPlanLayout(plan);
+      });
+    };
+    loadPlan();
+    window.addEventListener('wings_db_sync', loadPlan);
+    return () => window.removeEventListener('wings_db_sync', loadPlan);
   }, []);
 
   // Sync staff/admin table readiness updates
@@ -489,42 +496,44 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         </div>
       </div>
 
-      {/* ── Step Breadcrumb ──────────────────────────────────── */}
-      <div className="flex items-center gap-0 px-5 sm:px-7 py-3.5 border-b border-[#E5B82C]/30 bg-[#F0EAE0]">
-        {STEP_LABELS.map((s, i) => {
-          const num = i + 1;
-          const done   = step > num;
-          const active = step === num;
-          return (
-            <React.Fragment key={s}>
-              <div className="flex items-center gap-2">
-                <span className={`w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold transition-all duration-300 ${
-                  done   ? 'bg-[#6B8E5E] text-white shadow shadow-[#6B8E5E]/40'  :
-                  active ? 'bg-gradient-to-br from-[#F5D061] to-[#E5B82C] text-[#1F1810] shadow-lg shadow-[#F5D061]/30 scale-110' :
-                           'bg-[#E5D9C8] text-[#8B7355] border border-[#E5B82C]/40'
-                }`}>
-                  {done ? '✓' : num}
-                </span>
-                <span className={`text-[11px] font-semibold transition-all duration-300 ${
-                  active ? 'text-[#1F1810]' : done ? 'text-[#6B8E5E]' : 'text-[#8B7355]'
-                }`}>{s}</span>
-              </div>
-              {i < STEP_LABELS.length - 1 && (
-                <ChevronRight className="w-3 h-3 text-[#F5D061]/25 mx-3 shrink-0" />
-              )}
-            </React.Fragment>
-          );
-        })}
+      {/* ── Step Breadcrumb (Pista Green Background) ──────────────────────────── */}
+      <div className="flex items-center justify-between px-5 sm:px-7 py-3.5 border-b border-[#4F6C44] bg-gradient-to-r from-[#5A7A4B] via-[#6B8E5E] to-[#5A7A4B] shadow-inner text-white">
+        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+          {STEP_LABELS.map((s, i) => {
+            const num = i + 1;
+            const done   = step > num;
+            const active = step === num;
+            return (
+              <React.Fragment key={s}>
+                <div className="flex items-center gap-2">
+                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all duration-300 ${
+                    done   ? 'bg-[#FAF7F2] text-[#5A7A4B] shadow-md font-bold' :
+                    active ? 'bg-[#F5D061] text-[#120B08] shadow-lg scale-110 ring-2 ring-white font-extrabold' :
+                             'bg-[#4F6C44] text-[#D0E2C8] border border-[#7A9E6A]'
+                  }`}>
+                    {done ? '✓' : num}
+                  </span>
+                  <span className={`text-xs font-bold transition-all duration-300 ${
+                    active ? 'text-[#FAF7F2] tracking-wide' : done ? 'text-[#FAF7F2]/90' : 'text-[#D0E2C8]'
+                  }`}>{s}</span>
+                </div>
+                {i < STEP_LABELS.length - 1 && (
+                  <ChevronRight className="w-4 h-4 text-[#FAF7F2]/40 shrink-0" />
+                )}
+              </React.Fragment>
+            );
+          })}
+        </div>
 
         {/* ── BACK BUTTON ─────────────────────────── */}
         {step > 1 && (
           <button
             onClick={handleBack}
             aria-label={step === 3 ? 'Go back to table selection' : 'Go back to area selection'}
-            className="ml-auto flex items-center gap-2 px-4 py-2 rounded-xl
-              bg-[#1F1810]
-              border border-[#E5B82C]/60 hover:border-[#F5D061]
-              text-[#F5D061] hover:text-[#F8E7A1]
+            className="flex items-center gap-2 px-4 py-2 rounded-xl
+              bg-[#120B08]
+              border border-[#F5D061] hover:border-[#FFF8E7]
+              text-[#F5D061] hover:text-[#FFF8E7]
               text-[11px] font-bold uppercase tracking-wider
               shadow-md transition-all duration-200 active:scale-95
               focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"

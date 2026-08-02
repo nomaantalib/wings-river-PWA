@@ -16,6 +16,9 @@ export { WATER_SPORTS_RIDES } from '@/models/WaterSportsModel';
 export type { HeroSlide, HeroSettings } from '@/models/HeroModel';
 export { DEFAULT_HERO_SETTINGS, DEFAULT_HERO_SLIDES } from '@/models/HeroModel';
 
+export type { FloorPlanLayout, FloorObject, ObjectCategory, ObjectShape } from '@/models/FloorPlanModel';
+export { INITIAL_FLOOR_PLAN } from '@/models/FloorPlanModel';
+
 export {
   // Reservations
   getStoredReservations,
@@ -104,6 +107,9 @@ export {
   getStoredPromoPages,
   savePromoPage,
   deletePromoPage,
+  // Floor Plan Layout
+  getStoredFloorPlan,
+  saveFloorPlan,
 } from '@/controllers/StorageController';
 
 export type {

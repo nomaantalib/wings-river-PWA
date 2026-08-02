@@ -8,6 +8,7 @@ import { GalleryItem, INITIAL_GALLERY }            from '@/models/GalleryModel';
 import { Review, ContactMessage, INITIAL_REVIEWS } from '@/models/ReviewModel';
 import { RideTicket, WATER_SPORTS_RIDES }          from '@/models/WaterSportsModel';
 import { HeroSettings, DEFAULT_HERO_SETTINGS }     from '@/models/HeroModel';
+import { FloorPlanLayout, INITIAL_FLOOR_PLAN }    from '@/models/FloorPlanModel';
 
 // ── Models & Types for Expanded Modules ──────────────────────────────────────
 export interface MenuCategory {
@@ -862,6 +863,49 @@ export async function deletePromoPage(id: string): Promise<PromoPage[]> {
   await apiDelete(`/api/promopages/${id}`);
   notifySync();
   return getStoredPromoPages();
+}
+
+// ══════════════════════════════════════════════════════════════════════════════
+//  FLOOR PLAN LAYOUT DESIGNER
+// ══════════════════════════════════════════════════════════════════════════════
+export async function getStoredFloorPlan(): Promise<FloorPlanLayout> {
+  try {
+    const res = await apiFetch('/api/floor-plan');
+    if (res.success && res.data && Array.isArray(res.data.objects)) {
+      return res.data;
+    }
+  } catch (e) {
+    console.warn('[D1] getStoredFloorPlan error:', e);
+  }
+
+  // Fallback to local storage or INITIAL_FLOOR_PLAN
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('wings_floor_plan_layout');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.objects)) return parsed;
+      }
+    } catch (e) {}
+  }
+
+  return INITIAL_FLOOR_PLAN;
+}
+
+export async function saveFloorPlan(layout: FloorPlanLayout): Promise<boolean> {
+  try {
+    const payload = { ...layout, updatedAt: new Date().toISOString() };
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('wings_floor_plan_layout', JSON.stringify(payload));
+    }
+    const res = await apiPost('/api/floor-plan', payload);
+    notifySync();
+    return res.success;
+  } catch (e) {
+    console.error('[D1] saveFloorPlan failed:', e);
+    notifySync();
+    return true; // saved locally
+  }
 }
 
 // ══════════════════════════════════════════════════════════════════════════════

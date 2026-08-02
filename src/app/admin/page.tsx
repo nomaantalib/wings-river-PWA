@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import FloorPlanBuilder from '@/components/FloorPlanBuilder';
 import {
   getStoredReservations, updateReservationStatus, deleteReservation,
   getStoredMenuItems, saveMenuItem, updateMenuItem, deleteMenuItem,
@@ -35,7 +36,7 @@ import {
   Lock, Utensils, Calendar, FileText, MessageSquare, Mail, Plus, Trash2, Edit3,
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
-  Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen,
+  Sparkles, Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen, Compass,
   ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3, Code, Terminal
 } from 'lucide-react';
 import { getRegisteredUsers, saveRegisteredUser, RegisteredUser } from '@/components/UserAuthModal';
@@ -411,6 +412,7 @@ type TabKey =
   | 'users'
   | 'revenue'
   | 'heatmap'
+  | 'floorplan'
   | 'database'
   | 'reviews' 
   | 'contact' 
@@ -1085,6 +1087,7 @@ export default function AdminPage() {
     { id: 'faqs',       label: 'FAQs Management',    icon: <HelpCircle className="w-4 h-4 shrink-0" /> },
     { id: 'team',       label: 'Team Members',       icon: <Users className="w-4 h-4 shrink-0" /> },
     { id: 'bookings',   label: 'Reservations',       icon: <Calendar className="w-4 h-4 shrink-0" /> },
+    { id: 'floorplan',  label: 'Floor Plan Designer',icon: <Compass className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
     { id: 'users',      label: 'Users CRM Database', icon: <Users className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
     { id: 'revenue',    label: 'Revenue & Refunds',   icon: <IndianRupee className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
     { id: 'heatmap',    label: 'Booking Heatmap',     icon: <Activity className="w-4 h-4 shrink-0 text-[#F5D061]" /> },
@@ -1946,6 +1949,12 @@ export default function AdminPage() {
                       </div>
                     ))}
                   </div>
+                </div>
+              )}
+
+              {activeTab === 'floorplan' && (
+                <div className="h-[calc(100vh-120px)] min-h-[650px]">
+                  <FloorPlanBuilder />
                 </div>
               )}
 
