@@ -5,9 +5,10 @@ import {
   X, QrCode, Utensils, ShoppingBag, Bell, Receipt, CheckCircle, ChefHat,
   Camera, CameraOff, Loader2, Plus, Minus, AlertCircle, Zap, Scan
 } from 'lucide-react';
-import { getStoredMenuItems, getStoredCategories, saveOrder, saveCallRequest } from '@/controllers/StorageController';
-import { MenuItem, MenuCategory } from '@/models/MenuModel';
+import { getStoredMenuItems, getStoredCategories, saveOrder, saveCallRequest, MenuCategory } from '@/controllers/StorageController';
+import { MenuItem } from '@/models/MenuModel';
 import { openRazorpayCheckout } from '@/lib/razorpay';
+
 
 
 interface QROrderModalProps {
