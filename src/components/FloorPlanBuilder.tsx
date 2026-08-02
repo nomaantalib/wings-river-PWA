@@ -7,7 +7,8 @@ import {
   QrCode, Calendar, Users, Home, Leaf, Sunset, Zap, MapPin, Eye, FileText, CheckCircle2, Shield
 } from 'lucide-react';
 import { FloorPlanLayout, FloorObject, ObjectCategory, ObjectShape, INITIAL_FLOOR_PLAN } from '@/models/FloorPlanModel';
-import { getStoredFloorPlan, saveFloorPlan } from '@/lib/db';
+import { getStoredFloorPlan, saveFloorPlan, notifySync } from '@/lib/db';
+
 
 interface FloorPlanBuilderProps {
   onSaveSuccess?: () => void;
@@ -205,6 +206,7 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
     setSaveMessage('');
     const success = await saveFloorPlan(layout);
     setIsSaving(false);
+    notifySync();
     if (success) {
       setSaveMessage('✓ Floor Plan Layout Saved to D1 Database & Synced!');
       setTimeout(() => setSaveMessage(''), 3500);
@@ -213,6 +215,7 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
       setSaveMessage('✗ Save failed. Retrying local storage...');
     }
   };
+
 
   // Export JSON
   const handleExportJSON = () => {

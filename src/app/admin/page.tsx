@@ -23,7 +23,8 @@ import {
   getStoredPages, savePage, deletePage,
   getApiUrl,
   // Site Settings & Dashboard
-  getSiteSettings, saveSiteSettings, SITE_SETTINGS_DEFAULTS, getDashboardStats, uploadMediaFile, uploadCloudinaryFile,
+  getSiteSettings, saveSiteSettings, SITE_SETTINGS_DEFAULTS, getDashboardStats, uploadMediaFile, uploadCloudinaryFile, notifySync,
+
 
   // Promo Pages
   getStoredPromoPages, savePromoPage, deletePromoPage,
@@ -972,6 +973,7 @@ export default function AdminPage() {
     if (!heroSettings) return;
     const updated = await saveHeroSettings(heroSettings);
     setHeroSettings(updated);
+    notifySync();
     showToast('Hero & About CMS Settings saved successfully!');
   };
 
@@ -983,6 +985,7 @@ export default function AdminPage() {
     try {
       const updated = await saveSiteSettings(siteSettings);
       setSiteSettings(updated);
+      notifySync();
       showToast('Site Settings saved to D1 successfully!');
     } catch (err: any) {
       showToast(`Save failed: ${err?.message || 'Unknown error'}`);
@@ -990,6 +993,7 @@ export default function AdminPage() {
       setIsSavingSettings(false);
     }
   };
+
 
   // Menu Booklet Page Save
   const saveMenuPageItem = async (e: React.FormEvent) => {

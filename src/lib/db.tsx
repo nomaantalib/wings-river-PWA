@@ -114,7 +114,9 @@ export {
   // Floor Plan Layout
   getStoredFloorPlan,
   saveFloorPlan,
+  notifySync,
 } from '@/controllers/StorageController';
+
 
 export type {
   MenuCategory,
