@@ -49,7 +49,10 @@ export default function Home() {
   useEffect(() => {
     initRealtimeBookingNotifier();
     const handleSync = () => setSyncKey(prev => prev + 1);
+    const handleOpenMyBookingsEvent = () => setIsMyBookingsOpen(true);
+
     window.addEventListener('wings_db_sync', handleSync);
+    window.addEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
 
     // Auto-detect Table QR Code URL Scan (e.g. ?table=T4 or ?qr=T4)
     if (typeof window !== 'undefined') {
@@ -95,11 +98,15 @@ export default function Home() {
       window.addEventListener('scroll', handleScrollSave, { passive: true });
       return () => {
         window.removeEventListener('wings_db_sync', handleSync);
+        window.removeEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
         window.removeEventListener('scroll', handleScrollSave);
       };
     }
 
-    return () => window.removeEventListener('wings_db_sync', handleSync);
+    return () => {
+      window.removeEventListener('wings_db_sync', handleSync);
+      window.removeEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
+    };
   }, []);
 
   const requireAuthAndExecute = (action: () => void) => {

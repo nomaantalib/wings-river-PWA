@@ -239,6 +239,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
     setHoldLeft(null);
     setFormError('');
     setStep(1);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('wings_open_my_bookings'));
+    }
   };
 
   // Area Gallery Modal Auto-sliding Carousel State
@@ -504,13 +507,13 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
           </div>
         </div>
 
-        {/* ── Time Slot Picker ─────────────────────────────── */}
+        {/* ── Time Slot Picker — Movable Horizontal Carousel ───────────────── */}
         <div className="mt-4">
           <p className="text-xs text-[#F5D061] uppercase tracking-widest mb-2.5 font-extrabold flex items-center gap-1.5">
             <Clock className="w-4 h-4 text-[#F5D061]" />
             Select Check-in Time Slot
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 px-1 scroll-smooth snap-x snap-mandatory cursor-grab active:cursor-grabbing">
             {TIME_SLOTS.map(slot => {
               const isCustomSlot = slot.value === 'custom';
               const isActive = isCustomSlot ? showCustomTime : (!showCustomTime && selectedTime === slot.value);
@@ -526,7 +529,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       setSelectedTime(slot.value);
                     }
                   }}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-extrabold transition-all duration-200 border flex items-center gap-1.5 ${
+                  className={`snap-start shrink-0 px-3.5 py-2 rounded-xl text-xs font-extrabold transition-all duration-200 border flex items-center gap-1.5 whitespace-nowrap ${
                     isActive
                       ? 'bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] border-[#FFF8E7] text-[#120B08] shadow-xl shadow-[#F5D061]/40 scale-105 ring-2 ring-[#FFF8E7]'
                       : 'bg-[#2A1D0E] border-[#E5B82C]/40 text-[#F5EBE0] hover:border-[#F5D061] hover:text-[#FFF8E7] hover:bg-[#3D291C]'
@@ -565,29 +568,29 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
         </div>
       </div>
 
-      {/* ── Step Breadcrumb (Pista Green Background) ──────────────────────────── */}
-      <div className="flex items-center justify-between px-5 sm:px-7 py-3.5 border-b border-[#4F6C44] bg-gradient-to-r from-[#5A7A4B] via-[#6B8E5E] to-[#5A7A4B] shadow-inner text-white">
-        <div className="flex items-center gap-2 sm:gap-4 flex-wrap">
+      {/* ── Step Breadcrumb (Single Line on PWA / Mobile) ──────────────────────────── */}
+      <div className="flex items-center justify-between px-3 sm:px-7 py-3 border-b border-[#4F6C44] bg-gradient-to-r from-[#5A7A4B] via-[#6B8E5E] to-[#5A7A4B] shadow-inner text-white overflow-hidden">
+        <div className="flex items-center gap-1.5 sm:gap-4 overflow-x-auto no-scrollbar whitespace-nowrap flex-nowrap w-full py-0.5">
           {STEP_LABELS.map((s, i) => {
             const num = i + 1;
             const done   = step > num;
             const active = step === num;
             return (
               <React.Fragment key={s}>
-                <div className="flex items-center gap-2">
-                  <span className={`w-7 h-7 rounded-full flex items-center justify-center text-xs font-black transition-all duration-300 ${
+                <div className="flex items-center gap-1.5 shrink-0 whitespace-nowrap">
+                  <span className={`w-5 h-5 sm:w-7 sm:h-7 rounded-full flex items-center justify-center text-[10px] sm:text-xs font-black transition-all duration-300 ${
                     done   ? 'bg-[#FAF7F2] text-[#5A7A4B] shadow-md font-bold' :
-                    active ? 'bg-[#F5D061] text-[#120B08] shadow-lg scale-110 ring-2 ring-white font-extrabold' :
+                    active ? 'bg-[#F5D061] text-[#120B08] shadow-lg scale-105 ring-1 sm:ring-2 ring-white font-extrabold' :
                              'bg-[#4F6C44] text-[#D0E2C8] border border-[#7A9E6A]'
                   }`}>
                     {done ? '✓' : num}
                   </span>
-                  <span className={`text-xs font-bold transition-all duration-300 ${
+                  <span className={`text-[10px] sm:text-xs font-bold transition-all duration-300 whitespace-nowrap ${
                     active ? 'text-[#FAF7F2] tracking-wide' : done ? 'text-[#FAF7F2]/90' : 'text-[#D0E2C8]'
                   }`}>{s}</span>
                 </div>
                 {i < STEP_LABELS.length - 1 && (
-                  <ChevronRight className="w-4 h-4 text-[#FAF7F2]/40 shrink-0" />
+                  <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-[#FAF7F2]/40 shrink-0 mx-0.5" />
                 )}
               </React.Fragment>
             );
@@ -1171,7 +1174,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
               </div>
 
               {/* Actions */}
-              <div className="flex gap-2 pt-2">
+              <div className="flex flex-col sm:flex-row gap-2 pt-2">
                 <button
                   type="button"
                   onClick={handlePrintSaveTicket}
@@ -1183,9 +1186,9 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                 <button
                   type="button"
                   onClick={handleCloseTicket}
-                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-bold text-xs flex items-center justify-center gap-1.5 hover:opacity-90"
+                  className="flex-1 py-3 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-bold text-xs flex items-center justify-center gap-1.5 hover:opacity-90 shadow-lg"
                 >
-                  <CheckCircle2 className="w-4 h-4" /> Done
+                  <Ticket className="w-4 h-4" /> View in My Reservations →
                 </button>
               </div>
             </div>

@@ -869,27 +869,30 @@ export async function deletePromoPage(id: string): Promise<PromoPage[]> {
 //  FLOOR PLAN LAYOUT DESIGNER
 // ══════════════════════════════════════════════════════════════════════════════
 export async function getStoredFloorPlan(): Promise<FloorPlanLayout> {
+  let cached: FloorPlanLayout | null = null;
+  if (typeof window !== 'undefined') {
+    try {
+      const raw = localStorage.getItem('wings_floor_plan_layout');
+      if (raw) {
+        const parsed = JSON.parse(raw);
+        if (parsed && Array.isArray(parsed.objects)) cached = parsed;
+      }
+    } catch (e) {}
+  }
+
   try {
     const res = await apiFetch('/api/floor-plan');
     if (res.success && res.data && Array.isArray(res.data.objects)) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('wings_floor_plan_layout', JSON.stringify(res.data));
+      }
       return res.data;
     }
   } catch (e) {
     console.warn('[D1] getStoredFloorPlan error:', e);
   }
 
-  // Fallback to local storage or INITIAL_FLOOR_PLAN
-  if (typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('wings_floor_plan_layout');
-      if (raw) {
-        const parsed = JSON.parse(raw);
-        if (parsed && Array.isArray(parsed.objects)) return parsed;
-      }
-    } catch (e) {}
-  }
-
-  return INITIAL_FLOOR_PLAN;
+  return cached || INITIAL_FLOOR_PLAN;
 }
 
 export async function saveFloorPlan(layout: FloorPlanLayout): Promise<boolean> {
