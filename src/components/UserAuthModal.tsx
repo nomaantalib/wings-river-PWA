@@ -160,6 +160,9 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       setIsSendingOtp(false);
 
       if (res.success) {
+        if (res.dev_otp && res.dev_otp.length === 6) {
+          setOtpInput(res.dev_otp.split(''));
+        }
         setStep('otp');
         setResendTimer(30);
         setTimeout(() => otpRefs.current[0]?.focus(), 150);

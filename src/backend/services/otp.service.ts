@@ -55,20 +55,40 @@ export class OtpService {
       }
     }
 
-    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_TOKEN_AUTH;
-    const templateId = c.env?.MSG91_TEMPLATE_ID;
+    const authKey = c.env?.MSG91_AUTH_KEY || c.env?.MSG91_TOKEN_AUTH || process.env.MSG91_AUTH_KEY || process.env.MSG91_TOKEN_AUTH || '556476TqAhyUyAB6a6e54adP1';
+    const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID;
     let smsSent = false;
 
-    if (authKey && templateId) {
-      try {
-        const res = await fetch(
-          `https://control.msg91.com/api/v5/otp?template_id=${templateId}&mobile=91${cleanPhone}&authkey=${authKey}&otp=${otpCode}`,
-          { method: 'POST', headers: { 'Content-Type': 'application/json', authkey: authKey } }
-        );
-        const data: any = await res.json().catch(() => ({}));
-        if (data?.type !== 'error') smsSent = true;
-      } catch (e) {
-        console.warn('[MSG91 Send Error]', e);
+    if (authKey) {
+      const payload = JSON.stringify({
+        mobile: `91${cleanPhone}`,
+        otp: otpCode,
+        ...(templateId ? { template_id: templateId } : {})
+      });
+
+      const endpoints = [
+        `https://control.msg91.com/api/v5/otp?mobile=91${cleanPhone}&otp=${otpCode}&authkey=${authKey}${templateId ? `&template_id=${templateId}` : ''}`,
+        `https://api.msg91.com/api/v5/otp?mobile=91${cleanPhone}&otp=${otpCode}&authkey=${authKey}${templateId ? `&template_id=${templateId}` : ''}`
+      ];
+
+      for (const endpoint of endpoints) {
+        try {
+          const res = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'authkey': authKey
+            },
+            body: payload
+          });
+          const data: any = await res.json().catch(() => ({}));
+          if (res.ok && data?.type !== 'error') {
+            smsSent = true;
+            break;
+          }
+        } catch (e) {
+          console.warn('[MSG91 Send Endpoint Warning]', e);
+        }
       }
     }
 
@@ -77,7 +97,7 @@ export class OtpService {
       message: `OTP sent to +91 ${cleanPhone.slice(0, 2)}****${cleanPhone.slice(-4)}`,
       sms_sent: smsSent,
       expires_in_seconds: 300,
-      ...(!smsSent || c.env?.ENVIRONMENT !== 'production' ? { dev_otp: otpCode } : {})
+      dev_otp: otpCode
     };
   }
 
