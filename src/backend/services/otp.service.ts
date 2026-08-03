@@ -191,19 +191,26 @@ export class OtpService {
    * Verifies an MSG91 Widget access-token using the MSG91 control API v5.
    */
   static async verifyWidgetAccessToken(c: AppContext, accessToken: string) {
-    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_TOKEN_AUTH || '556476TqAhyUyAB6a6e54adP1';
+    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
     if (!accessToken) {
       return { success: false, error: 'Access token is required', status: 400 };
     }
 
     try {
-      const res = await fetch('https://control.msg91.com/api/v5/widget/verifyAccessToken', {
+      const url = new URL('https://control.msg91.com/api/v5/widget/verifyAccessToken');
+      const headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+      };
+      const body = {
+        authkey: authKey,
+        'access-token': accessToken
+      };
+
+      const res = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          authkey: authKey,
-          'access-token': accessToken
-        })
+        headers,
+        body: JSON.stringify(body)
       });
       const data: any = await res.json().catch(() => ({}));
       if (res.ok && data?.type !== 'error') {
