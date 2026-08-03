@@ -9,31 +9,6 @@
       "binding": "DB",
       "database_name": "wings-river-cafe",
       "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
-    },
-    {
-      "binding": "wings-river-cafe",
-      "database_name": "wings-river-cafe",
-      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
-    },
-    {
-      "binding": "wings_river_cafe",
-      "database_name": "wings-river-cafe",
-      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
-    },
-    {
-      "binding": "wings_river_cafe_reservations",
-      "database_name": "wings-river-cafe",
-      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
-    },
-    {
-      "binding": "DATABASE",
-      "database_name": "wings-river-cafe",
-      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
-    },
-    {
-      "binding": "D1",
-      "database_name": "wings-river-cafe",
-      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
     }
   ],
   "vars": {
