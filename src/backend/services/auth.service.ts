@@ -99,13 +99,23 @@ export class AuthService {
   /**
    * Customer OTP Login & Auto-Provisioning
    */
-  static async customerLoginWithOtp(c: AppContext, phone: string, otp: string, name?: string, email?: string, db?: D1Database | null) {
+  static async customerLoginWithOtp(
+    c: AppContext,
+    phone: string,
+    otp: string,
+    name?: string,
+    email?: string,
+    db?: D1Database | null,
+    skipOtpCheck: boolean = false
+  ) {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
 
-    // Step 1: Verify OTP
-    const verifyRes = await OtpService.verifyOtp(c, cleanPhone, otp, db || null);
-    if (!verifyRes.success) {
-      return { success: false, error: verifyRes.error || 'OTP verification failed', status: verifyRes.status || 400 };
+    // Step 1: Verify OTP (Skip if verified via MSG91 widget)
+    if (!skipOtpCheck) {
+      const verifyRes = await OtpService.verifyOtp(c, cleanPhone, otp, db || null);
+      if (!verifyRes.success) {
+        return { success: false, error: verifyRes.error || 'OTP verification failed', status: verifyRes.status || 400 };
+      }
     }
 
     const d1 = db || null;

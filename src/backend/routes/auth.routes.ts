@@ -63,8 +63,8 @@ authRoutes.post('/verify-widget-token', async (c: AppContext) => {
     return errorResponse(c, 'Verification succeeded but phone number was missing or invalid', 400);
   }
 
-  // Provision user and return JWTs
-  const authRes = await AuthService.customerLoginWithOtp(c, cleanPhone, '123456', rawBody.name, rawBody.email, getDB(c));
+  // Provision user and return JWTs (skip OTP check since widget already verified token)
+  const authRes = await AuthService.customerLoginWithOtp(c, cleanPhone, '123456', rawBody.name, rawBody.email, getDB(c), true);
   if (!authRes.success) return errorResponse(c, authRes.error || 'Auto-login failed', authRes.status || 400);
 
   return successResponse(c, authRes);

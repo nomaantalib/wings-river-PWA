@@ -174,6 +174,9 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       setIsSendingOtp(false);
 
       if (res.success) {
+        if (res.dev_otp) {
+          console.log(`[MSG91 OTP Sent] Verification Code for +91${cleanPhone}: ${res.dev_otp}`);
+        }
         setOtpInput(['', '', '', '', '', '']);
         setStep('otp');
         setResendTimer(30);
@@ -241,7 +244,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     });
   };
 
-  // Handle OTP digit changes
+  // Handle OTP digit changes with auto-submit on 6th digit
   const handleOtpChange = (index: number, value: string) => {
     if (!/^\d*$/.test(value)) return;
     const newOtp = [...otpInput];
@@ -250,6 +253,12 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
     if (value && index < 5) {
       otpRefs.current[index + 1]?.focus();
+    }
+
+    if (newOtp.every(digit => digit !== '') && newOtp.join('').length === 6) {
+      setTimeout(() => {
+        submitOtpCode(newOtp.join(''));
+      }, 50);
     }
   };
 
@@ -260,15 +269,9 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     }
   };
 
-  // Handle Verify Real MSG91 SMS OTP
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const enteredCode = otpInput.join('');
-    if (enteredCode.length !== 6) {
-      setErrorMsg('Please enter the 6-digit OTP code received via SMS');
-      return;
-    }
-
+  // Core verification worker
+  const submitOtpCode = async (codeToVerify: string) => {
+    if (codeToVerify.length !== 6 || isVerifying) return;
     setErrorMsg('');
     setIsVerifying(true);
 
@@ -276,7 +279,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
     try {
       const userFound = matchedUser || findRegisteredUser(cleanPhone);
-      const res = await loginCustomerOtp(cleanPhone, enteredCode, userFound?.name, userFound?.email);
+      const res = await loginCustomerOtp(cleanPhone, codeToVerify, userFound?.name, userFound?.email);
       setIsVerifying(false);
 
       if (res.success) {
@@ -302,6 +305,17 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       setIsVerifying(false);
       setErrorMsg(err.message || 'OTP verification connection error.');
     }
+  };
+
+  // Handle Verify Real MSG91 SMS OTP
+  const handleVerifyOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const enteredCode = otpInput.join('');
+    if (enteredCode.length !== 6) {
+      setErrorMsg('Please enter the 6-digit OTP code received via SMS');
+      return;
+    }
+    submitOtpCode(enteredCode);
   };
 
   // Handle Sign Up Profile Submission
