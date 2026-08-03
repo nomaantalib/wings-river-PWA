@@ -196,14 +196,14 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
         {/* BOOKLET FLIP VIEW */}
         {currentPage && (
           <div className="max-w-4xl mx-auto">
-            {/* Compact Aesthetic Green Top Toolbar */}
-            <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-emerald-950/90 via-emerald-900/90 to-emerald-950/90 backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-emerald-500/40 mb-4 text-xs shadow-xl">
+            {/* Compact Aesthetic Golden Top Toolbar */}
+            <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#120B08] backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-[#FFE082] mb-4 text-xs shadow-xl shadow-amber-500/20">
               <div className="flex items-center space-x-2 truncate">
-                <span className="font-serif font-bold text-amber-300 text-xs sm:text-sm shrink-0">
+                <span className="font-serif font-black text-[#120B08] text-xs sm:text-sm shrink-0">
                   Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
-                <span className="text-emerald-500/50">|</span>
-                <span className="text-emerald-100 font-semibold text-xs sm:text-sm truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
+                <span className="text-[#120B08]/40 font-bold">|</span>
+                <span className="text-[#120B08] font-bold text-xs sm:text-sm truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
               </div>
 
               <div className="flex items-center space-x-2 shrink-0">
@@ -212,8 +212,8 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
                   className={`p-2 rounded-lg border text-xs font-bold transition-all ${
                     isAutoFlipping
-                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md scale-105'
-                      : 'bg-emerald-900/70 text-emerald-200 border-emerald-500/40 hover:bg-emerald-800 hover:text-white'
+                      ? 'bg-[#120B08] text-[#F5D061] border-[#120B08] shadow-md scale-105'
+                      : 'bg-[#120B08]/15 text-[#120B08] border-[#120B08]/30 hover:bg-[#120B08] hover:text-[#F5D061]'
                   }`}
                   title={isAutoFlipping ? 'Pause Auto Flip' : 'Start Auto Flip'}
                 >
@@ -226,7 +226,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     setZoomScale(1.2);
                     setActiveZoomImage(currentPage.image || null);
                   }}
-                  className="p-2 rounded-lg bg-emerald-900/70 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/40 transition-all hover:scale-105"
+                  className="p-2 rounded-lg bg-[#120B08]/15 hover:bg-[#120B08] text-[#120B08] hover:text-[#F5D061] border border-[#120B08]/30 transition-all hover:scale-105"
                   title="Expand Full Screen Zoom"
                 >
                   <Maximize2 className="w-4 h-4" />
@@ -236,7 +236,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 <a
                   href="/images/food_menu_collage.jpg"
                   download="Wings_River_Cafe_Menu_Card.jpg"
-                  className="p-2 rounded-lg bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-extrabold shadow-md hover:scale-105 transition-all"
+                  className="p-2 rounded-lg bg-[#120B08] hover:bg-[#2A1D15] text-[#F5D061] font-extrabold shadow-md hover:scale-105 transition-all border border-[#120B08]"
                   title="Download Menu Card"
                 >
                   <Download className="w-4 h-4" />
