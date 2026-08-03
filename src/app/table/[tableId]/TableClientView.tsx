@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import {
   Utensils, QrCode, CheckCircle2, Clock, Users, MapPin, Search, Plus, Minus,
   ShoppingBag, Bell, Receipt, ChefHat, AlertCircle, ArrowLeft, Download, Shield,
-  Sparkles, Coffee, Flame, RefreshCw, X, ChevronRight, Phone, MessageSquare
+  BadgeCheck, Coffee, Flame, RefreshCw, X, ChevronRight, Phone, MessageSquare
 } from 'lucide-react';
 import {
   getStoredMenuItems, getStoredCategories, createDiningSession, closeDiningSession,

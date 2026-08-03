@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Tag, Sparkles, Copy, Check, Megaphone, ArrowRight, Gift, Flame, Percent } from 'lucide-react';
+import { Tag, BadgeCheck, Copy, Check, Megaphone, ArrowRight, Gift, Flame, Percent } from 'lucide-react';
 import { getStoredOffers, getStoredEventBanners, getStoredPromoPages, OfferDiscount, EventBanner, PromoPage } from '@/controllers/StorageController';
 
 interface OffersSectionProps {

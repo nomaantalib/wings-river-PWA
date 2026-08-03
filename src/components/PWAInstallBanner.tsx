@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Smartphone, Download, X, Sparkles, CheckCircle2 } from 'lucide-react';
+import { Smartphone, Download, X, BadgeCheck, CheckCircle2 } from 'lucide-react';
 import { usePWAInstaller } from '@/controllers/PWAController';
 
 export default function PWAInstallBanner() {

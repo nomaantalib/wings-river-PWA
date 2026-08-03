@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import CustomerLayout from '@/components/CustomerLayout';
 import SearchBar from '@/components/SearchBar';
-import { QrCode, UtensilsCrossed, ShoppingCart, Flame, Leaf, Star, ChevronRight, CheckCircle, Clock } from 'lucide-react';
+import { QrCode, UtensilsCrossed, ShoppingCart, Flame, Leaf, Award, ChevronRight, CheckCircle, Clock } from 'lucide-react';
 import { saveOrder } from '@/lib/db';
 import { notifyOrderPlaced } from '@/lib/pushNotifications';
 
@@ -212,7 +212,7 @@ export default function QROrderPage() {
                 <div className="flex items-center gap-3">
                   <span className="text-gold-400 font-bold text-sm">₹{item.price}</span>
                   <span className="flex items-center gap-0.5 text-[11px] text-white/40">
-                    <Star className="w-3 h-3 text-amber-400 fill-amber-400" />{item.rating}
+                    <Award className="w-3.5 h-3.5 text-amber-400" />{item.rating}
                   </span>
                 </div>
               </div>

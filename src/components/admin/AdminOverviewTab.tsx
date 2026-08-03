@@ -1,5 +1,5 @@
 import React from 'react';
-import { Calendar, Utensils, IndianRupee, MessageSquare, Megaphone, Star, BookOpen, Clock, CheckCircle } from 'lucide-react';
+import { Calendar, Utensils, IndianRupee, MessageSquare, Megaphone, Award, BookOpen, Clock, CheckCircle } from 'lucide-react';
 import { Reservation } from '@/types';
 
 interface AdminOverviewTabProps {

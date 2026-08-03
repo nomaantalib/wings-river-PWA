@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { ChefHat, UserCheck, LayoutDashboard, QrCode, LogOut, CheckCircle, Clock, AlertTriangle, Utensils, DollarSign, Bell, RefreshCw, Phone, Users, ShieldAlert, Sparkles, Filter, ExternalLink, Calendar, PlusCircle } from 'lucide-react';
+import { ChefHat, UserCheck, LayoutDashboard, QrCode, LogOut, CheckCircle, Clock, AlertTriangle, Utensils, DollarSign, Bell, RefreshCw, Phone, Users, ShieldAlert, BadgeCheck, Filter, ExternalLink, Calendar, PlusCircle } from 'lucide-react';
 import StorageController, {
   getStoredOrders,
   updateOrderStatus as syncUpdateOrderStatus,

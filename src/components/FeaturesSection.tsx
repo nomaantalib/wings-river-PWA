@@ -13,7 +13,8 @@ import {
   Moon,
   ChevronLeft,
   ChevronRight,
-  Sparkles,
+  ShieldCheck,
+  Award,
 } from 'lucide-react';
 
 export default function FeaturesSection() {
@@ -90,7 +91,7 @@ export default function FeaturesSection() {
         <div className="flex flex-col md:flex-row md:items-end justify-between mb-9 gap-4">
           <div>
             <span className="inline-flex items-center space-x-1.5 px-3.5 py-1 rounded-full bg-[#FAF4E6]/10 border border-[#D4AF37]/40 text-[#F5D061] font-bold text-[11px] tracking-widest uppercase mb-3 shadow-sm">
-              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+              <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
               <span>Why Choose Wings River Café</span>
             </span>
             <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#F8E7A1]">
@@ -155,7 +156,10 @@ export default function FeaturesSection() {
 
               <div className="mt-4 pt-3 border-t border-[#E8DAB7] flex items-center justify-between text-[11px] font-bold text-[#855B00]">
                 <span>Wings River Premium</span>
-                <span>★ ★ ★ ★ ★</span>
+                <span className="flex items-center space-x-1">
+                  <Award className="w-3.5 h-3.5 text-[#855B00]" />
+                  <span>5.0 Verified</span>
+                </span>
               </div>
             </div>
           ))}

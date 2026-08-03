@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import CustomerLayout from '@/components/CustomerLayout';
 import SearchBar from '@/components/SearchBar';
 import EmptyState from '@/components/EmptyState';
-import { UtensilsCrossed, Flame, Leaf, Star, ShoppingCart, Filter, ChevronRight } from 'lucide-react';
+import { UtensilsCrossed, Flame, Leaf, Award, ShoppingCart, Filter, ChevronRight } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'all',       label: 'All',          emoji: '🍽️' },
@@ -146,7 +146,7 @@ export default function MenuPage() {
                     <div className="flex items-center gap-3">
                       <span className="text-gold-400 font-bold text-sm">₹{item.price}</span>
                       <span className="flex items-center gap-0.5 text-[11px] text-white/45">
-                        <Star className="w-3 h-3 text-amber-400 fill-amber-400" /> {item.rating}
+                        <Award className="w-3.5 h-3.5 text-amber-400" /> {item.rating}
                       </span>
                     </div>
                     {/* Cart Controls */}

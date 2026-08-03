@@ -5,7 +5,7 @@ import CustomerLayout from '@/components/CustomerLayout';
 import EmptyState from '@/components/EmptyState';
 import {
   CalendarCheck, Clock, Users, MapPin, QrCode,
-  XCircle, CheckCircle, ChevronDown, ChevronUp, Star
+  XCircle, CheckCircle, ChevronDown, ChevronUp, Award
 } from 'lucide-react';
 import { getStoredReservations, Reservation as DBReservation } from '@/lib/db';
 
@@ -98,7 +98,7 @@ function ReservationCard({ res }: { res: Reservation }) {
           {/* Completed Review CTA */}
           {res.status === 'completed' && (
             <button className="w-full flex items-center justify-center gap-2 bg-amber-500/15 border border-amber-500/30 text-amber-400 font-semibold text-sm py-2.5 rounded-xl hover:bg-amber-500/25 transition-all">
-              <Star className="w-4 h-4" /> Rate Your Experience
+              <Award className="w-4 h-4" /> Rate Your Experience
             </button>
           )}
 
