@@ -14,6 +14,9 @@
 /.vercel
 /.wrangler
 _worker.bundle
+/dist
+tsconfig.tsbuildinfo
+wings background/
 .dev.vars
 
 # testing
