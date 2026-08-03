@@ -17,7 +17,7 @@ export default function RouteScrollRestorer() {
     const storageKey = `wings_scroll_pos_${pathname}`;
     const sectionKey = `wings_section_${pathname}`;
 
-    // Helper to restore position or section
+    // Helper to restore position or section cleanly
     const restorePosition = () => {
       const currentHash = window.location.hash;
       const savedSection = sessionStorage.getItem(sectionKey);
@@ -41,11 +41,11 @@ export default function RouteScrollRestorer() {
       }
     };
 
-    // Immediate & Multi-stage restoration for Layout/Asset loading
-    restorePosition();
-    const t1 = setTimeout(restorePosition, 100);
-    const t2 = setTimeout(restorePosition, 400);
-    const t3 = setTimeout(restorePosition, 1000);
+    // Use requestAnimationFrame for frame-perfect smooth restoration
+    requestAnimationFrame(restorePosition);
+    const t1 = setTimeout(restorePosition, 50);
+    const t2 = setTimeout(restorePosition, 250);
+    const t3 = setTimeout(restorePosition, 800);
 
     // Save scroll position & visible section on user scroll
     let scrollTimeout: NodeJS.Timeout;
@@ -53,12 +53,10 @@ export default function RouteScrollRestorer() {
       clearTimeout(scrollTimeout);
       scrollTimeout = setTimeout(() => {
         sessionStorage.setItem(storageKey, window.scrollY.toString());
-
-        // Check if hash matches active element in view
         if (window.location.hash) {
           sessionStorage.setItem(sectionKey, window.location.hash);
         }
-      }, 100);
+      }, 80);
     };
 
     const handleHashChange = () => {
