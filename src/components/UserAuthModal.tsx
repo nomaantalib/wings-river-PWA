@@ -360,20 +360,20 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           </button>
         </div>
 
-        {/* Step Indicator Bar */}
-        <div className="px-6 py-3.5 bg-[#F3ECE0] border-b border-[#D97706]/20 flex items-center justify-between text-xs font-bold text-[#574738]">
-          <div className={`flex items-center space-x-2 ${step === 'phone' ? 'text-[#B45309] font-extrabold' : 'text-[#786756]'}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === 'phone' ? 'bg-[#D97706] text-white shadow-sm' : 'bg-[#E6DCCF] text-[#786756]'}`}>1</span>
+        {/* Step Indicator Bar — Pista Green Theme */}
+        <div className="px-6 py-3.5 bg-[#E8F5E9] border-b border-[#2E7D32]/20 flex items-center justify-between text-xs font-bold text-[#1B5E20]">
+          <div className={`flex items-center space-x-2 ${step === 'phone' ? 'text-[#1B5E20] font-extrabold' : 'text-[#388E3C]/70'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${step === 'phone' ? 'bg-[#2E7D32] text-white' : 'bg-[#C8E6C9] text-[#2E7D32]'}`}>1</span>
             <span>Mobile</span>
           </div>
-          <div className="w-8 h-0.5 bg-[#D97706]/30" />
-          <div className={`flex items-center space-x-2 ${step === 'otp' ? 'text-[#B45309] font-extrabold' : step === 'profile' ? 'text-[#786756]' : 'opacity-50'}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === 'otp' ? 'bg-[#D97706] text-white shadow-sm' : 'bg-[#E6DCCF] text-[#786756]'}`}>2</span>
+          <div className="w-8 h-0.5 bg-[#2E7D32]/25" />
+          <div className={`flex items-center space-x-2 ${step === 'otp' ? 'text-[#1B5E20] font-extrabold' : step === 'profile' ? 'text-[#388E3C]/70' : 'opacity-50'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${step === 'otp' ? 'bg-[#2E7D32] text-white' : 'bg-[#C8E6C9] text-[#2E7D32]'}`}>2</span>
             <span>OTP Code</span>
           </div>
-          <div className="w-8 h-0.5 bg-[#D97706]/30" />
-          <div className={`flex items-center space-x-2 ${step === 'profile' ? 'text-[#B45309] font-extrabold' : 'opacity-50'}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === 'profile' ? 'bg-[#D97706] text-white shadow-sm' : 'bg-[#E6DCCF] text-[#786756]'}`}>3</span>
+          <div className="w-8 h-0.5 bg-[#2E7D32]/25" />
+          <div className={`flex items-center space-x-2 ${step === 'profile' ? 'text-[#1B5E20] font-extrabold' : 'opacity-50'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold shadow-sm ${step === 'profile' ? 'bg-[#2E7D32] text-white' : 'bg-[#C8E6C9] text-[#2E7D32]'}`}>3</span>
             <span>Sign Up</span>
           </div>
         </div>
