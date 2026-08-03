@@ -5,9 +5,14 @@ compatibility_flags = ["nodejs_compat"]
 pages_build_output_dir = "out"
 assets = { directory = "out" }
 
-# ── Cloudflare D1 Database ──────────────────────────────────────────────────
+# ── Cloudflare D1 Database Bindings ─────────────────────────────────────────
 [[d1_databases]]
 binding = "DB"
+database_name = "wings_river_cafe_reservations"
+database_id = "912b607b-c192-4e0a-89ba-75f936fca45c"
+
+[[d1_databases]]
+binding = "wings_river_cafe_reservations"
 database_name = "wings_river_cafe_reservations"
 database_id = "912b607b-c192-4e0a-89ba-75f936fca45c"
 
