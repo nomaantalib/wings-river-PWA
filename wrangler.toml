@@ -11,6 +11,17 @@ binding = "DB"
 database_name = "wings_river_cafe_reservations"
 database_id = "912b607b-c192-4e0a-89ba-75f936fca45c"
 
+# ── Cloudflare Durable Objects ────────────────────────────────────────────────
+[durable_objects]
+bindings = [
+  { name = "TABLE_SESSION", class_name = "TableSessionDO" },
+  { name = "ORDER_NOTIFIER", class_name = "OrderNotifierDO" }
+]
+
+[[migrations]]
+tag = "v1"
+new_classes = ["TableSessionDO", "OrderNotifierDO"]
+
 # ── Public Environment Variables ──────────────────────────────────────────
 [vars]
 NEXT_PUBLIC_SITE_NAME = "Wings River Café"

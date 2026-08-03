@@ -1,4 +1,5 @@
 import app from '../../src/backend/app';
+export { TableSessionDO, OrderNotifierDO } from '../../src/backend/durableObjects';
 
 export const onRequest = async (context) => {
   try {
