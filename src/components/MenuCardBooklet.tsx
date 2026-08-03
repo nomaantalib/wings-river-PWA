@@ -197,7 +197,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
         {currentPage && (
           <div className="max-w-4xl mx-auto">
             {/* Compact Aesthetic Golden Top Toolbar */}
-            <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#120B08] backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-[#FFE082] mb-4 text-xs shadow-xl shadow-amber-500/20">
+            <div className="flex items-center justify-between gap-3 bg-[#F5D061] text-[#120B08] backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-[#F5D061]/60 mb-4 text-xs shadow-[0_4px_20px_rgba(245,208,97,0.35)] w-[95%] mx-auto">
               <div className="flex items-center space-x-2 truncate">
                 <span className="font-serif font-black text-[#120B08] text-xs sm:text-sm shrink-0">
                   Page {currentPageIndex + 1} of {menuPages.length}
