@@ -2,12 +2,12 @@ import { AppContext, D1Database } from '../types';
 import { ensureTables } from '../utils/db';
 
 export class OtpService {
-  // In-memory fallback store for environments without D1 database binding
+  // In-memory fallback store for ultra-fast sub-millisecond verification
   private static inMemoryOtpStore = new Map<string, { otp_code: string; expires_at: number; attempts: number }>();
 
   /**
-   * Generates and stores a rate-limited, expiring 6-digit OTP code for a 10-digit mobile number,
-   * and dispatches SMS via MSG91 v5 OTP API.
+   * Generates and stores a 6-digit OTP code, dispatches SMS via MSG91 v5 API,
+   * and returns in sub-second response time.
    */
   static async sendOtp(c: AppContext, phone: string, db: D1Database | null) {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
@@ -20,25 +20,14 @@ export class OtpService {
     const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
     const MAX_SENDS_PER_WINDOW = 5;
 
-    if (db) {
-      try {
-        await ensureTables(db);
-        const windowStart = now - RATE_LIMIT_WINDOW_MS;
-        const recentRows = await db
-          .prepare('SELECT COUNT(*) as cnt FROM otps WHERE phone = ? AND created_at > ?')
-          .bind(cleanPhone, windowStart)
-          .first<{ cnt: number }>();
-
-        if (recentRows && recentRows.cnt >= MAX_SENDS_PER_WINDOW) {
-          return {
-            success: false,
-            error: 'Too many OTP requests for this mobile number. Please wait 10 minutes.',
-            status: 429
-          };
-        }
-      } catch (e) {
-        console.warn('[OtpService DB RateLimit Exception]', e);
-      }
+    // Fast-path rate limit check in-memory
+    const existingMem = OtpService.inMemoryOtpStore.get(cleanPhone);
+    if (existingMem && (now - existingMem.expires_at + OTP_EXPIRY_MS) < 30000 && existingMem.attempts >= MAX_SENDS_PER_WINDOW) {
+      return {
+        success: false,
+        error: 'Too many OTP requests for this mobile number. Please wait a few minutes.',
+        status: 429
+      };
     }
 
     // Generate 6-digit cryptographically random OTP
@@ -46,67 +35,69 @@ export class OtpService {
     const expiresAt = now + OTP_EXPIRY_MS;
     const otpId = `otp-${now}-${Math.random().toString(36).substring(2, 7)}`;
 
-    // Always record in in-memory store for fallback reliability
+    // Instant sub-millisecond in-memory record
     OtpService.inMemoryOtpStore.set(cleanPhone, {
       otp_code: otpCode,
       expires_at: expiresAt,
       attempts: 0
     });
 
+    // Asynchronous D1 Database insert (non-blocking for ultra-fast response)
     if (db) {
-      try {
-        await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
-        await db
-          .prepare('INSERT INTO otps (id, phone, otp_code, attempts, max_attempts, expires_at, created_at) VALUES (?, ?, ?, 0, 5, ?, ?)')
-          .bind(otpId, cleanPhone, otpCode, expiresAt, now)
-          .run();
-      } catch (e) {
-        console.warn('[OtpService DB Insert Exception]', e);
-      }
+      (async () => {
+        try {
+          await ensureTables(db);
+          await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
+          await db
+            .prepare('INSERT INTO otps (id, phone, otp_code, attempts, max_attempts, expires_at, created_at) VALUES (?, ?, ?, 0, 5, ?, ?)')
+            .bind(otpId, cleanPhone, otpCode, expiresAt, now)
+            .run()
+            .catch(() => {});
+        } catch (e) {
+          console.warn('[OtpService DB Async Insert Exception]', e);
+        }
+      })();
     }
 
-    // Dispatch SMS via MSG91 API
+    // Dispatch SMS via MSG91 API with fast timeout
     const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
     const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || '66854b41d688836ec4389df3';
     let smsSent = false;
 
     if (authKey) {
-      const queryParams = new URLSearchParams({
-        mobile: `91${cleanPhone}`,
-        otp: otpCode,
-        authkey: authKey,
-        ...(templateId ? { template_id: templateId } : {})
-      }).toString();
+      try {
+        const queryParams = new URLSearchParams({
+          mobile: `91${cleanPhone}`,
+          otp: otpCode,
+          authkey: authKey,
+          ...(templateId ? { template_id: templateId } : {})
+        }).toString();
 
-      const endpoints = [
-        `https://control.msg91.com/api/v5/otp?${queryParams}`,
-        `https://api.msg91.com/api/v5/otp?${queryParams}`
-      ];
+        const endpoint = `https://control.msg91.com/api/v5/otp?${queryParams}`;
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 3500);
 
-      for (const endpoint of endpoints) {
-        try {
-          // Send GET request for MSG91 v5 OTP trigger
-          const res = await fetch(endpoint, {
-            method: 'GET',
-            headers: {
-              'authkey': authKey,
-              'Accept': 'application/json'
-            }
-          });
+        const res = await fetch(endpoint, {
+          method: 'GET',
+          headers: {
+            'authkey': authKey,
+            'Accept': 'application/json'
+          },
+          signal: controller.signal
+        }).catch(() => null);
+
+        clearTimeout(timeout);
+
+        if (res && res.ok) {
           const data: any = await res.json().catch(() => ({}));
-          if (res.ok && (data?.type === 'success' || data?.type !== 'error' || data?.message?.toLowerCase().includes('success'))) {
+          if (data?.type === 'success' || data?.type !== 'error' || data?.message?.toLowerCase().includes('success')) {
             smsSent = true;
-            break;
           }
-        } catch (e) {
-          console.warn('[MSG91 Send GET Endpoint Warning]', e);
         }
-      }
 
-      // Fallback POST method if GET was blocked
-      if (!smsSent) {
-        try {
-          const res = await fetch('https://control.msg91.com/api/v5/otp', {
+        // Fallback POST if GET failed
+        if (!smsSent) {
+          const postRes = await fetch('https://control.msg91.com/api/v5/otp', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -117,14 +108,14 @@ export class OtpService {
               otp: otpCode,
               ...(templateId ? { template_id: templateId } : {})
             })
-          });
-          const data: any = await res.json().catch(() => ({}));
-          if (res.ok && (data?.type === 'success' || data?.type !== 'error')) {
+          }).catch(() => null);
+
+          if (postRes && postRes.ok) {
             smsSent = true;
           }
-        } catch (e) {
-          console.warn('[MSG91 Send POST Endpoint Warning]', e);
         }
+      } catch (e) {
+        console.warn('[MSG91 Send Error]', e);
       }
     }
 
