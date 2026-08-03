@@ -86,7 +86,8 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
 
   // Add Object
   const handleAddObject = (template: typeof OBJECT_TYPES[0]) => {
-    const nextTableNum = template.type === 'table' ? `T${layout.objects.filter(o => o.type === 'table').length + 1}` : undefined;
+    const currentObjects = layout.objects || [];
+    const nextTableNum = template.type === 'table' ? `T${currentObjects.filter(o => o.type === 'table').length + 1}` : undefined;
     const newObj: FloorObject = {
       id: `obj-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       type: template.type,
@@ -109,7 +110,7 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
     const nextLayout = {
       ...layout,
       updatedAt: new Date().toISOString(),
-      objects: [...layout.objects, newObj],
+      objects: [...currentObjects, newObj],
     };
 
     setLayout(nextLayout);
@@ -142,12 +143,12 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
       rawY = Math.round(rawY / gridSize) * gridSize;
     }
 
-    rawX = Math.max(0, Math.min(rawX, layout.canvasWidth - 40));
-    rawY = Math.max(0, Math.min(rawY, layout.canvasHeight - 40));
+    rawX = Math.max(0, Math.min(rawX, (layout.canvasWidth || 1000) - 40));
+    rawY = Math.max(0, Math.min(rawY, (layout.canvasHeight || 700) - 40));
 
     setLayout((prev) => ({
       ...prev,
-      objects: prev.objects.map((o) => (o.id === draggingId ? { ...o, x: rawX, y: rawY } : o)),
+      objects: (prev.objects || []).map((o) => (o.id === draggingId ? { ...o, x: rawX, y: rawY } : o)),
     }));
   };
 
@@ -163,17 +164,18 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
     if (!selectedId) return;
     const updated = {
       ...layout,
-      objects: layout.objects.map((o) => (o.id === selectedId ? { ...o, ...updates } : o)),
+      objects: (layout.objects || []).map((o) => (o.id === selectedId ? { ...o, ...updates } : o)),
     };
     setLayout(updated);
     pushHistory(updated);
   };
 
   const handleDuplicate = () => {
-    const target = layout.objects.find((o) => o.id === selectedId);
+    const currentObjects = layout.objects || [];
+    const target = currentObjects.find((o) => o.id === selectedId);
     if (!target) return;
     const isTable = target.type === 'table';
-    const nextTableNum = isTable ? `T${layout.objects.filter(o => o.type === 'table').length + 1}` : undefined;
+    const nextTableNum = isTable ? `T${currentObjects.filter(o => o.type === 'table').length + 1}` : undefined;
 
     const dup: FloorObject = {
       ...target,
@@ -183,7 +185,7 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
       x: target.x + 20,
       y: target.y + 20,
     };
-    const updated = { ...layout, objects: [...layout.objects, dup] };
+    const updated = { ...layout, objects: [...currentObjects, dup] };
     setLayout(updated);
     setSelectedId(dup.id);
     pushHistory(updated);
@@ -193,7 +195,7 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
     if (!selectedId) return;
     const updated = {
       ...layout,
-      objects: layout.objects.filter((o) => o.id !== selectedId),
+      objects: (layout.objects || []).filter((o) => o.id !== selectedId),
     };
     setLayout(updated);
     setSelectedId(null);
@@ -250,11 +252,11 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
   };
 
   // Generate QR Code URL
-  const selectedObj = layout.objects.find((o) => o.id === selectedId);
+  const selectedObj = (layout.objects || []).find((o) => o.id === selectedId);
 
   const filteredObjects = selectedAreaFilter === 'all'
-    ? layout.objects
-    : layout.objects.filter((o) => !o.area || o.area === 'general' || o.area === selectedAreaFilter);
+    ? (layout.objects || [])
+    : (layout.objects || []).filter((o) => !o.area || o.area === 'general' || o.area === selectedAreaFilter);
 
   return (
     <div className="flex flex-col h-full bg-[#120B08] text-white rounded-3xl border border-[#F5D061]/30 overflow-hidden shadow-2xl">
@@ -373,8 +375,8 @@ export default function FloorPlanBuilder({ onSaveSuccess }: FloorPlanBuilderProp
           <div
             ref={canvasRef}
             style={{
-              width: layout.canvasWidth * zoom,
-              height: layout.canvasHeight * zoom,
+              width: (layout.canvasWidth || 1000) * zoom,
+              height: (layout.canvasHeight || 700) * zoom,
               backgroundImage: snapToGrid ? 'radial-gradient(circle, rgba(245,208,97,0.15) 1px, transparent 1px)' : 'none',
               backgroundSize: `${gridSize * zoom}px ${gridSize * zoom}px`,
             }}

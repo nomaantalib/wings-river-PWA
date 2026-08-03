@@ -130,7 +130,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 <button
                   onClick={() => {
                     setZoomScale(1);
-                    setActiveZoomImage(currentPage.image);
+                    setActiveZoomImage(currentPage.image || null);
                   }}
                   className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
                   title="Expand Full Screen"

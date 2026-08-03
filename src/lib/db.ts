@@ -20,101 +20,76 @@ export type { FloorPlanLayout, FloorObject, ObjectCategory, ObjectShape } from '
 export { INITIAL_FLOOR_PLAN } from '@/models/FloorPlanModel';
 
 export {
-  // Reservations
   getStoredReservations,
   saveReservation,
   updateReservationStatus,
   deleteReservation,
-  // Gallery
   getStoredGalleryItems,
   saveGalleryItem,
   updateGalleryItem,
   deleteGalleryItem,
-  // Menu & Orders
   getStoredMenuItems,
   saveMenuItem,
   updateMenuItem,
   deleteMenuItem,
   saveOrder,
   saveCallRequest,
-
-  // Blogs
   getStoredBlogs,
   saveBlog,
   updateBlog,
   deleteBlog,
-  // Reviews
   getStoredReviews,
   saveReview,
   deleteReview,
-  // Contact
   getStoredContactMessages,
   saveContactMessage,
   deleteContactMessage,
-  // Event Banners
   getStoredEventBanners,
   saveEventBanner,
   updateEventBanner,
   deleteEventBanner,
   toggleEventBanner,
-  // Water Sports
   getStoredWaterSports,
   saveWaterSports,
   updateWaterSports,
   deleteWaterSports,
-  // Menu Pages
   getStoredMenuPages,
   saveMenuPage,
   updateMenuPage,
   deleteMenuPage,
-  // Hero Settings
   getStoredHeroSettings,
   saveHeroSettings,
-
-  // Menu Categories
-
   getStoredCategories,
   saveCategory,
   deleteCategory,
-  // FAQs
   getStoredFaqs,
   saveFaq,
   deleteFaq,
-  // Team Members
   getStoredTeamMembers,
   saveTeamMember,
   deleteTeamMember,
-  // Offers
   getStoredOffers,
   saveOffer,
   deleteOffer,
-  // Media Library
   getStoredMedia,
   saveMediaItem,
   deleteMediaItem,
-  // Audit Logs
   getStoredAuditLogs,
-  // Dynamic Pages
   getStoredPages,
   savePage,
   deletePage,
-  // Helper
   getApiUrl,
-  // Site Settings & Dashboard
   getSiteSettings,
   saveSiteSettings,
   SITE_SETTINGS_DEFAULTS,
-
   getDashboardStats,
   uploadMediaFile,
   uploadCloudinaryFile,
   updateMediaItem,
   getCloudinaryOptimizedUrl,
-  // Promo Pages
   getStoredPromoPages,
   savePromoPage,
   deletePromoPage,
-  // Floor Plan Layout & Dining Sessions
   getStoredFloorPlan,
   saveFloorPlan,
   notifySync,
@@ -123,10 +98,8 @@ export {
   closeDiningSession,
 } from '@/controllers/StorageController';
 
-
 export type {
   DiningSession,
-
   MenuCategory,
   OfferDiscount,
   FaqItem,

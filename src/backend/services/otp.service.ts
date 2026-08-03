@@ -20,7 +20,6 @@ export class OtpService {
       try {
         await ensureTables(db);
 
-        // Rate-limit check: check how many OTPs generated for this phone in the last 10 minutes
         const windowStart = now - RATE_LIMIT_WINDOW_MS;
         const recentRows = await db
           .prepare('SELECT COUNT(*) as cnt FROM otps WHERE phone = ? AND created_at > ?')
@@ -45,10 +44,8 @@ export class OtpService {
 
     if (db) {
       try {
-        // Delete old pending OTP records for this phone number
         await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
 
-        // Insert new OTP record with attempts = 0
         await db
           .prepare('INSERT INTO otps (id, phone, otp_code, attempts, max_attempts, expires_at, created_at) VALUES (?, ?, ?, 0, 5, ?, ?)')
           .bind(otpId, cleanPhone, otpCode, expiresAt, now)
@@ -58,7 +55,7 @@ export class OtpService {
       }
     }
 
-    const authKey = c.env?.MSG91_AUTH_KEY;
+    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_TOKEN_AUTH;
     const templateId = c.env?.MSG91_TEMPLATE_ID;
     let smsSent = false;
 
@@ -85,7 +82,7 @@ export class OtpService {
   }
 
   /**
-   * Verifies the OTP code against D1 store and MSG91 fallback, enforcing max retry attempts and expiration.
+   * Verifies the OTP code against D1 store and MSG91 fallback.
    */
   static async verifyOtp(c: AppContext, phone: string, otp: string, db: D1Database | null) {
     const cleanPhone = (phone || '').replace(/\D/g, '');
@@ -97,7 +94,6 @@ export class OtpService {
 
     const now = Date.now();
 
-    // Check D1 OTP database
     if (db) {
       try {
         await ensureTables(db);
@@ -125,7 +121,6 @@ export class OtpService {
         }
 
         if (row.otp_code !== cleanOtp) {
-          // Increment failed attempts
           await db
             .prepare('UPDATE otps SET attempts = attempts + 1 WHERE id = ?')
             .bind(row.id)
@@ -140,7 +135,6 @@ export class OtpService {
           };
         }
 
-        // Successfully verified — remove OTP record from DB
         await db.prepare('DELETE FROM otps WHERE id = ?').bind(row.id).run().catch(() => {});
         return { success: true, message: 'OTP verified successfully' };
 
@@ -149,8 +143,7 @@ export class OtpService {
       }
     }
 
-    // MSG91 external fallback verification if configured
-    const authKey = c.env?.MSG91_AUTH_KEY;
+    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_TOKEN_AUTH;
     if (authKey) {
       try {
         const res = await fetch(`https://control.msg91.com/api/v5/otp/verify?otp=${cleanOtp}&mobile=91${cleanPhone}`, {
@@ -167,11 +160,39 @@ export class OtpService {
       } catch (e) {}
     }
 
-    // Fallback for dev mode when DB or MSG91 are not configured
     if (c.env?.ENVIRONMENT !== 'production') {
       return { success: true, message: 'OTP verified in dev fallback mode' };
     }
 
     return { success: false, error: 'OTP verification failed', status: 400 };
+  }
+
+  /**
+   * Verifies an MSG91 Widget access-token using the MSG91 control API v5.
+   */
+  static async verifyWidgetAccessToken(c: AppContext, accessToken: string) {
+    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_TOKEN_AUTH || '556476TqAhyUyAB6a6e54adP1';
+    if (!accessToken) {
+      return { success: false, error: 'Access token is required', status: 400 };
+    }
+
+    try {
+      const res = await fetch('https://control.msg91.com/api/v5/widget/verifyAccessToken', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          authkey: authKey,
+          'access-token': accessToken
+        })
+      });
+      const data: any = await res.json().catch(() => ({}));
+      if (res.ok && data?.type !== 'error') {
+        return { success: true, data, message: 'Widget access token verified successfully' };
+      }
+      return { success: false, error: data?.message || 'Widget token verification failed', status: 400 };
+    } catch (err: any) {
+      console.error('[MSG91 Verify AccessToken Error]', err);
+      return { success: false, error: err?.message || 'Token verification request failed', status: 500 };
+    }
   }
 }

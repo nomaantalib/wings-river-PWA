@@ -1,25 +1,6 @@
-// Blog Post Model & Initial Articles
-export interface BlogPost {
-  id: string;
-  title: string;
-  slug: string;
-  excerpt: string;
-  content: string;
-  category: string;
-  cover_image: string;
-  images?: string[]; // Multiple images for blog gallery & inline sliders
-  video_url?: string; // Glimpse video or embed URL
-  tags?: string[];   // Topic tags for filtering
-  author: string;
-  read_time: string;
-  created_at?: string;
-  status?: string;   // draft, published, scheduled
-  is_published?: boolean;
-  version?: number;
-  is_deleted?: number;
-  published_at?: string;
-  updated_at?: string;
-}
+import { BlogPost } from '@/types';
+
+export type { BlogPost };
 
 export const INITIAL_BLOGS: BlogPost[] = [
   {

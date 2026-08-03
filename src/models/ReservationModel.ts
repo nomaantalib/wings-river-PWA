@@ -1,23 +1,6 @@
-// Reservation Model Definition & Validation Logic
-export interface Reservation {
-  id: string;
-  name: string;
-  phone: string;
-  email?: string;
-  booking_type: string;
-  table_number?: string;
-  cluster_name?: string;
-  cluster_id?: string;
-  duration_hours?: number;
-  qr_code?: string;
-  amount?: number;
-  date: string;
-  time: string;
-  guests: number;
-  special_requests?: string;
-  status: string;
-  created_at?: string;
-}
+import { Reservation } from '@/types';
+
+export type { Reservation };
 
 export function createDefaultReservation(): Reservation {
   return {
@@ -76,4 +59,3 @@ export const INITIAL_RESERVATIONS: Reservation[] = [
     created_at: new Date(Date.now() - 7200000).toISOString()
   }
 ];
-
