@@ -16,6 +16,12 @@
       "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
     }
   ],
+  "kv_namespaces": [
+    {
+      "binding": "CACHE_KV",
+      "id": "wings_river_cache_kv"
+    }
+  ],
   "vars": {
     "CLOUDFLARE_D1_DATABASE_ID": "f3cb90af-78ce-4e54-96ad-d0aa657062e3",
     "CLOUDFLARE_ACCOUNT_ID": "8f1aecb785da9e40b20ab73a3b15e27e",

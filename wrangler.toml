@@ -14,6 +14,11 @@ binding = "wings_river_cafe_reservations"
 database_name = "wings_river_cafe_reservations"
 database_id = "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
 
+# ── Cloudflare KV Cache Binding ─────────────────────────────────────────────
+[[kv_namespaces]]
+binding = "CACHE_KV"
+id = "wings_river_cache_kv"
+
 # ── Public Environment Variables ──────────────────────────────────────────
 [vars]
 NEXT_PUBLIC_SITE_NAME = "Wings River Café"
