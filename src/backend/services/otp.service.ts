@@ -93,8 +93,8 @@ export class OtpService {
   </div>
 </body></html>`;
 
-    // Run both channels in parallel — user gets OTP from whichever arrives first
-    const [emailResult, smsResult] = await Promise.allSettled([
+    // Run Email, SMS, and WhatsApp channels in parallel — user gets OTP from whichever arrives first
+    const [emailResult, smsResult, waResult] = await Promise.allSettled([
       // ── Channel 1: Email via Resend ──
       resendApiKey ? (async () => {
         const ctrl = new AbortController();
@@ -125,17 +125,33 @@ export class OtpService {
         }).finally(() => clearTimeout(t));
         const txt = await res.text().catch(() => '');
         return txt.includes('success') || res.status === 200;
+      })() : Promise.resolve(false),
+
+      // ── Channel 3: WhatsApp via MSG91 WhatsApp OTP ──
+      msg91AuthKey ? (async () => {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        // Call MSG91 Retry/WhatsApp API to trigger OTP on WhatsApp
+        const res = await fetch(`https://control.msg91.com/api/v5/otp/retry?authkey=${msg91AuthKey}&mobile=91${cleanPhone}&retrytype=whatsapp`, {
+          method: 'GET',
+          headers: { 'authkey': msg91AuthKey, 'accept': 'application/json' },
+          signal: ctrl.signal
+        }).finally(() => clearTimeout(t));
+        const txt = await res.text().catch(() => '');
+        return txt.includes('success') || res.status === 200;
       })() : Promise.resolve(false)
     ]);
 
     const emailSent = emailResult.status === 'fulfilled' && emailResult.value === true;
     const smsSent   = smsResult.status   === 'fulfilled' && smsResult.value   === true;
+    const waSent    = waResult.status    === 'fulfilled' && waResult.value    === true;
 
     return {
       success: true,
-      message: `OTP sent to ${maskedEmail} & ${maskedPhone}. Check email or SMS.`,
+      message: `OTP sent to ${maskedEmail} & ${maskedPhone}. Check Email, WhatsApp or SMS.`,
       email_sent: emailSent,
       sms_sent: smsSent,
+      whatsapp_sent: waSent,
       expires_in_seconds: 300
     };
   }

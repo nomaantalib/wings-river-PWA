@@ -330,8 +330,10 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] hover:text-white transition-colors"
+            aria-label="Close modal"
+            className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] hover:text-white transition-colors flex items-center justify-center shrink-0 border border-white/10"
           >
             <X className="w-5 h-5" />
           </button>
