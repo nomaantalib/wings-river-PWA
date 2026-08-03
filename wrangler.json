@@ -8,11 +8,11 @@
     {
       "binding": "DB",
       "database_name": "wings-river-cafe",
-      "database_id": "2b52da80-2dbc-4635-8b38-8c9ff4e8d607"
+      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
     }
   ],
   "vars": {
-    "CLOUDFLARE_D1_DATABASE_ID": "2b52da80-2dbc-4635-8b38-8c9ff4e8d607",
+    "CLOUDFLARE_D1_DATABASE_ID": "912b607b-c192-4e0a-89ba-75f936fca45c",
     "CLOUDFLARE_ACCOUNT_ID": "8f1aecb785da9e40b20ab73a3b15e27e",
     "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "vrgblmky",
     "NEXT_PUBLIC_FIREBASE_VAPID_KEY": "BB_D3Bo704xpIpSFlesjRGUCnDx8qx2fKV1dV4w3M_eArGEQ4E7MPI6r86uvMLdjLS8XoQS72eXf5a_36GBiNFk",
