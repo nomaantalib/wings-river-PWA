@@ -23,6 +23,7 @@ export async function ensureTables(db: D1Database | null): Promise<void> {
 
   const schemaQueries = [
     `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, phone TEXT UNIQUE, password_hash TEXT, email TEXT, name TEXT, role TEXT DEFAULT 'Customer', is_active INTEGER DEFAULT 1, created_at DATETIME DEFAULT CURRENT_TIMESTAMP, updated_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
+    `CREATE TABLE IF NOT EXISTS sessions (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token_hash TEXT UNIQUE NOT NULL, device_info TEXT DEFAULT '', expires_at INTEGER NOT NULL, revoked INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
     `CREATE TABLE IF NOT EXISTS refresh_tokens (id TEXT PRIMARY KEY, user_id TEXT NOT NULL, token_hash TEXT UNIQUE NOT NULL, device_info TEXT DEFAULT '', expires_at INTEGER NOT NULL, revoked INTEGER DEFAULT 0, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
     `CREATE TABLE IF NOT EXISTS otps (id TEXT PRIMARY KEY, phone TEXT NOT NULL, otp_code TEXT NOT NULL, attempts INTEGER DEFAULT 0, max_attempts INTEGER DEFAULT 5, expires_at INTEGER NOT NULL, created_at INTEGER NOT NULL);`,
     `CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);`,

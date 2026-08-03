@@ -42,7 +42,10 @@ authRoutes.post('/verify-otp', async (c: AppContext) => {
   if (!parseResult.success) {
     return errorResponse(c, parseResult.error.issues[0]?.message || 'Invalid OTP payload', 400, 'VALIDATION_ERROR');
   }
-  const res = await OtpService.verifyOtp(c, parseResult.data.phone, parseResult.data.otp, getDB(c));
+  const { phone, otp } = parseResult.data;
+  const name = rawBody.name;
+  const email = rawBody.email;
+  const res = await AuthService.customerLoginWithOtp(c, phone, otp, name, email, getDB(c));
   if (!res.success) return errorResponse(c, res.error || 'OTP verification failed', res.status || 400);
   return successResponse(c, res);
 });

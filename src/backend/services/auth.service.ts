@@ -71,6 +71,11 @@ export class AuthService {
           .prepare('INSERT INTO refresh_tokens (id, user_id, token_hash, device_info, expires_at, revoked) VALUES (?, ?, ?, ?, ?, 0)')
           .bind(tokenId, user.id, tokenHash, deviceInfo, refreshTokenExp)
           .run();
+        await db
+          .prepare('INSERT INTO sessions (id, user_id, token_hash, device_info, expires_at, revoked) VALUES (?, ?, ?, ?, ?, 0)')
+          .bind(`sess-${tokenId}`, user.id, tokenHash, deviceInfo, refreshTokenExp)
+          .run()
+          .catch(() => {});
       } catch (e) {
         console.warn('[AuthService issueTokens DB Exception]', e);
       }
