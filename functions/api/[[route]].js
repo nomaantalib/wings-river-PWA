@@ -2,8 +2,33 @@
 import { Hono } from 'hono';
 import { handle } from 'hono/cloudflare-pages';
 import { sign, verify } from 'hono/jwt';
+import { etag } from 'hono/etag';
 
 const app = new Hono();
+
+app.onError((err, c) => {
+  console.error('[Hono Exception]', err);
+  return c.json({
+    success: false,
+    error: {
+      code: 'INTERNAL_SERVER_ERROR',
+      message: err.message || 'An unexpected error occurred.',
+      details: String(err)
+    }
+  }, 500);
+});
+
+app.notFound((c) => {
+  return c.json({
+    success: false,
+    error: {
+      code: 'NOT_FOUND',
+      message: `Route not found: ${c.req.method} ${c.req.path}`
+    }
+  }, 404);
+});
+
+app.use('*', etag());
 
 const JWT_SECRET = 'wings_river_cafe_jwt_secret_2026_super_secure';
 
@@ -147,8 +172,10 @@ app.use('*', async (c, next) => {
 
 
 // Helper: Auto-Initialize & Seed D1 Tables if missing
+let tablesEnsured = false;
 async function ensureTables(db) {
   if (!db) return;
+  if (tablesEnsured) return;
   
   const tables = [
     `CREATE TABLE IF NOT EXISTS users (id TEXT PRIMARY KEY, username TEXT UNIQUE, password_hash TEXT, email TEXT, role TEXT, created_at DATETIME DEFAULT CURRENT_TIMESTAMP);`,
@@ -260,6 +287,7 @@ async function ensureTables(db) {
   } catch (e) {
     console.error('[D1 Setup Error]', e);
   }
+  tablesEnsured = true;
 }
 
 // Helper: Seed Audit Log
@@ -298,6 +326,77 @@ app.get('/health', (c) => {
   });
 });
 
+app.get('/status', async (c) => {
+  const db = getDB(c);
+  let d1Status = 'disconnected';
+  let counts = {};
+
+  if (db) {
+    try {
+      d1Status = 'connected';
+      const [resCategories, resMenu, resBlogs, resGallery, resReservations, resContact, resBanners] = await Promise.all([
+        db.prepare("SELECT COUNT(*) as cnt FROM menu_categories").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM menu_items").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM blogs").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM gallery").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM reservations").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM contact_messages").first().catch(() => ({ cnt: 0 })),
+        db.prepare("SELECT COUNT(*) as cnt FROM event_banners").first().catch(() => ({ cnt: 0 })),
+      ]);
+      counts = {
+        categories: resCategories?.cnt || 0,
+        menu_items: resMenu?.cnt || 0,
+        blogs: resBlogs?.cnt || 0,
+        gallery: resGallery?.cnt || 0,
+        reservations: resReservations?.cnt || 0,
+        contact_inquiries: resContact?.cnt || 0,
+        event_banners: resBanners?.cnt || 0
+      };
+    } catch (e) {
+      d1Status = `error: ${e.message}`;
+    }
+  }
+
+  return c.json({
+    success: true,
+    status: d1Status === 'connected' ? 'healthy' : 'degraded',
+    service: 'Wings River Café Cloudflare D1 Backend API Engine',
+    timestamp: Date.now(),
+    d1_database: {
+      status: d1Status,
+      tables: counts
+    }
+  });
+});
+
+app.get('/version', (c) => {
+  return c.json({
+    success: true,
+    version: '1.0.0',
+    build_date: '2026-08-03',
+    compatibility_date: '2026-07-21',
+    environment: c.env?.ENVIRONMENT || 'production'
+  });
+});
+
+app.get('/metrics', (c) => {
+  return c.json({
+    success: true,
+    rate_limiting: {
+      max: RATE_LIMIT_MAX,
+      window_ms: RATE_LIMIT_WINDOW_MS
+    },
+    in_memory_cache: {
+      size: apiCache.size,
+      ttl_ms: CACHE_TTL_MS
+    },
+    client: {
+      connecting_ip: c.req.header('cf-connecting-ip') || 'unknown',
+      user_agent: c.req.header('user-agent') || 'unknown'
+    }
+  });
+});
+
 app.get('/', (c) => {
   return c.json({
     service: 'Wings River Café Cloudflare D1 Backend API Engine',
@@ -308,10 +407,6 @@ app.get('/', (c) => {
     health_check: '/api/health',
     version: '1.0.0'
   });
-});
-
-app.get('/status', async (c) => {
-  return c.redirect('/api/health');
 });
 
 // ── VERIFY D1 DATABASE ENDPOINT ──────────────────────────────────────────────
