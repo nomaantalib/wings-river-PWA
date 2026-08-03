@@ -264,47 +264,15 @@ async function sha256(message) {
 }
 
 // ── 0. HEALTH & ENGINE API NOTICE ───────────────────────────────────────────
-app.get('/health', async (c) => {
+app.get('/health', (c) => {
   const db = getDB(c);
-  let d1Status = 'disconnected';
-  let counts = {};
-
-  if (db) {
-    await ensureTables(db);
-    try {
-      d1Status = 'connected';
-      const [resCategories, resMenu, resBlogs, resGallery, resReservations, resContact, resBanners] = await Promise.all([
-        db.prepare("SELECT COUNT(*) as cnt FROM menu_categories").first().catch(() => ({ cnt: 0 })),
-        db.prepare("SELECT COUNT(*) as cnt FROM menu_items").first().catch(() => ({ cnt: 0 })),
-        db.prepare("SELECT COUNT(*) as cnt FROM blogs").first().catch(() => ({ cnt: 0 })),
-        db.prepare("SELECT COUNT(*) as cnt FROM gallery").first().catch(() => ({ cnt: 0 })),
-        db.prepare("SELECT COUNT(*) as cnt FROM reservations").first().catch(() => ({ cnt: 0 })),
-        db.prepare("SELECT COUNT(*) as cnt FROM contact_messages").first().catch(() => ({ cnt: 0 })),
-        db.prepare("SELECT COUNT(*) as cnt FROM event_banners").first().catch(() => ({ cnt: 0 })),
-      ]);
-      counts = {
-        categories: resCategories?.cnt || 0,
-        menu_items: resMenu?.cnt || 0,
-        blogs: resBlogs?.cnt || 0,
-        gallery: resGallery?.cnt || 0,
-        reservations: resReservations?.cnt || 0,
-        contact_inquiries: resContact?.cnt || 0,
-        event_banners: resBanners?.cnt || 0
-      };
-    } catch (e) {
-      d1Status = `error: ${e.message}`;
-    }
-  }
-
   return c.json({
-    status: d1Status === 'connected' ? 'healthy' : 'degraded',
+    success: true,
+    status: 'ok',
+    timestamp: Date.now(),
+    d1_connected: !!db,
+    database_id: '912b607b-c192-4e0a-89ba-75f936fca45c',
     service: 'Wings River Café Cloudflare D1 Backend API Engine',
-    timestamp: new Date().toISOString(),
-    environment: 'production',
-    d1_database: {
-      status: d1Status,
-      tables: counts
-    },
     cors: { enabled: true, origin: '*' },
     version: '1.0.0'
   });
@@ -2285,16 +2253,6 @@ app.post('/dining-session/close', async (c) => {
 });
 
 
-export const onRequest = async (context) => {
-  try {
-    const res = await app.fetch(context.request, context.env, context);
-    return res;
-  } catch (e) {
-    return new Response(JSON.stringify({ success: true, data: [], is_fallback: true }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
-    });
-  }
-};
+export const onRequest = handle(app);
 export default app;
 
