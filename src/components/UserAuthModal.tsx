@@ -101,7 +101,7 @@ export function findRegisteredUser(phone: string): RegisteredUser | undefined {
 }
 
 export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthModalProps) {
-  const { sendOtp, loginCustomerOtp } = useAuth();
+  const { sendOtp, loginCustomerOtp, loginCustomerWidgetToken } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
   const [phoneInput, setPhoneInput] = useState('');
   const [otpInput, setOtpInput] = useState(['', '', '', '', '', '']);
@@ -192,21 +192,36 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
     triggerMsg91Otp({
       identifier: cleanPhone,
-      onSuccess: (data) => {
+      onSuccess: async (data) => {
         setIsSendingOtp(false);
-        if (existing) {
-          const session: UserSession = {
-            phone: cleanPhone,
-            name: existing.name,
-            email: existing.email,
-            loggedIn: true,
-            loggedInAt: new Date().toISOString(),
-          };
-          saveUserSession(session);
-          if (onSuccess) onSuccess(session);
-          onClose();
-        } else {
-          setStep('profile');
+        const token = data?.token || data?.access_token || data;
+        if (!token) {
+          setErrorMsg('No verification token returned from MSG91 widget.');
+          return;
+        }
+
+        setIsVerifying(true);
+        try {
+          const authRes = await loginCustomerWidgetToken(token, cleanPhone, nameInput, emailInput);
+          setIsVerifying(false);
+
+          if (authRes.success) {
+            const session: UserSession = {
+              phone: cleanPhone,
+              name: existing?.name || nameInput || 'Guest Customer',
+              email: existing?.email || emailInput || '',
+              loggedIn: true,
+              loggedInAt: new Date().toISOString(),
+            };
+            saveUserSession(session);
+            if (onSuccess) onSuccess(session);
+            onClose();
+          } else {
+            setErrorMsg(authRes.error || 'Server session generation failed after OTP verification.');
+          }
+        } catch (err: any) {
+          setIsVerifying(false);
+          setErrorMsg(err.message || 'Server connection error during session generation.');
         }
       },
       onFailure: (err) => {

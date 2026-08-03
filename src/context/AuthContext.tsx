@@ -25,6 +25,7 @@ interface AuthContextType {
   sendOtp: (phone: string) => Promise<{ success: boolean; error?: string; dev_otp?: string }>;
   verifyOtp: (phone: string, otp: string) => Promise<{ success: boolean; error?: string }>;
   loginCustomerOtp: (phone: string, otp: string, name?: string, email?: string) => Promise<{ success: boolean; error?: string }>;
+  loginCustomerWidgetToken: (token: string, phone: string, name?: string, email?: string) => Promise<{ success: boolean; error?: string }>;
   loginStaff: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   loginAdmin: (username: string, password: string) => Promise<{ success: boolean; error?: string }>;
   logout: () => Promise<void>;
@@ -160,6 +161,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // 3b. Customer MSG91 Widget Verification Login
+  const loginCustomerWidgetToken = async (token: string, phone: string, name?: string, email?: string) => {
+    try {
+      const res = await fetch('/api/auth/verify-widget-token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token, phone, name, email })
+      });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok && data.success) {
+        const payload = data.data || data;
+        persistAuth(payload.accessToken, payload.refreshToken, {
+          ...payload.user,
+          role: 'Customer',
+          loggedInAt: new Date().toISOString()
+        });
+        return { success: true };
+      }
+      return { success: false, error: data.error || data.message || 'Widget login failed' };
+    } catch (err: any) {
+      return { success: false, error: err.message || 'Network connection error' };
+    }
+  };
+
   // 4. Staff Login
   const loginStaff = async (username: string, password: string) => {
     try {
@@ -277,6 +302,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         sendOtp,
         verifyOtp,
         loginCustomerOtp,
+        loginCustomerWidgetToken,
         loginStaff,
         loginAdmin,
         logout,

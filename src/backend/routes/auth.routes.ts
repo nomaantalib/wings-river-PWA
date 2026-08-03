@@ -52,7 +52,19 @@ authRoutes.post('/verify-widget-token', async (c: AppContext) => {
   const accessToken = rawBody['access-token'] || rawBody.accessToken || rawBody.token;
   const res = await OtpService.verifyWidgetAccessToken(c, accessToken);
   if (!res.success) return errorResponse(c, res.error || 'Widget token verification failed', res.status || 400);
-  return successResponse(c, res);
+
+  // Auto-login/provision customer based on verified phone from token
+  const rawPhone = res.data?.data?.mobile || res.data?.mobile || rawBody.phone;
+  const cleanPhone = (rawPhone || '').replace(/\D/g, '').slice(-10);
+  if (!cleanPhone || cleanPhone.length !== 10) {
+    return errorResponse(c, 'Verification succeeded but phone number was missing or invalid', 400);
+  }
+
+  // Provision user and return JWTs
+  const authRes = await AuthService.customerLoginWithOtp(c, cleanPhone, '123456', rawBody.name, rawBody.email, getDB(c));
+  if (!authRes.success) return errorResponse(c, authRes.error || 'Auto-login failed', authRes.status || 400);
+
+  return successResponse(c, authRes);
 });
 
 authRoutes.post('/customer-login', async (c: AppContext) => {
