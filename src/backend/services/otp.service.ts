@@ -166,25 +166,31 @@ export class OtpService {
     // Fallback: Verify via MSG91 API v5
     const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
     if (authKey) {
-      try {
-        const verifyUrl = `https://control.msg91.com/api/v5/otp/verify?otp=${cleanOtp}&mobile=91${cleanPhone}`;
-        const res = await fetch(verifyUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', authkey: authKey },
-          body: JSON.stringify({ mobile: `91${cleanPhone}`, otp: cleanOtp })
-        });
+      const endpoints = [
+        `https://control.msg91.com/api/v5/otp/verify?otp=${cleanOtp}&mobile=91${cleanPhone}&authkey=${authKey}`,
+        `https://api.msg91.com/api/v5/otp/verify?otp=${cleanOtp}&mobile=91${cleanPhone}&authkey=${authKey}`
+      ];
 
-        if (res.ok) {
-          const data: any = await res.json().catch(() => null);
-          if (data?.type === 'success' || data?.type !== 'error' || data?.message?.toLowerCase().includes('already verified')) {
-            if (db) {
-              await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
+      for (const verifyUrl of endpoints) {
+        try {
+          const res = await fetch(verifyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'authkey': authKey },
+            body: JSON.stringify({ mobile: `91${cleanPhone}`, otp: cleanOtp })
+          });
+
+          if (res.ok) {
+            const data: any = await res.json().catch(() => null);
+            if (data?.type === 'success' || data?.type !== 'error' || data?.message?.toLowerCase().includes('already verified')) {
+              if (db) {
+                await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
+              }
+              return { success: true, message: 'OTP verified successfully via MSG91' };
             }
-            return { success: true, message: 'OTP verified successfully via MSG91' };
           }
+        } catch (e) {
+          console.warn('[MSG91 Verify Exception]', e);
         }
-      } catch (e) {
-        console.warn('[MSG91 Verify Exception]', e);
       }
     }
 

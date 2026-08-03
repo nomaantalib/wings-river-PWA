@@ -100,7 +100,7 @@ export class AuthService {
    * Customer OTP Login & Auto-Provisioning
    */
   static async customerLoginWithOtp(c: AppContext, phone: string, otp: string, name?: string, email?: string, db?: D1Database | null) {
-    const cleanPhone = (phone || '').replace(/\D/g, '');
+    const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
 
     // Step 1: Verify OTP
     const verifyRes = await OtpService.verifyOtp(c, cleanPhone, otp, db || null);

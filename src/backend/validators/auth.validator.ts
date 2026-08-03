@@ -1,20 +1,20 @@
 import { z } from 'zod';
 
 export const sendOtpSchema = z.object({
-  phone: z.string().transform(val => val.replace(/\D/g, '')).refine(val => val.length === 10, {
+  phone: z.string().transform(val => (val || '').replace(/\D/g, '').slice(-10)).refine(val => val.length === 10, {
     message: 'Valid 10-digit mobile number required'
   })
 });
 
 export const verifyOtpSchema = z.object({
-  phone: z.string().transform(val => val.replace(/\D/g, '')).refine(val => val.length === 10, {
+  phone: z.string().transform(val => (val || '').replace(/\D/g, '').slice(-10)).refine(val => val.length === 10, {
     message: 'Valid 10-digit mobile number required'
   }),
   otp: z.string().trim().length(6, { message: '6-digit OTP code required' })
 });
 
 export const customerLoginSchema = z.object({
-  phone: z.string().transform(val => val.replace(/\D/g, '')).refine(val => val.length === 10, {
+  phone: z.string().transform(val => (val || '').replace(/\D/g, '').slice(-10)).refine(val => val.length === 10, {
     message: 'Valid 10-digit mobile number required'
   }),
   otp: z.string().trim().length(6, { message: '6-digit OTP code required' }),
