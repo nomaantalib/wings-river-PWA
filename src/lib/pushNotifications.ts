@@ -18,7 +18,8 @@ function urlBase64ToUint8Array(base64String: string): Uint8Array {
 export async function registerServiceWorker(): Promise<ServiceWorkerRegistration | null> {
   if (typeof window === 'undefined' || !('serviceWorker' in navigator)) return null;
   try {
-    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
+    const reg = await navigator.serviceWorker.register('/sw.js', { scope: '/', updateViaCache: 'none' });
+    reg.update().catch(() => {});
     return reg;
   } catch (err) {
     console.warn('[PushNotif] SW registration failed:', err);

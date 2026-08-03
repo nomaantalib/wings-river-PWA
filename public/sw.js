@@ -1,7 +1,7 @@
-// Wings River Café — Service Worker v4
+// Wings River Café — Service Worker v6
 // Handles: Offline Cache + Web Push Notifications (Booking, Orders, Table Ready, Reminders)
 
-const CACHE_NAME = 'wings-river-v4';
+const CACHE_NAME = 'wings-river-v6';
 const VAPID_PUBLIC_KEY = 'BB_D3Bo704xpIpSFlesjRGUCnDx8qx2fKV1dV4w3M_eArGEQ4E7MPI6r86uvMLdjLS8XoQS72eXf5a_36GBiNFk';
 
 const PRECACHE_ASSETS = [
