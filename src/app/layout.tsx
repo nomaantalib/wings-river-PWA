@@ -7,8 +7,9 @@ export const viewport: Viewport = {
   themeColor: '#0B0E14',
   width: 'device-width',
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
+  minimumScale: 1,
+  maximumScale: 5,
+  userScalable: true,
   viewportFit: 'cover',
 };
 

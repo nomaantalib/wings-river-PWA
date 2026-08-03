@@ -59,65 +59,74 @@ export class OtpService {
       })();
     }
 
-    // Dispatch SMS via MSG91 API v5
-    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
-    const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || '66854b41d688836ec4389df3';
+    // Dispatch SMS via MSG91 Send OTP API v5
+    const authKey = (c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1').trim();
+    const templateId = (c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || '66854b41d688836ec4389df3').trim();
     let smsSent = false;
+    let smsError = '';
 
     if (authKey) {
       try {
-        // MSG91 v5 primary: POST with JSON body (recommended for Cloudflare Workers)
+        const mobileWithCC = `91${cleanPhone}`;
+
+        // MSG91 v5 OTP — POST with JSON (primary, recommended)
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 5000);
+        const timeout = setTimeout(() => controller.abort(), 6000);
 
         const postRes = await fetch('https://control.msg91.com/api/v5/otp', {
           method: 'POST',
           headers: {
             'authkey': authKey,
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
+            'content-type': 'application/json'
           },
           body: JSON.stringify({
-            mobile: `91${cleanPhone}`,
+            mobile: mobileWithCC,
             otp: otpCode,
+            otp_length: 4,
             template_id: templateId
           }),
           signal: controller.signal
-        }).catch(() => null);
+        }).catch((e) => { smsError = String(e); return null; });
 
         clearTimeout(timeout);
 
         if (postRes) {
-          const data: any = await postRes.json().catch(() => ({}));
-          if (data?.type === 'success' || postRes.status === 200) {
+          const rawText = await postRes.text().catch(() => '');
+          let data: any = {};
+          try { data = JSON.parse(rawText); } catch { data = { raw: rawText }; }
+          smsError = JSON.stringify(data);
+          if (data?.type === 'success' || postRes.status === 200 || rawText.includes('success')) {
             smsSent = true;
           }
         }
 
-        // Fallback: GET endpoint if POST failed
+        // Fallback: GET with query params
         if (!smsSent) {
           const getController = new AbortController();
-          const getTimeout = setTimeout(() => getController.abort(), 4000);
-          const queryParams = new URLSearchParams({
+          const getTimeout = setTimeout(() => getController.abort(), 5000);
+          const qs = new URLSearchParams({
             authkey: authKey,
-            mobile: `91${cleanPhone}`,
+            mobile: mobileWithCC,
             otp: otpCode,
+            otp_length: '4',
             template_id: templateId
           }).toString();
 
-          const getRes = await fetch(`https://control.msg91.com/api/v5/otp?${queryParams}`, {
+          const getRes = await fetch(`https://control.msg91.com/api/v5/otp?${qs}`, {
             method: 'GET',
-            headers: { 'authkey': authKey, 'Accept': 'application/json' },
+            headers: { 'authkey': authKey },
             signal: getController.signal
-          }).catch(() => null);
+          }).catch((e) => { smsError += ' | GET: ' + String(e); return null; });
 
           clearTimeout(getTimeout);
-          if (getRes && getRes.ok) {
-            const getData: any = await getRes.json().catch(() => ({}));
-            if (getData?.type === 'success' || getData?.type !== 'error') smsSent = true;
+          if (getRes) {
+            const rawText2 = await getRes.text().catch(() => '');
+            smsError += ' | GET resp: ' + rawText2;
+            if (rawText2.includes('success') || getRes.status === 200) smsSent = true;
           }
         }
       } catch (e) {
+        smsError = String(e);
         console.warn('[MSG91 Send Error]', e);
       }
     }

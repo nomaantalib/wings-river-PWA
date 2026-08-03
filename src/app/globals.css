@@ -17,11 +17,33 @@
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Prevent text inflation on mobile */
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    /* Fluid base font — scales from 14px (mobile) to 16px (desktop) */
+    font-size: clamp(14px, 1.5vw + 0.5rem, 16px);
   }
 
   body {
     overflow-x: hidden;
     background-color: #060a12;
+    /* Safe area for notched / dynamic island phones */
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-bottom: env(safe-area-inset-bottom);
+    min-height: 100dvh;
+  }
+
+  /* All images fluid by default */
+  img, video, svg {
+    max-width: 100%;
+    height: auto;
+  }
+
+  /* Minimum touch target on mobile */
+  button, a, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
   }
 
   img {
@@ -267,5 +289,101 @@
   #printable-ticket-wrapper img {
     display: block !important;
     margin: 0 auto !important;
+  }
+}
+
+/* ── RESPONSIVE CONTAINERS ─────────────────────────────────── */
+
+.responsive-container {
+  width: 100%;
+  max-width: 1280px;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: clamp(1rem, 4vw, 2rem);
+  padding-right: clamp(1rem, 4vw, 2rem);
+}
+
+/* ── MODAL RESPONSIVE ──────────────────────────────────────── */
+
+.modal-responsive {
+  width: min(100vw - 2rem, 480px);
+  max-height: min(96dvh, 860px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+/* ── FLUID CARD GRID ───────────────────────────────────────── */
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 280px), 1fr));
+  gap: clamp(0.75rem, 2vw, 1.5rem);
+}
+
+/* ── MOBILE ZOOM-SAFE TEXT ─────────────────────────────────── */
+
+.text-fluid-xs  { font-size: clamp(0.65rem, 1.5vw, 0.75rem); }
+.text-fluid-sm  { font-size: clamp(0.75rem, 2vw,   0.875rem); }
+.text-fluid-base{ font-size: clamp(0.875rem, 2.5vw, 1rem);    }
+.text-fluid-lg  { font-size: clamp(1rem,     3vw,   1.125rem); }
+.text-fluid-xl  { font-size: clamp(1.125rem, 4vw,   1.25rem); }
+.text-fluid-2xl { font-size: clamp(1.25rem,  5vw,   1.5rem);  }
+.text-fluid-3xl { font-size: clamp(1.5rem,   6vw,   1.875rem);}
+.text-fluid-4xl { font-size: clamp(1.75rem,  7vw,   2.25rem); }
+
+/* ── MOBILE-FIRST INPUTS ───────────────────────────────────── */
+
+input, textarea, select {
+  font-size: 16px !important; /* Prevents iOS zoom on focus */
+  border-radius: 8px;
+}
+
+/* ── SAFE AREA BOTTOM NAV ──────────────────────────────────── */
+
+.safe-bottom {
+  padding-bottom: max(1rem, env(safe-area-inset-bottom));
+}
+
+.safe-top {
+  padding-top: max(0.5rem, env(safe-area-inset-top));
+}
+
+/* ── RESPONSIVE MEDIA QUERIES ──────────────────────────────── */
+
+/* Extra-small phones (< 360px) */
+@media (max-width: 359px) {
+  html { font-size: 13px; }
+  .modal-responsive { width: calc(100vw - 1rem); }
+}
+
+/* Small phones (360–479px) */
+@media (min-width: 360px) and (max-width: 479px) {
+  html { font-size: 14px; }
+}
+
+/* Tablets (768–1023px) */
+@media (min-width: 768px) and (max-width: 1023px) {
+  html { font-size: 15px; }
+  .modal-responsive { width: min(90vw, 520px); }
+}
+
+/* Desktop (1024px+) */
+@media (min-width: 1024px) {
+  html { font-size: 16px; }
+  .modal-responsive { width: min(85vw, 480px); }
+}
+
+/* Large desktop (1440px+) */
+@media (min-width: 1440px) {
+  html { font-size: 16px; }
+  .responsive-container { max-width: 1440px; }
+}
+
+/* High zoom levels (≥ 150%) — keep layout from breaking */
+@media (max-width: 600px) {
+  .hide-on-zoom { display: none !important; }
+  .stack-on-zoom {
+    flex-direction: column !important;
+    align-items: stretch !important;
   }
 }
