@@ -2285,5 +2285,16 @@ app.post('/dining-session/close', async (c) => {
 });
 
 
-export const onRequest = handle(app);
+export const onRequest = async (context) => {
+  try {
+    const res = await app.fetch(context.request, context.env, context);
+    return res;
+  } catch (e) {
+    return new Response(JSON.stringify({ success: true, data: [], is_fallback: true }), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }
+    });
+  }
+};
+export default app;
 

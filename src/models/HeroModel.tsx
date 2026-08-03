@@ -22,6 +22,12 @@ export interface HeroSettings {
   aboutParagraph2?: string;
   aboutPrimaryImage?: string;
   aboutSecondaryImage?: string;
+
+  // Highlight Cards Customization
+  highlight1Title?: string;
+  highlight1Subtitle?: string;
+  highlight2Title?: string;
+  highlight2Subtitle?: string;
 }
 
 export const DEFAULT_HERO_SLIDES: HeroSlide[] = [
@@ -89,5 +95,10 @@ export const DEFAULT_HERO_SETTINGS: HeroSettings = {
   aboutParagraph1: 'Located inside Laxman Mela Ground at Laxman Jhula Park along the scenic Gomti River in Lucknow, Wings River Café is a premier destination where exquisite multicuisine gastronomy meets breathtaking riverside natural ambience and thrilling Lucknow Water Sports speedboat rides.',
   aboutParagraph2: 'Whether you are planning a relaxed family gathering, a festive birthday party under our sparkling fairy-light canopy, or a romantic candlelit evening beside the gentle river waters, our elevated indoor & outdoor dining decks offer an unforgettable experience.',
   aboutPrimaryImage: '/images/Screenshot_20260720-180544_Maps.png',
-  aboutSecondaryImage: '/images/Screenshot_20260720-180621_Maps.png'
+  aboutSecondaryImage: '/images/Screenshot_20260720-180621_Maps.png',
+
+  highlight1Title: 'Multicuisine Delights',
+  highlight1Subtitle: 'North Indian, Chinese, Italian, Pizzas & Artisanal Coffee',
+  highlight2Title: 'Water Sports & Rides',
+  highlight2Subtitle: 'Speedboats & jet rides directly accessible at our river jetty'
 };

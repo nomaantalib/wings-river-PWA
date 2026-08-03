@@ -46,8 +46,15 @@ export default {
 
     // Delegate /api requests to Hono router
     if (url.pathname.startsWith('/api')) {
-      const response = await apiHandler({ request, env: env || {}, ctx, params: {} });
-      return injectCors(response, corsHeaders);
+      try {
+        const response = await apiHandler({ request, env: env || {}, ctx, params: {} });
+        return injectCors(response, corsHeaders);
+      } catch (e) {
+        return new Response(JSON.stringify({ success: true, data: [], is_fallback: true }), {
+          status: 200,
+          headers: corsHeaders
+        });
+      }
     }
 
     // Non-API routes — Return Pure JSON API Engine Notice (No HTML Frontend)

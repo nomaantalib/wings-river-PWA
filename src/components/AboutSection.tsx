@@ -103,15 +103,15 @@ export default function AboutSection() {
               <div className="flex items-start space-x-2.5 p-3.5 rounded-2xl bg-mint-800 border border-gold-500/40 text-white shadow-md">
                 <ShieldCheck className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-white text-xs font-serif">Multicuisine Delights</h4>
-                  <p className="text-[10px] text-mint-100 mt-0.5">North Indian, Chinese, Italian, Pizzas &amp; Artisanal Coffee</p>
+                  <h4 className="font-bold text-white text-xs font-serif">{settings.highlight1Title || 'Multicuisine Delights'}</h4>
+                  <p className="text-[10px] text-mint-100 mt-0.5">{settings.highlight1Subtitle || 'North Indian, Chinese, Italian, Pizzas & Artisanal Coffee'}</p>
                 </div>
               </div>
               <div className="flex items-start space-x-2.5 p-3.5 rounded-2xl bg-mint-800 border border-gold-500/40 text-white shadow-md">
                 <Anchor className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-white text-xs font-serif">Water Sports &amp; Rides</h4>
-                  <p className="text-[10px] text-mint-100 mt-0.5">Speedboats &amp; jet rides directly accessible at our river jetty</p>
+                  <h4 className="font-bold text-white text-xs font-serif">{settings.highlight2Title || 'Water Sports & Rides'}</h4>
+                  <p className="text-[10px] text-mint-100 mt-0.5">{settings.highlight2Subtitle || 'Speedboats & jet rides directly accessible at our river jetty'}</p>
                 </div>
               </div>
             </div>

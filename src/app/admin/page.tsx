@@ -2087,6 +2087,28 @@ export default function AdminPage() {
                         onChange={(val) => setHeroSettings({ ...heroSettings, aboutSecondaryImage: val })}
                       />
                     </div>
+
+                    <div className="pt-4 border-t border-white/10 space-y-4">
+                      <h4 className="font-serif font-bold text-sm text-[#F5D061]">Key Highlight Cards (About Section)</h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                          <label className={labelCls}>Highlight 1 Title</label>
+                          <input type="text" value={heroSettings.highlight1Title || ''} onChange={(e) => setHeroSettings({ ...heroSettings, highlight1Title: e.target.value })} className={inputCls} placeholder="e.g. Multicuisine Delights" />
+                        </div>
+                        <div>
+                          <label className={labelCls}>Highlight 1 Subtitle</label>
+                          <input type="text" value={heroSettings.highlight1Subtitle || ''} onChange={(e) => setHeroSettings({ ...heroSettings, highlight1Subtitle: e.target.value })} className={inputCls} placeholder="e.g. North Indian, Chinese, Italian, Pizzas" />
+                        </div>
+                        <div>
+                          <label className={labelCls}>Highlight 2 Title</label>
+                          <input type="text" value={heroSettings.highlight2Title || ''} onChange={(e) => setHeroSettings({ ...heroSettings, highlight2Title: e.target.value })} className={inputCls} placeholder="e.g. Water Sports & Rides" />
+                        </div>
+                        <div>
+                          <label className={labelCls}>Highlight 2 Subtitle</label>
+                          <input type="text" value={heroSettings.highlight2Subtitle || ''} onChange={(e) => setHeroSettings({ ...heroSettings, highlight2Subtitle: e.target.value })} className={inputCls} placeholder="e.g. Speedboats & jet rides directly accessible" />
+                        </div>
+                      </div>
+                    </div>
                   </div>
 
                   <button type="submit" className={btnPrimary}>Save Hero & About Settings</button>
