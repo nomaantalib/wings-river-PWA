@@ -14,6 +14,16 @@
       "binding": "wings_river_cafe_reservations",
       "database_name": "wings_river_cafe_reservations",
       "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
+    },
+    {
+      "binding": "DATABASE",
+      "database_name": "wings_river_cafe_reservations",
+      "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
+    },
+    {
+      "binding": "D1",
+      "database_name": "wings_river_cafe_reservations",
+      "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
     }
   ],
   "kv_namespaces": [
