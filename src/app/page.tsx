@@ -23,7 +23,7 @@ import BookingModal from '@/components/BookingModal';
 import InstallPWAView from '@/views/InstallPWAView';
 import PWAInstallBanner from '@/components/PWAInstallBanner';
 
-import UserAuthModal, { getStoredUserSession, UserSession } from '@/components/UserAuthModal';
+import UserAuthModal, { getStoredUserSession, getPendingAuthState, UserSession } from '@/components/UserAuthModal';
 import PushNotifBanner from '@/components/PushNotifBanner';
 
 // SRS Modules
@@ -55,13 +55,21 @@ export default function Home() {
     const handleSync = () => setSyncKey(prev => prev + 1);
     const handleOpenMyBookingsEvent = () => setIsMyBookingsOpen(true);
     const handleOpenQREvent = () => setIsQROrderOpen(true);
+    const handleOpenAuthEvent = () => setIsAuthOpen(true);
 
     window.addEventListener('wings_db_sync', handleSync);
     window.addEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
     window.addEventListener('wings_open_qr_order', handleOpenQREvent);
+    window.addEventListener('wings_open_auth', handleOpenAuthEvent);
 
-    // Auto-detect Table QR Code URL Scan (e.g. ?table=T4 or ?qr=T4)
+    // Auto-reopen auth modal if login/signup OTP verification was in progress when page reloaded
     if (typeof window !== 'undefined') {
+      const pendingAuth = getPendingAuthState();
+      const session = getStoredUserSession();
+      if (pendingAuth && (!session || !session.loggedIn)) {
+        setIsAuthOpen(true);
+      }
+
       const params = new URLSearchParams(window.location.search);
       const tableParam = params.get('table') || params.get('qr') || params.get('t');
       if (tableParam) {
@@ -79,6 +87,7 @@ export default function Home() {
       window.removeEventListener('wings_db_sync', handleSync);
       window.removeEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
       window.removeEventListener('wings_open_qr_order', handleOpenQREvent);
+      window.removeEventListener('wings_open_auth', handleOpenAuthEvent);
     };
   }, [router]);
 

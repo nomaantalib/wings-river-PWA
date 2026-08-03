@@ -114,6 +114,42 @@ export function findRegisteredUser(phone: string): RegisteredUser | undefined {
   return undefined;
 }
 
+// Pending Auth Flow Storage (Persists login/signup state across reloads until OTP verification is done)
+const PENDING_AUTH_KEY = 'wings_pending_auth_flow';
+
+export interface PendingAuthState {
+  step: 'phone' | 'otp' | 'profile';
+  phoneInput: string;
+  emailInput: string;
+  nameInput: string;
+  matchedUser: RegisteredUser | null;
+}
+
+export function getPendingAuthState(): PendingAuthState | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem(PENDING_AUTH_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
+export function savePendingAuthState(state: PendingAuthState) {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(PENDING_AUTH_KEY, JSON.stringify(state));
+  } catch {}
+}
+
+export function clearPendingAuthState() {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.removeItem(PENDING_AUTH_KEY);
+  } catch {}
+}
+
 export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthModalProps) {
   const { sendOtp, loginCustomerOtp, loginCustomerWidgetToken } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
@@ -131,6 +167,37 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
   const verifyingRef = useRef(false);
 
+  // Restore pending auth flow state on mount if reload occurred during login/signup
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const session = getStoredUserSession();
+    if (session && session.loggedIn) {
+      clearPendingAuthState();
+      return;
+    }
+    const pending = getPendingAuthState();
+    if (pending) {
+      setStep(pending.step || 'phone');
+      setPhoneInput(pending.phoneInput || '');
+      setEmailInput(pending.emailInput || '');
+      setNameInput(pending.nameInput || '');
+      setMatchedUser(pending.matchedUser || null);
+    }
+  }, []);
+
+  // Save pending auth flow state whenever state changes during authentication
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const session = getStoredUserSession();
+    if (session && session.loggedIn) {
+      clearPendingAuthState();
+      return;
+    }
+    if (step === 'otp' || step === 'profile' || (step === 'phone' && (phoneInput.length > 0 || emailInput.length > 0))) {
+      savePendingAuthState({ step, phoneInput, emailInput, nameInput, matchedUser });
+    }
+  }, [step, phoneInput, emailInput, nameInput, matchedUser]);
+
   // Resend Timer countdown
   useEffect(() => {
     if (step !== 'otp' || resendTimer <= 0) return;
@@ -139,6 +206,11 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     }, 1000);
     return () => clearInterval(interval);
   }, [step, resendTimer]);
+
+  const handleCloseModal = () => {
+    clearPendingAuthState();
+    onClose();
+  };
 
   if (!isOpen) return null;
 
@@ -217,7 +289,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
   // Core verification worker — thread-safe lock prevents duplicate simultaneous API calls
   const submitOtpCode = async (codeToVerify: string) => {
-    if (codeToVerify.length !== 6 || isVerifying || verifyingRef.current) return;
+    if (codeToVerify.length !== 4 || isVerifying || verifyingRef.current) return;
     verifyingRef.current = true;
     setErrorMsg('');
     setIsVerifying(true);
@@ -231,6 +303,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       verifyingRef.current = false;
 
       if (res.success) {
+        clearPendingAuthState();
         if (userFound) {
           const session: UserSession = {
             phone: cleanPhone,
@@ -247,7 +320,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           setStep('profile');
         }
       } else {
-        setErrorMsg(res.error || 'Invalid or expired OTP SMS code.');
+        setErrorMsg(res.error || 'Invalid or expired OTP code.');
       }
     } catch (err: any) {
       setIsVerifying(false);
@@ -261,7 +334,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     e.preventDefault();
     const enteredCode = otpInput.join('');
     if (enteredCode.length !== 4) {
-      setErrorMsg('Please enter the 4-digit OTP code received via SMS');
+      setErrorMsg('Please enter the 4-digit OTP code');
       return;
     }
     submitOtpCode(enteredCode);
@@ -290,6 +363,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       loggedInAt: new Date().toISOString(),
     };
     saveUserSession(session);
+    clearPendingAuthState();
     if (onSuccess) onSuccess(session);
     onClose();
   };
@@ -297,7 +371,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   // Resend OTP
   const handleResendOtp = () => {
     if (resendTimer > 0) return;
-    const code = String(Math.floor(100000 + Math.random() * 900000));
+    const code = String(Math.floor(1000 + Math.random() * 9000));
     setGeneratedOtp(code);
     setResendTimer(30);
     setOtpInput(['', '', '', '']);
@@ -331,7 +405,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
           <button
             type="button"
-            onClick={onClose}
+            onClick={handleCloseModal}
             aria-label="Close modal"
             className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] hover:text-white transition-colors flex items-center justify-center shrink-0 border border-white/10"
           >
