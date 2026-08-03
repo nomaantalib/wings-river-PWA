@@ -1,7 +1,7 @@
-// Wings River Café — Service Worker v3
+// Wings River Café — Service Worker v4
 // Handles: Offline Cache + Web Push Notifications (Booking, Orders, Table Ready, Reminders)
 
-const CACHE_NAME = 'wings-river-v3';
+const CACHE_NAME = 'wings-river-v4';
 const VAPID_PUBLIC_KEY = 'BB_D3Bo704xpIpSFlesjRGUCnDx8qx2fKV1dV4w3M_eArGEQ4E7MPI6r86uvMLdjLS8XoQS72eXf5a_36GBiNFk';
 
 const PRECACHE_ASSETS = [
@@ -29,9 +29,12 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ── FETCH: Network-first with cache fallback ──────────────────────────────────
+// ── FETCH: Network-first for static assets, ALWAYS bypass API ─────────────────
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
+  // ALWAYS bypass service worker cache for backend API requests
+  if (event.request.url.includes('/api/')) return;
+
   event.respondWith(
     fetch(event.request)
       .then((res) => {
@@ -196,7 +199,7 @@ self.addEventListener('notificationclick', (event) => {
   );
 });
 
-// ── PUSH SUBSCRIPTION CHANGE: Re-subscribe if needed ─────────────────────────
+// ── PUSH SUBSCRIPTION CHANGE ─────────────────────────────────────────────────
 self.addEventListener('pushsubscriptionchange', (event) => {
   event.waitUntil(
     self.registration.pushManager.subscribe({

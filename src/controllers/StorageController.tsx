@@ -250,10 +250,9 @@ function writeCache(key: string, data: any) {
 // revalidateInBackground: fetch D1, write cache, notify sync if changed
 function revalidateInBackground(url: string, cacheKey: string, transform?: (d: any) => any) {
   if (typeof window === 'undefined') return;
-  // Use requestIdleCallback when available for non-urgent revalidation
   const run = () => {
     apiFetch(url).then(res => {
-      if (res.success && Array.isArray(res.data)) {
+      if (res.success && Array.isArray(res.data) && res.data.length > 0) {
         const data = transform ? transform(res.data) : res.data;
         const prev = localStorage.getItem(cacheKey);
         const next = JSON.stringify(data);
@@ -511,7 +510,10 @@ function resolveData<T>(res: any, localStorageKey: string): T[] {
 // ═══════════════════════════════════════════════════════════════════════════════
 export function getStoredGalleryItems(): Promise<GalleryItem[]> {
   revalidateInBackground('/api/gallery', 'wings_gallery_db');
-  return Promise.resolve(readCache<GalleryItem>('wings_gallery_db'));
+  const cached = readCache<GalleryItem>('wings_gallery_db');
+  if (cached && cached.length > 0) return Promise.resolve(cached);
+  if (typeof window !== 'undefined') localStorage.setItem('wings_gallery_db', JSON.stringify(INITIAL_GALLERY));
+  return Promise.resolve(INITIAL_GALLERY);
 }
 
 export async function saveGalleryItem(item: GalleryItem): Promise<GalleryItem[]> {
@@ -649,7 +651,10 @@ export async function deleteMenuItem(id: string): Promise<MenuItem[]> {
 // ═══════════════════════════════════════════════════════════════════════════════
 export function getStoredBlogs(): Promise<BlogPost[]> {
   revalidateInBackground('/api/blogs', 'wings_blogs_db');
-  return Promise.resolve(readCache<BlogPost>('wings_blogs_db'));
+  const cached = readCache<BlogPost>('wings_blogs_db');
+  if (cached && cached.length > 0) return Promise.resolve(cached);
+  if (typeof window !== 'undefined') localStorage.setItem('wings_blogs_db', JSON.stringify(INITIAL_BLOGS));
+  return Promise.resolve(INITIAL_BLOGS);
 }
 
 export async function saveBlog(blog: BlogPost): Promise<BlogPost[]> {
@@ -690,7 +695,10 @@ export async function deleteBlog(id: string): Promise<BlogPost[]> {
 // ═══════════════════════════════════════════════════════════════════════════════
 export function getStoredReviews(): Promise<Review[]> {
   revalidateInBackground('/api/reviews', 'wings_reviews_db');
-  return Promise.resolve(readCache<Review>('wings_reviews_db'));
+  const cached = readCache<Review>('wings_reviews_db');
+  if (cached && cached.length > 0) return Promise.resolve(cached);
+  if (typeof window !== 'undefined') localStorage.setItem('wings_reviews_db', JSON.stringify(INITIAL_REVIEWS));
+  return Promise.resolve(INITIAL_REVIEWS);
 }
 
 export async function saveReview(review: Review): Promise<Review[]> {

@@ -35,10 +35,19 @@ export async function apiFetch<T>(endpoint: string, options: RequestInit = {}): 
 
     const url = endpoint.startsWith('http') ? endpoint : `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
     const res = await fetch(url, { ...options, headers });
-    const json = await res.json();
+
+    if (!res.ok) {
+      console.warn(`[apiFetch HTTP ${res.status}] ${endpoint}`);
+      return { success: false, error: `HTTP ${res.status} ${res.statusText}` };
+    }
+
+    const json = await res.json().catch(() => null);
+    if (!json) {
+      return { success: false, error: 'Invalid JSON response' };
+    }
     return json;
   } catch (err: any) {
-    console.error(`API Fetch Error [${endpoint}]:`, err);
+    console.warn(`[apiFetch Exception] ${endpoint}:`, err?.message || err);
     return { success: false, error: err?.message || 'Network request failed' };
   }
 }
