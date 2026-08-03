@@ -100,18 +100,18 @@ export default function AboutSection() {
 
             {/* Key highlights */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-              <div className="flex items-start space-x-2.5 p-3 rounded-2xl bg-white border border-[#E5B82C]/30 shadow-sm">
-                <ShieldCheck className="w-4 h-4 text-[#829370] shrink-0 mt-0.5" />
+              <div className="flex items-start space-x-2.5 p-3.5 rounded-2xl bg-mint-800 border border-gold-500/40 text-white shadow-md">
+                <ShieldCheck className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-[#1F1810] text-xs font-serif">Multicuisine Delights</h4>
-                  <p className="text-[10px] text-gray-600 mt-0.5">North Indian, Chinese, Italian, Pizzas &amp; Artisanal Coffee</p>
+                  <h4 className="font-bold text-white text-xs font-serif">Multicuisine Delights</h4>
+                  <p className="text-[10px] text-mint-100 mt-0.5">North Indian, Chinese, Italian, Pizzas &amp; Artisanal Coffee</p>
                 </div>
               </div>
-              <div className="flex items-start space-x-2.5 p-3 rounded-2xl bg-white border border-[#E5B82C]/30 shadow-sm">
-                <Anchor className="w-4 h-4 text-[#C59B27] shrink-0 mt-0.5" />
+              <div className="flex items-start space-x-2.5 p-3.5 rounded-2xl bg-mint-800 border border-gold-500/40 text-white shadow-md">
+                <Anchor className="w-4 h-4 text-gold-400 shrink-0 mt-0.5" />
                 <div>
-                  <h4 className="font-bold text-[#1F1810] text-xs font-serif">Water Sports &amp; Rides</h4>
-                  <p className="text-[10px] text-gray-600 mt-0.5">Speedboats &amp; jet rides directly accessible at our river jetty</p>
+                  <h4 className="font-bold text-white text-xs font-serif">Water Sports &amp; Rides</h4>
+                  <p className="text-[10px] text-mint-100 mt-0.5">Speedboats &amp; jet rides directly accessible at our river jetty</p>
                 </div>
               </div>
             </div>

@@ -1,5 +1,5 @@
 -- Cloudflare D1 Database Schema for Wings River Café WordPress-like CMS
--- Database ID: c2491a90-0f90-4a1e-8a4d-852e6588a68a
+-- Database ID: 912b607b-c192-4e0a-89ba-75f936fca45c
 
 -- Drop existing tables to ensure clean recreation during upgrade
 PRAGMA foreign_keys = OFF;

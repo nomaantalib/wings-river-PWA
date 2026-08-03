@@ -1,5 +1,5 @@
--- Seed data for Cloudflare D1 Database wings_river_cafe_reservations
--- Database ID: c2491a90-0f90-4a1e-8a4d-852e6588a68a
+-- Cloudflare D1 Database Seed File for Wings River Café
+-- Database ID: 912b607b-c192-4e0a-89ba-75f936fca45c
 
 -- 1. Users (password_hash is SHA-256 of 'wingsriver@2026')
 INSERT OR REPLACE INTO users (id, username, password_hash, email, role, created_at, updated_at) VALUES
