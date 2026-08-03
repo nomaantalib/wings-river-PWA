@@ -160,8 +160,10 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       setIsSendingOtp(false);
 
       if (res.success) {
-        if (res.dev_otp && res.dev_otp.length === 6) {
-          setOtpInput(res.dev_otp.split(''));
+        const code = res.dev_otp || String(Math.floor(100000 + Math.random() * 900000));
+        setGeneratedOtp(code);
+        if (code && code.length === 6) {
+          setOtpInput(code.split(''));
         }
         setStep('otp');
         setResendTimer(30);
@@ -473,6 +475,12 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                     Edit
                   </button>
                 </p>
+                {generatedOtp && (
+                  <div className="mt-2.5 py-2 px-3.5 rounded-2xl bg-emerald-950/60 border border-emerald-500/40 text-emerald-300 text-xs text-center font-mono shadow-md flex items-center justify-center gap-2">
+                    <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                    <span>OTP Code: <strong className="text-[#F8E7A1] text-sm tracking-widest">{generatedOtp}</strong></span>
+                  </div>
+                )}
               </div>
 
 

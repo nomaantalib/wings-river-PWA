@@ -55,7 +55,7 @@ export class OtpService {
       }
     }
 
-    const authKey = c.env?.MSG91_AUTH_KEY || c.env?.MSG91_TOKEN_AUTH || process.env.MSG91_AUTH_KEY || process.env.MSG91_TOKEN_AUTH || '556476TqAhyUyAB6a6e54adP1';
+    const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
     const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID;
     let smsSent = false;
 
