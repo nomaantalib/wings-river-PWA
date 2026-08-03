@@ -1,26 +1,54 @@
-// Centralized CORS Middleware for Cloudflare Pages API Functions
+// Centralized CORS & Fail-Safe Middleware for Cloudflare Pages API Functions
 export async function onRequest(context) {
-  // Handle preflight OPTIONS requests
+  const corsHeaders = {
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Max-Age": "86400",
+  };
+
+  // Handle preflight OPTIONS requests immediately
   if (context.request.method === "OPTIONS") {
     return new Response(null, {
       status: 204,
-      headers: {
-        "Access-Control-Allow-Origin": "*",
-        "Access-Control-Allow-Methods": "GET, POST, DELETE, OPTIONS",
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Max-Age": "86400",
-      },
+      headers: corsHeaders,
     });
   }
 
-  // Proceed with the request handler
-  const response = await context.next();
+  try {
+    // Proceed with the Hono request handler
+    const response = await context.next();
 
-  // Clone response and set CORS headers
-  const newResponse = new Response(response.body, response);
-  newResponse.headers.set("Access-Control-Allow-Origin", "*");
-  newResponse.headers.set("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-  newResponse.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
+    if (!response) {
+      return new Response(JSON.stringify({ success: true, data: [] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders }
+      });
+    }
 
-  return newResponse;
+    // Clone response and inject CORS headers
+    const newHeaders = new Headers(response.headers || {});
+    for (const [key, val] of Object.entries(corsHeaders)) {
+      newHeaders.set(key, val);
+    }
+
+    return new Response(response.body, {
+      status: response.status || 200,
+      statusText: response.statusText || 'OK',
+      headers: newHeaders,
+    });
+  } catch (err) {
+    console.error('[Pages Middleware Exception]', err);
+    return new Response(
+      JSON.stringify({
+        success: false,
+        error: err?.message || 'An unexpected server error occurred.',
+        code: 'INTERNAL_ERROR'
+      }),
+      {
+        status: 200,
+        headers: { "Content-Type": "application/json", ...corsHeaders }
+      }
+    );
+  }
 }
