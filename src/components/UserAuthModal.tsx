@@ -343,12 +343,12 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
       {/* Ambient Background Glows */}
       <div className="absolute w-96 h-96 bg-[#F5D061]/20 rounded-full blur-3xl pointer-events-none -top-20 -left-20" />
       <div className="absolute w-96 h-96 bg-[#D97706]/10 rounded-full blur-3xl pointer-events-none -bottom-20 -right-20" />
 
-      <div className="relative w-full max-w-md bg-[#FAF7F2] rounded-3xl overflow-hidden border border-[#D97706]/30 shadow-2xl text-[#1F1810]">
+      <div className="relative w-full max-w-md bg-[#FAF7F2] rounded-3xl overflow-hidden border border-[#D97706]/30 shadow-2xl text-[#1F1810] my-auto">
 
         {/* Executive Modal Header */}
         <div className="relative px-6 py-5 bg-gradient-to-r from-[#1F1810] via-[#2D2319] to-[#1F1810] border-b border-[#D97706]/30 flex items-center justify-between text-white">
@@ -424,7 +424,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                   <input
                     type="tel"
                     required
-                    autoFocus
                     maxLength={10}
                     value={phoneInput}
                     onChange={e => handlePhoneInputChange(e.target.value)}
@@ -566,7 +565,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                   <input
                     type="text"
                     required
-                    autoFocus
                     value={nameInput}
                     onChange={e => setNameInput(e.target.value)}
                     placeholder="Rahul Sharma"
