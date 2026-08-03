@@ -58,6 +58,7 @@ export const metadata: Metadata = {
 };
 
 import { AuthProvider } from '@/context/AuthContext';
+import RouteScrollRestorer from '@/components/RouteScrollRestorer';
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -108,13 +109,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="antialiased selection:bg-amber-300 selection:text-amber-950 text-slate-100 relative min-h-screen" style={{ fontFamily: "'Lato', sans-serif", background: '#070a0f' }}>
         <AuthProvider>
+          <RouteScrollRestorer />
           {/* Fixed App-Wide Dual Background Video Backdrop */}
           <BackgroundVideo />
           <SEOStructuredData />
           {children}
         </AuthProvider>
       </body>
-
     </html>
   );
 }
