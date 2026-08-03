@@ -182,96 +182,97 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
         {/* BOOKLET FLIP VIEW */}
         {currentPage && (
-          <div className="max-w-6xl mx-auto">
-            {/* Top Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-[#10141D]/95 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-[#D4AF37]/30 mb-6 text-xs shadow-2xl">
-              <div className="flex items-center space-x-3">
-                <span className="font-serif font-bold text-amber-200 text-base">
+          <div className="max-w-4xl mx-auto">
+            {/* Compact Aesthetic Green Top Toolbar */}
+            <div className="flex items-center justify-between gap-3 bg-gradient-to-r from-emerald-950/90 via-emerald-900/90 to-emerald-950/90 backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-emerald-500/40 mb-4 text-xs shadow-xl">
+              <div className="flex items-center space-x-2 truncate">
+                <span className="font-serif font-bold text-amber-300 text-xs sm:text-sm shrink-0">
                   Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
-                <span className="text-slate-500">|</span>
-                <span className="text-[#F5D061] font-bold text-base truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
+                <span className="text-emerald-500/50">|</span>
+                <span className="text-emerald-100 font-semibold text-xs sm:text-sm truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
               </div>
 
-              <div className="flex items-center space-x-2">
-                {/* Auto flip button */}
+              <div className="flex items-center space-x-2 shrink-0">
+                {/* Auto flip button - ICON ONLY */}
                 <button
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
-                  className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl border text-xs font-bold transition-all ${
+                  className={`p-2 rounded-lg border text-xs font-bold transition-all ${
                     isAutoFlipping
-                      ? 'bg-gradient-to-r from-[#F5D061] to-[#D4AF37] text-[#0B0E14] border-[#F5D061] shadow-md'
-                      : 'bg-[#141A24] text-slate-200 border-white/15 hover:border-[#D4AF37]/50'
+                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md scale-105'
+                      : 'bg-emerald-900/70 text-emerald-200 border-emerald-500/40 hover:bg-emerald-800 hover:text-white'
                   }`}
+                  title={isAutoFlipping ? 'Pause Auto Flip' : 'Start Auto Flip'}
                 >
                   {isAutoFlipping ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  <span>{isAutoFlipping ? 'Pause Auto Flip' : 'Auto Flip'}</span>
                 </button>
 
-                {/* Zoom Fullscreen */}
+                {/* Zoom Fullscreen - ICON ONLY */}
                 <button
                   onClick={() => {
                     setZoomScale(1.2);
                     setActiveZoomImage(currentPage.image || null);
                   }}
-                  className="p-2.5 rounded-xl bg-[#141A24] hover:bg-[#1C2433] text-white border border-white/15 transition-all hover:scale-105"
-                  title="Expand Full Screen"
+                  className="p-2 rounded-lg bg-emerald-900/70 hover:bg-emerald-800 text-emerald-200 border border-emerald-500/40 transition-all hover:scale-105"
+                  title="Expand Full Screen Zoom"
                 >
                   <Maximize2 className="w-4 h-4" />
                 </button>
 
-                {/* Download Full Collage */}
+                {/* Download Full Card - ICON ONLY */}
                 <a
                   href="/images/food_menu_collage.jpg"
                   download="Wings_River_Cafe_Menu_Card.jpg"
-                  className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#0B0E14] font-black text-xs shadow-lg hover:scale-105 transition-all"
+                  className="p-2 rounded-lg bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 font-extrabold shadow-md hover:scale-105 transition-all"
+                  title="Download Menu Card"
                 >
                   <Download className="w-4 h-4" />
-                  <span>Download Card</span>
                 </a>
               </div>
             </div>
 
-            {/* Menu Booklet Page Container with Ultra-HD Dimensions & 3D Flip */}
-            <div className="relative group">
-              {/* 3D Perspective Flip Stage */}
+            {/* Menu Booklet Page Container with 3:4 Layout & Single Page Flip */}
+            <div className="relative group max-w-3xl mx-auto">
+              {/* 3:4 Aspect Ratio Stage Stage */}
               <div
                 onTouchStart={handleTouchStart}
                 onTouchEnd={handleTouchEnd}
                 onMouseDown={handleTouchStart}
                 onMouseUp={handleTouchEnd}
-                className="relative bg-[#080B10] rounded-3xl overflow-hidden border-2 border-[#D4AF37]/50 shadow-[0_30px_70px_rgba(0,0,0,0.9)] aspect-[4/3] sm:aspect-[16/10] min-h-[420px] sm:min-h-[580px] lg:min-h-[640px] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+                className="relative bg-[#070A0F] rounded-3xl overflow-hidden border-2 border-emerald-500/40 shadow-[0_25px_65px_rgba(0,0,0,0.9)] aspect-[3/4] min-h-[460px] sm:min-h-[580px] lg:min-h-[640px] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
                 style={{
                   perspective: '2000px',
                   perspectiveOrigin: '50% 50%',
                 }}
               >
-                {/* Subtle Center Book Spine Crease Overlay */}
+                {/* Subtle Center Spine Shadow Overlay */}
                 <div
                   className="absolute inset-0 z-30 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 3%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0) 97%, rgba(0,0,0,0.15) 100%)',
+                    background: 'linear-gradient(to right, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0) 3%, rgba(0,0,0,0.2) 50%, rgba(0,0,0,0) 97%, rgba(0,0,0,0.12) 100%)',
                   }}
                 />
 
-                {/* Render Large HD HTMLFlipBook when mounted on client */}
+                {/* Render Single-Page HD FlipBook */}
                 {isMounted ? (
-                  <div className="w-full h-full flex items-center justify-center p-1 sm:p-2 z-20">
+                  <div className="w-full h-full flex items-center justify-center p-0 z-20">
                     <FlipBookComponent
-                      width={750}
-                      height={550}
+                      width={480}
+                      height={640}
                       size="stretch"
-                      minWidth={320}
-                      maxWidth={1200}
-                      minHeight={380}
-                      maxHeight={900}
-                      maxShadowOpacity={0.5}
-                      showCover={false}
-                      mobileScrollSupport={true}
+                      minWidth={300}
+                      maxWidth={800}
+                      minHeight={400}
+                      maxHeight={1000}
+                      maxShadowOpacity={0.4}
+                      showCover={true}
+                      singlePage={true}
                       usePortrait={true}
+                      mobileScrollSupport={false}
+                      useMouseEvents={false}
                       startPage={currentPageIndex}
                       drawShadow={true}
-                      flippingTime={600}
-                      useMouseEvents={true}
+                      flippingTime={550}
                       className="menu-booklet-flipbook shadow-2xl rounded-2xl w-full h-full"
                       ref={flipBookRef}
                       onFlip={(e: any) => {
@@ -283,7 +284,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                       {menuPages.map((page, idx) => (
                         <div
                           key={page.pageNumber || idx}
-                          className="bg-[#0A0D14] w-full h-full p-1 sm:p-2 flex items-center justify-center shadow-inner relative overflow-hidden"
+                          className="bg-[#0A0D14] w-full h-full p-0 flex items-center justify-center shadow-inner relative overflow-hidden"
                         >
                           <img
                             src={page.image}
@@ -292,7 +293,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                               imageRendering: 'crisp-edges',
                               WebkitFontSmoothing: 'antialiased',
                             }}
-                            className={`w-full h-full object-contain rounded-xl transition-all ${
+                            className={`w-full h-full object-contain scale-[1.03] rounded-xl transition-transform duration-300 ${
                               isHdMode ? 'contrast-[1.08] brightness-[1.02] saturate-[1.04]' : ''
                             }`}
                           />
@@ -302,14 +303,14 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                   </div>
                 ) : (
                   /* Fallback static page while mounting */
-                  <div className="w-full h-full p-2 flex items-center justify-center z-20">
+                  <div className="w-full h-full p-0 flex items-center justify-center z-20">
                     <img
                       src={currentPage.image}
                       alt={currentPage.title}
                       style={{
                         imageRendering: 'crisp-edges',
                       }}
-                      className="w-full h-full object-contain rounded-xl contrast-[1.08] brightness-[1.02]"
+                      className="w-full h-full object-contain scale-[1.03] rounded-xl contrast-[1.08] brightness-[1.02]"
                     />
                   </div>
                 )}
