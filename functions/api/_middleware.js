@@ -25,13 +25,16 @@ export async function onRequest(context) {
       });
     }
 
-    const newHeaders = new Headers(response.headers || {});
+    // Clone response headers and apply CORS
+    const newHeaders = new Headers(response.headers);
     for (const [key, val] of Object.entries(corsHeaders)) {
       newHeaders.set(key, val);
     }
 
+    const status = response.status && response.status !== 503 ? response.status : 200;
+
     return new Response(response.body, {
-      status: response.status && response.status !== 503 ? response.status : 200,
+      status: status,
       statusText: response.statusText || 'OK',
       headers: newHeaders,
     });

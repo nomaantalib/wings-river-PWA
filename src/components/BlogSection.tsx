@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getStoredBlogs, BlogPost, INITIAL_BLOGS } from '@/lib/db';
 import { Calendar, User, Clock, ArrowRight, X, ChevronLeft, ChevronRight, Image as ImageIcon, Tag, BookOpen, Zap } from 'lucide-react';
 
@@ -35,6 +35,12 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
     return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
+  const categories = ['All', ...Array.from(new Set(blogs.map(b => b.category)))];
+
+  const filteredBlogs = selectedCategory === 'All'
+    ? blogs
+    : blogs.filter(b => b.category === selectedCategory);
+
   // Horizontal Auto-sliding Carousel interval (scrolls 340px every 3.5 seconds)
   useEffect(() => {
     if (isPaused) return;
@@ -50,7 +56,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
       }
     }, 3500);
     return () => clearInterval(interval);
-  }, [isPaused, blogs, selectedCategory]);
+  }, [isPaused, filteredBlogs.length]);
 
   const scrollLeft = () => {
     if (!carouselRef.current) return;
@@ -63,12 +69,6 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
     carouselRef.current.scrollBy({ left: 340, behavior: 'smooth' });
     setCurrentScrollIdx(prev => Math.min(prev + 1, filteredBlogs.length - 1));
   };
-
-  const categories = ['All', ...Array.from(new Set(blogs.map(b => b.category)))];
-
-  const filteredBlogs = selectedCategory === 'All'
-    ? blogs
-    : blogs.filter(b => b.category === selectedCategory);
 
   const safeImages = (rawImgs: any, coverImage: string): string[] => {
     let arr: string[] = [];
@@ -112,11 +112,11 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
     }, 150);
   };
 
-  const nextImage = () => {
+  const nextImage = useCallback(() => {
     if (activeBlogImages.length > 0) {
       changeSlide((activeImageIndex + 1) % activeBlogImages.length);
     }
-  };
+  }, [activeBlogImages, activeImageIndex]);
 
   const prevImage = () => {
     if (activeBlogImages.length > 0) {
@@ -131,7 +131,7 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
       nextImage();
     }, 5000);
     return () => clearInterval(timer);
-  }, [activeBlog, activeImageIndex, activeBlogImages]);
+  }, [activeBlog, activeBlogImages.length, nextImage]);
 
   return (
     <section id="blog" className="my-12 sm:my-20 py-16 sm:py-24 bg-[#0B0E14] border-y border-[#F5D061]/25 relative overflow-hidden text-[#F5EBE0] shadow-2xl">

@@ -89,36 +89,6 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
   }, [isOpen]);
 
 
-  // ── Reset on open ────────────────────────────────────────────────────────
-  useEffect(() => {
-    if (!isOpen) { stopCamera(); return; }
-    if (initTable) { setTableNumber(initTable); setPhase('order'); }
-    else { setPhase('scan'); }
-  }, [isOpen, initTable]);
-
-  // ── Camera QR Scanning ───────────────────────────────────────────────────
-  const startCamera = useCallback(async () => {
-    setCameraError('');
-    setScanning(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
-      });
-      streamRef.current = stream;
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-        await videoRef.current.play();
-      }
-      setCameraActive(true);
-      scanFrame();
-    } catch (err: any) {
-      setCameraError(err?.name === 'NotAllowedError'
-        ? 'Camera access denied. Please allow camera permission and try again.'
-        : 'Camera not available. Enter table number manually below.');
-      setScanning(false);
-    }
-  }, []);
-
   const stopCamera = useCallback(() => {
     if (rafRef.current) { cancelAnimationFrame(rafRef.current); rafRef.current = null; }
     if (streamRef.current) { streamRef.current.getTracks().forEach(t => t.stop()); streamRef.current = null; }
@@ -159,6 +129,35 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
 
     rafRef.current = requestAnimationFrame(scanFrame);
   }, [stopCamera]);
+
+  const startCamera = useCallback(async () => {
+    setCameraError('');
+    setScanning(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }
+      });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+        await videoRef.current.play();
+      }
+      setCameraActive(true);
+      scanFrame();
+    } catch (err: any) {
+      setCameraError(err?.name === 'NotAllowedError'
+        ? 'Camera access denied. Please allow camera permission and try again.'
+        : 'Camera not available. Enter table number manually below.');
+      setScanning(false);
+    }
+  }, [scanFrame]);
+
+  // ── Reset on open ────────────────────────────────────────────────────────
+  useEffect(() => {
+    if (!isOpen) { stopCamera(); return; }
+    if (initTable) { setTableNumber(initTable); setPhase('order'); }
+    else { setPhase('scan'); }
+  }, [isOpen, initTable, stopCamera]);
 
   // ── Cart helpers ─────────────────────────────────────────────────────────
   const addToCart = (item: { id: string; name: string; price: number }) =>

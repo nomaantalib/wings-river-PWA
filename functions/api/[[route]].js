@@ -1,16 +1,13 @@
-import { handle } from 'hono/cloudflare-pages';
 import app from '../../src/backend/app';
 
 export const onRequest = async (context) => {
   try {
-    const handler = handle(app);
-    const response = await handler(context);
+    const response = await app.fetch(context.request, context.env, context);
     if (response) return response;
   } catch (err) {
     console.error('[Pages API Handler Error]', err);
   }
 
-  // Graceful fail-safe JSON response instead of 503 HTML error
   return new Response(
     JSON.stringify({
       success: true,

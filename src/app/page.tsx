@@ -100,7 +100,7 @@ export default function Home() {
       window.removeEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
       window.removeEventListener('wings_open_qr_order', handleOpenQREvent);
     };
-  }, []);
+  }, [router]);
 
 
   const requireAuthAndExecute = (action: () => void) => {

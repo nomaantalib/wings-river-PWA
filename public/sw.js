@@ -29,24 +29,39 @@ self.addEventListener('activate', (event) => {
   );
 });
 
-// ── FETCH: Network-first for static assets, ALWAYS bypass API ─────────────────
+// ── FETCH: Network-first for static assets, ALWAYS bypass API & Videos ─────────
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
-  // ALWAYS bypass service worker cache for backend API requests
-  if (event.request.url.includes('/api/')) return;
+  const url = event.request.url;
+
+  // ALWAYS bypass service worker cache for API, range requests, and media files
+  if (
+    url.includes('/api/') ||
+    event.request.headers.has('range') ||
+    /\.(mp4|webm|ogg|mp3|wav)$/i.test(url)
+  ) {
+    return;
+  }
 
   event.respondWith(
     fetch(event.request)
       .then((res) => {
-        if (res && res.status === 200 && res.type === 'basic') {
+        if (res && res.status === 200 && (res.type === 'basic' || res.type === 'cors')) {
           const clone = res.clone();
-          caches.open(CACHE_NAME).then((c) => c.put(event.request, clone));
+          caches.open(CACHE_NAME).then((c) => c.put(event.request, clone)).catch(() => {});
         }
         return res;
       })
-      .catch(() => caches.match(event.request).then((cached) =>
-        cached || (event.request.headers.get('accept')?.includes('text/html') ? caches.match('/') : null)
-      ))
+      .catch(() =>
+        caches.match(event.request).then(async (cached) => {
+          if (cached) return cached;
+          if (event.request.headers.get('accept')?.includes('text/html')) {
+            const fallback = await caches.match('/');
+            if (fallback) return fallback;
+          }
+          return new Response('', { status: 408, statusText: 'Offline / Timed Out' });
+        })
+      )
   );
 });
 
