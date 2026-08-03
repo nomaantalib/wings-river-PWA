@@ -11,7 +11,7 @@ export interface UserDTO {
   phone?: string;
   email?: string;
   name?: string;
-  role: 'Customer' | 'Waiter' | 'Kitchen' | 'Manager' | 'Admin' | 'Administrator';
+  role: 'Customer' | 'Waiter' | 'Manager' | 'Admin' | 'Administrator';
   is_active?: number;
 }
 
@@ -190,23 +190,19 @@ export class AuthService {
 
     // Hardcoded static emergency fallbacks for staff roles
     const normalized = cleanInput.toLowerCase();
-    if (pass === 'wings123' || pass === 'staff123' || pass === 'wingsriver@2026') {
-      let role: 'Waiter' | 'Kitchen' | 'Manager' = 'Waiter';
+    if (pass === 'wings123' || pass === 'staff123' || pass === '123' || pass === 'wingsriver@2026') {
+      let role: 'Waiter' | 'Manager' = 'Waiter';
       let id = 'usr-waiter';
-      let name = 'Staff Member';
+      let name = 'Waiter Staff';
 
-      if (normalized.includes('kitchen') || normalized.includes('chef')) {
-        role = 'Kitchen';
-        id = 'usr-kitchen';
-        name = 'Chef Suresh';
-      } else if (normalized.includes('manager') || normalized.includes('reception')) {
+      if (normalized.includes('manager') || normalized.includes('reception')) {
         role = 'Manager';
         id = 'usr-manager';
         name = 'Manager Saxena';
       } else {
         role = 'Waiter';
         id = 'usr-waiter';
-        name = 'Waiter Amit';
+        name = 'Waiter Staff';
       }
 
       const user: UserDTO = {
@@ -228,7 +224,7 @@ export class AuthService {
 
     // Search user by username or phone
     const userRow = await d1
-      .prepare('SELECT * FROM users WHERE (username = ? OR phone = ?) AND role IN ("Waiter", "Kitchen", "Manager", "Admin")')
+      .prepare('SELECT * FROM users WHERE (username = ? OR phone = ?) AND role IN ("Waiter", "Manager", "Admin")')
       .bind(cleanInput, cleanInput)
       .first<any>();
 

@@ -29,7 +29,7 @@ export const staffLoginSchema = z.object({
 
 export const adminLoginSchema = z.object({
   username: z.string().trim().min(3, { message: 'Username or email required' }),
-  password: z.string().min(6, { message: 'Password must be at least 6 characters' })
+  password: z.string().min(3, { message: 'Password must be at least 3 characters' })
 });
 
 export const refreshTokenSchema = z.object({

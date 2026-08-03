@@ -194,6 +194,18 @@ export async function notifyTableReady(tableNumber: string) {
   });
 }
 
+export async function notifyOrderPlaced(opts: {
+  table: string;
+  total: number;
+}) {
+  await showLocalNotification({
+    title: 'Order Placed',
+    body: `Your order for Table ${opts.table} (₹${opts.total}) has been sent to the kitchen and is being prepared.`,
+    type: 'general',
+    url: `/table/${opts.table}`,
+  });
+}
+
 export async function notifyBookingCancelled(opts: {
   name: string;
   bookingId: string;

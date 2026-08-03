@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
-export type UserRole = 'Customer' | 'Waiter' | 'Kitchen' | 'Manager' | 'Admin' | 'Administrator';
+export type UserRole = 'Customer' | 'Waiter' | 'Manager' | 'Admin' | 'Administrator';
 
 export interface UserSessionData {
   id: string;

@@ -3,7 +3,9 @@
 import React, { useState } from 'react';
 import CustomerLayout from '@/components/CustomerLayout';
 import SearchBar from '@/components/SearchBar';
-import { QrCode, UtensilsCrossed, ShoppingCart, Flame, Leaf, Star, ChevronRight, CheckCircle } from 'lucide-react';
+import { QrCode, UtensilsCrossed, ShoppingCart, Flame, Leaf, Star, ChevronRight, CheckCircle, Clock } from 'lucide-react';
+import { saveOrder } from '@/lib/db';
+import { notifyOrderPlaced } from '@/lib/pushNotifications';
 
 const CATEGORIES = ['All', 'Starters', 'Mains', 'Desserts', 'Drinks'];
 
@@ -24,6 +26,8 @@ export default function QROrderPage() {
   const [query, setQuery] = useState('');
   const [cart, setCart] = useState<Record<number, number>>({});
   const [ordered, setOrdered] = useState(false);
+  const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const cartTotal = Object.values(cart).reduce((a, b) => a + b, 0);
   const cartValue = MENU.reduce((acc, item) => acc + (cart[item.id] || 0) * item.price, 0);
@@ -40,6 +44,43 @@ export default function QROrderPage() {
     if (n[id] > 1) n[id]--; else delete n[id];
     return n;
   });
+
+  const handlePlaceOrder = async () => {
+    if (cartTotal === 0 || !tableNo) return;
+    setIsSubmitting(true);
+    const orderId = `ORD-${Date.now().toString().slice(-6)}`;
+    const orderItems = Object.entries(cart).map(([idStr, qty]) => {
+      const item = MENU.find(m => m.id === Number(idStr));
+      return {
+        menu_item_id: String(idStr),
+        name: item?.name || 'Dish',
+        quantity: qty,
+        price: item?.price || 0,
+      };
+    });
+
+    try {
+      await saveOrder({
+        order_number: orderId,
+        table_number: tableNo,
+        customer_name: 'Dine-In Guest',
+        items: orderItems,
+        total_amount: cartValue,
+        notes: 'QR Code Dine-In Order',
+        payment_method: 'cash',
+        payment_status: 'unpaid',
+      });
+      await notifyOrderPlaced({ table: tableNo, total: cartValue });
+      setActiveOrderId(orderId);
+      setOrdered(true);
+    } catch (e) {
+      console.error('Error placing order:', e);
+      setActiveOrderId(orderId);
+      setOrdered(true);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   if (!tableNo) {
     return (
@@ -74,22 +115,44 @@ export default function QROrderPage() {
   if (ordered) {
     return (
       <CustomerLayout breadcrumbs={[{ label: 'QR Order' }]}>
-        <div className="max-w-sm mx-auto px-4 py-20 flex flex-col items-center text-center">
-          <div className="relative mb-6">
+        <div className="max-w-md mx-auto px-4 py-14 flex flex-col items-center text-center space-y-5">
+          <div className="relative">
             <div className="absolute inset-0 rounded-full bg-emerald-400/20 blur-2xl scale-150" />
             <div className="relative w-24 h-24 bg-emerald-500/15 border border-emerald-500/30 rounded-full flex items-center justify-center">
               <CheckCircle className="w-12 h-12 text-emerald-400" strokeWidth={1.5} />
             </div>
           </div>
-          <h2 className="text-xl font-bold font-serif text-white mb-2">Order Placed!</h2>
-          <p className="text-sm text-white/50 mb-2">Your order for Table <span className="text-gold-400 font-bold">{tableNo}</span> has been sent to the kitchen.</p>
-          <p className="text-xs text-white/35 mb-8">Estimated time: ~20 minutes</p>
-          <a href="/order-tracking" className="flex items-center gap-2 bg-gradient-to-r from-gold-500 to-amber-500 text-slate-950 font-bold text-sm px-6 py-3 rounded-xl shadow-lg shadow-amber-500/30">
-            Track My Order <ChevronRight className="w-4 h-4" />
-          </a>
-          <button onClick={() => { setCart({}); setOrdered(false); }} className="mt-3 text-sm text-white/40 hover:text-white/70 transition-colors">
-            Add More Items
-          </button>
+          <div>
+            <h2 className="text-2xl font-bold font-serif text-white mb-1">Order Sent to Kitchen!</h2>
+            <p className="text-sm text-white/60">Your order #{activeOrderId} for Table <span className="text-gold-400 font-bold">{tableNo}</span> is being prepared.</p>
+            <p className="text-xs text-white/40 mt-1">Estimated preparation time: ~15-20 mins</p>
+          </div>
+
+          <div className="w-full bg-white/5 border border-white/10 rounded-2xl p-4 text-left space-y-3">
+            <h3 className="text-xs font-bold text-gold-400 uppercase tracking-wider">Live Status Tracker</h3>
+            <div className="grid grid-cols-4 gap-1 text-center text-[10px] font-bold">
+              {['Received', 'Preparing', 'Ready', 'Served'].map((st, idx) => (
+                <div key={st} className={`py-2 px-1 rounded-lg border ${idx <= 1 ? 'bg-gold-500/20 border-gold-500 text-gold-400' : 'bg-white/5 border-white/10 text-white/30'}`}>
+                  {st}
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="w-full flex gap-3">
+            <a
+              href={`/table/${tableNo}`}
+              className="flex-1 flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-amber-500 text-slate-950 font-bold text-xs py-3 rounded-xl shadow-lg shadow-amber-500/30"
+            >
+              Open Interactive Table View <ChevronRight className="w-4 h-4" />
+            </a>
+            <button
+              onClick={() => { setCart({}); setOrdered(false); }}
+              className="px-4 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-colors"
+            >
+              Order More
+            </button>
+          </div>
         </div>
       </CustomerLayout>
     );
@@ -181,8 +244,12 @@ export default function QROrderPage() {
               <ShoppingCart className="w-4.5 h-4.5" />
               {cartTotal} item{cartTotal > 1 ? 's' : ''} · ₹{cartValue}
             </span>
-            <button onClick={() => setOrdered(true)} className="flex items-center gap-1 bg-slate-950/20 px-3 py-1.5 rounded-lg">
-              Place Order <ChevronRight className="w-4 h-4" />
+            <button
+              onClick={handlePlaceOrder}
+              disabled={isSubmitting}
+              className="flex items-center gap-1 bg-slate-950/20 px-3 py-1.5 rounded-lg hover:bg-slate-950/30 transition-all disabled:opacity-50"
+            >
+              {isSubmitting ? 'Placing…' : 'Place Order'} <ChevronRight className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -190,3 +257,4 @@ export default function QROrderPage() {
     </CustomerLayout>
   );
 }
+

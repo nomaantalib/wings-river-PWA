@@ -21,12 +21,12 @@ import { useAuth } from '@/context/AuthContext';
 
 export default function StaffPWA() {
   const { user: authUser, loginStaff, logout } = useAuth();
-  const [currentUser, setCurrentUser] = useState<{ username: string; role: 'Kitchen' | 'Waiter' | 'Manager' | 'Admin' } | null>(null);
+  const [currentUser, setCurrentUser] = useState<{ username: string; role: 'Waiter' | 'Manager' | 'Admin' } | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
   // Active Role View
-  const [activeRole, setActiveRole] = useState<'Kitchen' | 'Waiter' | 'Manager'>('Kitchen');
+  const [activeRole, setActiveRole] = useState<'Waiter' | 'Manager'>('Waiter');
 
   // Staff Data States
   const [tables, setTables] = useState<TableStatus[]>([]);
@@ -40,13 +40,13 @@ export default function StaffPWA() {
 
   // Sync auth context user to staff component state
   useEffect(() => {
-    if (authUser && authUser.role && ['Waiter', 'Kitchen', 'Manager', 'Admin', 'Administrator'].includes(authUser.role)) {
+    if (authUser && authUser.role && ['Waiter', 'Manager', 'Admin', 'Administrator'].includes(authUser.role)) {
       const mappedRole = authUser.role === 'Administrator' ? 'Admin' : (authUser.role as any);
       setCurrentUser({
         username: authUser.name || authUser.username || 'Staff User',
         role: mappedRole
       });
-      if (mappedRole === 'Kitchen' || mappedRole === 'Waiter' || mappedRole === 'Manager') {
+      if (mappedRole === 'Waiter' || mappedRole === 'Manager') {
         setActiveRole(mappedRole);
       }
     }
@@ -188,9 +188,8 @@ export default function StaffPWA() {
           <div className="mt-6 pt-4 border-t border-slate-100 text-center">
             <span className="text-[11px] text-slate-400 block">Demo Quick Logins:</span>
             <div className="flex justify-center space-x-2 mt-2 text-xs">
-              <button onClick={() => setLoginForm({ username: 'kitchen', password: '123' })} className="px-2.5 py-1 bg-slate-100 rounded-md font-semibold text-slate-700 hover:bg-amber-100">Chef Kitchen</button>
-              <button onClick={() => setLoginForm({ username: 'waiter', password: '123' })} className="px-2.5 py-1 bg-slate-100 rounded-md font-semibold text-slate-700 hover:bg-amber-100">Waiter</button>
-              <button onClick={() => setLoginForm({ username: 'manager', password: '123' })} className="px-2.5 py-1 bg-slate-100 rounded-md font-semibold text-slate-700 hover:bg-amber-100">Manager</button>
+              <button onClick={() => setLoginForm({ username: 'waiter', password: '123' })} className="px-2.5 py-1 bg-slate-100 rounded-md font-semibold text-slate-700 hover:bg-amber-100">Waiter (JWT)</button>
+              <button onClick={() => setLoginForm({ username: 'manager', password: '123' })} className="px-2.5 py-1 bg-slate-100 rounded-md font-semibold text-slate-700 hover:bg-amber-100">Manager (JWT)</button>
             </div>
           </div>
         </div>
@@ -219,15 +218,6 @@ export default function StaffPWA() {
 
         {/* Role Switcher Tabs */}
         <div className="flex flex-wrap items-center gap-2 bg-slate-800 p-1.5 rounded-xl">
-          <button
-            onClick={() => setActiveRole('Kitchen')}
-            className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
-              activeRole === 'Kitchen' ? 'bg-amber-500 text-slate-950' : 'text-slate-300 hover:text-white'
-            }`}
-          >
-            <ChefHat className="w-3.5 h-3.5" />
-            <span>Kitchen Queue ({orders.filter(o => o.status !== 'completed').length})</span>
-          </button>
           <button
             onClick={() => setActiveRole('Waiter')}
             className={`px-3 py-1.5 rounded-lg text-xs font-bold transition flex items-center space-x-1 ${
@@ -277,207 +267,7 @@ export default function StaffPWA() {
       {/* Main Staff Container */}
       <main className="p-6 max-w-7xl mx-auto space-y-6">
         {/* ========================================================================= */}
-        {/* ROLE 1: KITCHEN CHEF KDS DISPLAY */}
-        {/* ========================================================================= */}
-        {activeRole === 'Kitchen' && (
-          <div className="space-y-6">
-            <div className="flex items-center justify-between bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
-              <div>
-                <h2 className="text-xl font-bold text-slate-900 flex items-center space-x-2">
-                  <ChefHat className="w-6 h-6 text-amber-500" />
-                  <span>Kitchen Display System (KDS Terminal)</span>
-                </h2>
-                <p className="text-xs text-slate-500">1-tap order status progression for chef workflow</p>
-              </div>
-              <div className="text-xs font-mono font-bold bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1.5 rounded-xl flex items-center space-x-2">
-                <RefreshCw className="w-3.5 h-3.5 animate-spin text-amber-700" />
-                <span>Live Kitchen Sync • {orders.length} Total Orders</span>
-              </div>
-            </div>
-
-            {/* 3-Column Order Kanban */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              {/* COLUMN 1: NEW ORDERS */}
-              <div className="bg-slate-200/70 p-4 rounded-2xl border border-slate-300">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-sm text-red-700 flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-red-500 mr-2 animate-ping" /> New Orders
-                  </h3>
-                  <span className="text-xs font-bold bg-red-100 text-red-800 px-2.5 py-0.5 rounded-full">
-                    {orders.filter(o => o.status === 'new').length}
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {orders.filter(o => o.status === 'new').map(order => (
-                    <div key={order.id} className="bg-white rounded-xl p-4 shadow-md border-2 border-red-400 space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-xs font-bold font-mono text-red-600 bg-red-50 px-2 py-0.5 rounded">
-                            {order.order_number}
-                          </span>
-                          <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
-                          <p className="text-xs font-semibold text-slate-700 mt-0.5">
-                            Customer: {order.customer_name || 'Guest'} {order.customer_phone ? `(${order.customer_phone})` : ''}
-                          </p>
-                        </div>
-                        <span className="text-xs text-slate-500 font-mono flex items-center space-x-1">
-                          <Clock className="w-3 h-3 text-slate-400" />
-                          <span>{order.created_at ? new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Now'}</span>
-                        </span>
-                      </div>
-
-                      <div className="border-t border-slate-100 pt-2 space-y-1">
-                        {(order.items || []).map((item: any, idx: number) => (
-                          <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
-                            <span>{item.quantity}x {item.name}</span>
-                            <span className="text-xs text-slate-500 font-mono">₹{item.price}</span>
-                          </div>
-                        ))}
-                        {order.total_amount && (
-                          <div className="pt-1.5 border-t border-slate-100 flex justify-between text-xs font-extrabold text-slate-900">
-                            <span>Total Bill:</span>
-                            <span className="text-amber-700">₹{order.total_amount} ({order.payment_status || 'Paid'})</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() => handleUpdateOrderStatus(order.id, 'preparing')}
-                        className="w-full py-3 bg-red-600 hover:bg-red-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition flex items-center justify-center space-x-2"
-                      >
-                        <span>Start Preparing ➔</span>
-                      </button>
-                    </div>
-                  ))}
-                  {orders.filter(o => o.status === 'new').length === 0 && (
-                    <div className="p-6 text-center text-xs text-slate-500 bg-white/60 rounded-xl border border-dashed border-slate-300">
-                      No new incoming orders right now.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* COLUMN 2: PREPARING */}
-              <div className="bg-slate-200/70 p-4 rounded-2xl border border-slate-300">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-sm text-amber-700 flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-amber-500 mr-2" /> Cooking in Progress
-                  </h3>
-                  <span className="text-xs font-bold bg-amber-100 text-amber-800 px-2.5 py-0.5 rounded-full">
-                    {orders.filter(o => o.status === 'preparing').length}
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {orders.filter(o => o.status === 'preparing').map(order => (
-                    <div key={order.id} className="bg-white rounded-xl p-4 shadow-md border-2 border-amber-400 space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-xs font-bold font-mono text-amber-700 bg-amber-50 px-2 py-0.5 rounded">
-                            {order.order_number}
-                          </span>
-                          <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
-                          <p className="text-xs font-semibold text-slate-700 mt-0.5">
-                            Customer: {order.customer_name || 'Guest'} {order.customer_phone ? `(${order.customer_phone})` : ''}
-                          </p>
-                        </div>
-                        <span className="text-xs text-slate-500 font-mono flex items-center space-x-1">
-                          <Clock className="w-3 h-3 text-amber-500 animate-spin" />
-                          <span>Cooking</span>
-                        </span>
-                      </div>
-
-                      <div className="border-t border-slate-100 pt-2 space-y-1">
-                        {(order.items || []).map((item: any, idx: number) => (
-                          <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
-                            <span>{item.quantity}x {item.name}</span>
-                            <span className="text-xs text-slate-500 font-mono">₹{item.price}</span>
-                          </div>
-                        ))}
-                        {order.total_amount && (
-                          <div className="pt-1.5 border-t border-slate-100 flex justify-between text-xs font-extrabold text-slate-900">
-                            <span>Total Bill:</span>
-                            <span className="text-amber-700">₹{order.total_amount} ({order.payment_status || 'Paid'})</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <button
-                        onClick={() => handleUpdateOrderStatus(order.id, 'ready')}
-                        className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-slate-950 font-black text-sm uppercase rounded-xl shadow-md transition flex items-center justify-center space-x-2"
-                      >
-                        <span>Mark Ready to Serve ➔</span>
-                      </button>
-                    </div>
-                  ))}
-                  {orders.filter(o => o.status === 'preparing').length === 0 && (
-                    <div className="p-6 text-center text-xs text-slate-500 bg-white/60 rounded-xl border border-dashed border-slate-300">
-                      No items currently cooking.
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* COLUMN 3: READY / COMPLETED */}
-              <div className="bg-slate-200/70 p-4 rounded-2xl border border-slate-300">
-                <div className="flex items-center justify-between mb-4">
-                  <h3 className="font-bold text-sm text-emerald-700 flex items-center">
-                    <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 mr-2" /> Ready for Waiter Pickup
-                  </h3>
-                  <span className="text-xs font-bold bg-emerald-100 text-emerald-800 px-2.5 py-0.5 rounded-full">
-                    {orders.filter(o => o.status === 'ready').length}
-                  </span>
-                </div>
-
-                <div className="space-y-4">
-                  {orders.filter(o => o.status === 'ready').map(order => (
-                    <div key={order.id} className="bg-white rounded-xl p-4 shadow-md border-2 border-emerald-400 space-y-3">
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <span className="text-xs font-bold font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded">
-                            {order.order_number}
-                          </span>
-                          <h4 className="text-lg font-extrabold text-slate-900 mt-1">Table {order.table_number}</h4>
-                          <p className="text-xs font-semibold text-slate-700 mt-0.5">
-                            Customer: {order.customer_name || 'Guest'} {order.customer_phone ? `(${order.customer_phone})` : ''}
-                          </p>
-                        </div>
-                        <span className="text-xs text-emerald-600 font-bold flex items-center">
-                          <CheckCircle className="w-3.5 h-3.5 mr-1" /> Ready
-                        </span>
-                      </div>
-
-                      <div className="border-t border-slate-100 pt-2 space-y-1">
-                        {(order.items || []).map((item: any, idx: number) => (
-                          <div key={idx} className="flex justify-between text-sm font-bold text-slate-800">
-                            <span>{item.quantity}x {item.name}</span>
-                          </div>
-                        ))}
-                      </div>
-
-                      <button
-                        onClick={() => handleUpdateOrderStatus(order.id, 'completed')}
-                        className="w-full py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-black text-sm uppercase rounded-xl shadow-md transition flex items-center justify-center space-x-2"
-                      >
-                        <span>Complete Order ✓</span>
-                      </button>
-                    </div>
-                  ))}
-
-                  {orders.filter(o => o.status === 'ready').length === 0 && (
-                    <div className="p-6 text-center text-xs text-slate-500 bg-white/60 rounded-xl border border-dashed border-slate-300">
-                      No orders awaiting waiter pickup.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* ROLE 2: WAITER PWA */}
+        {/* ROLE 1: WAITER PWA */}
         {/* ========================================================================= */}
         {activeRole === 'Waiter' && (
           <div className="space-y-6">

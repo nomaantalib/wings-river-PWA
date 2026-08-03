@@ -116,11 +116,6 @@ waiterApi.use('*', authMiddleware, rbacMiddleware(['Waiter', 'Manager', 'Admin']
 waiterApi.get('/orders', async (c: AppContext) => successResponse(c, await TableService.getTables(getDB(c))));
 api.route('/staff/waiter', waiterApi);
 
-// 3. Kitchen Staff Protected Routes
-const kitchenApi = new Hono<{ Bindings: Env; Variables: AppVariables }>();
-kitchenApi.use('*', authMiddleware, rbacMiddleware(['Kitchen', 'Manager', 'Admin']));
-kitchenApi.get('/kds-orders', async (c: AppContext) => successResponse(c, []));
-api.route('/staff/kitchen', kitchenApi);
 
 // 4. Manager Staff Protected Routes
 const managerApi = new Hono<{ Bindings: Env; Variables: AppVariables }>();

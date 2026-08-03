@@ -177,14 +177,14 @@ export default function MenuPage() {
       {cartTotal > 0 && (
         <div className="fixed bottom-[68px] lg:bottom-6 inset-x-0 flex justify-center px-4 z-40 pointer-events-none">
           <a
-            href="/cart"
+            href="/qr-order"
             className="pointer-events-auto flex items-center justify-between gap-4 w-full max-w-md bg-gradient-to-r from-gold-500 to-amber-500 text-slate-950 font-bold text-sm px-5 py-3.5 rounded-2xl shadow-2xl shadow-amber-500/40 hover:shadow-amber-500/60 transition-all"
           >
             <span className="flex items-center gap-2">
               <ShoppingCart className="w-4.5 h-4.5" />
               {cartTotal} item{cartTotal > 1 ? 's' : ''} in cart
             </span>
-            <span className="flex items-center gap-1">View Cart <ChevronRight className="w-4 h-4" /></span>
+            <span className="flex items-center gap-1">Checkout & Order <ChevronRight className="w-4 h-4" /></span>
           </a>
         </div>
       )}

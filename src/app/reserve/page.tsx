@@ -4,8 +4,12 @@ import React, { useState } from 'react';
 import CustomerLayout from '@/components/CustomerLayout';
 import {
   Calendar, Clock, Users, ChevronLeft, ChevronRight,
-  Tent, Waves, CheckCircle, ArrowRight, Info,
+  Tent, Waves, CheckCircle, ArrowRight, Info, QrCode
 } from 'lucide-react';
+import { saveReservation, Reservation } from '@/lib/db';
+import { notifyBookingConfirmed } from '@/lib/pushNotifications';
+import { calculateBookingPrice } from '@/lib/pricing';
+import { openRazorpayCheckout } from '@/lib/razorpay';
 
 const TIME_SLOTS = [
   '12:00 PM', '12:30 PM', '01:00 PM', '01:30 PM',
@@ -39,6 +43,15 @@ export default function ReservePage() {
   const [seating, setSeating] = useState('indoor');
   const [step, setStep] = useState<1 | 2 | 3>(1);
 
+  // Customer details & Confirmation State
+  const [guestName, setGuestName] = useState('');
+  const [guestPhone, setGuestPhone] = useState('');
+  const [guestEmail, setGuestEmail] = useState('');
+  const [specialNotes, setSpecialNotes] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [confirmedBooking, setConfirmedBooking] = useState<Reservation | null>(null);
+  const [errorMsg, setErrorMsg] = useState('');
+
   const daysInMonth = getDaysInMonth(calYear, calMonth);
   const firstDay = getFirstDayOfMonth(calYear, calMonth);
   const todayDate = today.getDate();
@@ -65,9 +78,139 @@ export default function ReservePage() {
   const canContinue1 = selectedDate !== null;
   const canContinue2 = selectedTime !== null;
 
+  const dateStr = selectedDate
+    ? `${calYear}-${String(calMonth + 1).padStart(2, '0')}-${String(selectedDate).padStart(2, '0')}`
+    : '';
+
   const dateLabel = selectedDate
     ? `${selectedDate} ${MONTHS[calMonth]} ${calYear}`
     : 'Select a date';
+
+  const handleConfirmReservation = async () => {
+    if (!guestName || !guestPhone) {
+      setErrorMsg('Please enter your Name and Phone Number.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMsg('');
+    const bookingId = 'WRC-' + Math.floor(1000 + Math.random() * 9000);
+    const seatingLabel = SEATING_TYPES.find(s => s.id === seating)?.label || 'Indoor Hall';
+
+    const newBooking: Reservation = {
+      id: bookingId,
+      name: guestName,
+      phone: guestPhone,
+      email: guestEmail || '',
+      booking_type: 'table_booking',
+      date: dateStr || new Date().toISOString().split('T')[0],
+      time: selectedTime || '07:00 PM',
+      guests: guests,
+      special_requests: `Seating: ${seatingLabel}${specialNotes ? ` | ${specialNotes}` : ''}`,
+      status: 'confirmed',
+      created_at: new Date().toISOString(),
+    };
+
+    try {
+      const pricing = calculateBookingPrice(newBooking.date, guests);
+      await openRazorpayCheckout({
+        amount: pricing.totalPrice,
+        name: 'Wings River Café Reservation',
+        description: `Table Reservation • ${guests} Guests (${seatingLabel})`,
+        customerName: guestName,
+        customerPhone: guestPhone,
+        customerEmail: guestEmail,
+        onSuccess: async () => {
+          await saveReservation(newBooking);
+          await notifyBookingConfirmed({
+            name: guestName,
+            table: seatingLabel,
+            date: dateLabel,
+            time: selectedTime || '',
+            bookingId: bookingId,
+          });
+          setConfirmedBooking(newBooking);
+        },
+        onFailure: async () => {
+          newBooking.status = 'pending';
+          await saveReservation(newBooking);
+          setConfirmedBooking(newBooking);
+        },
+      });
+    } catch {
+      await saveReservation(newBooking);
+      setConfirmedBooking(newBooking);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (confirmedBooking) {
+    return (
+      <CustomerLayout breadcrumbs={[{ label: 'Reserve Table' }]}>
+        <div className="max-w-lg mx-auto px-4 py-12 text-center space-y-6">
+          <div className="w-20 h-20 rounded-full bg-emerald-500/20 border-2 border-emerald-500 text-emerald-400 flex items-center justify-center mx-auto text-3xl shadow-xl">
+            ✓
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-bold font-serif text-white">Reservation Confirmed!</h1>
+            <p className="text-sm text-white/60">We look forward to hosting you at Wings River Café.</p>
+          </div>
+
+          <div className="bg-white/5 border border-white/10 rounded-2xl p-6 text-left space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-white/10 pb-3">
+              <span className="text-xs text-white/40">Booking Ref</span>
+              <span className="text-sm font-mono font-bold text-gold-400">#{confirmedBooking.id}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <p className="text-white/40 mb-0.5">Guest Name</p>
+                <p className="font-bold text-white">{confirmedBooking.name}</p>
+              </div>
+              <div>
+                <p className="text-white/40 mb-0.5">Phone</p>
+                <p className="font-bold text-white">{confirmedBooking.phone}</p>
+              </div>
+              <div>
+                <p className="text-white/40 mb-0.5">Date & Time</p>
+                <p className="font-bold text-gold-400">{confirmedBooking.date} at {confirmedBooking.time}</p>
+              </div>
+              <div>
+                <p className="text-white/40 mb-0.5">Guests & Seating</p>
+                <p className="font-bold text-white">{confirmedBooking.guests} Guests ({SEATING_TYPES.find(s => s.id === seating)?.label})</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-4 mt-3">
+              <div className="w-14 h-14 bg-white rounded-lg flex items-center justify-center shrink-0">
+                <QrCode className="w-9 h-9 text-slate-950" />
+              </div>
+              <div>
+                <p className="text-[10px] text-white/40 uppercase tracking-wider font-bold">Entry Pass QR</p>
+                <p className="text-base font-bold text-gold-400 font-mono">{confirmedBooking.id}</p>
+                <p className="text-[10px] text-white/40">Show this QR ticket upon arrival at the venue</p>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-3">
+            <a
+              href="/my-reservations"
+              className="flex-1 py-3 bg-gold-500 hover:bg-gold-400 text-slate-950 font-bold text-xs rounded-xl shadow-lg transition-all"
+            >
+              View My Bookings
+            </a>
+            <button
+              onClick={() => { setConfirmedBooking(null); setStep(1); }}
+              className="flex-1 py-3 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl transition-all"
+            >
+              Book Another Table
+            </button>
+          </div>
+        </div>
+      </CustomerLayout>
+    );
+  }
 
   return (
     <CustomerLayout breadcrumbs={[{ label: 'Reserve Table' }]}>
@@ -267,9 +410,61 @@ export default function ReservePage() {
         {/* ── STEP 3: Confirm ── */}
         {step === 3 && (
           <div className="space-y-5">
+            {errorMsg && (
+              <div className="p-3 bg-rose-500/20 border border-rose-500/40 text-rose-300 text-xs rounded-xl flex items-center gap-2">
+                <Info className="w-4 h-4 shrink-0" /> {errorMsg}
+              </div>
+            )}
+
             <div className="bg-white/5 border border-white/10 rounded-2xl p-5 space-y-4">
-              <h2 className="text-base font-bold text-white">Booking Summary</h2>
-              <div className="space-y-2.5 text-sm">
+              <h2 className="text-base font-bold text-white">Booking Details</h2>
+
+              <div className="space-y-3">
+                <div>
+                  <label className="block text-xs font-bold text-white/70 mb-1">Full Name *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="e.g. Rahul Sharma"
+                    value={guestName}
+                    onChange={e => setGuestName(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-gold-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-white/70 mb-1">Phone Number *</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="e.g. 9876543210"
+                    value={guestPhone}
+                    onChange={e => setGuestPhone(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-gold-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-white/70 mb-1">Email Address (Optional)</label>
+                  <input
+                    type="email"
+                    placeholder="name@example.com"
+                    value={guestEmail}
+                    onChange={e => setGuestEmail(e.target.value)}
+                    className="w-full px-3.5 py-2.5 text-xs rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-gold-500"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-bold text-white/70 mb-1">Special Instructions</label>
+                  <textarea
+                    rows={2}
+                    placeholder="Window seat, anniversary decoration..."
+                    value={specialNotes}
+                    onChange={e => setSpecialNotes(e.target.value)}
+                    className="w-full px-3.5 py-2 text-xs rounded-xl bg-white/5 border border-white/10 text-white placeholder:text-white/30 focus:outline-none focus:border-gold-500 resize-none"
+                  />
+                </div>
+              </div>
+
+              <div className="border-t border-white/10 pt-3 space-y-2 text-xs">
                 {[
                   { label: 'Date',    value: dateLabel,       icon: Calendar },
                   { label: 'Time',    value: selectedTime!,   icon: Clock },
@@ -286,7 +481,7 @@ export default function ReservePage() {
               <div className="flex items-start gap-2 bg-sky-500/10 border border-sky-500/30 rounded-xl p-3 mt-3">
                 <Info className="w-4 h-4 text-sky-400 mt-0.5 shrink-0" />
                 <p className="text-[11px] text-sky-300 leading-relaxed">
-                  Reservation confirmation will be sent via SMS/WhatsApp. Please arrive 10 minutes before your slot.
+                  Reservation confirmation ticket will be generated instantly.
                 </p>
               </div>
             </div>
@@ -299,10 +494,11 @@ export default function ReservePage() {
                 <ChevronLeft className="w-4 h-4" /> Edit
               </button>
               <button
-                className="flex-[2] flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-amber-500 text-slate-950 font-bold py-3 rounded-xl hover:shadow-lg hover:shadow-amber-500/30 transition-all"
-                onClick={() => alert('Reservation logic coming in Prompt 7!')}
+                disabled={isSubmitting}
+                className="flex-[2] flex items-center justify-center gap-2 bg-gradient-to-r from-gold-500 to-amber-500 text-slate-950 font-bold py-3 rounded-xl hover:shadow-lg hover:shadow-amber-500/30 transition-all disabled:opacity-50"
+                onClick={handleConfirmReservation}
               >
-                <CheckCircle className="w-4.5 h-4.5" /> Confirm Booking
+                <CheckCircle className="w-4.5 h-4.5" /> {isSubmitting ? 'Processing…' : 'Confirm & Reserve Table'}
               </button>
             </div>
           </div>
@@ -311,3 +507,4 @@ export default function ReservePage() {
     </CustomerLayout>
   );
 }
+

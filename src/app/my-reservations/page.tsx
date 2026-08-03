@@ -1,12 +1,13 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import CustomerLayout from '@/components/CustomerLayout';
 import EmptyState from '@/components/EmptyState';
 import {
   CalendarCheck, Clock, Users, MapPin, QrCode,
   XCircle, CheckCircle, ChevronDown, ChevronUp, Star
 } from 'lucide-react';
+import { getStoredReservations, Reservation as DBReservation } from '@/lib/db';
 
 type ReservationStatus = 'upcoming' | 'active' | 'completed' | 'cancelled';
 
@@ -37,7 +38,7 @@ const STATUS_CONFIG: Record<ReservationStatus, { label: string; color: string; b
 
 function ReservationCard({ res }: { res: Reservation }) {
   const [expanded, setExpanded] = useState(false);
-  const cfg = STATUS_CONFIG[res.status];
+  const cfg = STATUS_CONFIG[res.status] || STATUS_CONFIG.upcoming;
 
   return (
     <div className={`border rounded-2xl overflow-hidden transition-all ${cfg.bg}`}>
@@ -81,7 +82,7 @@ function ReservationCard({ res }: { res: Reservation }) {
           </div>
 
           {/* QR Code Display */}
-          {res.status === 'upcoming' && res.qrCode && (
+          {(res.status === 'upcoming' || res.status === 'active') && res.qrCode && (
             <div className="flex items-center gap-4 bg-white/5 border border-white/10 rounded-xl p-4">
               <div className="w-16 h-16 bg-white rounded-lg flex items-center justify-center shrink-0">
                 <QrCode className="w-10 h-10 text-slate-950" />
@@ -115,9 +116,42 @@ function ReservationCard({ res }: { res: Reservation }) {
 
 export default function MyReservationsPage() {
   const [tab, setTab] = useState<'upcoming' | 'past'>('upcoming');
+  const [reservations, setReservations] = useState<Reservation[]>(DUMMY_RESERVATIONS);
 
-  const upcoming = DUMMY_RESERVATIONS.filter(r => r.status === 'upcoming' || r.status === 'active');
-  const past     = DUMMY_RESERVATIONS.filter(r => r.status === 'completed' || r.status === 'cancelled');
+  useEffect(() => {
+    const fetchReservations = async () => {
+      try {
+        const dbItems: DBReservation[] = await getStoredReservations();
+        if (dbItems && dbItems.length > 0) {
+          const mapped: Reservation[] = dbItems.map((dbRes) => ({
+            id: dbRes.id || `WRC-${Math.floor(1000 + Math.random() * 9000)}`,
+            date: dbRes.date || 'Today',
+            time: dbRes.time || '07:00 PM',
+            guests: dbRes.guests || 2,
+            table: dbRes.table_number || dbRes.cluster_name || 'Assigned at Venue',
+            seating: dbRes.special_requests || 'Table Booking',
+            status: (dbRes.status === 'confirmed' || dbRes.status === 'pending') ? 'upcoming' : (dbRes.status as ReservationStatus || 'upcoming'),
+            qrCode: dbRes.id,
+            canCancel: dbRes.status === 'confirmed' || dbRes.status === 'pending',
+          }));
+
+          // Merge DB items with fallback dummy items
+          const existingIds = new Set(mapped.map(m => m.id));
+          const filteredDummy = DUMMY_RESERVATIONS.filter(d => !existingIds.has(d.id));
+          setReservations([...mapped, ...filteredDummy]);
+        }
+      } catch (err) {
+        console.error('Error fetching reservations:', err);
+      }
+    };
+
+    fetchReservations();
+    window.addEventListener('wings_db_sync', fetchReservations);
+    return () => window.removeEventListener('wings_db_sync', fetchReservations);
+  }, []);
+
+  const upcoming = reservations.filter(r => r.status === 'upcoming' || r.status === 'active');
+  const past     = reservations.filter(r => r.status === 'completed' || r.status === 'cancelled');
   const list     = tab === 'upcoming' ? upcoming : past;
 
   return (
@@ -174,3 +208,4 @@ export default function MyReservationsPage() {
     </CustomerLayout>
   );
 }
+
