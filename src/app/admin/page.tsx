@@ -509,7 +509,13 @@ export default function AdminPage() {
       realtimeClient.off('dashboard.metrics_updated', handleRealtimeRefresh);
     };
   }, [isAuthenticated]);
-  const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
+  const [activeTab, setActiveTab] = useState<TabKey>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('wings_admin_active_tab') as TabKey;
+      if (saved) return saved;
+    }
+    return 'dashboard';
+  });
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);

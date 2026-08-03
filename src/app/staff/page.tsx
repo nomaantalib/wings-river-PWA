@@ -25,8 +25,7 @@ export default function StaffPWA() {
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
 
-  // Active Role View
-  const [activeRole, setActiveRole] = useState<'Waiter' | 'Manager'>('Waiter');
+
 
   // Staff Data States
   const [tables, setTables] = useState<TableStatus[]>([]);
@@ -38,6 +37,15 @@ export default function StaffPWA() {
   const [walkinPhone, setWalkinPhone] = useState('');
   const [selectedWalkinTable, setSelectedWalkinTable] = useState('T1');
 
+  // Active Role View with LocalStorage Reload Persistence
+  const [activeRole, setActiveRole] = useState<'Waiter' | 'Manager'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('wings_staff_active_role');
+      if (saved === 'Waiter' || saved === 'Manager') return saved;
+    }
+    return 'Waiter';
+  });
+
   // Sync auth context user to staff component state
   useEffect(() => {
     if (authUser && authUser.role && ['Waiter', 'Manager', 'Admin', 'Administrator'].includes(authUser.role)) {
@@ -47,7 +55,12 @@ export default function StaffPWA() {
         role: mappedRole
       });
       if (mappedRole === 'Waiter' || mappedRole === 'Manager') {
-        setActiveRole(mappedRole);
+        const savedRole = typeof window !== 'undefined' ? localStorage.getItem('wings_staff_active_role') : null;
+        if (savedRole === 'Waiter' || savedRole === 'Manager') {
+          setActiveRole(savedRole as any);
+        } else {
+          setActiveRole(mappedRole);
+        }
       }
     }
   }, [authUser]);

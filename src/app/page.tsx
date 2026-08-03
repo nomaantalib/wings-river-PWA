@@ -72,12 +72,15 @@ export default function Home() {
       }
 
       // Launch vs Reload persistence:
-      const isSessionActive = sessionStorage.getItem('wings_app_session_active');
-      if (!isSessionActive) {
-        sessionStorage.setItem('wings_app_session_active', 'true');
-        window.scrollTo({ top: 0, behavior: 'instant' });
-        if (window.location.hash) {
-          history.replaceState(null, '', window.location.pathname);
+      sessionStorage.setItem('wings_app_session_active', 'true');
+
+      if (window.location.hash) {
+        const targetId = window.location.hash.substring(1);
+        const element = document.getElementById(targetId);
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }, 200);
         }
       } else {
         const savedScroll = sessionStorage.getItem('wings_last_scroll_pos');

@@ -129,6 +129,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {
+        const payload = data.data || data;
+        if (payload.accessToken && payload.user) {
+          persistAuth(payload.accessToken, payload.refreshToken, {
+            ...payload.user,
+            role: 'Customer',
+            loggedInAt: new Date().toISOString()
+          });
+        }
         return { success: true };
       }
       return { success: false, error: data.error || data.message || 'Invalid OTP code' };
