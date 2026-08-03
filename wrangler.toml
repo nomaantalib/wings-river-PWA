@@ -1,9 +1,7 @@
-name = "wings-river-pwa"
+name = "wings-river-backend"
+main = "src/backend/app.ts"
 compatibility_date = "2026-07-21"
 compatibility_flags = ["nodejs_compat"]
-
-pages_build_output_dir = "out"
-assets = { directory = "out" }
 
 # ── Cloudflare D1 Database Bindings ─────────────────────────────────────────
 [[d1_databases]]
