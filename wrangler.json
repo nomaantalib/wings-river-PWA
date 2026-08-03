@@ -1,6 +1,6 @@
 {
   "$schema": "node_modules/wrangler/config-schema.json",
-  "name": "wings-river-backend",
+  "name": "wings-river-pwa",
   "main": "src/backend/app.ts",
   "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat"],
@@ -34,12 +34,6 @@
       "binding": "D1",
       "database_name": "wings-river-cafe",
       "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
-    }
-  ],
-  "kv_namespaces": [
-    {
-      "binding": "CACHE_KV",
-      "id": "wings_river_cache_kv"
     }
   ],
   "vars": {
