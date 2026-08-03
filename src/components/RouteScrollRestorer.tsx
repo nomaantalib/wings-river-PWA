@@ -17,6 +17,10 @@ export default function RouteScrollRestorer() {
     const storageKey = `wings_scroll_pos_${pathname}`;
     const sectionKey = `wings_section_${pathname}`;
 
+    // Temporarily disable CSS smooth scrolling during position restoration to prevent scrolling glitches
+    const prevScrollBehavior = document.documentElement.style.scrollBehavior;
+    document.documentElement.style.scrollBehavior = 'auto';
+
     // Helper to restore position or section cleanly
     const restorePosition = () => {
       const currentHash = window.location.hash;
@@ -27,7 +31,7 @@ export default function RouteScrollRestorer() {
         const targetId = targetHash.replace('#', '');
         const elem = document.getElementById(targetId);
         if (elem) {
-          elem.scrollIntoView({ behavior: 'instant', block: 'start' });
+          elem.scrollIntoView({ behavior: 'instant' as ScrollBehavior, block: 'start' });
           return;
         }
       }
@@ -36,16 +40,21 @@ export default function RouteScrollRestorer() {
       if (savedPos !== null) {
         const topPos = parseInt(savedPos, 10);
         if (!isNaN(topPos) && topPos > 0) {
-          window.scrollTo({ top: topPos, behavior: 'instant' });
+          window.scrollTo({ top: topPos, left: 0, behavior: 'instant' as ScrollBehavior });
         }
       }
     };
 
-    // Use requestAnimationFrame for frame-perfect smooth restoration
+    // Frame-perfect instant restoration
+    restorePosition();
     requestAnimationFrame(restorePosition);
-    const t1 = setTimeout(restorePosition, 50);
-    const t2 = setTimeout(restorePosition, 250);
-    const t3 = setTimeout(restorePosition, 800);
+    const t1 = setTimeout(restorePosition, 60);
+    const t2 = setTimeout(restorePosition, 300);
+
+    // Re-enable smooth scrolling after restoration completes
+    const t3 = setTimeout(() => {
+      document.documentElement.style.scrollBehavior = prevScrollBehavior || '';
+    }, 500);
 
     // Save scroll position & visible section on user scroll
     let scrollTimeout: NodeJS.Timeout;
@@ -73,6 +82,7 @@ export default function RouteScrollRestorer() {
       clearTimeout(t2);
       clearTimeout(t3);
       clearTimeout(scrollTimeout);
+      document.documentElement.style.scrollBehavior = prevScrollBehavior || '';
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('hashchange', handleHashChange);
     };

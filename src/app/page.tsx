@@ -73,29 +73,6 @@ export default function Home() {
 
       // Launch vs Reload persistence:
       sessionStorage.setItem('wings_app_session_active', 'true');
-
-      if (window.location.hash) {
-        const targetId = window.location.hash.substring(1);
-        const element = document.getElementById(targetId);
-        if (element) {
-          setTimeout(() => {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }, 200);
-        }
-      } else {
-        const savedScroll = sessionStorage.getItem('wings_last_scroll_pos');
-        if (savedScroll) {
-          setTimeout(() => {
-            window.scrollTo({ top: parseInt(savedScroll, 10), behavior: 'instant' });
-          }, 100);
-        }
-      }
-
-      // Save scroll position for reload restoration
-      const handleScrollSave = () => {
-        sessionStorage.setItem('wings_last_scroll_pos', window.scrollY.toString());
-      };
-      window.addEventListener('scroll', handleScrollSave, { passive: true });
     }
 
     return () => {
