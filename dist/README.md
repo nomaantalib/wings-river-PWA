@@ -1,0 +1,1 @@
+This folder contains the built output assets for the worker "wings-river-pwa" generated at 2026-08-03T14:23:21.199Z.
