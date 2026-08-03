@@ -101,12 +101,40 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
   const nextPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
+    if (flipBookRef.current) {
+      try {
+        const pf = flipBookRef.current.pageFlip();
+        if (pf) {
+          if (currentPageIndex === menuPages.length - 1) {
+            pf.flip(0);
+            setCurrentPageIndex(0);
+          } else {
+            pf.flipNext();
+          }
+          return;
+        }
+      } catch (e) {}
+    }
     const nextIdx = (currentPageIndex + 1) % menuPages.length;
     goToPage(nextIdx, 'next');
   };
 
   const prevPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
+    if (flipBookRef.current) {
+      try {
+        const pf = flipBookRef.current.pageFlip();
+        if (pf) {
+          if (currentPageIndex === 0) {
+            pf.flip(menuPages.length - 1);
+            setCurrentPageIndex(menuPages.length - 1);
+          } else {
+            pf.flipPrev();
+          }
+          return;
+        }
+      } catch (e) {}
+    }
     const prevIdx = (currentPageIndex - 1 + menuPages.length) % menuPages.length;
     goToPage(prevIdx, 'prev');
   };

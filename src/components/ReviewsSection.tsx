@@ -15,6 +15,7 @@ export default function ReviewsSection() {
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
 
   const [isPaused, setIsPaused] = useState(false);
+  const [isFading, setIsFading] = useState(false);
 
   useEffect(() => {
     const refreshData = () => { getStoredReviews().then(setReviews); };
@@ -23,16 +24,25 @@ export default function ReviewsSection() {
     return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
 
-  // Automatic Slideshow Effect
+  const changeReview = React.useCallback((targetIndex: number) => {
+    if (isFading || targetIndex === currentIndex) return;
+    setIsFading(true);
+    setTimeout(() => {
+      setCurrentIndex(targetIndex);
+      setIsFading(false);
+    }, 250);
+  }, [isFading, currentIndex]);
+
+  // Automatic Slideshow Effect with Smooth Fading
   useEffect(() => {
     let timer: any;
     if (!isPaused && !newReviewForm && reviews.length > 0) {
       timer = setInterval(() => {
-        setCurrentIndex((prev) => (prev + 1) % reviews.length);
-      }, 4000);
+        changeReview((currentIndex + 1) % reviews.length);
+      }, 4500);
     }
     return () => clearInterval(timer);
-  }, [isPaused, newReviewForm, reviews.length]);
+  }, [isPaused, newReviewForm, reviews.length, currentIndex, changeReview]);
 
   const handleAddReview = (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,8 +66,8 @@ export default function ReviewsSection() {
     setTimeout(() => setSubmittedSuccess(false), 5000);
   };
 
-  const nextReview = () => setCurrentIndex((prev) => (prev + 1) % reviews.length);
-  const prevReview = () => setCurrentIndex((prev) => (prev - 1 + reviews.length) % reviews.length);
+  const nextReview = () => changeReview((currentIndex + 1) % reviews.length);
+  const prevReview = () => changeReview((currentIndex - 1 + reviews.length) % reviews.length);
 
   return (
     <section id="reviews" className="py-20 bg-cream-100 relative overflow-hidden">
@@ -88,56 +98,59 @@ export default function ReviewsSection() {
             >
               <Quote className="w-12 h-12 text-amber-200 absolute top-6 right-6 pointer-events-none" />
 
-              {/* Rating Badge */}
-              <div className="inline-flex items-center space-x-1.5 bg-amber-100 text-amber-900 px-3 py-1 rounded-full text-xs font-bold font-mono mb-6">
-                <span>{reviews[currentIndex]?.rating || 5}.0 / 5.0 Rating</span>
-              </div>
-
-              {/* Review Quote */}
-              <p className="font-serif text-lg sm:text-2xl text-dark-900 leading-relaxed italic mb-8 min-h-[90px]">
-                &quot;{reviews[currentIndex]?.review_text}&quot;
-              </p>
-
-              {/* Author & Avatar & Controls */}
-              <div className="flex items-center justify-between border-t border-gray-100 pt-6">
-                <div className="flex items-center space-x-4">
-                  <img
-                    src={
-                      reviews[currentIndex]?.avatar_url ||
-                      `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-                        reviews[currentIndex]?.author_name || 'Guest'
-                      )}`
-                    }
-                    alt={reviews[currentIndex]?.author_name}
-                    loading="lazy"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-amber-300 shadow-sm"
-                  />
-                  <div>
-                    <h4 className="font-bold text-dark-900 text-base">
-                      {reviews[currentIndex]?.author_name}
-                    </h4>
-                    <span className="text-xs text-gray-500 font-sans">
-                      Verified Google Review • {reviews[currentIndex]?.date_str}
-                    </span>
-                  </div>
+              {/* Inner Fading Container */}
+              <div className={`transition-all duration-300 ease-in-out ${isFading ? 'opacity-0 scale-98 translate-y-1' : 'opacity-100 scale-100 translate-y-0'}`}>
+                {/* Rating Badge */}
+                <div className="inline-flex items-center space-x-1.5 bg-amber-100 text-amber-900 px-3 py-1 rounded-full text-xs font-bold font-mono mb-6">
+                  <span>{reviews[currentIndex]?.rating || 5}.0 / 5.0 Rating</span>
                 </div>
 
-                {/* Carousel Controls */}
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={prevReview}
-                    aria-label="Previous Review"
-                    className="p-2.5 rounded-full bg-cream-100 hover:bg-amber-400 text-dark-900 transition-all hover:scale-105 active:scale-95 shadow-sm"
-                  >
-                    <ChevronLeft className="w-5 h-5" />
-                  </button>
-                  <button
-                    onClick={nextReview}
-                    aria-label="Next Review"
-                    className="p-2.5 rounded-full bg-cream-100 hover:bg-amber-400 text-dark-900 transition-all hover:scale-105 active:scale-95 shadow-sm"
-                  >
-                    <ChevronRight className="w-5 h-5" />
-                  </button>
+                {/* Review Quote */}
+                <p className="font-serif text-lg sm:text-2xl text-dark-900 leading-relaxed italic mb-8 min-h-[90px]">
+                  &quot;{reviews[currentIndex]?.review_text}&quot;
+                </p>
+
+                {/* Author & Avatar & Controls */}
+                <div className="flex items-center justify-between border-t border-gray-100 pt-6">
+                  <div className="flex items-center space-x-4">
+                    <img
+                      src={
+                        reviews[currentIndex]?.avatar_url ||
+                        `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
+                          reviews[currentIndex]?.author_name || 'Guest'
+                        )}`
+                      }
+                      alt={reviews[currentIndex]?.author_name}
+                      loading="lazy"
+                      className="w-12 h-12 rounded-full object-cover border-2 border-amber-300 shadow-sm"
+                    />
+                    <div>
+                      <h4 className="font-bold text-dark-900 text-base">
+                        {reviews[currentIndex]?.author_name}
+                      </h4>
+                      <span className="text-xs text-gray-500 font-sans">
+                        Verified Google Review • {reviews[currentIndex]?.date_str}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Carousel Controls */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={prevReview}
+                      aria-label="Previous Review"
+                      className="p-2.5 rounded-full bg-cream-100 hover:bg-amber-400 text-dark-900 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                    </button>
+                    <button
+                      onClick={nextReview}
+                      aria-label="Next Review"
+                      className="p-2.5 rounded-full bg-cream-100 hover:bg-amber-400 text-dark-900 transition-all hover:scale-105 active:scale-95 shadow-sm"
+                    >
+                      <ChevronRight className="w-5 h-5" />
+                    </button>
+                  </div>
                 </div>
               </div>
 

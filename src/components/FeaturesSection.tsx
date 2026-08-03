@@ -48,16 +48,16 @@ export default function FeaturesSection() {
 
   const features = [
     {
-      icon: Users,
-      badge: 'Family Friendly',
-      title: 'Family Restaurant',
-      desc: 'Spacious seating setups tailored for family dinners, reunions & kids.',
-    },
-    {
       icon: Waves,
       badge: 'Panoramic',
       title: 'Riverside View',
-      desc: 'Unobstructed scenic waterfront vistas along the quiet Gomti River.',
+      desc: 'Unobstructed scenic waterfront vistas along the quiet Gomti River deck.',
+    },
+    {
+      icon: Users,
+      badge: 'Family Friendly',
+      title: 'Family Restaurant',
+      desc: 'Spacious seating setups tailored for family dinners, reunions & celebrations.',
     },
     {
       icon: Anchor,
@@ -68,38 +68,14 @@ export default function FeaturesSection() {
     {
       icon: UtensilsCrossed,
       badge: 'Luxury Comfort',
-      title: 'Dine In',
+      title: 'Dine In & Deck',
       desc: 'Elevated indoor AC fine dining and outdoor river deck dining options.',
-    },
-    {
-      icon: ShoppingBag,
-      badge: 'Express Service',
-      title: 'Takeaway',
-      desc: 'Quick, hygienic packing for your favorite meals on the go.',
-    },
-    {
-      icon: Truck,
-      badge: 'Safe & Clean',
-      title: 'No Contact Delivery',
-      desc: 'Fresh, piping hot multicuisine delivered right to your doorstep.',
     },
     {
       icon: ChefHat,
       badge: 'Chef Specials',
       title: 'Multicuisine',
       desc: 'North Indian gravies, authentic Chinese woks, Italian pastas & woodfired pizzas.',
-    },
-    {
-      icon: Sun,
-      badge: 'Fresh Breeze',
-      title: 'Outdoor Seating',
-      desc: 'Breeze outdoor terrace tables under green ceiling foliage & floral arches.',
-    },
-    {
-      icon: Moon,
-      badge: 'Magical Nights',
-      title: 'Evening Ambience',
-      desc: 'Illuminated fairy light arches, cozy bonfire setups & romantic night decor.',
     },
   ];
 
