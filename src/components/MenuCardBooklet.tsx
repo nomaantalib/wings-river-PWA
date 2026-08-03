@@ -182,38 +182,38 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
         {/* BOOKLET FLIP VIEW */}
         {currentPage && (
-          <div className="max-w-4xl mx-auto">
+          <div className="max-w-6xl mx-auto">
             {/* Top Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-[#10141D]/90 backdrop-blur-xl p-4 rounded-2xl border border-[#D4AF37]/25 mb-6 text-xs shadow-xl">
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-[#10141D]/95 backdrop-blur-xl p-4 sm:p-5 rounded-2xl border border-[#D4AF37]/30 mb-6 text-xs shadow-2xl">
               <div className="flex items-center space-x-3">
-                <span className="font-serif font-bold text-amber-200 text-sm">
+                <span className="font-serif font-bold text-amber-200 text-base">
                   Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
                 <span className="text-slate-500">|</span>
-                <span className="text-[#F5D061] font-bold text-sm truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
+                <span className="text-[#F5D061] font-bold text-base truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
               </div>
 
               <div className="flex items-center space-x-2">
                 {/* Auto flip button */}
                 <button
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
-                  className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
+                  className={`flex items-center space-x-1.5 px-4 py-2 rounded-xl border text-xs font-bold transition-all ${
                     isAutoFlipping
                       ? 'bg-gradient-to-r from-[#F5D061] to-[#D4AF37] text-[#0B0E14] border-[#F5D061] shadow-md'
                       : 'bg-[#141A24] text-slate-200 border-white/15 hover:border-[#D4AF37]/50'
                   }`}
                 >
-                  {isAutoFlipping ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  {isAutoFlipping ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   <span>{isAutoFlipping ? 'Pause Auto Flip' : 'Auto Flip'}</span>
                 </button>
 
                 {/* Zoom Fullscreen */}
                 <button
                   onClick={() => {
-                    setZoomScale(1);
+                    setZoomScale(1.2);
                     setActiveZoomImage(currentPage.image || null);
                   }}
-                  className="p-2 rounded-xl bg-[#141A24] hover:bg-[#1C2433] text-white border border-white/10"
+                  className="p-2.5 rounded-xl bg-[#141A24] hover:bg-[#1C2433] text-white border border-white/15 transition-all hover:scale-105"
                   title="Expand Full Screen"
                 >
                   <Maximize2 className="w-4 h-4" />
@@ -223,15 +223,15 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 <a
                   href="/images/food_menu_collage.jpg"
                   download="Wings_River_Cafe_Menu_Card.jpg"
-                  className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#0B0E14] font-extrabold shadow-md hover:scale-105 transition-all"
+                  className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#0B0E14] font-black text-xs shadow-lg hover:scale-105 transition-all"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-4 h-4" />
                   <span>Download Card</span>
                 </a>
               </div>
             </div>
 
-            {/* Menu Booklet Page Container with 3D Page Roll & Touch Swipe */}
+            {/* Menu Booklet Page Container with Ultra-HD Dimensions & 3D Flip */}
             <div className="relative group">
               {/* 3D Perspective Flip Stage */}
               <div
@@ -239,33 +239,32 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 onTouchEnd={handleTouchEnd}
                 onMouseDown={handleTouchStart}
                 onMouseUp={handleTouchEnd}
-                className="relative bg-[#0E131C] rounded-3xl overflow-hidden border-2 border-[#D4AF37]/40 shadow-[0_25px_60px_rgba(0,0,0,0.8)] aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+                className="relative bg-[#080B10] rounded-3xl overflow-hidden border-2 border-[#D4AF37]/50 shadow-[0_30px_70px_rgba(0,0,0,0.9)] aspect-[4/3] sm:aspect-[16/10] min-h-[420px] sm:min-h-[580px] lg:min-h-[640px] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
                 style={{
-                  minHeight: '280px',
-                  perspective: '1600px',
+                  perspective: '2000px',
                   perspectiveOrigin: '50% 50%',
                 }}
               >
-                {/* 3D Booklet Center Spine Crease Overlay */}
+                {/* Subtle Center Book Spine Crease Overlay */}
                 <div
                   className="absolute inset-0 z-30 pointer-events-none"
                   style={{
-                    background: 'linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 4%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 96%, rgba(0,0,0,0.2) 100%)',
+                    background: 'linear-gradient(to right, rgba(0,0,0,0.15) 0%, rgba(0,0,0,0) 3%, rgba(0,0,0,0.25) 50%, rgba(0,0,0,0) 97%, rgba(0,0,0,0.15) 100%)',
                   }}
                 />
 
-                {/* Render HTMLFlipBook when mounted on client */}
+                {/* Render Large HD HTMLFlipBook when mounted on client */}
                 {isMounted ? (
-                  <div className="w-full h-full flex items-center justify-center p-2 z-20">
+                  <div className="w-full h-full flex items-center justify-center p-1 sm:p-2 z-20">
                     <FlipBookComponent
-                      width={550}
-                      height={400}
+                      width={750}
+                      height={550}
                       size="stretch"
-                      minWidth={280}
-                      maxWidth={800}
-                      minHeight={260}
-                      maxHeight={600}
-                      maxShadowOpacity={0.6}
+                      minWidth={320}
+                      maxWidth={1200}
+                      minHeight={380}
+                      maxHeight={900}
+                      maxShadowOpacity={0.5}
                       showCover={false}
                       mobileScrollSupport={true}
                       usePortrait={true}
@@ -284,14 +283,17 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                       {menuPages.map((page, idx) => (
                         <div
                           key={page.pageNumber || idx}
-                          className="bg-[#0E131C] w-full h-full p-2 flex items-center justify-center shadow-inner relative overflow-hidden"
+                          className="bg-[#0A0D14] w-full h-full p-1 sm:p-2 flex items-center justify-center shadow-inner relative overflow-hidden"
                         >
                           <img
                             src={page.image}
                             alt={page.title || `Page ${page.pageNumber}`}
-                            style={{ imageRendering: '-webkit-optimize-contrast' }}
-                            className={`w-full h-full object-contain rounded-xl ${
-                              isHdMode ? 'contrast-[1.05] brightness-[1.01] saturate-[1.03]' : ''
+                            style={{
+                              imageRendering: 'crisp-edges',
+                              WebkitFontSmoothing: 'antialiased',
+                            }}
+                            className={`w-full h-full object-contain rounded-xl transition-all ${
+                              isHdMode ? 'contrast-[1.08] brightness-[1.02] saturate-[1.04]' : ''
                             }`}
                           />
                         </div>
@@ -304,7 +306,10 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     <img
                       src={currentPage.image}
                       alt={currentPage.title}
-                      className="w-full h-full object-contain rounded-xl"
+                      style={{
+                        imageRendering: 'crisp-edges',
+                      }}
+                      className="w-full h-full object-contain rounded-xl contrast-[1.08] brightness-[1.02]"
                     />
                   </div>
                 )}
