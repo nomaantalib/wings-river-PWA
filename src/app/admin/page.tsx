@@ -785,9 +785,12 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
-    logout();
     localStorage.removeItem('wings_admin_auth');
     localStorage.removeItem('wings_admin_jwt');
+    localStorage.removeItem('wings_admin_session');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new Event('wings_admin_auth_change'));
+    }
     setIsAuthenticated(false);
   };
 

@@ -3,6 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { getStoredMenuPages, getStoredMenuItems, MenuPageDefinition, MenuItem, MENU_BOOKLET_PAGES, INITIAL_MENU_ITEMS } from '@/lib/db';
 import { ChevronLeft, ChevronRight, BookOpen, Download, Calendar, Maximize2, X, Play, Pause } from 'lucide-react';
+// @ts-ignore
+import HTMLFlipBook from 'react-pageflip';
+
+const FlipBookComponent = HTMLFlipBook as any;
 
 interface MenuCardBookletProps {
   onOpenBooking: () => void;
@@ -16,13 +20,19 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
   const [isHdMode, setIsHdMode] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
+  const [isMounted, setIsMounted] = useState(false);
   const transitionTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const flipBookRef = useRef<any>(null);
+  const [flipDirection, setFlipDirection] = useState<'next' | 'prev'>('next');
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   // Database client-side states to prevent hydration mismatch
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>(MENU_BOOKLET_PAGES);
   const [menuItems, setMenuItems] = useState<MenuItem[]>(INITIAL_MENU_ITEMS);
 
   useEffect(() => {
+    setIsMounted(true);
     const refreshData = () => {
       Promise.all([getStoredMenuPages(), getStoredMenuItems()]).then(([pages, items]) => {
         setMenuPages(pages);
@@ -39,15 +49,23 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
     let timer: any;
     if (isAutoFlipping && menuPages.length > 0) {
       timer = setInterval(() => {
-        setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
+        if (flipBookRef.current) {
+          try {
+            flipBookRef.current.pageFlip().flipNext();
+          } catch {
+            setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
+          }
+        } else {
+          setCurrentPageIndex((prev) => (prev + 1) % menuPages.length);
+        }
       }, 4000);
     }
     return () => clearInterval(timer);
-  }, [isAutoFlipping, menuPages]);
+  }, [isAutoFlipping, menuPages.length]);
 
   if (menuPages.length === 0) {
     return (
-      <div className="py-20 bg-dark-950 text-center text-gray-500 text-xs">
+      <div className="py-20 bg-[#0B0E14] text-center text-slate-500 text-xs">
         Loading booklet menu...
       </div>
     );
@@ -55,40 +73,101 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
   const currentPage = menuPages[currentPageIndex] || menuPages[0];
 
-  const goToPage = (idx: number) => {
+  const goToPage = (idx: number, direction?: 'next' | 'prev') => {
     if (idx === currentPageIndex || isTransitioning) return;
     if (transitionTimeout.current) clearTimeout(transitionTimeout.current);
+
+    const dir = direction || (idx > currentPageIndex ? 'next' : 'prev');
+    setFlipDirection(dir);
     setIsTransitioning(true);
     setPrevPageIndex(currentPageIndex);
+
+    if (flipBookRef.current) {
+      try {
+        flipBookRef.current.pageFlip().flip(idx);
+      } catch (e) {
+        // fallback
+      }
+    }
+
     transitionTimeout.current = setTimeout(() => {
       setCurrentPageIndex(idx);
       setIsTransitioning(false);
-    }, 260); // half of 500ms total crossfade
+    }, 450);
   };
 
   const nextPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
-    goToPage((currentPageIndex + 1) % menuPages.length);
+    if (flipBookRef.current) {
+      try {
+        flipBookRef.current.pageFlip().flipNext();
+        return;
+      } catch (e) {
+        // fallback
+      }
+    }
+    goToPage((currentPageIndex + 1) % menuPages.length, 'next');
   };
 
   const prevPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
-    goToPage((currentPageIndex - 1 + menuPages.length) % menuPages.length);
+    if (flipBookRef.current) {
+      try {
+        flipBookRef.current.pageFlip().flipPrev();
+        return;
+      } catch (e) {
+        // fallback
+      }
+    }
+    goToPage((currentPageIndex - 1 + menuPages.length) % menuPages.length, 'prev');
+  };
+
+  // Touch Swipe Handlers for mobile & desktop drag
+  const handleTouchStart = (e: React.TouchEvent | React.MouseEvent) => {
+    const clientX = 'touches' in e ? e.touches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'touches' in e ? e.touches[0].clientY : (e as React.MouseEvent).clientY;
+    touchStartX.current = clientX;
+    touchStartY.current = clientY;
+  };
+
+  const handleTouchEnd = (e: React.TouchEvent | React.MouseEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const clientX = 'changedTouches' in e ? e.changedTouches[0].clientX : (e as React.MouseEvent).clientX;
+    const clientY = 'changedTouches' in e ? e.changedTouches[0].clientY : (e as React.MouseEvent).clientY;
+
+    const deltaX = clientX - touchStartX.current;
+    const deltaY = clientY - touchStartY.current;
+
+    // Horizontal swipe threshold
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > 40) {
+      if (deltaX < 0) {
+        // Swiped Left -> Move Next (Right to Left roll)
+        nextPage();
+        setIsAutoFlipping(false);
+      } else {
+        // Swiped Right -> Move Prev (Left to Right roll)
+        prevPage();
+        setIsAutoFlipping(false);
+      }
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
   };
 
   // Find corresponding items for the current page
   const pageItems = menuItems.filter((item) => item.page_number === currentPage.pageNumber);
 
   return (
-    <section id="menu-card" className="py-20 bg-dark-950 text-white relative overflow-hidden">
+    <section id="menu-card" className="py-20 bg-[#0B0E14] text-white relative overflow-hidden">
       {/* Glow Effects */}
-      <div className="absolute top-1/4 left-0 w-96 h-96 bg-mint-500/10 rounded-full filter blur-3xl pointer-events-none" />
-      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-gold-500/10 rounded-full filter blur-3xl pointer-events-none" />
+      <div className="absolute top-1/4 left-0 w-96 h-96 bg-[#D4AF37]/10 rounded-full filter blur-[120px] pointer-events-none" />
+      <div className="absolute bottom-1/4 right-0 w-96 h-96 bg-emerald-500/10 rounded-full filter blur-[120px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-12">
-          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#1F1810] border border-[#F5D061]/40 text-[#F8E7A1] font-bold text-xs tracking-widest uppercase mb-3 shadow-md">
+          <div className="inline-flex items-center space-x-2 px-4 py-1.5 rounded-full bg-[#141A24] border border-[#D4AF37]/40 text-[#F8E7A1] font-bold text-xs tracking-widest uppercase mb-3 shadow-md">
             <BookOpen className="w-3.5 h-3.5 text-[#F5D061]" />
             <span>Our Delicacies &amp; Offerings</span>
           </div>
@@ -96,30 +175,32 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
           <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#F8E7A1] tracking-tight mb-2">
             Our Delicacies &amp; Offerings
           </h2>
+          <p className="text-xs sm:text-sm text-slate-400 font-sans">
+            Swipe left/right or use controls to flip through our official booklet menu
+          </p>
         </div>
 
         {/* BOOKLET FLIP VIEW */}
         {currentPage && (
           <div className="max-w-4xl mx-auto">
             {/* Top Toolbar */}
-            <div className="flex flex-wrap items-center justify-between gap-4 bg-white/5 backdrop-blur-md p-4 rounded-2xl border border-white/10 mb-6 text-xs">
+            <div className="flex flex-wrap items-center justify-between gap-4 bg-[#10141D]/90 backdrop-blur-xl p-4 rounded-2xl border border-[#D4AF37]/25 mb-6 text-xs shadow-xl">
               <div className="flex items-center space-x-3">
-                <span className="font-serif font-bold text-mint-300 text-sm">
+                <span className="font-serif font-bold text-amber-200 text-sm">
                   Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
-                <span className="text-gray-400">|</span>
+                <span className="text-slate-500">|</span>
                 <span className="text-[#F5D061] font-bold text-sm truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
               </div>
 
               <div className="flex items-center space-x-2">
                 {/* Auto flip button */}
                 <button
-
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
-                  className={`flex items-center space-x-1 px-3 py-1.5 rounded-lg border text-xs font-semibold ${
+                  className={`flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                     isAutoFlipping
-                      ? 'bg-mint-400 text-dark-950 border-mint-400'
-                      : 'bg-white/10 text-gray-200 border-white/20 hover:bg-white/20'
+                      ? 'bg-gradient-to-r from-[#F5D061] to-[#D4AF37] text-[#0B0E14] border-[#F5D061] shadow-md'
+                      : 'bg-[#141A24] text-slate-200 border-white/15 hover:border-[#D4AF37]/50'
                   }`}
                 >
                   {isAutoFlipping ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
@@ -132,7 +213,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     setZoomScale(1);
                     setActiveZoomImage(currentPage.image || null);
                   }}
-                  className="p-1.5 rounded-lg bg-white/10 hover:bg-white/20 text-white"
+                  className="p-2 rounded-xl bg-[#141A24] hover:bg-[#1C2433] text-white border border-white/10"
                   title="Expand Full Screen"
                 >
                   <Maximize2 className="w-4 h-4" />
@@ -142,7 +223,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 <a
                   href="/images/food_menu_collage.jpg"
                   download="Wings_River_Cafe_Menu_Card.jpg"
-                  className="flex items-center space-x-1 px-3 py-1.5 rounded-lg bg-gold-500 text-dark-950 font-bold hover:bg-gold-400 transition-colors"
+                  className="flex items-center space-x-1.5 px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#0B0E14] font-extrabold shadow-md hover:scale-105 transition-all"
                 >
                   <Download className="w-3.5 h-3.5" />
                   <span>Download Card</span>
@@ -150,53 +231,89 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
               </div>
             </div>
 
-            {/* Menu Booklet Page Container — CSS crossfade, no glitch */}
+            {/* Menu Booklet Page Container with 3D Page Roll & Touch Swipe */}
             <div className="relative group">
-              {/* Crossfade container — pure CSS, no layout shift */}
+              {/* 3D Perspective Flip Stage */}
               <div
-                className="relative bg-[#fdfaf5] rounded-3xl overflow-hidden border-2 border-[#C9A84C]/50 shadow-2xl transition-all duration-500 aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center"
-                style={{ minHeight: '280px' }}
+                onTouchStart={handleTouchStart}
+                onTouchEnd={handleTouchEnd}
+                onMouseDown={handleTouchStart}
+                onMouseUp={handleTouchEnd}
+                className="relative bg-[#0E131C] rounded-3xl overflow-hidden border-2 border-[#D4AF37]/40 shadow-[0_25px_60px_rgba(0,0,0,0.8)] aspect-[4/3] sm:aspect-[16/10] flex items-center justify-center cursor-grab active:cursor-grabbing select-none"
+                style={{
+                  minHeight: '280px',
+                  perspective: '1600px',
+                  perspectiveOrigin: '50% 50%',
+                }}
               >
-                {/* Outgoing page fades out */}
-                {isTransitioning && menuPages[prevPageIndex] && (
-                  <img
-                    key={`out-${prevPageIndex}`}
-                    src={menuPages[prevPageIndex].image}
-                    alt={menuPages[prevPageIndex].title}
-                    loading="lazy"
-                    style={{
-                      position: 'absolute', inset: 0, width: '100%', height: '100%',
-                      objectFit: 'contain',
-                      opacity: 0,
-                      transition: 'opacity 0.26s ease',
-                      padding: '8px',
-                    }}
-                  />
-                )}
-
-                {/* Current page fades in */}
-                <img
-                  key={`in-${currentPageIndex}`}
-                  src={menuPages[currentPageIndex]?.image || ''}
-                  alt={menuPages[currentPageIndex]?.title || ''}
+                {/* 3D Booklet Center Spine Crease Overlay */}
+                <div
+                  className="absolute inset-0 z-30 pointer-events-none"
                   style={{
-                    imageRendering: '-webkit-optimize-contrast',
-                    position: 'absolute', inset: 0, width: '100%', height: '100%',
-                    objectFit: 'contain',
-                    opacity: isTransitioning ? 0 : 1,
-                    transition: 'opacity 0.5s ease',
-                    padding: '8px',
+                    background: 'linear-gradient(to right, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0) 4%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0) 96%, rgba(0,0,0,0.2) 100%)',
                   }}
-                  className={`rounded-xl pointer-events-none ${
-                    isHdMode ? 'contrast-[1.05] brightness-[1.01] saturate-[1.03]' : ''
-                  }`}
                 />
+
+                {/* Render HTMLFlipBook when mounted on client */}
+                {isMounted ? (
+                  <div className="w-full h-full flex items-center justify-center p-2 z-20">
+                    <FlipBookComponent
+                      width={550}
+                      height={400}
+                      size="stretch"
+                      minWidth={280}
+                      maxWidth={800}
+                      minHeight={260}
+                      maxHeight={600}
+                      maxShadowOpacity={0.6}
+                      showCover={false}
+                      mobileScrollSupport={true}
+                      usePortrait={true}
+                      startPage={currentPageIndex}
+                      drawShadow={true}
+                      flippingTime={600}
+                      useMouseEvents={true}
+                      className="menu-booklet-flipbook shadow-2xl rounded-2xl w-full h-full"
+                      ref={flipBookRef}
+                      onFlip={(e: any) => {
+                        if (typeof e.data === 'number') {
+                          setCurrentPageIndex(e.data);
+                        }
+                      }}
+                    >
+                      {menuPages.map((page, idx) => (
+                        <div
+                          key={page.pageNumber || idx}
+                          className="bg-[#0E131C] w-full h-full p-2 flex items-center justify-center shadow-inner relative overflow-hidden"
+                        >
+                          <img
+                            src={page.image}
+                            alt={page.title || `Page ${page.pageNumber}`}
+                            style={{ imageRendering: '-webkit-optimize-contrast' }}
+                            className={`w-full h-full object-contain rounded-xl ${
+                              isHdMode ? 'contrast-[1.05] brightness-[1.01] saturate-[1.03]' : ''
+                            }`}
+                          />
+                        </div>
+                      ))}
+                    </FlipBookComponent>
+                  </div>
+                ) : (
+                  /* Fallback static page while mounting */
+                  <div className="w-full h-full p-2 flex items-center justify-center z-20">
+                    <img
+                      src={currentPage.image}
+                      alt={currentPage.title}
+                      className="w-full h-full object-contain rounded-xl"
+                    />
+                  </div>
+                )}
 
                 {/* Left Navigation Arrow */}
                 <button
                   onClick={prevPage}
                   aria-label="Previous Page"
-                  className="absolute left-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#120B08]/70 backdrop-blur-sm border border-[#C9A84C]/40 text-[#F5EBE0] hover:bg-[#C9A84C] hover:text-[#120B08] transition-all shadow-xl hover:scale-110 active:scale-95"
+                  className="absolute left-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-[#0B0E14]/80 backdrop-blur-md border border-[#D4AF37]/50 text-amber-200 hover:bg-[#F5D061] hover:text-[#0B0E14] transition-all shadow-2xl hover:scale-110 active:scale-95"
                 >
                   <ChevronLeft className="w-5 h-5" />
                 </button>
@@ -205,14 +322,19 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 <button
                   onClick={nextPage}
                   aria-label="Next Page"
-                  className="absolute right-3 top-1/2 -translate-y-1/2 z-20 p-2.5 rounded-full bg-[#120B08]/70 backdrop-blur-sm border border-[#C9A84C]/40 text-[#F5EBE0] hover:bg-[#C9A84C] hover:text-[#120B08] transition-all shadow-xl hover:scale-110 active:scale-95"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 z-40 p-3 rounded-full bg-[#0B0E14]/80 backdrop-blur-md border border-[#D4AF37]/50 text-amber-200 hover:bg-[#F5D061] hover:text-[#0B0E14] transition-all shadow-2xl hover:scale-110 active:scale-95"
                 >
                   <ChevronRight className="w-5 h-5" />
                 </button>
+
+                {/* Floating Touch Swipe Hint */}
+                <div className="absolute bottom-2 left-1/2 -translate-x-1/2 z-40 bg-[#0B0E14]/70 backdrop-blur-md border border-white/10 px-3 py-1 rounded-full text-[10px] text-slate-300 pointer-events-none hidden sm:block">
+                  👈 Swipe left / right to flip 3D pages 👉
+                </div>
               </div>
 
               {/* Bottom Quick Page Thumbnails Bar */}
-              <div className="flex items-center justify-center space-x-2 mt-4 overflow-x-auto pb-2 no-scrollbar">
+              <div className="flex items-center justify-center space-x-2.5 mt-5 overflow-x-auto pb-2 no-scrollbar">
                 {menuPages.map((page, idx) => (
                   <button
                     key={page.pageNumber}
@@ -222,12 +344,12 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     }}
                     className={`relative rounded-xl overflow-hidden border-2 transition-all duration-300 shrink-0 w-16 h-12 ${
                       idx === currentPageIndex
-                        ? 'border-gold-400 scale-110 shadow-lg shadow-gold-500/30'
+                        ? 'border-[#F5D061] scale-110 shadow-lg shadow-amber-500/30'
                         : 'border-white/20 opacity-60 hover:opacity-100'
                     }`}
                   >
                     <img src={page.image} alt={page.title} loading="lazy" className="w-full h-full object-cover" />
-                    <span className="absolute bottom-0 right-0 bg-dark-950/80 text-[9px] font-bold px-1 text-gold-300">
+                    <span className="absolute bottom-0 right-0 bg-[#0B0E14]/90 text-[9px] font-bold px-1.5 text-[#F5D061] rounded-tl">
                       {idx + 1}
                     </span>
                   </button>

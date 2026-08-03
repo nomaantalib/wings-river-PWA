@@ -46,23 +46,45 @@ export default function StaffPWA() {
     return 'Waiter';
   });
 
-  // Sync auth context user to staff component state
+  // Sync isolated staff session from LocalStorage
   useEffect(() => {
-    if (authUser && authUser.role && ['Waiter', 'Manager', 'Admin', 'Administrator'].includes(authUser.role)) {
-      const mappedRole = authUser.role === 'Administrator' ? 'Admin' : (authUser.role as any);
-      setCurrentUser({
-        username: authUser.name || authUser.username || 'Staff User',
-        role: mappedRole
-      });
-      if (mappedRole === 'Waiter' || mappedRole === 'Manager') {
-        const savedRole = typeof window !== 'undefined' ? localStorage.getItem('wings_staff_active_role') : null;
-        if (savedRole === 'Waiter' || savedRole === 'Manager') {
-          setActiveRole(savedRole as any);
-        } else {
-          setActiveRole(mappedRole);
-        }
+    const loadStaffSession = () => {
+      if (typeof window === 'undefined') return;
+      const rawStaff = localStorage.getItem('wings_staff_session');
+      if (rawStaff) {
+        try {
+          const parsed = JSON.parse(rawStaff);
+          if (parsed && parsed.role) {
+            const mappedRole = parsed.role === 'Administrator' ? 'Admin' : parsed.role;
+            setCurrentUser({
+              username: parsed.name || parsed.username || 'Staff User',
+              role: mappedRole
+            });
+            if (mappedRole === 'Waiter' || mappedRole === 'Manager') {
+              const savedRole = localStorage.getItem('wings_staff_active_role');
+              if (savedRole === 'Waiter' || savedRole === 'Manager') {
+                setActiveRole(savedRole as any);
+              } else {
+                setActiveRole(mappedRole);
+              }
+            }
+            return;
+          }
+        } catch {}
       }
-    }
+
+      if (authUser && authUser.role && ['Waiter', 'Manager', 'Admin', 'Administrator'].includes(authUser.role)) {
+        const mappedRole = authUser.role === 'Administrator' ? 'Admin' : (authUser.role as any);
+        setCurrentUser({
+          username: authUser.name || authUser.username || 'Staff User',
+          role: mappedRole
+        });
+      }
+    };
+
+    loadStaffSession();
+    window.addEventListener('wings_staff_auth_change', loadStaffSession);
+    return () => window.removeEventListener('wings_staff_auth_change', loadStaffSession);
   }, [authUser]);
 
   // Handle Staff Login
@@ -266,7 +288,12 @@ export default function StaffPWA() {
 
         <button
           onClick={() => {
-            logout();
+            if (typeof window !== 'undefined') {
+              localStorage.removeItem('wings_staff_session');
+              localStorage.removeItem('wings_staff_jwt');
+              localStorage.removeItem('wings_staff_active_role');
+              window.dispatchEvent(new Event('wings_staff_auth_change'));
+            }
             setCurrentUser(null);
           }}
           className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 flex items-center space-x-1 text-xs font-bold"

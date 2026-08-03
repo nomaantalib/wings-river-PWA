@@ -26,13 +26,22 @@ interface UserAuthModalProps {
   onSuccess?: (user: UserSession) => void;
 }
 
-// User Session Storage
+// Dedicated Customer User Session Storage
 export function getStoredUserSession(): UserSession | null {
   if (typeof window === 'undefined') return null;
   try {
-    const raw = localStorage.getItem('wings_user_session');
+    const raw = localStorage.getItem('wings_customer_session') || localStorage.getItem('wings_user_session');
     if (!raw) return null;
-    return JSON.parse(raw);
+    const parsed = JSON.parse(raw);
+
+    // Reject staff/admin/waiter/manager role sessions from customer profile
+    if (parsed && parsed.role && ['Waiter', 'Manager', 'Admin', 'Administrator', 'Kitchen', 'Billing', 'Staff'].includes(parsed.role)) {
+      return null;
+    }
+    if (parsed && parsed.loggedIn === false) {
+      return null;
+    }
+    return parsed;
   } catch {
     return null;
   }
@@ -40,13 +49,18 @@ export function getStoredUserSession(): UserSession | null {
 
 export function saveUserSession(session: UserSession) {
   if (typeof window === 'undefined') return;
-  localStorage.setItem('wings_user_session', JSON.stringify(session));
+  const customerSession = { ...session, role: 'Customer' };
+  localStorage.setItem('wings_customer_session', JSON.stringify(customerSession));
+  localStorage.setItem('wings_user_session', JSON.stringify(customerSession));
+  window.dispatchEvent(new Event('wings_customer_auth_change'));
   window.dispatchEvent(new Event('wings_auth_change'));
 }
 
 export function clearUserSession() {
   if (typeof window === 'undefined') return;
+  localStorage.removeItem('wings_customer_session');
   localStorage.removeItem('wings_user_session');
+  window.dispatchEvent(new Event('wings_customer_auth_change'));
   window.dispatchEvent(new Event('wings_auth_change'));
 }
 

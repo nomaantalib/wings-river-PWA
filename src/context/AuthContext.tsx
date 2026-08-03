@@ -45,24 +45,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [refreshToken, setRefreshToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
 
-  // Sync state from LocalStorage
+  // Sync customer auth state from LocalStorage
   const loadStoredAuth = useCallback(() => {
     if (typeof window === 'undefined') return;
     try {
       const storedAccess = localStorage.getItem(ACCESS_TOKEN_KEY);
       const storedRefresh = localStorage.getItem(REFRESH_TOKEN_KEY);
-      const storedUserRaw = localStorage.getItem(USER_SESSION_KEY);
+      const storedCustomerRaw = localStorage.getItem('wings_customer_session') || localStorage.getItem(USER_SESSION_KEY);
 
-      if (storedAccess && storedUserRaw) {
-        const parsedUser = JSON.parse(storedUserRaw);
-        setAccessToken(storedAccess);
-        setRefreshToken(storedRefresh);
-        setUser(parsedUser);
-      } else {
-        setAccessToken(null);
-        setRefreshToken(null);
-        setUser(null);
+      if (storedCustomerRaw) {
+        const parsedUser = JSON.parse(storedCustomerRaw);
+        // Only load if it's a customer session
+        if (parsedUser && !['Waiter', 'Manager', 'Admin', 'Administrator', 'Kitchen', 'Billing', 'Staff'].includes(parsedUser.role)) {
+          setAccessToken(storedAccess || null);
+          setRefreshToken(storedRefresh || null);
+          setUser(parsedUser);
+          return;
+        }
       }
+      setAccessToken(null);
+      setRefreshToken(null);
+      setUser(null);
     } catch (e) {
       console.warn('[AuthContext loadStoredAuth Exception]', e);
     } finally {
@@ -73,31 +76,71 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     loadStoredAuth();
     const handleAuthChange = () => loadStoredAuth();
+    window.addEventListener('wings_customer_auth_change', handleAuthChange);
     window.addEventListener('wings_auth_change', handleAuthChange);
-    return () => window.removeEventListener('wings_auth_change', handleAuthChange);
+    return () => {
+      window.removeEventListener('wings_customer_auth_change', handleAuthChange);
+      window.removeEventListener('wings_auth_change', handleAuthChange);
+    };
   }, [loadStoredAuth]);
 
-  // Helper to persist auth data
+  // Helper to persist auth data with strict role-based storage isolation
   const persistAuth = (accToken: string, refToken: string, userData: UserSessionData) => {
     if (typeof window === 'undefined') return;
-    localStorage.setItem(ACCESS_TOKEN_KEY, accToken);
-    localStorage.setItem(REFRESH_TOKEN_KEY, refToken);
-    localStorage.setItem(USER_SESSION_KEY, JSON.stringify(userData));
-    setAccessToken(accToken);
-    setRefreshToken(refToken);
-    setUser(userData);
-    window.dispatchEvent(new Event('wings_auth_change'));
+
+    if (userData.role === 'Customer') {
+      const custSession = {
+        id: userData.id || userData.phone,
+        phone: userData.phone || '',
+        name: userData.name || userData.username || 'Customer',
+        email: userData.email,
+        role: 'Customer',
+        loggedIn: true,
+        loggedInAt: userData.loggedInAt || new Date().toISOString()
+      };
+      localStorage.setItem('wings_customer_session', JSON.stringify(custSession));
+      localStorage.setItem(USER_SESSION_KEY, JSON.stringify(custSession));
+      localStorage.setItem(ACCESS_TOKEN_KEY, accToken);
+      localStorage.setItem(REFRESH_TOKEN_KEY, refToken);
+      setAccessToken(accToken);
+      setRefreshToken(refToken);
+      setUser(userData);
+      window.dispatchEvent(new Event('wings_customer_auth_change'));
+      window.dispatchEvent(new Event('wings_auth_change'));
+    } else if (['Waiter', 'Manager', 'Kitchen', 'Billing', 'Staff'].includes(userData.role)) {
+      // Store staff session completely isolated
+      const staffSession = {
+        ...userData,
+        loggedInAt: userData.loggedInAt || new Date().toISOString()
+      };
+      localStorage.setItem('wings_staff_session', JSON.stringify(staffSession));
+      localStorage.setItem('wings_staff_jwt', accToken);
+      window.dispatchEvent(new Event('wings_staff_auth_change'));
+    } else if (['Admin', 'Administrator'].includes(userData.role)) {
+      // Store admin session completely isolated
+      const adminSession = {
+        ...userData,
+        role: 'Admin',
+        loggedInAt: userData.loggedInAt || new Date().toISOString()
+      };
+      localStorage.setItem('wings_admin_session', JSON.stringify(adminSession));
+      localStorage.setItem('wings_admin_jwt', accToken);
+      localStorage.setItem('wings_admin_auth', 'true');
+      window.dispatchEvent(new Event('wings_admin_auth_change'));
+    }
   };
 
-  // Helper to clear auth data
+  // Helper to clear customer auth data
   const clearAuth = useCallback(() => {
     if (typeof window === 'undefined') return;
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem('wings_customer_session');
     localStorage.removeItem(USER_SESSION_KEY);
     setAccessToken(null);
     setRefreshToken(null);
     setUser(null);
+    window.dispatchEvent(new Event('wings_customer_auth_change'));
     window.dispatchEvent(new Event('wings_auth_change'));
   }, []);
 

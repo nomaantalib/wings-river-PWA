@@ -18,10 +18,17 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
-    const checkAuth = () => setUser(getStoredUserSession());
+    const checkAuth = () => {
+      const sess = getStoredUserSession();
+      setUser(sess);
+    };
     checkAuth();
+    window.addEventListener('wings_customer_auth_change', checkAuth);
     window.addEventListener('wings_auth_change', checkAuth);
-    return () => window.removeEventListener('wings_auth_change', checkAuth);
+    return () => {
+      window.removeEventListener('wings_customer_auth_change', checkAuth);
+      window.removeEventListener('wings_auth_change', checkAuth);
+    };
   }, []);
 
   useEffect(() => {
