@@ -86,7 +86,27 @@ function sanitizeString(str) {
 
 // CORS & Security Headers Middleware
 app.use('*', async (c, next) => {
-  // Extract client IP address for Rate Limiting
+  // 1. Path Normalization: Strip leading /api prefix if present so /api/settings maps directly to /settings
+  const path = c.req.path;
+  if (path.startsWith('/api/') && !c.req.header('x-api-normalized')) {
+    const trimmedPath = path.replace(/^\/api/, '') || '/';
+    const newUrl = new URL(c.req.url);
+    newUrl.pathname = trimmedPath;
+    const newHeaders = new Headers(c.req.raw.headers);
+    newHeaders.set('x-api-normalized', 'true');
+    const initObj = {
+      method: c.req.method,
+      headers: newHeaders
+    };
+    if (c.req.method !== 'GET' && c.req.method !== 'HEAD') {
+      initObj.body = c.req.raw.body;
+      initObj.duplex = 'half';
+    }
+    const newReq = new Request(newUrl.toString(), initObj);
+    return app.fetch(newReq, c.env, c.executionCtx);
+  }
+
+  // 2. Extract client IP address for Rate Limiting
   const clientIP = c.req.header('cf-connecting-ip') || c.req.header('x-forwarded-for') || '127.0.0.1';
   const limitInfo = checkRateLimit(clientIP);
 
