@@ -155,29 +155,26 @@ export default function Home() {
       <AboutSection />
 
       {/* ── Reserve a Table — Collapsible Floor Map ──────────────────────── */}
-      <section id="floor-map" className="py-12 sm:py-16 bg-[#0E131C] text-white border-y border-[#D4AF37]/20 relative overflow-hidden">
-        {/* Subtle background glow */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] bg-[#D4AF37]/5 rounded-full blur-[140px] pointer-events-none" />
-
+      <section id="floor-map" className="py-10 sm:py-14 bg-[#FAF7F2] text-[#1F1810] border-y border-[#E5B82C]/30 relative">
         <span id="floor-plan" className="absolute -top-16" aria-hidden="true" />
         <span id="reserve-your-table" className="absolute -top-16" aria-hidden="true" />
 
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {!showFloorMap ? (
             /* ── Collapsed CTA Card ── */
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6 bg-[#141A24]/90 backdrop-blur-xl rounded-3xl px-8 py-7 border border-[#D4AF37]/30 shadow-2xl hover:border-[#D4AF37]/60 transition-all duration-300">
-              <div className="flex items-center gap-5">
-                <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#D4AF37] flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0">
-                  <Ticket className="w-7 h-7 text-[#0B0E14]" />
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-5 bg-[#1F1810] rounded-2xl px-6 py-6 border border-[#E5B82C]/30 shadow-xl">
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center shadow-lg shrink-0">
+                  <Ticket className="w-6 h-6 text-[#1F1810]" />
                 </div>
                 <div>
-                  <h3 className="font-serif font-bold text-xl text-[#F8E7A1] leading-tight">Reserve Your Table</h3>
-                  <p className="text-xs text-slate-300 mt-1">Choose your area, pick a table, pay & get instant QR ticket</p>
+                  <h3 className="font-serif font-bold text-lg text-[#F8E7A1] leading-tight">Reserve Your Table</h3>
+                  <p className="text-xs text-[#D4C4A0]/80 mt-0.5">Choose your area, pick a table, pay & get instant QR ticket</p>
                 </div>
               </div>
               <button
                 onClick={() => requireAuthAndExecute(() => setShowFloorMap(true))}
-                className="w-full sm:w-auto flex items-center justify-center gap-2 px-8 py-3.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#0B0E14] font-extrabold text-sm rounded-2xl shadow-xl shadow-amber-500/20 hover:scale-105 active:scale-95 transition-all duration-300"
+                className="w-full sm:w-auto flex items-center justify-center gap-2 px-7 py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#F8E7A1] text-[#1F1810] font-extrabold text-sm rounded-xl shadow-xl hover:opacity-90 active:scale-95 transition-all"
               >
                 <Ticket className="w-4 h-4" />
                 Reserve a Table Now
@@ -185,12 +182,12 @@ export default function Home() {
             </div>
           ) : (
             /* ── Expanded Floor Map ── */
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-serif font-bold text-xl text-white">Reserve Your Table</h3>
+                <h3 className="font-serif font-bold text-lg text-[#1F1810]">Reserve Your Table</h3>
                 <button
                   onClick={() => setShowFloorMap(false)}
-                  className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#D4AF37]/40 bg-[#141A24] text-amber-200 text-xs font-semibold hover:bg-[#1C2433] transition"
+                  className="flex items-center gap-1.5 px-4 py-1.5 rounded-full border border-[#E5B82C]/40 bg-white text-[#7A5C3A] text-xs font-semibold hover:bg-[#FFF8E7] transition"
                 >
                   ✕ Close
                 </button>

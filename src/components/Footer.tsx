@@ -36,26 +36,23 @@ export default function Footer() {
   const address      = settings.address        || DEFAULTS.address!;
 
   return (
-    <footer id="footer" className="bg-[#0B0E14] text-white pt-20 pb-10 border-t border-[#D4AF37]/20 relative overflow-hidden">
-      {/* Background Subtle Radial Glow */}
-      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-[800px] h-[300px] bg-[#D4AF37]/5 rounded-full blur-[140px] pointer-events-none" />
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+    <footer id="footer" className="bg-dark-950 text-white pt-16 pb-8 border-t border-white/10 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
           {/* Brand Col */}
           <div className="space-y-4">
             <a href="#home" className="inline-flex items-center space-x-3">
-              <CircularLogo size={56} />
+              <CircularLogo size={60} />
               <div>
                 <span className="font-serif font-bold text-xl text-white block">
-                  Wings River <span className="text-[#F5D061]">Café</span>
+                  Wings River <span className="text-gold-400">Café</span>
                 </span>
-                <span className="text-[10px] text-amber-200/90 font-semibold tracking-wider uppercase">
+                <span className="text-[10px] text-mint-300 font-semibold tracking-wider uppercase">
                   Lucknow Water Sports &amp; Café
                 </span>
               </div>
             </a>
-            <p className="font-sans text-xs text-slate-400 leading-relaxed">
+            <p className="font-sans text-xs text-gray-400 leading-relaxed">
               Lucknow&apos;s premier riverside family restaurant offering gourmet multicuisine delicacies, fairy light party canopies, and thrilling speedboat water sports rides.
             </p>
 
@@ -66,7 +63,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 title="Google Maps"
                 aria-label="Google Maps"
-                className="w-10 h-10 rounded-full bg-[#141A24] border border-[#D4AF37]/30 hover:bg-[#F5D061] hover:text-[#0B0E14] flex items-center justify-center transition-all text-white shadow-md"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-gold-500 hover:text-dark-950 flex items-center justify-center transition-colors text-white"
               >
                 <MapPin className="w-4 h-4" />
               </a>
@@ -77,7 +74,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 title="Instagram"
                 aria-label="Instagram"
-                className="w-10 h-10 rounded-full bg-[#141A24] border border-[#D4AF37]/30 hover:bg-[#F5D061] hover:text-[#0B0E14] flex items-center justify-center transition-all text-white shadow-md"
+                className="w-10 h-10 rounded-full bg-white/10 hover:bg-gold-500 hover:text-dark-950 flex items-center justify-center transition-colors text-white"
               >
                 <Instagram className="w-4 h-4" />
               </a>
@@ -88,7 +85,7 @@ export default function Footer() {
                 rel="noopener noreferrer"
                 title="Chat on WhatsApp"
                 aria-label="Chat on WhatsApp"
-                className="w-10 h-10 rounded-full bg-emerald-600/20 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-all text-emerald-400 border border-emerald-500/30 shadow-md"
+                className="w-10 h-10 rounded-full bg-emerald-600/30 hover:bg-emerald-500 hover:text-white flex items-center justify-center transition-colors text-emerald-400 border border-emerald-500/30"
               >
                 <MessageCircle className="w-5 h-5" />
               </a>
@@ -97,7 +94,7 @@ export default function Footer() {
                 href={`tel:${phone}`}
                 title={`Call ${phone}`}
                 aria-label={`Call ${phone}`}
-                className="w-10 h-10 rounded-full bg-gradient-to-br from-[#F5D061] to-[#D4AF37] text-[#0B0E14] flex items-center justify-center transition-all font-bold shadow-md hover:scale-105"
+                className="w-10 h-10 rounded-full bg-gold-400 hover:bg-gold-500 text-dark-950 flex items-center justify-center transition-colors font-bold"
               >
                 <Phone className="w-4 h-4" />
               </a>
@@ -106,51 +103,51 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-serif font-bold text-base text-[#F5D061] mb-4 uppercase tracking-wider">
+            <h4 className="font-serif font-bold text-base text-gold-400 mb-4 uppercase tracking-wider">
               Quick Links
             </h4>
-            <ul className="space-y-2.5 text-xs text-slate-300">
-              <li><a href="#home" className="hover:text-[#F8E7A1] transition-colors">Home</a></li>
-              <li><a href="#about" className="hover:text-[#F8E7A1] transition-colors">About Us</a></li>
-              <li><a href="#menu-card" className="hover:text-[#F8E7A1] transition-colors">Food Menu</a></li>
-              <li><a href="#gallery" className="hover:text-[#F8E7A1] transition-colors">Photo Gallery</a></li>
-              <li><a href="#reviews" className="hover:text-[#F8E7A1] transition-colors">Customer Reviews</a></li>
-              <li><a href="#blog" className="hover:text-[#F8E7A1] transition-colors">Blog &amp; News</a></li>
-              <li><a href="/admin" className="hover:text-[#F5D061] transition-colors font-semibold">Admin CMS Panel</a></li>
+            <ul className="space-y-2.5 text-xs text-gray-300">
+              <li><a href="#home" className="hover:text-mint-300 transition-colors">Home</a></li>
+              <li><a href="#about" className="hover:text-mint-300 transition-colors">About Us</a></li>
+              <li><a href="#menu-card" className="hover:text-mint-300 transition-colors">Food Menu</a></li>
+              <li><a href="#gallery" className="hover:text-mint-300 transition-colors">Photo Gallery</a></li>
+              <li><a href="#reviews" className="hover:text-mint-300 transition-colors">Customer Reviews</a></li>
+              <li><a href="#blog" className="hover:text-mint-300 transition-colors">Blog &amp; News</a></li>
+              <li><a href="/admin" className="hover:text-gold-400 transition-colors font-semibold">Admin CMS Panel</a></li>
             </ul>
           </div>
 
           {/* Opening Hours */}
           <div>
-            <h4 className="font-serif font-bold text-base text-[#F5D061] mb-4 uppercase tracking-wider">
+            <h4 className="font-serif font-bold text-base text-gold-400 mb-4 uppercase tracking-wider">
               Opening Hours
             </h4>
-            <div className="space-y-2 text-xs text-slate-300">
+            <div className="space-y-2 text-xs text-gray-300">
               <p><strong className="text-white">Monday – Sunday:</strong></p>
-              <p className="text-amber-200 font-semibold text-sm">{hours.split('(')[0].trim()}</p>
-              <p className="text-slate-400 pt-2">Lunch • Sunset Snacks • Late Dinner</p>
-              <p className="text-slate-400">Speedboat Rides available daily during daylight hours.</p>
+              <p className="text-mint-300 font-semibold text-sm">{hours.split('(')[0].trim()}</p>
+              <p className="text-gray-400 pt-2">Lunch • Sunset Snacks • Late Dinner</p>
+              <p className="text-gray-400">Speedboat Rides available daily during daylight hours.</p>
             </div>
           </div>
 
           {/* Location Details */}
           <div>
-            <h4 className="font-serif font-bold text-base text-[#F5D061] mb-4 uppercase tracking-wider">
+            <h4 className="font-serif font-bold text-base text-gold-400 mb-4 uppercase tracking-wider">
               Location
             </h4>
-            <address className="not-italic text-xs text-slate-300 space-y-1.5 leading-relaxed">
+            <address className="not-italic text-xs text-gray-300 space-y-1.5 leading-relaxed">
               <p>{address}</p>
-              <p className="pt-2 text-[#F5D061] font-bold">Tel: {phone}</p>
+              <p className="pt-2 text-gold-400 font-bold">Tel: {phone}</p>
               {settings.email && (
                 <p>
-                  <a href={`mailto:${settings.email}`} className="text-amber-200 hover:underline">{settings.email}</a>
+                  <a href={`mailto:${settings.email}`} className="text-mint-400 hover:underline">{settings.email}</a>
                 </p>
               )}
               <a
                 href={mapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="inline-flex items-center space-x-1 text-[#F5D061] hover:text-[#F8E7A1] pt-1 text-[11px] font-semibold"
+                className="inline-flex items-center space-x-1 text-amber-400 hover:text-amber-300 pt-1 text-[11px] font-semibold"
               >
                 <MapPin className="w-3 h-3" />
                 <span>View on Google Maps</span>
@@ -160,7 +157,7 @@ export default function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-400">
+        <div className="border-t border-white/10 pt-6 flex flex-col sm:flex-row items-center justify-between text-xs text-gray-400">
           <p>© {new Date().getFullYear()} Wings River Café. All Rights Reserved.</p>
           <p className="mt-2 sm:mt-0 flex items-center space-x-1">
             <span>Crafted with</span>

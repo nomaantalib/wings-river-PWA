@@ -169,57 +169,37 @@
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
-/* ── GLASSMORPHISM & LUXURY CARDS ──────────────────────────── */
+/* ── GLASSMORPHISM ─────────────────────────────────────────── */
 
 .glass-panel {
-  background: rgba(18, 22, 32, 0.75);
-  backdrop-filter: blur(24px);
-  -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(212, 175, 55, 0.15);
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4);
+  background: rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
 }
 
 .glass-panel-dark {
-  background: rgba(11, 14, 20, 0.88);
-  backdrop-filter: blur(28px);
-  -webkit-backdrop-filter: blur(28px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-}
-
-.glass-panel-gold {
-  background: linear-gradient(135deg, rgba(212, 175, 55, 0.12) 0%, rgba(18, 22, 32, 0.85) 100%);
+  background: rgba(6, 10, 18, 0.88);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(212, 175, 55, 0.25);
-  box-shadow: 0 16px 40px rgba(212, 175, 55, 0.08);
-}
-
-/* ── AMBIENT BACKGROUND GLOWS ──────────────────────────────── */
-
-.ambient-glow-gold {
-  background: radial-gradient(circle, rgba(212, 175, 55, 0.12) 0%, rgba(11, 14, 20, 0) 70%);
-}
-
-.ambient-glow-teal {
-  background: radial-gradient(circle, rgba(45, 90, 82, 0.15) 0%, rgba(11, 14, 20, 0) 70%);
+  border: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 /* ── INTERACTIVE HOVER LIFTS ───────────────────────────────── */
 
 .hover-lift {
-  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.3s ease, border-color 0.3s ease;
+  transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease;
 }
 .hover-lift:hover {
-  transform: translateY(-4px) scale(1.01);
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.45);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.35);
 }
 
 /* ── FOCUS VISIBLE RING ────────────────────────────────────── */
 :focus-visible {
-  outline: 2px solid #d4af37;
+  outline: 2px solid #f59e0b;
   outline-offset: 2px;
-  border-radius: 6px;
+  border-radius: 4px;
 }
 
 /* ── PRINT MEDIA RULES (Clean Single Page Ticket & Invoice Guarantee) ── */

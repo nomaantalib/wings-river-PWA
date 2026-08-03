@@ -58,20 +58,22 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
       <header
         className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${
           scrolled
-            ? 'bg-[#0B0E14]/85 backdrop-blur-xl shadow-2xl py-2.5 border-b border-[#D4AF37]/20 text-white'
-            : 'bg-gradient-to-b from-[#0B0E14]/90 via-[#0B0E14]/50 to-transparent py-4 text-white'
+            ? 'bg-mint-800/95 backdrop-blur-md shadow-lg py-2 border-b border-gold-500/30 text-white'
+            : 'bg-gradient-to-b from-dark-950/80 via-dark-950/40 to-transparent py-4 text-white'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
           {/* Brand Logo & Title */}
           <a href="#home" className="flex items-center space-x-3 group">
-            <CircularLogo size={50} className="shrink-0 transition-transform duration-300 group-hover:scale-105" />
+            <CircularLogo size={52} className="shrink-0" />
             <div className="flex flex-col">
               <span className="font-serif font-bold text-lg sm:text-xl tracking-tight leading-none text-white">
-                Wings River <span className="text-champagne-400">Café</span>
+                Wings River <span className="text-gold-500">Café</span>
               </span>
               <span
-                className="text-[9px] sm:text-[10px] font-semibold tracking-widest uppercase text-champagne-400/90 mt-0.5"
+                className={`text-[10px] font-medium tracking-wider uppercase ${
+                  scrolled ? 'text-gold-300' : 'text-mint-300'
+                }`}
               >
                 Lucknow Water Sports &amp; Café
               </span>
@@ -79,12 +81,14 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
           </a>
 
           {/* Desktop Navigation Links */}
-          <nav className="hidden lg:flex items-center space-x-6">
+          <nav className="hidden lg:flex items-center space-x-7">
             {navLinks.map((link) => (
               <a
                 key={link.name}
                 href={link.href}
-                className="text-xs font-semibold tracking-wide uppercase text-slate-300 hover:text-champagne-300 transition-colors py-1 relative after:content-[''] after:absolute after:bottom-0 after:left-0 after:w-0 after:h-[1.5px] after:bg-champagne-400 hover:after:w-full after:transition-all after:duration-300"
+                className={`text-sm font-medium transition-colors hover:text-gold-300 ${
+                  scrolled ? 'text-gray-100' : 'text-gray-200'
+                }`}
               >
                 {link.name}
               </a>
@@ -97,7 +101,7 @@ export default function Navbar({ onOpenBooking, onOpenAuth }: NavbarProps) {
             {/* Reserve CTA Button */}
             <a
               href="#floor-map"
-              className="hidden sm:flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#0B0E14] font-extrabold text-xs rounded-full shadow-lg shadow-amber-500/10 hover:scale-105 transition-all duration-300"
+              className="hidden sm:flex items-center space-x-1.5 px-4 py-2 bg-gradient-to-r from-[#C9B086] to-[#A3B58E] hover:from-[#E8DCB8] hover:to-[#B2C2A1] text-[#120B08] font-bold text-xs rounded-full shadow-lg hover:scale-105 transition-all duration-300"
             >
               <Calendar className="w-3.5 h-3.5" />
               <span>Reserve Table</span>
