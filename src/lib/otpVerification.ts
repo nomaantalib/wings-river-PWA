@@ -30,6 +30,7 @@ export function loadMsg91OtpScript(onLoaded?: (success: boolean) => void): void 
   }
 
   const urls = [
+    'https://control.msg91.com/app/assets/otp-provider/otp-provider.js',
     'https://verify.msg91.com/otp-provider.js',
     'https://verify.phone91.com/otp-provider.js',
   ];

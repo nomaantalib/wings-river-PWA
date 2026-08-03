@@ -152,12 +152,20 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
     }
   }, [scanFrame]);
 
-  // ── Reset on open ────────────────────────────────────────────────────────
+  // ── Reset on open & Auto-Start Camera ───────────────────────────────────────
   useEffect(() => {
     if (!isOpen) { stopCamera(); return; }
-    if (initTable) { setTableNumber(initTable); setPhase('order'); }
-    else { setPhase('scan'); }
-  }, [isOpen, initTable, stopCamera]);
+    if (initTable) {
+      setTableNumber(initTable);
+      setPhase('order');
+    } else {
+      setPhase('scan');
+      const timer = setTimeout(() => {
+        startCamera();
+      }, 150);
+      return () => clearTimeout(timer);
+    }
+  }, [isOpen, initTable, stopCamera, startCamera]);
 
   // ── Cart helpers ─────────────────────────────────────────────────────────
   const addToCart = (item: { id: string; name: string; price: number }) =>
@@ -354,51 +362,38 @@ export default function QROrderModal({ isOpen, onClose, tableNumber: initTable =
               {/* Divider */}
               <div className="flex items-center gap-3 max-w-xs mx-auto">
                 <hr className="flex-1 border-white/10" />
-                <span className="text-[10px] text-[#D4C4A0]/60 font-semibold uppercase tracking-widest">or enter manually</span>
+                <span className="text-[10px] text-[#D4C4A0]/60 font-semibold uppercase tracking-widest">or quick 1-tap table select</span>
                 <hr className="flex-1 border-white/10" />
               </div>
 
-              {/* Manual Table Entry & Table Object Confirmation */}
-              <div className="max-w-xs mx-auto space-y-4">
-                <div className="space-y-2">
-                  <label className="block text-xs font-bold text-[#F8E7A1]">Select Table Number</label>
-                  <select
-                    value={manualTable}
-                    onChange={e => {
-                      setManualTable(e.target.value);
-                      if (e.target.value) setTableNumber(e.target.value);
-                    }}
-                    className="w-full px-3.5 py-3 rounded-xl bg-white/10 border border-[#F5D061]/40 text-[#F8E7A1] text-sm font-bold focus:outline-none focus:ring-2 focus:ring-[#F5D061]/50"
-                  >
-                    <option value="">Select Your Table Number…</option>
-                    {['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','T11','T12','V1','V2','V3'].map(t => (
-                      <option key={t} value={t} className="bg-[#120B08]">Table {t} — Gomti Riverfront Deck</option>
-                    ))}
-                  </select>
+              {/* 1-Tap Table Pills */}
+              <div className="max-w-xs mx-auto space-y-3">
+                <label className="block text-xs font-bold text-[#F8E7A1] text-center">Tap Your Table Number:</label>
+                <div className="grid grid-cols-5 gap-2">
+                  {['T1','T2','T3','T4','T5','T6','T7','T8','T9','T10','V1','V2','V3','V4','V5'].map(t => {
+                    const isSelected = manualTable === t || tableNumber === t;
+                    return (
+                      <button
+                        key={t}
+                        type="button"
+                        onClick={async () => {
+                          setManualTable(t);
+                          setTableNumber(t);
+                          await createDiningSession(t);
+                          stopCamera();
+                          setPhase('order');
+                        }}
+                        className={`py-2 text-xs font-bold rounded-xl border transition-all active:scale-95 ${
+                          isSelected
+                            ? 'bg-[#F5D061] text-[#120B08] border-[#F5D061] shadow-lg shadow-[#F5D061]/20 scale-105'
+                            : 'bg-white/5 border-white/15 text-[#F8E7A1] hover:bg-[#F5D061]/20 hover:border-[#F5D061]/40'
+                        }`}
+                      >
+                        {t}
+                      </button>
+                    );
+                  })}
                 </div>
-
-                {manualTable && (
-                  <div className="bg-[#1F1810] border border-[#F5D061]/40 rounded-2xl p-4 space-y-3 text-center shadow-lg">
-                    <div className="flex items-center justify-center gap-2">
-                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                      <h4 className="text-base font-extrabold text-[#F8E7A1]">Table {manualTable} Confirmed</h4>
-                    </div>
-                    <p className="text-[11px] text-[#D4C4A0]/80 leading-relaxed">
-                      Laxman Mela Ground · Wings River Café Gomti Waterfront
-                    </p>
-                    <button
-                      onClick={async () => {
-                        setTableNumber(manualTable);
-                        await createDiningSession(manualTable);
-                        setPhase('order');
-                      }}
-                      className="w-full py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs uppercase tracking-wider rounded-xl shadow-lg transition hover:scale-[1.02] active:scale-95"
-                    >
-
-                      Confirm Table &amp; Open Menu ➔
-                    </button>
-                  </div>
-                )}
               </div>
 
             </div>
