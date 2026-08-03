@@ -27,6 +27,7 @@ export interface Env {
   CLOUDINARY_API_SECRET?: string;
   MSG91_AUTH_KEY?: string;
   MSG91_TEMPLATE_ID?: string;
+  RESEND_API_KEY?: string;
   ENVIRONMENT?: string;
   REALTIME_ENGINE?: any;
   [key: string]: any;

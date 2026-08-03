@@ -31,7 +31,7 @@ authRoutes.post('/send-otp', async (c: AppContext) => {
   if (!parseResult.success) {
     return errorResponse(c, parseResult.error.issues[0]?.message || 'Invalid phone input', 400, 'VALIDATION_ERROR');
   }
-  const res = await OtpService.sendOtp(c, parseResult.data.phone, getDB(c));
+  const res = await OtpService.sendOtp(c, parseResult.data.phone, parseResult.data.email, getDB(c));
   if (!res.success) return errorResponse(c, res.error || 'Failed to send OTP', res.status || 400);
   return successResponse(c, res);
 });

@@ -22,7 +22,7 @@ interface AuthContextType {
   isLoading: boolean;
   isAuthenticated: boolean;
 
-  sendOtp: (phone: string) => Promise<{ success: boolean; error?: string; dev_otp?: string }>;
+  sendOtp: (phone: string, email: string) => Promise<{ success: boolean; error?: string; dev_otp?: string }>;
   verifyOtp: (phone: string, otp: string) => Promise<{ success: boolean; error?: string }>;
   loginCustomerOtp: (phone: string, otp: string, name?: string, email?: string) => Promise<{ success: boolean; error?: string }>;
   loginCustomerWidgetToken: (token: string, phone: string, name?: string, email?: string) => Promise<{ success: boolean; error?: string }>;
@@ -145,12 +145,12 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   // 1. Send OTP
-  const sendOtp = async (phone: string) => {
+  const sendOtp = async (phone: string, email: string) => {
     try {
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone })
+        body: JSON.stringify({ phone, email })
       });
       const data = await res.json().catch(() => ({}));
       if (res.ok && data.success) {

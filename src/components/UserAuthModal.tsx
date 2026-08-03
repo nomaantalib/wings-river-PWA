@@ -119,9 +119,9 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
   const [phoneInput, setPhoneInput] = useState('');
   const [otpInput, setOtpInput] = useState(['', '', '', '']);
-  const [generatedOtp, setGeneratedOtp] = useState('');
-  const [nameInput, setNameInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
+  const [nameInput, setNameInput] = useState('');
+  const [generatedOtp, setGeneratedOtp] = useState('');
   const [matchedUser, setMatchedUser] = useState<RegisteredUser | null>(null);
   
   const [errorMsg, setErrorMsg] = useState('');
@@ -163,12 +163,16 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       setErrorMsg('Please enter a valid 10-digit Indian mobile number');
       return;
     }
+    if (!emailInput.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.trim())) {
+      setErrorMsg('Please enter a valid email address to receive your OTP');
+      return;
+    }
 
     setErrorMsg('');
     setIsSendingOtp(true);
 
     try {
-      const res = await sendOtp(cleanPhone);
+      const res = await sendOtp(cleanPhone, emailInput.trim());
       setIsSendingOtp(false);
 
       if (res.success) {
@@ -369,7 +373,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 </div>
                 <h4 className="text-xl font-serif font-bold text-[#78350F]">Login / Sign Up</h4>
                 <p className="text-xs text-[#92400E] max-w-xs mx-auto font-medium">
-                  Enter your 10-digit mobile number. Registered users are automatically logged in via OTP!
+                  Enter your mobile number &amp; email — we&apos;ll send your OTP to your inbox instantly!
                 </p>
               </div>
 
@@ -409,16 +413,35 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 )}
               </div>
 
+              {/* Email Input */}
+              <div>
+                <label className="block text-xs font-bold text-[#B45309] uppercase tracking-wider mb-1.5">Email Address <span className="text-red-500">*</span></label>
+                <div className="relative flex items-center">
+                  <div className="absolute left-3.5 pointer-events-none">
+                    <span className="text-sm">✉️</span>
+                  </div>
+                  <input
+                    type="email"
+                    required
+                    value={emailInput}
+                    onChange={e => setEmailInput(e.target.value)}
+                    placeholder="you@example.com"
+                    className="w-full pl-10 pr-4 py-3.5 bg-white border-2 border-[#FFD700] rounded-2xl text-[#1F1810] text-sm font-medium focus:outline-none focus:border-[#FFA000] focus:ring-4 focus:ring-[#FFD700]/30 shadow-sm transition"
+                  />
+                </div>
+                <p className="mt-1 text-[10px] text-[#92400E] font-medium">📩 OTP will be sent to this email address</p>
+              </div>
+
               <button
                 type="submit"
-                disabled={isSendingOtp || phoneInput.length !== 10}
+                disabled={isSendingOtp || phoneInput.length !== 10 || !emailInput.includes('@')}
                 className="w-full py-4 rounded-2xl bg-[#FFD700] hover:bg-[#FFC107] active:bg-[#FFA000] text-[#111111] font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 border border-[#FFA000]/40 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
               >
                 {isSendingOtp ? (
                   <RefreshCw className="w-5 h-5 animate-spin text-[#111111]" />
                 ) : (
                   <>
-                    <span>Send SMS OTP Code</span>
+                    <span>Send OTP to Email</span>
                     <ArrowRight className="w-4 h-4 text-[#111111]" />
                   </>
                 )}
@@ -448,7 +471,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 )}
 
                 <p className="text-xs text-[#92400E] font-medium">
-                  Sent to <span className="text-[#B45309] font-mono font-bold">+91 {phoneInput}</span>{' '}
+                  OTP sent to <span className="text-[#B45309] font-mono font-bold">{emailInput.replace(/(.{2}).*(@.*)/, '$1***$2')}</span> &amp; <span className="text-[#B45309] font-mono font-bold">+91 {phoneInput.slice(0,2)}****{phoneInput.slice(-4)}</span>{' '}
                   <button
                     type="button"
                     onClick={() => setStep('phone')}

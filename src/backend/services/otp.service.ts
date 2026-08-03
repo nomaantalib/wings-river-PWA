@@ -6,26 +6,29 @@ export class OtpService {
   private static inMemoryOtpStore = new Map<string, { otp_code: string; expires_at: number; attempts: number }>();
 
   /**
-   * Generates and stores a 6-digit OTP code, dispatches SMS via MSG91 v5 API,
-   * and returns in sub-second response time.
+   * Generates a 4-digit OTP, stores it, and sends it via Email (Resend.com) — no DLT required.
    */
-  static async sendOtp(c: AppContext, phone: string, db: D1Database | null) {
+  static async sendOtp(c: AppContext, phone: string, email: string, db: D1Database | null) {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
+    const cleanEmail = (email || '').trim().toLowerCase();
+
     if (cleanPhone.length !== 10) {
       return { success: false, error: 'Valid 10-digit Indian mobile number required', status: 400 };
+    }
+    if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
+      return { success: false, error: 'Valid email address required to receive OTP', status: 400 };
     }
 
     const now = Date.now();
     const OTP_EXPIRY_MS = 5 * 60 * 1000; // 5 minutes
-    const RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000; // 10 minutes
     const MAX_SENDS_PER_WINDOW = 5;
 
-    // Fast-path rate limit check in-memory
+    // Rate limit check in-memory
     const existingMem = OtpService.inMemoryOtpStore.get(cleanPhone);
     if (existingMem && (now - existingMem.expires_at + OTP_EXPIRY_MS) < 30000 && existingMem.attempts >= MAX_SENDS_PER_WINDOW) {
       return {
         success: false,
-        error: 'Too many OTP requests for this mobile number. Please wait a few minutes.',
+        error: 'Too many OTP requests. Please wait a few minutes.',
         status: 429
       };
     }
@@ -35,14 +38,14 @@ export class OtpService {
     const expiresAt = now + OTP_EXPIRY_MS;
     const otpId = `otp-${now}-${Math.random().toString(36).substring(2, 7)}`;
 
-    // Instant sub-millisecond in-memory record
+    // Store in-memory immediately
     OtpService.inMemoryOtpStore.set(cleanPhone, {
       otp_code: otpCode,
       expires_at: expiresAt,
       attempts: 0
     });
 
-    // Asynchronous D1 Database insert (non-blocking for ultra-fast response)
+    // Non-blocking D1 DB insert
     if (db) {
       (async () => {
         try {
@@ -59,85 +62,85 @@ export class OtpService {
       })();
     }
 
-    // Dispatch SMS via MSG91 Send OTP API v5
-    const authKey = (c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1').trim();
-    const templateId = (c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || '66854b41d688836ec4389df3').trim();
-    let smsSent = false;
-    let smsError = '';
+    // ── Dispatch OTP via BOTH Email (Resend) + SMS (MSG91) simultaneously ──
+    const resendApiKey = (c.env?.RESEND_API_KEY || process.env.RESEND_API_KEY || '').trim();
+    const msg91AuthKey = (c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1').trim();
+    const msg91TemplateId = (c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || '66854b41d688836ec4389df3').trim();
 
-    if (authKey) {
-      try {
-        const mobileWithCC = `91${cleanPhone}`;
+    const maskedPhone = `+91 ${cleanPhone.slice(0, 2)}****${cleanPhone.slice(-4)}`;
+    const maskedEmail = cleanEmail.replace(/(.{2}).*(@.*)/, '$1***$2');
 
-        // MSG91 v5 OTP — POST with JSON (primary, recommended)
-        const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 6000);
+    const emailHtml = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1.0"></head>
+<body style="margin:0;padding:0;background:#060a12;font-family:'Lato',Arial,sans-serif;">
+  <div style="max-width:480px;margin:40px auto;background:#111827;border-radius:20px;overflow:hidden;border:1px solid #1f2937;">
+    <div style="background:linear-gradient(135deg,#345E28,#4a7a3a);padding:32px 24px;text-align:center;">
+      <div style="font-size:32px;margin-bottom:8px;">🌿🦅</div>
+      <h1 style="margin:0;color:#FFD700;font-size:22px;font-weight:900;letter-spacing:1px;">Wings River Café</h1>
+      <p style="margin:4px 0 0;color:#a7f3d0;font-size:13px;">Riverside Restaurant &amp; Water Sports, Lucknow</p>
+    </div>
+    <div style="padding:32px 24px;text-align:center;">
+      <p style="color:#d1d5db;font-size:15px;margin:0 0 24px;">Your verification code for mobile <strong style="color:#FFD700;">${maskedPhone}</strong></p>
+      <div style="background:#1f2937;border:2px solid #FFD700;border-radius:16px;padding:28px 24px;margin:0 auto 24px;display:inline-block;min-width:200px;">
+        <p style="margin:0 0 10px;color:#9ca3af;font-size:11px;text-transform:uppercase;letter-spacing:3px;">Your OTP Code</p>
+        <div style="font-size:52px;font-weight:900;color:#FFD700;letter-spacing:16px;font-family:monospace;">${otpCode}</div>
+      </div>
+      <p style="color:#6b7280;font-size:13px;margin:0 0 6px;">⏱ Valid for <strong style="color:#d1d5db;">5 minutes</strong> only</p>
+      <p style="color:#6b7280;font-size:12px;margin:0;">Do not share this code with anyone.</p>
+    </div>
+    <div style="background:#0d1117;padding:16px 24px;text-align:center;border-top:1px solid #1f2937;">
+      <p style="margin:0;color:#4b5563;font-size:11px;">Wings River Café • Laxman Mela Ground, Lucknow • 07310008020</p>
+    </div>
+  </div>
+</body></html>`;
 
-        const postRes = await fetch('https://control.msg91.com/api/v5/otp', {
+    // Run both channels in parallel — user gets OTP from whichever arrives first
+    const [emailResult, smsResult] = await Promise.allSettled([
+      // ── Channel 1: Email via Resend ──
+      resendApiKey ? (async () => {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 8000);
+        const res = await fetch('https://api.resend.com/emails', {
           method: 'POST',
-          headers: {
-            'authkey': authKey,
-            'content-type': 'application/json'
-          },
+          headers: { 'Authorization': `Bearer ${resendApiKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            mobile: mobileWithCC,
-            otp: otpCode,
-            otp_length: 4,
-            template_id: templateId
+            from: 'Wings River Café <onboarding@resend.dev>',
+            to: [cleanEmail],
+            subject: `${otpCode} — Your Wings River Café OTP`,
+            html: emailHtml
           }),
-          signal: controller.signal
-        }).catch((e) => { smsError = String(e); return null; });
+          signal: ctrl.signal
+        }).finally(() => clearTimeout(t));
+        return res.status === 200 || res.status === 201;
+      })() : Promise.resolve(false),
 
-        clearTimeout(timeout);
+      // ── Channel 2: SMS via MSG91 ──
+      msg91AuthKey ? (async () => {
+        const ctrl = new AbortController();
+        const t = setTimeout(() => ctrl.abort(), 6000);
+        const res = await fetch('https://control.msg91.com/api/v5/otp', {
+          method: 'POST',
+          headers: { 'authkey': msg91AuthKey, 'content-type': 'application/json' },
+          body: JSON.stringify({ mobile: `91${cleanPhone}`, otp: otpCode, otp_length: 4, template_id: msg91TemplateId }),
+          signal: ctrl.signal
+        }).finally(() => clearTimeout(t));
+        const txt = await res.text().catch(() => '');
+        return txt.includes('success') || res.status === 200;
+      })() : Promise.resolve(false)
+    ]);
 
-        if (postRes) {
-          const rawText = await postRes.text().catch(() => '');
-          let data: any = {};
-          try { data = JSON.parse(rawText); } catch { data = { raw: rawText }; }
-          smsError = JSON.stringify(data);
-          if (data?.type === 'success' || postRes.status === 200 || rawText.includes('success')) {
-            smsSent = true;
-          }
-        }
-
-        // Fallback: GET with query params
-        if (!smsSent) {
-          const getController = new AbortController();
-          const getTimeout = setTimeout(() => getController.abort(), 5000);
-          const qs = new URLSearchParams({
-            authkey: authKey,
-            mobile: mobileWithCC,
-            otp: otpCode,
-            otp_length: '4',
-            template_id: templateId
-          }).toString();
-
-          const getRes = await fetch(`https://control.msg91.com/api/v5/otp?${qs}`, {
-            method: 'GET',
-            headers: { 'authkey': authKey },
-            signal: getController.signal
-          }).catch((e) => { smsError += ' | GET: ' + String(e); return null; });
-
-          clearTimeout(getTimeout);
-          if (getRes) {
-            const rawText2 = await getRes.text().catch(() => '');
-            smsError += ' | GET resp: ' + rawText2;
-            if (rawText2.includes('success') || getRes.status === 200) smsSent = true;
-          }
-        }
-      } catch (e) {
-        smsError = String(e);
-        console.warn('[MSG91 Send Error]', e);
-      }
-    }
+    const emailSent = emailResult.status === 'fulfilled' && emailResult.value === true;
+    const smsSent   = smsResult.status   === 'fulfilled' && smsResult.value   === true;
 
     return {
       success: true,
-      message: `OTP code sent to +91 ${cleanPhone.slice(0, 2)}****${cleanPhone.slice(-4)}`,
+      message: `OTP sent to ${maskedEmail} & ${maskedPhone}. Check email or SMS.`,
+      email_sent: emailSent,
       sms_sent: smsSent,
       expires_in_seconds: 300
     };
   }
+
+
 
   /**
    * Verifies the OTP code against D1 store, in-memory fallback, and MSG91 API v5.

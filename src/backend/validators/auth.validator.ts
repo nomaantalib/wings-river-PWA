@@ -3,7 +3,8 @@ import { z } from 'zod';
 export const sendOtpSchema = z.object({
   phone: z.string().transform(val => (val || '').replace(/\D/g, '').slice(-10)).refine(val => val.length === 10, {
     message: 'Valid 10-digit mobile number required'
-  })
+  }),
+  email: z.string().trim().email({ message: 'Valid email address required for OTP delivery' })
 });
 
 export const verifyOtpSchema = z.object({
