@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
-import { X, Phone, Lock, CheckCircle2, ShieldCheck, RefreshCw, User, LogOut, ArrowRight, Sparkles, KeyRound, Mail, Smartphone, UserCheck, UserPlus } from 'lucide-react';
-import { triggerMsg91Otp } from '@/lib/otpVerification';
 import { useAuth } from '@/context/AuthContext';
+import { triggerMsg91Otp } from '@/lib/otpVerification';
+import { ArrowRight, CheckCircle2, KeyRound, Mail, RefreshCw, ShieldCheck, Smartphone, User, UserCheck, UserPlus, X } from 'lucide-react';
+import React, { useEffect, useRef, useState } from 'react';
 
 export interface UserSession {
   phone: string;
@@ -492,7 +492,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
               </div>
 
               <div className="flex items-center justify-between text-xs text-[#D4C4A0]">
-                <span>Didn't receive code?</span>
+                <span>Didn&apos;t receive code?</span>
                 <button
                   type="button"
                   disabled={resendTimer > 0}

@@ -1943,7 +1943,7 @@ export default function AdminPage() {
                       <span className="text-[10px] bg-sky-500/20 text-sky-400 px-2.5 py-0.5 rounded-full font-mono font-normal">Free 25GB Storage</span>
                     </h3>
                     <p className="text-xs text-gray-400">
-                      Enter your free Cloudinary credentials to upload images directly to Cloudinary's fast global CDN from any Image Uploader on your CMS dashboard.
+                      Enter your free Cloudinary credentials to upload images directly to Cloudinary&apos;s fast global CDN from any Image Uploader on your CMS dashboard.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                       <div>
@@ -2175,7 +2175,7 @@ export default function AdminPage() {
                     <div className="text-center py-16 text-gray-500 text-sm bg-dark-900 border border-white/5 rounded-2xl">
                       <Globe className="w-10 h-10 mx-auto mb-3 opacity-30 text-amber-400" />
                       <p className="text-gray-300 font-bold">No custom pages published yet.</p>
-                      <p className="text-xs text-gray-500 mt-1">Click "Add New Page" to publish your first static page!</p>
+                      <p className="text-xs text-gray-500 mt-1">Click &quot;Add New Page&quot; to publish your first static page!</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -2404,7 +2404,7 @@ export default function AdminPage() {
                   {blogs.length === 0 ? (
                     <div className="text-center py-16 text-gray-500 text-sm bg-dark-900 border border-white/5 rounded-2xl">
                       <FileText className="w-10 h-10 mx-auto mb-3 opacity-30" />
-                      <p>No blog posts found. Click "Create Blog Story" to add your first article!</p>
+                      <p>No blog posts found. Click &quot;Create Blog Story&quot; to add your first article!</p>
                     </div>
                   ) : (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-5">

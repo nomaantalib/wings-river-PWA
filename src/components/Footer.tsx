@@ -1,9 +1,9 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
-import CircularLogo from './CircularLogo';
-import { MapPin, Instagram, Phone, Heart, MessageCircle } from 'lucide-react';
 import { getSiteSettings, SiteSettings } from '@/lib/db';
+import { Heart, Instagram, MapPin, MessageCircle, Phone } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import CircularLogo from './CircularLogo';
 
 const DEFAULTS: SiteSettings = {
   site_title: 'Wings River Café',
@@ -53,7 +53,7 @@ export default function Footer() {
               </div>
             </a>
             <p className="font-sans text-xs text-gray-400 leading-relaxed">
-              Lucknow's premier riverside family restaurant offering gourmet multicuisine delicacies, fairy light party canopies, and thrilling speedboat water sports rides.
+              Lucknow&apos;s premier riverside family restaurant offering gourmet multicuisine delicacies, fairy light party canopies, and thrilling speedboat water sports rides.
             </p>
 
             <div className="flex items-center space-x-3 pt-2">

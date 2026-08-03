@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { getStoredReviews, saveReview, Review, INITIAL_REVIEWS } from '@/lib/db';
-import { Quote, ChevronLeft, ChevronRight, MessageSquarePlus } from 'lucide-react';
+import { getStoredReviews, INITIAL_REVIEWS, Review, saveReview } from '@/lib/db';
+import { ChevronLeft, ChevronRight, MessageSquarePlus, Quote } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
 
 
 export default function ReviewsSection() {
@@ -77,7 +77,7 @@ export default function ReviewsSection() {
 
               {/* Review Quote */}
               <p className="font-serif text-lg sm:text-2xl text-dark-900 leading-relaxed italic mb-8">
-                "{reviews[currentIndex].review_text}"
+                &quot;{reviews[currentIndex].review_text}&quot;
               </p>
 
               {/* Author & Avatar */}
