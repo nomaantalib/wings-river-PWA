@@ -13,6 +13,7 @@
 /build
 /.vercel
 /.wrangler
+_worker.bundle
 .dev.vars
 
 # testing
