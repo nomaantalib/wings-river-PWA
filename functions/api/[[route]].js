@@ -7,10 +7,10 @@ const app = new Hono().basePath('/api');
 
 const JWT_SECRET = 'wings_river_cafe_jwt_secret_2026_super_secure';
 
-// Helper: Get D1 Database binding from env (supports DB, d1, DATABASE, D1, or custom binding names)
 function getDB(c) {
-  if (!c || !c.env) return null;
-  return c.env.DB || c.env.DB_BINDING || c.env.wings_river_cafe_reservations || c.env.d1 || c.env.DATABASE || c.env.D1 || null;
+  if (!c) return null;
+  const env = c.env || (typeof process !== 'undefined' ? process.env : {}) || {};
+  return env.DB || env.wings_river_cafe_reservations || env.DB_BINDING || env.wings_river_pwa || env.d1 || env.DATABASE || env.D1 || (typeof DB !== 'undefined' ? DB : null);
 }
 
 // ── SECURITY & PERFORMANCE ENGINE DATA STRUCTURES ────────────────────────────
@@ -1644,7 +1644,7 @@ const handlePostContact = async (c) => {
 };
 
 const handleDeleteContact = async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true });
   try {
     await db.prepare("UPDATE contact_messages SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -1666,7 +1666,7 @@ app.delete('/messages/:id', handleDeleteContact);
 
 // ── 19. PROMO PAGES ─────────────────────────────────────────────────────────
 app.get('/promopages', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [], d1_connected: false });
   try {
     await ensureTables(db);
@@ -1678,7 +1678,7 @@ app.get('/promopages', async (c) => {
 });
 
 app.post('/promopages', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, message: 'Local storage active' });
   try {
     await ensureTables(db);
@@ -1699,7 +1699,7 @@ app.post('/promopages', async (c) => {
 });
 
 app.delete('/promopages/:id', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, message: 'Local storage active' });
   try {
     await db.prepare("UPDATE promo_pages SET is_deleted = 1 WHERE id = ?").bind(c.req.param('id')).run();
@@ -1713,7 +1713,7 @@ app.delete('/promopages/:id', async (c) => {
 
 // GET /tables - List all tables and clusters
 app.get('/tables', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   if (!db) return c.json({ success: true, data: [] });
   try {
     await ensureTables(db);
@@ -1727,7 +1727,7 @@ app.get('/tables', async (c) => {
 
 // GET /tables/:tableNumber - Get details for a specific table (e.g. T4)
 app.get('/tables/:tableNumber', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   const tableNum = c.req.param('tableNumber').toUpperCase();
   if (!db) return c.json({ success: true, table_number: tableNum, status: 'free' });
   try {
@@ -1764,7 +1764,7 @@ app.get('/tables/:tableNumber/qr', async (c) => {
 
 // POST /tables/:tableNumber/order - Submit direct food order for specific table
 app.post('/tables/:tableNumber/order', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   const tableNum = c.req.param('tableNumber').toUpperCase();
   if (!db) return c.json({ success: true, order_id: `ord-${Date.now()}`, table_number: tableNum, message: 'Local storage active' });
   try {
@@ -1798,7 +1798,7 @@ app.post('/tables/:tableNumber/order', async (c) => {
 
 // POST /tables/:tableNumber/call-waiter - Submit waiter call alert for specific table
 app.post('/tables/:tableNumber/call-waiter', async (c) => {
-  const db = c.env?.DB;
+  const db = getDB(c);
   const tableNum = c.req.param('tableNumber').toUpperCase();
   if (!db) return c.json({ success: true, message: 'Local storage active' });
   try {
