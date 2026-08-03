@@ -56,11 +56,11 @@ export default function LoadingScreen() {
       />
 
       <div className="relative flex flex-col items-center z-10 space-y-4">
-        {/* PWA Mobile Logo Icon — Pure Smooth Fading, 1px Padding, 25% Border Radius */}
+        {/* PWA Mobile Logo Icon — Pure Smooth Fading, 1px Padding, 20% Border Radius */}
         <div
-          className="relative w-24 h-24 sm:w-28 sm:h-28 p-[1px] rounded-[25%] overflow-hidden shadow-2xl transition-opacity duration-[2000ms] cubic-bezier(0.4, 0, 0.2, 1)"
+          className="relative w-24 h-24 sm:w-28 sm:h-28 p-[1px] rounded-[20%] overflow-hidden shadow-2xl transition-opacity duration-[2000ms] cubic-bezier(0.4, 0, 0.2, 1)"
           style={{
-            borderRadius: '25%',
+            borderRadius: '20%',
             padding: '1px',
             opacity: iconLoaded ? 1 : 0.05,
             boxShadow: iconLoaded
@@ -75,8 +75,8 @@ export default function LoadingScreen() {
             width={112}
             height={112}
             priority
-            className="w-full h-full object-cover rounded-[25%]"
-            style={{ borderRadius: '25%' }}
+            className="w-full h-full object-cover rounded-[20%]"
+            style={{ borderRadius: '20%' }}
           />
         </div>
 
