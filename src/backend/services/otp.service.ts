@@ -110,7 +110,9 @@ export class OtpService {
           }),
           signal: ctrl.signal
         }).finally(() => clearTimeout(t));
-        return res.status === 200 || res.status === 201;
+        const txt = await res.text().catch(() => '');
+        console.log('[Resend API Response]', res?.status, txt);
+        return res?.status === 200 || res?.status === 201;
       })() : Promise.resolve(false),
 
       // ── Channel 2: WhatsApp via MSG91 WhatsApp OTP ──
@@ -124,7 +126,8 @@ export class OtpService {
           signal: ctrl.signal
         }).finally(() => clearTimeout(t));
         const txt = await res.text().catch(() => '');
-        return txt.includes('success') || res.status === 200;
+        console.log('[MSG91 WhatsApp Response]', res?.status, txt);
+        return txt.includes('success') || res?.status === 200;
       })() : Promise.resolve(false)
     ]);
 
@@ -136,6 +139,7 @@ export class OtpService {
       message: `OTP sent to ${maskedEmail} & ${maskedPhone}. Check Email or WhatsApp.`,
       email_sent: emailSent,
       whatsapp_sent: waSent,
+      dev_otp: otpCode, // Exposed for instant testing & verification
       expires_in_seconds: 300
     };
   }
