@@ -27,8 +27,8 @@ export class AuthService {
     const secret = this.getJwtSecret(c);
     const now = Math.floor(Date.now() / 1000);
 
-    // Access Token: 1 hour expiry (3600 seconds)
-    const accessTokenExp = now + 3600;
+    // Permanent Session Access Token: 10 years expiry (315360000 seconds) - retained until explicit logout
+    const accessTokenExp = now + 315360000;
     const accessToken = await sign(
       {
         sub: user.id,
@@ -45,8 +45,8 @@ export class AuthService {
       'HS256'
     );
 
-    // Refresh Token: 7 days expiry (604800 seconds)
-    const refreshTokenExp = now + 604800;
+    // Permanent Session Refresh Token: 10 years expiry (315360000 seconds)
+    const refreshTokenExp = now + 315360000;
     const refreshTokenPayload = `rf-${user.id}-${now}-${Math.random().toString(36).substring(2, 9)}`;
     const refreshToken = await sign(
       {

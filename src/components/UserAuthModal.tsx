@@ -473,7 +473,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 )}
 
                 <p className="text-xs text-[#92400E] font-medium">
-                  OTP sent to <span className="text-[#B45309] font-mono font-bold">{emailInput.replace(/(.{2}).*(@.*)/, '$1***$2')}</span> &amp; <span className="text-[#B45309] font-mono font-bold">+91 {phoneInput.slice(0,2)}****{phoneInput.slice(-4)}</span>{' '}
+                  OTP sent via WhatsApp to <span className="text-[#B45309] font-mono font-bold">+91 {phoneInput.slice(0,2)}****{phoneInput.slice(-4)}</span> &amp; Email to <span className="text-[#B45309] font-mono font-bold">{emailInput.replace(/(.{2}).*(@.*)/, '$1***$2')}</span>{' '}
                   <button
                     type="button"
                     onClick={() => setStep('phone')}
