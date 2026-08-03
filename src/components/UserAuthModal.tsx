@@ -118,7 +118,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   const { sendOtp, loginCustomerOtp, loginCustomerWidgetToken } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
   const [phoneInput, setPhoneInput] = useState('');
-  const [otpInput, setOtpInput] = useState(['', '', '', '', '', '']);
+  const [otpInput, setOtpInput] = useState(['', '', '', '']);
   const [generatedOtp, setGeneratedOtp] = useState('');
   const [nameInput, setNameInput] = useState('');
   const [emailInput, setEmailInput] = useState('');
@@ -172,7 +172,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       setIsSendingOtp(false);
 
       if (res.success) {
-        setOtpInput(['', '', '', '', '', '']);
+        setOtpInput(['', '', '', '']);
         setStep('otp');
         setResendTimer(30);
         verifyingRef.current = false;
@@ -197,7 +197,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       otpRefs.current[index + 1]?.focus();
     }
 
-    if (newOtp.every(digit => digit !== '') && newOtp.join('').length === 6) {
+    if (newOtp.every(digit => digit !== '') && newOtp.join('').length === 4) {
       setTimeout(() => {
         submitOtpCode(newOtp.join(''));
       }, 50);
@@ -256,8 +256,8 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredCode = otpInput.join('');
-    if (enteredCode.length !== 6) {
-      setErrorMsg('Please enter the 6-digit OTP code received via SMS');
+    if (enteredCode.length !== 4) {
+      setErrorMsg('Please enter the 4-digit OTP code received via SMS');
       return;
     }
     submitOtpCode(enteredCode);
@@ -296,7 +296,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     const code = String(Math.floor(100000 + Math.random() * 900000));
     setGeneratedOtp(code);
     setResendTimer(30);
-    setOtpInput(['', '', '', '', '', '']);
+    setOtpInput(['', '', '', '']);
     setErrorMsg('');
     otpRefs.current[0]?.focus();
   };
@@ -333,20 +333,20 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           </button>
         </div>
 
-        {/* Step Indicator Bar — Rich Pista Green Theme */}
-        <div className="px-6 py-3.5 bg-[#93C572] border-b border-[#2D5A27]/30 flex items-center justify-between text-xs font-extrabold text-[#1B4318]">
-          <div className={`flex items-center space-x-2 ${step === 'phone' ? 'text-[#1B4318] font-black scale-105' : 'text-[#1B4318]/75'}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${step === 'phone' ? 'bg-[#1B4318] text-[#FFD700]' : 'bg-[#E8F5E9] text-[#1B4318]'}`}>1</span>
+        {/* Step Indicator Bar — Navbar Header Green Theme (#345E28 = mint-800) */}
+        <div className="px-6 py-3.5 bg-[#345E28] border-b border-[#1B4318]/40 flex items-center justify-between text-xs font-extrabold text-white">
+          <div className={`flex items-center space-x-2 ${step === 'phone' ? 'text-white font-black scale-105' : 'text-white/65'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${step === 'phone' ? 'bg-[#FFD700] text-[#1B4318]' : 'bg-white/20 text-white'}`}>1</span>
             <span className="tracking-wide">Mobile</span>
           </div>
-          <div className="w-8 h-0.5 bg-[#1B4318]/40" />
-          <div className={`flex items-center space-x-2 ${step === 'otp' ? 'text-[#1B4318] font-black scale-105' : step === 'profile' ? 'text-[#1B4318]/85' : 'opacity-65'}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${step === 'otp' ? 'bg-[#1B4318] text-[#FFD700]' : 'bg-[#E8F5E9] text-[#1B4318]'}`}>2</span>
+          <div className="w-8 h-0.5 bg-white/30" />
+          <div className={`flex items-center space-x-2 ${step === 'otp' ? 'text-white font-black scale-105' : step === 'profile' ? 'text-white/75' : 'text-white/50'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${step === 'otp' ? 'bg-[#FFD700] text-[#1B4318]' : 'bg-white/20 text-white'}`}>2</span>
             <span className="tracking-wide">OTP Code</span>
           </div>
-          <div className="w-8 h-0.5 bg-[#1B4318]/40" />
-          <div className={`flex items-center space-x-2 ${step === 'profile' ? 'text-[#1B4318] font-black scale-105' : 'opacity-65'}`}>
-            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${step === 'profile' ? 'bg-[#1B4318] text-[#FFD700]' : 'bg-[#E8F5E9] text-[#1B4318]'}`}>3</span>
+          <div className="w-8 h-0.5 bg-white/30" />
+          <div className={`flex items-center space-x-2 ${step === 'profile' ? 'text-white font-black scale-105' : 'text-white/50'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-black shadow-sm ${step === 'profile' ? 'bg-[#FFD700] text-[#1B4318]' : 'bg-white/20 text-white'}`}>3</span>
             <span className="tracking-wide">Sign Up</span>
           </div>
         </div>
@@ -433,7 +433,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 <div className="w-12 h-12 rounded-2xl bg-[#FFD700] border-2 border-[#FFA000] flex items-center justify-center mx-auto mb-2 text-[#111111] shadow-md shadow-amber-400/30">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h4 className="text-xl font-serif font-bold text-[#78350F]">Enter 6-Digit OTP</h4>
+                <h4 className="text-xl font-serif font-bold text-[#78350F]">Enter 4-Digit OTP</h4>
                 
                 {matchedUser ? (
                   <div className="px-3 py-1 bg-emerald-100 border border-emerald-300 rounded-full inline-flex items-center space-x-1.5 text-xs text-emerald-800 font-bold my-1 shadow-sm">
@@ -490,7 +490,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
               <button
                 type="submit"
-                disabled={isVerifying || otpInput.join('').length !== 6}
+                disabled={isVerifying || otpInput.join('').length !== 4}
                 className="w-full py-4 rounded-2xl bg-[#FFD700] hover:bg-[#FFC107] active:bg-[#FFA000] text-[#111111] font-black text-xs uppercase tracking-wider shadow-lg shadow-amber-400/30 border border-[#FFA000]/40 transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
               >
                 {isVerifying ? (

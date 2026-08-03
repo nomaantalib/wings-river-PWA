@@ -10,14 +10,14 @@ export const verifyOtpSchema = z.object({
   phone: z.string().transform(val => (val || '').replace(/\D/g, '').slice(-10)).refine(val => val.length === 10, {
     message: 'Valid 10-digit mobile number required'
   }),
-  otp: z.string().trim().length(6, { message: '6-digit OTP code required' })
+  otp: z.string().trim().length(4, { message: '4-digit OTP code required' })
 });
 
 export const customerLoginSchema = z.object({
   phone: z.string().transform(val => (val || '').replace(/\D/g, '').slice(-10)).refine(val => val.length === 10, {
     message: 'Valid 10-digit mobile number required'
   }),
-  otp: z.string().trim().length(6, { message: '6-digit OTP code required' }),
+  otp: z.string().trim().length(4, { message: '4-digit OTP code required' }),
   name: z.string().trim().optional(),
   email: z.string().trim().email({ message: 'Invalid email address' }).optional().or(z.literal(''))
 });

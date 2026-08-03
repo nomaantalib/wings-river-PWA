@@ -30,8 +30,8 @@ export class OtpService {
       };
     }
 
-    // Generate 6-digit cryptographically random OTP
-    const otpCode = String(Math.floor(100000 + Math.random() * 900000));
+    // Generate 4-digit OTP
+    const otpCode = String(Math.floor(1000 + Math.random() * 9000));
     const expiresAt = now + OTP_EXPIRY_MS;
     const otpId = `otp-${now}-${Math.random().toString(36).substring(2, 7)}`;
 
@@ -59,59 +59,62 @@ export class OtpService {
       })();
     }
 
-    // Dispatch SMS via MSG91 API with fast timeout
+    // Dispatch SMS via MSG91 API v5
     const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
     const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || '66854b41d688836ec4389df3';
     let smsSent = false;
 
     if (authKey) {
       try {
-        const queryParams = new URLSearchParams({
-          mobile: `91${cleanPhone}`,
-          otp: otpCode,
-          authkey: authKey,
-          ...(templateId ? { template_id: templateId } : {})
-        }).toString();
-
-        const endpoint = `https://control.msg91.com/api/v5/otp?${queryParams}`;
+        // MSG91 v5 primary: POST with JSON body (recommended for Cloudflare Workers)
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 3500);
+        const timeout = setTimeout(() => controller.abort(), 5000);
 
-        const res = await fetch(endpoint, {
-          method: 'GET',
+        const postRes = await fetch('https://control.msg91.com/api/v5/otp', {
+          method: 'POST',
           headers: {
             'authkey': authKey,
+            'Content-Type': 'application/json',
             'Accept': 'application/json'
           },
+          body: JSON.stringify({
+            mobile: `91${cleanPhone}`,
+            otp: otpCode,
+            template_id: templateId
+          }),
           signal: controller.signal
         }).catch(() => null);
 
         clearTimeout(timeout);
 
-        if (res && res.ok) {
-          const data: any = await res.json().catch(() => ({}));
-          if (data?.type === 'success' || data?.type !== 'error' || data?.message?.toLowerCase().includes('success')) {
+        if (postRes) {
+          const data: any = await postRes.json().catch(() => ({}));
+          if (data?.type === 'success' || postRes.status === 200) {
             smsSent = true;
           }
         }
 
-        // Fallback POST if GET failed
+        // Fallback: GET endpoint if POST failed
         if (!smsSent) {
-          const postRes = await fetch('https://control.msg91.com/api/v5/otp', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'authkey': authKey
-            },
-            body: JSON.stringify({
-              mobile: `91${cleanPhone}`,
-              otp: otpCode,
-              ...(templateId ? { template_id: templateId } : {})
-            })
+          const getController = new AbortController();
+          const getTimeout = setTimeout(() => getController.abort(), 4000);
+          const queryParams = new URLSearchParams({
+            authkey: authKey,
+            mobile: `91${cleanPhone}`,
+            otp: otpCode,
+            template_id: templateId
+          }).toString();
+
+          const getRes = await fetch(`https://control.msg91.com/api/v5/otp?${queryParams}`, {
+            method: 'GET',
+            headers: { 'authkey': authKey, 'Accept': 'application/json' },
+            signal: getController.signal
           }).catch(() => null);
 
-          if (postRes && postRes.ok) {
-            smsSent = true;
+          clearTimeout(getTimeout);
+          if (getRes && getRes.ok) {
+            const getData: any = await getRes.json().catch(() => ({}));
+            if (getData?.type === 'success' || getData?.type !== 'error') smsSent = true;
           }
         }
       } catch (e) {
@@ -134,12 +137,12 @@ export class OtpService {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
     const cleanOtp = (otp || '').trim();
 
-    if (cleanPhone.length !== 10 || cleanOtp.length !== 6) {
-      return { success: false, error: 'Valid 10-digit phone and 6-digit OTP required', status: 400 };
+    if (cleanPhone.length !== 10 || cleanOtp.length !== 4) {
+      return { success: false, error: 'Valid 10-digit phone and 4-digit OTP required', status: 400 };
     }
 
     // Development & Testing master bypass
-    if (cleanOtp === '123456') {
+    if (cleanOtp === '1234') {
       if (db) {
         await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
       }
