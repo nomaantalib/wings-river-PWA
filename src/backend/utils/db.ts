@@ -7,6 +7,8 @@ export function getDB(c: AppContext): D1Database | null {
   const env = c.env || (typeof process !== 'undefined' ? (process as any).env : {}) || {};
   return (
     env.DB ||
+    env['wings-river-cafe'] ||
+    env.wings_river_cafe ||
     env.wings_river_cafe_reservations ||
     env.DB_BINDING ||
     env.d1 ||
