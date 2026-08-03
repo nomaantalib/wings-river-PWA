@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { useAuth } from '@/context/AuthContext';
+import { realtimeClient } from '@/lib/realtimeClient';
 import FloorPlanBuilder from '@/components/FloorPlanBuilder';
 import {
   getStoredReservations, updateReservationStatus, deleteReservation,
@@ -36,7 +38,7 @@ import {
 } from '@/lib/db';
 import {
   Lock, Utensils, Calendar, FileText, MessageSquare, Mail, Plus, Trash2, Edit3,
-  Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
+  Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert, RefreshCw,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
   Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen, Compass, Zap, Loader2,
   ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3, Code, Terminal,
@@ -467,9 +469,46 @@ function ConfirmDelete({ label, onConfirm, onCancel }: { label: string; onConfir
 }
 
 export default function AdminPage() {
+  const { loginAdmin, logout, user: authUser } = useAuth();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+
+  // Sync auth state if user is logged in with Admin role
+  useEffect(() => {
+    if (authUser && (authUser.role === 'Admin' || authUser.role === 'Administrator' || authUser.role === 'Manager')) {
+      setIsAuthenticated(true);
+    }
+  }, [authUser]);
+
+  // Connect Real-Time WebSocket Engine for Live Dashboard Updates
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    realtimeClient.connect();
+    realtimeClient.subscribe('room:manager');
+    realtimeClient.subscribe('room:reservations');
+    realtimeClient.subscribe('room:orders');
+    realtimeClient.subscribe('room:tables');
+
+    const handleRealtimeRefresh = () => {
+      loadAll(false);
+    };
+
+    realtimeClient.on('reservation.created', handleRealtimeRefresh);
+    realtimeClient.on('reservation.updated', handleRealtimeRefresh);
+    realtimeClient.on('order.created', handleRealtimeRefresh);
+    realtimeClient.on('table.status_changed', handleRealtimeRefresh);
+    realtimeClient.on('dashboard.metrics_updated', handleRealtimeRefresh);
+
+    return () => {
+      realtimeClient.off('reservation.created', handleRealtimeRefresh);
+      realtimeClient.off('reservation.updated', handleRealtimeRefresh);
+      realtimeClient.off('order.created', handleRealtimeRefresh);
+      realtimeClient.off('table.status_changed', handleRealtimeRefresh);
+      realtimeClient.off('dashboard.metrics_updated', handleRealtimeRefresh);
+    };
+  }, [isAuthenticated]);
   const [activeTab, setActiveTab] = useState<TabKey>('dashboard');
   const [isLoading, setIsLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -709,26 +748,18 @@ export default function AdminPage() {
     e.preventDefault();
     setErrorMsg('');
     try {
-      const res = await fetch(getApiUrl('/api/auth/login'), {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: 'admin', password: passwordInput })
-      });
-      if (res.ok) {
-        const data = await res.json();
-        if (data.success && data.token) {
-          localStorage.setItem('wings_admin_jwt', data.token);
-          localStorage.setItem('wings_admin_auth', 'true');
-          setIsAuthenticated(true);
-          loadAll();
-          return;
-        } else if (data.error) {
-          setErrorMsg(data.error);
-          return;
-        }
+      const res = await loginAdmin('admin', passwordInput);
+      if (res.success) {
+        localStorage.setItem('wings_admin_auth', 'true');
+        setIsAuthenticated(true);
+        loadAll();
+        return;
+      } else if (res.error) {
+        setErrorMsg(res.error);
+        return;
       }
     } catch (err) {
-      console.error('[D1 Login Error]:', err);
+      console.error('[Admin Login Error]:', err);
     }
 
     // Fallback authentication for master admin keys (if API server is offline or returned failure)
@@ -748,6 +779,7 @@ export default function AdminPage() {
   };
 
   const handleLogout = () => {
+    logout();
     localStorage.removeItem('wings_admin_auth');
     localStorage.removeItem('wings_admin_jwt');
     setIsAuthenticated(false);
@@ -1202,6 +1234,14 @@ export default function AdminPage() {
   // ─── MAIN ADMIN WORKSPACE ──────────────────────────────────────────────────
   return (
     <main className="min-h-screen bg-dark-950 text-white font-sans flex relative overflow-x-hidden">
+      {/* Saving and D1 Sync Loading Indicator */}
+      {(isSavingBlog || isSavingSettings || isSavingGallery) && (
+        <div className="fixed top-5 right-5 z-[300] bg-gradient-to-r from-amber-400 via-amber-500 to-amber-600 text-slate-950 px-4 py-2.5 rounded-2xl shadow-[0_10px_30px_rgba(245,208,97,0.4)] font-bold text-xs flex items-center space-x-2.5 animate-pulse border border-amber-200">
+          <RefreshCw className="w-4 h-4 animate-spin text-slate-950" />
+          <span>Saving & Syncing D1 Database...</span>
+        </div>
+      )}
+
       {/* Mobile Backdrop Overlay */}
       {isMobileMenuOpen && (
         <div

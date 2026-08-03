@@ -18,6 +18,8 @@
     "db:patch-blogs": "wrangler d1 execute DB --remote --command=\"ALTER TABLE blogs ADD COLUMN created_at DATETIME; ALTER TABLE blogs ADD COLUMN updated_at DATETIME; ALTER TABLE blogs ADD COLUMN published_at DATETIME; ALTER TABLE blogs ADD COLUMN video_url TEXT; ALTER TABLE blogs ADD COLUMN version INTEGER DEFAULT 1; ALTER TABLE blogs ADD COLUMN is_deleted INTEGER DEFAULT 0; ALTER TABLE blogs ADD COLUMN images TEXT DEFAULT '[]';\""
   },
   "dependencies": {
+    "@hookform/resolvers": "^5.7.1",
+    "@tanstack/react-query": "^5.101.4",
     "clsx": "^2.1.1",
     "framer-motion": "^11.11.11",
     "hono": "^4.12.31",
@@ -25,8 +27,10 @@
     "next": "^14.2.16",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "react-hook-form": "^7.84.0",
     "react-pageflip": "^2.0.3",
-    "tailwind-merge": "^2.5.4"
+    "tailwind-merge": "^2.5.4",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20.17.6",

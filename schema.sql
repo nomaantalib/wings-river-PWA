@@ -19,21 +19,56 @@ DROP TABLE IF EXISTS menu_items;
 DROP TABLE IF EXISTS menu_categories;
 DROP TABLE IF EXISTS pages;
 DROP TABLE IF EXISTS media_library;
+DROP TABLE IF EXISTS otps;
+DROP TABLE IF EXISTS refresh_tokens;
 DROP TABLE IF EXISTS users;
 
 -- 1. Users Table for JWT & RBAC Auth
 CREATE TABLE IF NOT EXISTS users (
   id TEXT PRIMARY KEY,
-  username TEXT UNIQUE NOT NULL,
-  password_hash TEXT NOT NULL,
+  username TEXT UNIQUE,
+  phone TEXT UNIQUE,
+  password_hash TEXT,
   email TEXT,
-  role TEXT NOT NULL DEFAULT 'Author', -- Administrator, Editor, Author
+  name TEXT,
+  role TEXT NOT NULL DEFAULT 'Customer', -- Customer, Waiter, Kitchen, Manager, Admin
+  is_active INTEGER DEFAULT 1,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
--- Create index on username
+-- Create indexes on users
 CREATE INDEX IF NOT EXISTS idx_users_username ON users(username);
+CREATE INDEX IF NOT EXISTS idx_users_phone ON users(phone);
+CREATE INDEX IF NOT EXISTS idx_users_role ON users(role);
+
+-- 1b. Refresh Tokens Table for JWT Session Management & Rotation
+CREATE TABLE IF NOT EXISTS refresh_tokens (
+  id TEXT PRIMARY KEY,
+  user_id TEXT NOT NULL,
+  token_hash TEXT UNIQUE NOT NULL,
+  device_info TEXT DEFAULT '',
+  expires_at INTEGER NOT NULL,
+  revoked INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON refresh_tokens(user_id);
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON refresh_tokens(token_hash);
+
+-- 1c. OTP Verification Table with Retry Limit & Expiration
+CREATE TABLE IF NOT EXISTS otps (
+  id TEXT PRIMARY KEY,
+  phone TEXT NOT NULL,
+  otp_code TEXT NOT NULL,
+  attempts INTEGER DEFAULT 0,
+  max_attempts INTEGER DEFAULT 5,
+  expires_at INTEGER NOT NULL,
+  created_at INTEGER NOT NULL
+);
+
+CREATE INDEX IF NOT EXISTS idx_otps_phone ON otps(phone);
 
 -- 2. Media Library Table
 CREATE TABLE IF NOT EXISTS media_library (

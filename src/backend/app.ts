@@ -1,9 +1,11 @@
 import { Hono } from 'hono';
 import { etag } from 'hono/etag';
-import { AppContext } from './types';
+import { AppContext, Env, AppVariables } from './types';
 import { getDB } from './utils/db';
 import { corsMiddleware } from './middleware/cors';
 import { rateLimitMiddleware } from './middleware/rateLimit';
+import { authMiddleware } from './middleware/auth';
+import { rbacMiddleware } from './middleware/rbac';
 import { jsonResponse, successResponse, errorResponse } from './utils/response';
 
 import { AuthService } from './services/auth.service';
@@ -16,9 +18,18 @@ import { ContactService } from './services/contact.service';
 import { MediaService } from './services/media.service';
 import { SettingsService } from './services/settings.service';
 import { OtpService } from './services/otp.service';
+import { RealtimeService } from './services/realtime.service';
+import {
+  sendOtpSchema,
+  verifyOtpSchema,
+  customerLoginSchema,
+  staffLoginSchema,
+  adminLoginSchema,
+  refreshTokenSchema
+} from './validators/auth.validator';
 
-const app = new Hono<{ Bindings: any }>();
-const api = new Hono<{ Bindings: any }>();
+const app = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+const api = new Hono<{ Bindings: Env; Variables: AppVariables }>();
 
 // Global Error Handler — Prevents 500 / 503 HTML Error Pages and Worker Crashes
 app.onError((err, c: AppContext) => {
@@ -89,16 +100,104 @@ api.get('/', (c: AppContext) => {
   });
 });
 
-// ─── AUTH & SEED ─────────────────────────────────────────────────────────────
+// ─── AUTHENTICATION & SEED ───────────────────────────────────────────────────
 api.all('/seed', async (c: AppContext) => {
   const res = await AuthService.seed(getDB(c));
   return successResponse(c, res);
 });
 
+// 1. Send OTP (Phone authentication)
+api.post('/auth/send-otp', async (c: AppContext) => {
+  const rawBody = await getBody(c);
+  const parseResult = sendOtpSchema.safeParse(rawBody);
+  if (!parseResult.success) {
+    return errorResponse(c, parseResult.error.issues[0]?.message || 'Invalid phone input', 400, 'VALIDATION_ERROR');
+  }
+  const res = await OtpService.sendOtp(c, parseResult.data.phone, getDB(c));
+  if (!res.success) return errorResponse(c, res.error || 'Failed to send OTP', res.status || 400);
+  return successResponse(c, res);
+});
+
+// 2. Verify OTP Code
+api.post('/auth/verify-otp', async (c: AppContext) => {
+  const rawBody = await getBody(c);
+  const parseResult = verifyOtpSchema.safeParse(rawBody);
+  if (!parseResult.success) {
+    return errorResponse(c, parseResult.error.issues[0]?.message || 'Invalid OTP payload', 400, 'VALIDATION_ERROR');
+  }
+  const res = await OtpService.verifyOtp(c, parseResult.data.phone, parseResult.data.otp, getDB(c));
+  if (!res.success) return errorResponse(c, res.error || 'OTP verification failed', res.status || 400);
+  return successResponse(c, res);
+});
+
+// 3. Customer OTP Login
+api.post('/auth/customer-login', async (c: AppContext) => {
+  const rawBody = await getBody(c);
+  const parseResult = customerLoginSchema.safeParse(rawBody);
+  if (!parseResult.success) {
+    return errorResponse(c, parseResult.error.issues[0]?.message || 'Invalid customer login input', 400, 'VALIDATION_ERROR');
+  }
+  const { phone, otp, name, email } = parseResult.data;
+  const res = await AuthService.customerLoginWithOtp(c, phone, otp, name, email, getDB(c));
+  if (!res.success) return errorResponse(c, res.error || 'Customer authentication failed', res.status || 400);
+  return successResponse(c, res);
+});
+
+// 4. Staff Login (Waiter, Kitchen, Manager)
+api.post('/auth/staff-login', async (c: AppContext) => {
+  const rawBody = await getBody(c);
+  const parseResult = staffLoginSchema.safeParse(rawBody);
+  if (!parseResult.success) {
+    return errorResponse(c, parseResult.error.issues[0]?.message || 'Invalid staff credentials', 400, 'VALIDATION_ERROR');
+  }
+  const res = await AuthService.staffLogin(c, parseResult.data.username, parseResult.data.password, getDB(c));
+  if (!res.success) return errorResponse(c, res.error || 'Staff authentication failed', res.status || 401);
+  return successResponse(c, res);
+});
+
+// 5. Admin Login (Admin / Administrator)
+api.post('/auth/admin-login', async (c: AppContext) => {
+  const rawBody = await getBody(c);
+  const parseResult = adminLoginSchema.safeParse(rawBody);
+  if (!parseResult.success) {
+    return errorResponse(c, parseResult.error.issues[0]?.message || 'Invalid admin credentials', 400, 'VALIDATION_ERROR');
+  }
+  const res = await AuthService.adminLogin(c, parseResult.data.username, parseResult.data.password, getDB(c));
+  if (!res.success) return errorResponse(c, res.error || 'Admin authentication failed', res.status || 401);
+  return successResponse(c, res);
+});
+
+// Backward compatibility fallback login endpoint
 api.post('/auth/login', async (c: AppContext) => {
   const body = await getBody(c);
-  const res = await AuthService.login(c, body.username, body.password, getDB(c));
-  if (!res.success) return errorResponse(c, res.error || 'Login failed', res.status || 200);
+  const res = await AuthService.adminLogin(c, body.username, body.password, getDB(c));
+  if (!res.success) return errorResponse(c, res.error || 'Login failed', res.status || 401);
+  return successResponse(c, res);
+});
+
+// 6. Refresh Token Endpoint (Issues new Access & Refresh tokens)
+api.post('/auth/refresh', async (c: AppContext) => {
+  const rawBody = await getBody(c);
+  const parseResult = refreshTokenSchema.safeParse(rawBody);
+  if (!parseResult.success) {
+    return errorResponse(c, parseResult.error.issues[0]?.message || 'Refresh token required', 400, 'VALIDATION_ERROR');
+  }
+  const res = await AuthService.refreshToken(c, parseResult.data.refreshToken, getDB(c));
+  if (!res.success) return errorResponse(c, res.error || 'Refresh token failed', res.status || 401);
+  return successResponse(c, res);
+});
+
+// 7. Logout Endpoint (Revokes Refresh Token)
+api.post('/auth/logout', authMiddleware, async (c: AppContext) => {
+  const body = await getBody(c);
+  const res = await AuthService.logout(c, body.refreshToken, getDB(c));
+  return successResponse(c, res);
+});
+
+// 8. Session Details Endpoint
+api.get('/auth/me', authMiddleware, async (c: AppContext) => {
+  const user = c.get('user');
+  const res = await AuthService.getMe(c, user?.id || user?.sub, getDB(c));
   return successResponse(c, res);
 });
 
@@ -254,18 +353,82 @@ api.post('/hero', async (c: AppContext) => successResponse(c, await SettingsServ
 api.get('/stats', async (c: AppContext) => successResponse(c, await SettingsService.getStats(getDB(c))));
 api.get('/logs', async (c: AppContext) => successResponse(c, await SettingsService.getLogs(getDB(c))));
 
-// ─── OTP ─────────────────────────────────────────────────────────────────────
-api.post('/send-otp', async (c: AppContext) => {
+// ─── ROLE BASED ACCESS CONTROL (RBAC) PROTECTED ROUTE GROUPS ─────────────────
+
+// 1. Customer Protected Routes
+const customerApi = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+customerApi.use('*', authMiddleware, rbacMiddleware(['Customer', 'Manager', 'Admin']));
+customerApi.get('/profile', async (c: AppContext) => {
+  const user = c.get('user');
+  return successResponse(c, await AuthService.getMe(c, user?.id || user?.sub, getDB(c)));
+});
+api.route('/customer', customerApi);
+
+// 2. Waiter Staff Protected Routes
+const waiterApi = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+waiterApi.use('*', authMiddleware, rbacMiddleware(['Waiter', 'Manager', 'Admin']));
+waiterApi.get('/orders', async (c: AppContext) => successResponse(c, await TableService.getTables(getDB(c))));
+api.route('/staff/waiter', waiterApi);
+
+// 3. Kitchen Staff Protected Routes
+const kitchenApi = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+kitchenApi.use('*', authMiddleware, rbacMiddleware(['Kitchen', 'Manager', 'Admin']));
+kitchenApi.get('/kds-orders', async (c: AppContext) => successResponse(c, []));
+api.route('/staff/kitchen', kitchenApi);
+
+// 4. Manager Staff Protected Routes
+const managerApi = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+managerApi.use('*', authMiddleware, rbacMiddleware(['Manager', 'Admin']));
+managerApi.get('/dashboard', async (c: AppContext) => successResponse(c, await SettingsService.getStats(getDB(c))));
+api.route('/staff/manager', managerApi);
+
+// 5. Admin Protected Routes
+const adminApi = new Hono<{ Bindings: Env; Variables: AppVariables }>();
+adminApi.use('*', authMiddleware, rbacMiddleware(['Admin', 'Administrator']));
+adminApi.get('/audit-logs', async (c: AppContext) => successResponse(c, await SettingsService.getLogs(getDB(c))));
+adminApi.get('/settings', async (c: AppContext) => successResponse(c, await SettingsService.getSettings(getDB(c))));
+api.route('/admin', adminApi);
+
+// ─── REAL-TIME ENGINE ENDPOINTS (Cloudflare Durable Objects & WebSockets) ─────
+api.get('/realtime/connect', (c: AppContext) => {
+  const doNamespace = c.env?.REALTIME_ENGINE;
+  if (!doNamespace) {
+    return errorResponse(c, 'Real-time Durable Object engine binding unconfigured', 503, 'SERVICE_UNAVAILABLE');
+  }
+  const stub = doNamespace.get(doNamespace.idFromName('wings-river-main-do'));
+  return stub.fetch(c.req.raw);
+});
+
+api.post('/realtime/hold-table', async (c: AppContext) => {
   const body = await getBody(c);
-  const res = await OtpService.sendOtp(c, body.phone, getDB(c));
-  if (!res.success) return errorResponse(c, res.error || 'Failed to send OTP', res.status || 200);
+  const user = c.get('user');
+  const res = await RealtimeService.holdTable(
+    c,
+    body.tableNumber || '',
+    body.customerName || user?.name || 'Guest',
+    body.customerPhone || user?.phone || '',
+    user?.id || user?.sub || 'anon'
+  );
+  if (!res.success) return errorResponse(c, res.error || 'Failed to hold table', 400);
   return successResponse(c, res);
 });
 
-api.post('/verify-otp', async (c: AppContext) => {
+api.post('/realtime/release-table', async (c: AppContext) => {
   const body = await getBody(c);
-  const res = await OtpService.verifyOtp(c, body.phone, body.otp, getDB(c));
-  if (!res.success) return errorResponse(c, res.error || 'Failed to verify OTP', res.status || 200);
+  const user = c.get('user');
+  const res = await RealtimeService.releaseTable(c, body.tableNumber || '', user?.id || user?.sub || 'anon');
+  return successResponse(c, res);
+});
+
+api.post('/realtime/broadcast', authMiddleware, async (c: AppContext) => {
+  const body = await getBody(c);
+  const res = await RealtimeService.broadcast(c, body.room || 'global', body.event, body.payload);
+  return successResponse(c, res);
+});
+
+api.get('/realtime/presence', async (c: AppContext) => {
+  const room = (c.req.query('room') as any) || 'global';
+  const res = await RealtimeService.getPresence(c, room);
   return successResponse(c, res);
 });
 

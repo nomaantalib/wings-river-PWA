@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Phone, Lock, CheckCircle2, ShieldCheck, RefreshCw, User, LogOut, ArrowRight, Sparkles, KeyRound, Mail, Smartphone, UserCheck, UserPlus } from 'lucide-react';
 import { triggerMsg91Otp } from '@/lib/otpVerification';
+import { useAuth } from '@/context/AuthContext';
 
 export interface UserSession {
   phone: string;
@@ -100,6 +101,7 @@ export function findRegisteredUser(phone: string): RegisteredUser | undefined {
 }
 
 export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthModalProps) {
+  const { sendOtp, loginCustomerOtp } = useAuth();
   const [step, setStep] = useState<'phone' | 'otp' | 'profile'>('phone');
   const [phoneInput, setPhoneInput] = useState('');
   const [otpInput, setOtpInput] = useState(['', '', '', '', '', '']);
@@ -154,20 +156,15 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     setMatchedUser(existing || null);
 
     try {
-      const res = await fetch('/api/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleanPhone })
-      });
-      const data = await res.json().catch(() => ({}));
+      const res = await sendOtp(cleanPhone);
       setIsSendingOtp(false);
 
-      if (res.ok && data.success) {
+      if (res.success) {
         setStep('otp');
         setResendTimer(30);
         setTimeout(() => otpRefs.current[0]?.focus(), 150);
       } else {
-        setErrorMsg(data.error || 'Failed to send OTP. Please check your mobile number.');
+        setErrorMsg(res.error || 'Failed to send OTP. Please check your mobile number.');
       }
     } catch (err: any) {
       setIsSendingOtp(false);
@@ -248,16 +245,11 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     const cleanPhone = phoneInput.replace(/\D/g, '');
 
     try {
-      const res = await fetch('/api/verify-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone: cleanPhone, otp: enteredCode })
-      });
-      const data = await res.json().catch(() => ({}));
+      const userFound = matchedUser || findRegisteredUser(cleanPhone);
+      const res = await loginCustomerOtp(cleanPhone, enteredCode, userFound?.name, userFound?.email);
       setIsVerifying(false);
 
-      if (res.ok && data.success) {
-        const userFound = matchedUser || findRegisteredUser(cleanPhone);
+      if (res.success) {
         if (userFound) {
           const session: UserSession = {
             phone: cleanPhone,
@@ -274,7 +266,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           setStep('profile');
         }
       } else {
-        setErrorMsg(data.error || 'Invalid or expired OTP SMS code.');
+        setErrorMsg(res.error || 'Invalid or expired OTP SMS code.');
       }
     } catch (err: any) {
       setIsVerifying(false);

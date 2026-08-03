@@ -1,6 +1,17 @@
 import { Context } from 'hono';
 
-export type D1Database = any;
+export interface D1PreparedStatement {
+  bind(...values: any[]): D1PreparedStatement;
+  first<T = Record<string, any>>(colName?: string): Promise<T | null>;
+  run(): Promise<{ success: boolean; meta?: any }>;
+  all<T = Record<string, any>>(): Promise<{ results: T[]; success: boolean }>;
+}
+
+export interface D1Database {
+  prepare(query: string): D1PreparedStatement;
+  batch(statements: D1PreparedStatement[]): Promise<any[]>;
+  exec(query: string): Promise<any>;
+}
 
 export interface Env {
   DB?: D1Database;
@@ -17,10 +28,16 @@ export interface Env {
   MSG91_AUTH_KEY?: string;
   MSG91_TEMPLATE_ID?: string;
   ENVIRONMENT?: string;
+  REALTIME_ENGINE?: any;
   [key: string]: any;
 }
 
-export type AppContext = Context<{ Bindings: Env }>;
+export type AppVariables = {
+  jwtPayload: any;
+  user: any;
+};
+
+export type AppContext = Context<{ Bindings: Env; Variables: AppVariables }>;
 
 export interface ApiResponse<T = any> {
   success: boolean;

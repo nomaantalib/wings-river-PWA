@@ -17,7 +17,10 @@ import StorageController, {
 import type { Reservation } from '@/models/ReservationModel';
 import { notifyOrderReady, notifyTableReady } from '@/lib/pushNotifications';
 
+import { useAuth } from '@/context/AuthContext';
+
 export default function StaffPWA() {
+  const { user: authUser, loginStaff, logout } = useAuth();
   const [currentUser, setCurrentUser] = useState<{ username: string; role: 'Kitchen' | 'Waiter' | 'Manager' | 'Admin' } | null>(null);
   const [loginForm, setLoginForm] = useState({ username: '', password: '' });
   const [loginError, setLoginError] = useState('');
@@ -35,27 +38,28 @@ export default function StaffPWA() {
   const [walkinPhone, setWalkinPhone] = useState('');
   const [selectedWalkinTable, setSelectedWalkinTable] = useState('T1');
 
-  // Handle Login
-  const handleLogin = (e: React.FormEvent) => {
+  // Sync auth context user to staff component state
+  useEffect(() => {
+    if (authUser && authUser.role && ['Waiter', 'Kitchen', 'Manager', 'Admin', 'Administrator'].includes(authUser.role)) {
+      const mappedRole = authUser.role === 'Administrator' ? 'Admin' : (authUser.role as any);
+      setCurrentUser({
+        username: authUser.name || authUser.username || 'Staff User',
+        role: mappedRole
+      });
+      if (mappedRole === 'Kitchen' || mappedRole === 'Waiter' || mappedRole === 'Manager') {
+        setActiveRole(mappedRole);
+      }
+    }
+  }, [authUser]);
+
+  // Handle Staff Login
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoginError('');
 
-    const u = loginForm.username.toLowerCase().trim();
-
-    if (u === 'kitchen' || u === 'chef') {
-      const user = { username: 'Chef Suresh', role: 'Kitchen' as const };
-      setCurrentUser(user);
-      setActiveRole('Kitchen');
-    } else if (u === 'waiter' || u === 'waiter1') {
-      const user = { username: 'Waiter Amit', role: 'Waiter' as const };
-      setCurrentUser(user);
-      setActiveRole('Waiter');
-    } else if (u === 'manager' || u === 'reception' || u === 'admin') {
-      const user = { username: 'Manager Saxena (Main Admin)', role: 'Manager' as const };
-      setCurrentUser(user);
-      setActiveRole('Manager');
-    } else {
-      setLoginError('Invalid credentials. Use kitchen, waiter, or manager.');
+    const res = await loginStaff(loginForm.username, loginForm.password);
+    if (!res.success) {
+      setLoginError(res.error || 'Invalid credentials. Please check your username and password.');
     }
   };
 
@@ -258,7 +262,10 @@ export default function StaffPWA() {
         </div>
 
         <button
-          onClick={() => setCurrentUser(null)}
+          onClick={() => {
+            logout();
+            setCurrentUser(null);
+          }}
           className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-slate-800 flex items-center space-x-1 text-xs font-bold"
           title="Log Out"
         >
