@@ -8,22 +8,22 @@
     {
       "binding": "DB",
       "database_name": "wings_river_cafe_reservations",
-      "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
+      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
     },
     {
       "binding": "wings_river_cafe_reservations",
       "database_name": "wings_river_cafe_reservations",
-      "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
+      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
     },
     {
       "binding": "DATABASE",
       "database_name": "wings_river_cafe_reservations",
-      "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
+      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
     },
     {
       "binding": "D1",
       "database_name": "wings_river_cafe_reservations",
-      "database_id": "f3cb90af-78ce-4e54-96ad-d0aa657062e3"
+      "database_id": "912b607b-c192-4e0a-89ba-75f936fca45c"
     }
   ],
   "kv_namespaces": [
@@ -33,7 +33,7 @@
     }
   ],
   "vars": {
-    "CLOUDFLARE_D1_DATABASE_ID": "f3cb90af-78ce-4e54-96ad-d0aa657062e3",
+    "CLOUDFLARE_D1_DATABASE_ID": "912b607b-c192-4e0a-89ba-75f936fca45c",
     "CLOUDFLARE_ACCOUNT_ID": "8f1aecb785da9e40b20ab73a3b15e27e",
     "NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME": "vrgblmky",
     "NEXT_PUBLIC_FIREBASE_VAPID_KEY": "BB_D3Bo704xpIpSFlesjRGUCnDx8qx2fKV1dV4w3M_eArGEQ4E7MPI6r86uvMLdjLS8XoQS72eXf5a_36GBiNFk",

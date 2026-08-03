@@ -74,7 +74,7 @@ graph TD
 ### Database Binding (`wrangler.json` & `wrangler.toml`)
 - **Account ID**: `8f1aecb785da9e40b20ab73a3b15e27e`
 - **Database Name**: `wings_river_cafe_reservations`
-- **Database ID**: `f3cb90af-78ce-4e54-96ad-d0aa657062e3`
+- **Database ID**: `912b607b-c192-4e0a-89ba-75f936fca45c`
 - **Binding Name**: `DB`
 
 ---
