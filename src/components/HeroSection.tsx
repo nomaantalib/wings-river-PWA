@@ -130,66 +130,67 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
         </div>
 
 
-        {/* CTA Button Group — Vertical Stack (One Below Another) filled with Golden Yellow */}
-        <div className="w-full max-w-sm mx-auto px-4 mb-6">
-          <div className="flex flex-col items-center justify-center space-y-2.5">
+        {/* CTA Button Group — Cohesive Luxury Champagne Stack */}
+        <div className="w-full max-w-sm mx-auto px-4 mb-8">
+          <div className="flex flex-col items-center justify-center space-y-3">
             <a
               href="#floor-map"
-              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
+              className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#0B0E14] font-extrabold text-xs sm:text-sm rounded-2xl shadow-xl shadow-amber-500/20 hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full max-w-[280px] sm:max-w-xs text-center border border-amber-300/30"
             >
               <Calendar className="w-4 h-4 shrink-0" />
               <span>Reserve Table</span>
             </a>
 
-
             <button
               onClick={() => onOpenBooking('birthday_party')}
-              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-gradient-to-r from-[#F8E7A1] via-[#F5D061] to-[#E5B82C] hover:from-[#FBF0BE] hover:to-[#F8E7A1] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
+              className="flex items-center justify-center space-x-2 px-6 py-3.5 bg-[#141A24]/85 backdrop-blur-xl border border-[#D4AF37]/40 text-[#F8E7A1] font-bold text-xs sm:text-sm rounded-2xl shadow-lg hover:border-[#D4AF37] hover:bg-[#1C2433] hover:scale-[1.03] active:scale-95 transition-all duration-300 w-full max-w-[280px] sm:max-w-xs text-center"
             >
-              <Utensils className="w-4 h-4 shrink-0" />
+              <Utensils className="w-4 h-4 text-[#D4AF37] shrink-0" />
               <span>Book Party / Event</span>
             </button>
 
-            <button
-              onClick={() => onOpenMyBookings ? onOpenMyBookings() : onOpenBooking('table_booking')}
-              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl shadow-xl shadow-yellow-500/20 hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center"
-            >
-              <Ticket className="w-4 h-4 text-[#120B08] shrink-0" />
-              <span>My Reservations</span>
-            </button>
+            <div className="grid grid-cols-2 gap-2.5 w-full max-w-[280px] sm:max-w-xs">
+              <button
+                onClick={() => onOpenMyBookings ? onOpenMyBookings() : onOpenBooking('table_booking')}
+                className="flex items-center justify-center space-x-1.5 px-3 py-3 bg-[#141A24]/75 backdrop-blur-md border border-white/10 text-slate-200 font-semibold text-xs rounded-xl hover:border-[#D4AF37]/50 hover:text-amber-200 transition-all text-center"
+              >
+                <Ticket className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                <span className="truncate">My Bookings</span>
+              </button>
 
-            <a
-              href="#menu-card"
-              className="flex items-center justify-center space-x-2 px-[3%] py-2.5 sm:py-3 bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/50 text-[#F5D061] font-extrabold text-xs sm:text-xs rounded-xl sm:rounded-2xl hover:bg-[#1A1D24] hover:border-[#F5D061] hover:scale-[1.02] active:scale-95 transition-all duration-300 w-full max-w-[260px] sm:max-w-xs text-center shadow-lg"
-            >
-              <BookOpen className="w-4 h-4 text-[#F5D061] shrink-0" />
-              <span>View Menu</span>
-            </a>
+              <a
+                href="#menu-card"
+                className="flex items-center justify-center space-x-1.5 px-3 py-3 bg-[#141A24]/75 backdrop-blur-md border border-white/10 text-slate-200 font-semibold text-xs rounded-xl hover:border-[#D4AF37]/50 hover:text-amber-200 transition-all text-center"
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#D4AF37] shrink-0" />
+                <span className="truncate">View Menu</span>
+              </a>
+            </div>
           </div>
         </div>
 
-        {/* Horizontal Auto-sliding Carousel for Info Highlights with Faded Corner Edges (5% width reduced) */}
-        <div className="w-full max-w-[520px] mx-auto px-2 relative group">
+        {/* Horizontal Auto-sliding Carousel for Info Highlights */}
+        <div className="w-full max-w-[540px] mx-auto px-2 relative group">
           {/* Faded Left & Right Corner Edges overlay */}
-          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0B0C0E] to-transparent z-20 pointer-events-none" />
-          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0B0C0E] to-transparent z-20 pointer-events-none" />
+          <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0B0E14] to-transparent z-20 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0B0E14] to-transparent z-20 pointer-events-none" />
 
           <div
             ref={infoCarouselRef}
-            className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 px-3 scroll-smooth snap-x snap-mandatory"
+            className="flex items-center gap-3 overflow-x-auto no-scrollbar py-2 px-3 scroll-smooth snap-x snap-mandatory"
           >
             {[
               { title: 'Gomti River', sub: 'Scenic Waterfront', color: 'text-[#F8E7A1]' },
-              { title: 'Multicuisine', sub: 'Indian • Chinese • Italian', color: 'text-[#98A886]' },
+              { title: 'Multicuisine', sub: 'Indian • Chinese • Italian', color: 'text-emerald-300' },
               { title: 'Speedboats', sub: 'Lucknow Water Sports', color: 'text-[#F5D061]' },
-              { title: '11 AM – 12 AM', sub: `Open Daily · ${heroSettings.contactPhone || '07310008020'}`, color: 'text-[#98A886]' },
+              { title: '11 AM – 12 AM', sub: `Open Daily · ${heroSettings.contactPhone || '07310008020'}`, color: 'text-emerald-300' },
             ].map((card, idx) => (
               <div
                 key={idx}
-                className="snap-center shrink-0 w-[142px] sm:w-[180px] bg-[#121417]/90 backdrop-blur-md border border-[#F5D061]/30 px-3 py-2 rounded-xl text-center shadow-lg hover:border-[#F5D061]/60 transition-all"
+                className="snap-center shrink-0 w-[148px] sm:w-[184px] bg-[#10141D]/80 backdrop-blur-xl border border-[#D4AF37]/20 px-3.5 py-2.5 rounded-2xl text-center shadow-lg hover:border-[#D4AF37]/50 hover:-translate-y-0.5 transition-all duration-300"
               >
                 <p className={`${card.color} font-serif font-bold text-xs sm:text-sm truncate`}>{card.title}</p>
-                <p className="text-[9px] sm:text-[10px] text-[#D4C4A0]/80 uppercase tracking-wider font-sans mt-0.5 truncate">{card.sub}</p>
+                <p className="text-[9px] sm:text-[10px] text-slate-400 font-sans tracking-wide mt-0.5 truncate">{card.sub}</p>
               </div>
             ))}
           </div>
