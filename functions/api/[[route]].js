@@ -45,7 +45,7 @@ function invalidateCachePrefix(prefix) {
 
 // 2. Token Bucket Rate Limiter & Event Throttler (Prevent Denial of Service & Abuse)
 const rateLimitMap = new Map(); // ip -> { count: number, resetAt: number }
-const RATE_LIMIT_MAX = 500; // max 500 requests per window
+const RATE_LIMIT_MAX = 2000; // max 2000 requests per window (high concurrency real-time PWA sync)
 const RATE_LIMIT_WINDOW_MS = 60000; // 1 minute window
 
 function checkRateLimit(ip) {

@@ -179,6 +179,27 @@ export function notifySync() {
   }
 }
 
+export function subscribeToSync(callback: () => void): () => void {
+  if (typeof window === 'undefined') return () => {};
+  const handleEvent = () => callback();
+  window.addEventListener('wings_db_sync', handleEvent);
+  window.addEventListener('storage', handleEvent);
+  return () => {
+    window.removeEventListener('wings_db_sync', handleEvent);
+    window.removeEventListener('storage', handleEvent);
+  };
+}
+
+// Background heartbeat auto-sync loop (revalidates active endpoints every 10s)
+if (typeof window !== 'undefined') {
+  setInterval(() => {
+    revalidateInBackground('/api/menu', 'wings_menu_db');
+    revalidateInBackground('/api/categories', 'wings_categories_db');
+    revalidateInBackground('/api/blogs', 'wings_blogs_db');
+    revalidateInBackground('/api/hero', 'wings_hero_db');
+  }, 10000);
+}
+
 // ── Core API Path Mapping ────────────────────────────────────────────────────
 export function getApiUrl(url: string): string {
   return url;

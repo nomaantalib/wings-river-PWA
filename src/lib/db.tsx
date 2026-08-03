@@ -118,6 +118,7 @@ export {
   getStoredFloorPlan,
   saveFloorPlan,
   notifySync,
+  subscribeToSync,
   createDiningSession,
   closeDiningSession,
 } from '@/controllers/StorageController';
