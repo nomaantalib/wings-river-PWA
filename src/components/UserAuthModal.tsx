@@ -479,6 +479,19 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 )}
               </button>
 
+              {/* Alternative MSG91 Widget Authentication */}
+              <div className="pt-1 text-center">
+                <button
+                  type="button"
+                  disabled={isSendingOtp || phoneInput.length !== 10}
+                  onClick={handleMsg91Otp}
+                  className="w-full py-3 rounded-2xl bg-[#1B4318]/10 hover:bg-[#1B4318]/20 text-[#1B4318] font-bold text-xs border border-[#93C572] transition-colors flex items-center justify-center space-x-2 disabled:opacity-40"
+                >
+                  <ShieldCheck className="w-4 h-4 text-[#1B4318]" />
+                  <span>Send via MSG91 Widget</span>
+                </button>
+              </div>
+
             </form>
           )}
 

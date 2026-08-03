@@ -57,7 +57,7 @@ export class OtpService {
 
     // Dispatch SMS via MSG91 API
     const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
-    const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID;
+    const templateId = c.env?.MSG91_TEMPLATE_ID || process.env.MSG91_TEMPLATE_ID || '66854b41d688836ec4389df3';
     let smsSent = false;
 
     if (authKey) {
