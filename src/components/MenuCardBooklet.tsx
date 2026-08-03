@@ -84,7 +84,10 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
     if (flipBookRef.current) {
       try {
-        flipBookRef.current.pageFlip().flip(idx);
+        const pf = flipBookRef.current.pageFlip();
+        if (pf) {
+          pf.flip(idx);
+        }
       } catch (e) {
         // fallback
       }
@@ -98,28 +101,14 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
 
   const nextPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
-    if (flipBookRef.current) {
-      try {
-        flipBookRef.current.pageFlip().flipNext();
-        return;
-      } catch (e) {
-        // fallback
-      }
-    }
-    goToPage((currentPageIndex + 1) % menuPages.length, 'next');
+    const nextIdx = (currentPageIndex + 1) % menuPages.length;
+    goToPage(nextIdx, 'next');
   };
 
   const prevPage = (e?: React.SyntheticEvent) => {
     if (e) e.preventDefault();
-    if (flipBookRef.current) {
-      try {
-        flipBookRef.current.pageFlip().flipPrev();
-        return;
-      } catch (e) {
-        // fallback
-      }
-    }
-    goToPage((currentPageIndex - 1 + menuPages.length) % menuPages.length, 'prev');
+    const prevIdx = (currentPageIndex - 1 + menuPages.length) % menuPages.length;
+    goToPage(prevIdx, 'prev');
   };
 
   // Touch Swipe Handlers for mobile & desktop drag

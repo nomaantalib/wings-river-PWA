@@ -52,30 +52,30 @@ export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
   };
 
   return (
-    <section className="py-16 bg-gradient-to-b from-dark-950 via-dark-900 to-dark-950 relative overflow-hidden font-sans">
+    <section className="py-11 bg-gradient-to-b from-dark-950 via-dark-900 to-dark-950 relative overflow-hidden font-sans border-t border-white/10">
       {/* Background Glow */}
       <div className="absolute top-1/2 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-[120px] pointer-events-none" />
       <div className="absolute bottom-10 right-1/4 w-96 h-96 bg-mint-500/10 rounded-full blur-[120px] pointer-events-none" />
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 space-y-8">
         
         {/* Section Header */}
-        <div className="text-center space-y-3 max-w-2xl mx-auto">
-          <div className="inline-flex items-center space-x-2 px-3.5 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
+        <div className="text-center space-y-2 max-w-2xl mx-auto">
+          <div className="inline-flex items-center space-x-2 px-3.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs font-bold uppercase tracking-wider">
             <Flame className="w-4 h-4 text-amber-400 animate-bounce" />
             <span>Exclusive Deals & Event Special Offers</span>
           </div>
-          <h2 className="font-serif text-3xl sm:text-5xl font-extrabold text-white tracking-tight drop-shadow-md">
+          <h2 className="font-serif text-3xl sm:text-4xl lg:text-5xl font-extrabold text-white tracking-tight drop-shadow-md">
             Promotions & Discount Coupons
           </h2>
-          <p className="text-sm text-gray-300">
+          <p className="text-xs sm:text-sm text-gray-300">
             Enjoy special discounts on birthday parties, water sports thrill rides, and lakeside gourmet dining.
           </p>
         </div>
 
         {/* ── 1. PROMO EVENT BANNERS CAROUSEL ─────────────────────────────────── */}
         {banners.length > 0 && (
-          <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-dark-900 min-h-[260px] sm:min-h-[320px] flex items-center group">
+          <div className="relative rounded-3xl overflow-hidden border border-white/10 shadow-2xl bg-dark-900 min-h-[240px] sm:min-h-[295px] flex items-center group">
             {banners.map((banner, index) => {
               const isActive = index === activeBannerIndex;
               return (
