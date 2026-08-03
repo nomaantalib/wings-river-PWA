@@ -14,12 +14,25 @@ export default function ReviewsSection() {
   const [commentInput, setCommentInput] = useState('');
   const [submittedSuccess, setSubmittedSuccess] = useState(false);
 
+  const [isPaused, setIsPaused] = useState(false);
+
   useEffect(() => {
     const refreshData = () => { getStoredReviews().then(setReviews); };
     refreshData();
     window.addEventListener('wings_db_sync', refreshData);
     return () => window.removeEventListener('wings_db_sync', refreshData);
   }, []);
+
+  // Automatic Slideshow Effect
+  useEffect(() => {
+    let timer: any;
+    if (!isPaused && !newReviewForm && reviews.length > 0) {
+      timer = setInterval(() => {
+        setCurrentIndex((prev) => (prev + 1) % reviews.length);
+      }, 4000);
+    }
+    return () => clearInterval(timer);
+  }, [isPaused, newReviewForm, reviews.length]);
 
   const handleAddReview = (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,43 +76,48 @@ export default function ReviewsSection() {
           </p>
         </div>
 
-        {/* Reviews Carousel Wrapper */}
+        {/* Reviews Auto Slideshow Wrapper */}
         <div className="relative max-w-4xl mx-auto">
           {reviews.length > 0 && (
-            <div className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-cream-200 relative">
+            <div
+              onMouseEnter={() => setIsPaused(true)}
+              onMouseLeave={() => setIsPaused(false)}
+              onTouchStart={() => setIsPaused(true)}
+              onTouchEnd={() => setIsPaused(false)}
+              className="bg-white rounded-3xl p-8 sm:p-12 shadow-2xl border border-cream-200 relative transition-all duration-500"
+            >
               <Quote className="w-12 h-12 text-amber-200 absolute top-6 right-6 pointer-events-none" />
 
               {/* Rating Badge */}
               <div className="inline-flex items-center space-x-1.5 bg-amber-100 text-amber-900 px-3 py-1 rounded-full text-xs font-bold font-mono mb-6">
-                <span>{reviews[currentIndex].rating || 5}.0 / 5.0 Rating</span>
+                <span>{reviews[currentIndex]?.rating || 5}.0 / 5.0 Rating</span>
               </div>
 
-
               {/* Review Quote */}
-              <p className="font-serif text-lg sm:text-2xl text-dark-900 leading-relaxed italic mb-8">
-                &quot;{reviews[currentIndex].review_text}&quot;
+              <p className="font-serif text-lg sm:text-2xl text-dark-900 leading-relaxed italic mb-8 min-h-[90px]">
+                &quot;{reviews[currentIndex]?.review_text}&quot;
               </p>
 
-              {/* Author & Avatar */}
+              {/* Author & Avatar & Controls */}
               <div className="flex items-center justify-between border-t border-gray-100 pt-6">
                 <div className="flex items-center space-x-4">
                   <img
                     src={
-                      reviews[currentIndex].avatar_url ||
+                      reviews[currentIndex]?.avatar_url ||
                       `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-                        reviews[currentIndex].author_name
+                        reviews[currentIndex]?.author_name || 'Guest'
                       )}`
                     }
-                    alt={reviews[currentIndex].author_name}
+                    alt={reviews[currentIndex]?.author_name}
                     loading="lazy"
-                    className="w-12 h-12 rounded-full object-cover border-2 border-mint-300"
+                    className="w-12 h-12 rounded-full object-cover border-2 border-amber-300 shadow-sm"
                   />
                   <div>
                     <h4 className="font-bold text-dark-900 text-base">
-                      {reviews[currentIndex].author_name}
+                      {reviews[currentIndex]?.author_name}
                     </h4>
                     <span className="text-xs text-gray-500 font-sans">
-                      Verified Google Review • {reviews[currentIndex].date_str}
+                      Verified Google Review • {reviews[currentIndex]?.date_str}
                     </span>
                   </div>
                 </div>
@@ -108,17 +126,33 @@ export default function ReviewsSection() {
                 <div className="flex items-center space-x-2">
                   <button
                     onClick={prevReview}
-                    className="p-2.5 rounded-full bg-cream-100 hover:bg-mint-300 text-dark-900 transition-colors"
+                    aria-label="Previous Review"
+                    className="p-2.5 rounded-full bg-cream-100 hover:bg-amber-400 text-dark-900 transition-all hover:scale-105 active:scale-95 shadow-sm"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
                     onClick={nextReview}
-                    className="p-2.5 rounded-full bg-cream-100 hover:bg-mint-300 text-dark-900 transition-colors"
+                    aria-label="Next Review"
+                    className="p-2.5 rounded-full bg-cream-100 hover:bg-amber-400 text-dark-900 transition-all hover:scale-105 active:scale-95 shadow-sm"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>
                 </div>
+              </div>
+
+              {/* Dot Indicators */}
+              <div className="flex items-center justify-center space-x-2 mt-6">
+                {reviews.map((_, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`h-2 rounded-full transition-all duration-300 ${
+                      idx === currentIndex ? 'w-6 bg-amber-500' : 'w-2 bg-gray-200 hover:bg-gray-300'
+                    }`}
+                    aria-label={`Go to review ${idx + 1}`}
+                  />
+                ))}
               </div>
             </div>
           )}
