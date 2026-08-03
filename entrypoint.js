@@ -47,11 +47,18 @@ export default {
     // Delegate /api requests to Hono router
     if (url.pathname.startsWith('/api')) {
       try {
-        const response = await apiHandler({ request, env: env || {}, ctx, params: {} });
+        const response = await apiHandler({
+          request,
+          env: env || {},
+          ctx,
+          params: {},
+          waitUntil: (promise) => { if (ctx && typeof ctx.waitUntil === 'function') ctx.waitUntil(promise); }
+        });
         return injectCors(response, corsHeaders);
       } catch (e) {
-        return new Response(JSON.stringify({ success: true, data: [], is_fallback: true }), {
-          status: 200,
+        console.error('[API Entrypoint Error]', e);
+        return new Response(JSON.stringify({ success: false, error: e.message || 'API Execution Error' }), {
+          status: 500,
           headers: corsHeaders
         });
       }
