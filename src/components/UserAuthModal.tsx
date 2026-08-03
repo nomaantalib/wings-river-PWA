@@ -324,15 +324,15 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       <div className="relative w-full max-w-md bg-[#14171D] rounded-3xl overflow-hidden border border-[#F5D061]/40 shadow-[0_25px_60px_-15px_rgba(245,208,97,0.25)] text-white">
 
         {/* Executive Modal Header */}
-        <div className="relative px-6 py-5 bg-[#1A1D24] border-b border-[#F5D061]/25 flex items-center justify-between">
+        <div className="relative px-6 py-5 bg-gradient-to-r from-[#0D3B2E] via-[#164E3D] to-[#0A2C21] border-b border-[#98A886]/40 flex items-center justify-between">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] p-0.5 shadow-lg">
-              <div className="w-full h-full bg-[#120B08] rounded-[14px] flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-[#F5D061]" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#A8E6CF] via-[#98A886] to-[#4E9F70] p-0.5 shadow-lg">
+              <div className="w-full h-full bg-[#0A261A] rounded-[14px] flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-[#A8E6CF]" />
               </div>
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-widest uppercase text-[#98A886]">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-[#A8E6CF]">
                 Wings River Café
               </span>
               <h3 className="font-serif font-bold text-base text-[#F8E7A1]">Customer Authentication</h3>
