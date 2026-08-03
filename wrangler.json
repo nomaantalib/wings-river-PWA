@@ -2,7 +2,6 @@
   "$schema": "node_modules/wrangler/config-schema.json",
   "name": "wings-river-pwa",
   "pages_build_output_dir": "out",
-  "main": "entrypoint.js",
   "compatibility_date": "2026-07-21",
   "compatibility_flags": ["nodejs_compat"],
   "d1_databases": [
@@ -18,14 +17,6 @@
       "bucket_name": "wings-river-cafe-media"
     }
   ],
-  "durable_objects": {
-    "bindings": [
-      {
-        "name": "REALTIME_ENGINE",
-        "class_name": "RealtimeEngineDO"
-      }
-    ]
-  },
   "vars": {
     "CLOUDFLARE_D1_DATABASE_ID": "912b607b-c192-4e0a-89ba-75f936fca45c",
     "CLOUDFLARE_ACCOUNT_ID": "8f1aecb785da9e40b20ab73a3b15e27e",

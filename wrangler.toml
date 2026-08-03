@@ -2,7 +2,6 @@ name = "wings-river-pwa"
 compatibility_date = "2026-07-21"
 compatibility_flags = ["nodejs_compat"]
 
-main = "entrypoint.js"
 pages_build_output_dir = "out"
 
 # ── Cloudflare D1 Database ──────────────────────────────────────────────────
@@ -11,7 +10,7 @@ binding = "DB"
 database_name = "wings_river_cafe_reservations"
 database_id = "912b607b-c192-4e0a-89ba-75f936fca45c"
 
-# ── Public Environment Variables (visible in browser) ─────────────────────
+# ── Public Environment Variables ──────────────────────────────────────────
 [vars]
 NEXT_PUBLIC_SITE_NAME = "Wings River Café"
 NEXT_PUBLIC_SLOGAN = "Taste • Eat • Rides"
@@ -25,15 +24,3 @@ NEXT_PUBLIC_INSTAGRAM_URL = "https://www.instagram.com/wingsriver"
 NEXT_PUBLIC_MAPS_URL = "https://maps.app.goo.gl/NRm9bDgWz6gSQ7MCA"
 CLOUDFLARE_D1_DATABASE_ID = "912b607b-c192-4e0a-89ba-75f936fca45c"
 CLOUDFLARE_ACCOUNT_ID = "8f1aecb785da9e40b20ab73a3b15e27e"
-
-# ── SECRETS: Set via `wrangler secret put <NAME>` or Cloudflare Dashboard ──
-# These are NOT stored here in plaintext — they are injected securely at runtime.
-# Run the following to set them in your Cloudflare Workers environment:
-#
-#   wrangler secret put CLOUDINARY_API_SECRET
-#   wrangler secret put CLOUDINARY_API_KEY
-#   wrangler secret put CLOUDINARY_CLOUD_NAME
-#   wrangler secret put ADMIN_SECRET_KEY
-#   wrangler secret put ADMIN_PASSWORD
-#   wrangler secret put RAZORPAY_KEY_SECRET
-#   wrangler secret put FCM_PRIVATE_KEY
