@@ -72,9 +72,11 @@ export default function PWAInstallBanner() {
           </button>
 
           <button
+            type="button"
             onClick={handleDismiss}
-            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-colors"
+            className="w-8 h-8 rounded-xl bg-white/10 hover:bg-white/20 text-gray-400 hover:text-white transition-colors flex items-center justify-center shrink-0 border border-white/10"
             title="Dismiss banner for this visit"
+            aria-label="Dismiss banner"
           >
             <X className="w-4 h-4" />
           </button>
