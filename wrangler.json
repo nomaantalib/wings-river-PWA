@@ -20,24 +20,6 @@
       "bucket_name": "wings-river-cafe-media"
     }
   ],
-  "durable_objects": {
-    "bindings": [
-      {
-        "name": "TABLE_SESSION",
-        "class_name": "TableSessionDO"
-      },
-      {
-        "name": "ORDER_NOTIFIER",
-        "class_name": "OrderNotifierDO"
-      }
-    ]
-  },
-  "migrations": [
-    {
-      "tag": "v1",
-      "new_classes": ["TableSessionDO", "OrderNotifierDO"]
-    }
-  ],
   "vars": {
     "CLOUDFLARE_D1_DATABASE_ID": "912b607b-c192-4e0a-89ba-75f936fca45c",
     "CLOUDFLARE_ACCOUNT_ID": "8f1aecb785da9e40b20ab73a3b15e27e",
