@@ -329,23 +329,23 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   };
 
   return (
-    <div className="fixed inset-0 z-[200] bg-[#0B0C0E]/95 backdrop-blur-2xl flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[200] bg-black/75 backdrop-blur-md flex items-center justify-center p-4">
       {/* Ambient Background Glows */}
-      <div className="absolute w-96 h-96 bg-[#F5D061]/15 rounded-full blur-3xl pointer-events-none -top-20 -left-20" />
-      <div className="absolute w-96 h-96 bg-[#98A886]/15 rounded-full blur-3xl pointer-events-none -bottom-20 -right-20" />
+      <div className="absolute w-96 h-96 bg-[#F5D061]/20 rounded-full blur-3xl pointer-events-none -top-20 -left-20" />
+      <div className="absolute w-96 h-96 bg-[#D97706]/10 rounded-full blur-3xl pointer-events-none -bottom-20 -right-20" />
 
-      <div className="relative w-full max-w-md bg-[#14171D] rounded-3xl overflow-hidden border border-[#F5D061]/40 shadow-[0_25px_60px_-15px_rgba(245,208,97,0.25)] text-white">
+      <div className="relative w-full max-w-md bg-[#FAF7F2] rounded-3xl overflow-hidden border border-[#D97706]/30 shadow-2xl text-[#1F1810]">
 
         {/* Executive Modal Header */}
-        <div className="relative px-6 py-5 bg-gradient-to-r from-[#0D3B2E] via-[#164E3D] to-[#0A2C21] border-b border-[#98A886]/40 flex items-center justify-between">
+        <div className="relative px-6 py-5 bg-gradient-to-r from-[#1F1810] via-[#2D2319] to-[#1F1810] border-b border-[#D97706]/30 flex items-center justify-between text-white">
           <div className="flex items-center space-x-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#A8E6CF] via-[#98A886] to-[#4E9F70] p-0.5 shadow-lg">
-              <div className="w-full h-full bg-[#0A261A] rounded-[14px] flex items-center justify-center">
-                <ShieldCheck className="w-5 h-5 text-[#A8E6CF]" />
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[#F5D061] via-[#D97706] to-[#B45309] p-0.5 shadow-lg">
+              <div className="w-full h-full bg-[#1F1810] rounded-[14px] flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-[#F5D061]" />
               </div>
             </div>
             <div>
-              <span className="text-[10px] font-bold tracking-widest uppercase text-[#A8E6CF]">
+              <span className="text-[10px] font-bold tracking-widest uppercase text-[#F5D061]">
                 Wings River Café
               </span>
               <h3 className="font-serif font-bold text-base text-[#F8E7A1]">Customer Authentication</h3>
@@ -354,26 +354,26 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-[#D4C4A0] hover:text-white transition-colors"
+            className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] hover:text-white transition-colors"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Step Indicator Bar */}
-        <div className="px-6 py-3 bg-[#121417] border-b border-[#F5D061]/15 flex items-center justify-between text-[11px] font-semibold text-[#D4C4A0]">
-          <div className={`flex items-center space-x-1.5 ${step === 'phone' ? 'text-[#F5D061] font-bold' : 'text-[#98A886]'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 'phone' ? 'bg-[#F5D061] text-[#120B08] font-bold' : 'bg-[#98A886]/20 text-[#98A886]'}`}>1</span>
+        <div className="px-6 py-3.5 bg-[#F3ECE0] border-b border-[#D97706]/20 flex items-center justify-between text-xs font-bold text-[#574738]">
+          <div className={`flex items-center space-x-2 ${step === 'phone' ? 'text-[#B45309] font-extrabold' : 'text-[#786756]'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === 'phone' ? 'bg-[#D97706] text-white shadow-sm' : 'bg-[#E6DCCF] text-[#786756]'}`}>1</span>
             <span>Mobile</span>
           </div>
-          <div className="w-8 h-0.5 bg-[#F5D061]/20" />
-          <div className={`flex items-center space-x-1.5 ${step === 'otp' ? 'text-[#F5D061] font-bold' : step === 'profile' ? 'text-[#98A886]' : 'opacity-40'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 'otp' ? 'bg-[#F5D061] text-[#120B08] font-bold' : 'bg-[#98A886]/20 text-[#98A886]'}`}>2</span>
+          <div className="w-8 h-0.5 bg-[#D97706]/30" />
+          <div className={`flex items-center space-x-2 ${step === 'otp' ? 'text-[#B45309] font-extrabold' : step === 'profile' ? 'text-[#786756]' : 'opacity-50'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === 'otp' ? 'bg-[#D97706] text-white shadow-sm' : 'bg-[#E6DCCF] text-[#786756]'}`}>2</span>
             <span>OTP Code</span>
           </div>
-          <div className="w-8 h-0.5 bg-[#F5D061]/20" />
-          <div className={`flex items-center space-x-1.5 ${step === 'profile' ? 'text-[#F5D061] font-bold' : 'opacity-40'}`}>
-            <span className={`w-5 h-5 rounded-full flex items-center justify-center text-[10px] ${step === 'profile' ? 'bg-[#F5D061] text-[#120B08] font-bold' : 'bg-[#98A886]/20 text-[#98A886]'}`}>3</span>
+          <div className="w-8 h-0.5 bg-[#D97706]/30" />
+          <div className={`flex items-center space-x-2 ${step === 'profile' ? 'text-[#B45309] font-extrabold' : 'opacity-50'}`}>
+            <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold ${step === 'profile' ? 'bg-[#D97706] text-white shadow-sm' : 'bg-[#E6DCCF] text-[#786756]'}`}>3</span>
             <span>Sign Up</span>
           </div>
         </div>
@@ -381,8 +381,8 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
         {/* Form Body Container */}
         <div className="p-6 space-y-6">
           {errorMsg && (
-            <div className="p-3.5 rounded-2xl bg-red-500/15 border border-red-500/30 text-red-300 text-xs font-semibold flex items-center gap-2">
-              <X className="w-4 h-4 shrink-0 text-red-400" />
+            <div className="p-3.5 rounded-2xl bg-red-100 border border-red-300 text-red-700 text-xs font-semibold flex items-center gap-2">
+              <X className="w-4 h-4 shrink-0 text-red-500" />
               <span>{errorMsg}</span>
             </div>
           )}
@@ -391,21 +391,21 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           {step === 'phone' && (
             <form onSubmit={handleSendOtp} className="space-y-5">
               <div className="text-center space-y-1.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#F5D061]/15 border border-[#F5D061]/30 flex items-center justify-center mx-auto mb-2 text-[#F5D061]">
+                <div className="w-12 h-12 rounded-2xl bg-[#F5D061]/20 border border-[#D97706]/30 flex items-center justify-center mx-auto mb-2 text-[#D97706]">
                   <Smartphone className="w-6 h-6" />
                 </div>
-                <h4 className="text-xl font-serif font-bold text-[#F8E7A1]">Login / Sign Up</h4>
-                <p className="text-xs text-[#D4C4A0]/80 max-w-xs mx-auto">
+                <h4 className="text-xl font-serif font-bold text-[#1F1810]">Login / Sign Up</h4>
+                <p className="text-xs text-[#6B5A4B] max-w-xs mx-auto">
                   Enter your 10-digit mobile number. Registered users are automatically logged in via OTP!
                 </p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#D4C4A0] mb-1.5">Mobile Number</label>
+                <label className="block text-xs font-bold text-[#78350F] uppercase tracking-wider mb-1.5">Mobile Number</label>
                 <div className="relative flex items-center">
                   <div className="absolute left-3.5 flex items-center space-x-1.5 pointer-events-none">
                     <span className="text-base">🇮🇳</span>
-                    <span className="text-xs font-bold text-[#98A886]">+91</span>
+                    <span className="text-xs font-bold text-[#B45309]">+91</span>
                   </div>
                   <input
                     type="tel"
@@ -415,7 +415,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                     value={phoneInput}
                     onChange={e => handlePhoneInputChange(e.target.value)}
                     placeholder="98765 43210"
-                    className="w-full pl-20 pr-4 py-3.5 bg-[#181A1F] border border-[#F5D061]/35 rounded-2xl text-white text-base font-mono font-bold tracking-widest focus:outline-none focus:border-[#F5D061] focus:ring-2 focus:ring-[#F5D061]/25 transition"
+                    className="w-full pl-20 pr-4 py-3.5 bg-white border border-[#D97706]/40 rounded-2xl text-[#1F1810] text-base font-mono font-bold tracking-widest focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/20 shadow-sm transition"
                   />
                 </div>
 
@@ -423,13 +423,13 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                 {phoneInput.length === 10 && (
                   <div className="mt-2 text-center">
                     {matchedUser ? (
-                      <span className="text-[11px] font-bold text-emerald-400 bg-emerald-950/70 border border-emerald-500/40 px-3 py-1 rounded-full inline-flex items-center space-x-1">
-                        <UserCheck className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-bold text-emerald-800 bg-emerald-100 border border-emerald-300 px-3 py-1 rounded-full inline-flex items-center space-x-1">
+                        <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
                         <span>Registered Account Found ({matchedUser.name}) • Instant Login Mode</span>
                       </span>
                     ) : (
-                      <span className="text-[11px] font-bold text-[#F5D061] bg-[#1F1810] border border-[#F5D061]/40 px-3 py-1 rounded-full inline-flex items-center space-x-1">
-                        <UserPlus className="w-3.5 h-3.5" />
+                      <span className="text-[11px] font-bold text-[#78350F] bg-[#F5EFE6] border border-[#D97706]/30 px-3 py-1 rounded-full inline-flex items-center space-x-1">
+                        <UserPlus className="w-3.5 h-3.5 text-[#D97706]" />
                         <span>New Mobile Number • Sign Up Account Creation</span>
                       </span>
                     )}
@@ -440,10 +440,10 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
               <button
                 type="submit"
                 disabled={isSendingOtp || phoneInput.length !== 10}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-bold text-xs uppercase tracking-wider shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#D97706] via-[#E5B82C] to-[#B45309] hover:from-[#B45309] hover:to-[#D97706] text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
               >
                 {isSendingOtp ? (
-                  <RefreshCw className="w-5 h-5 animate-spin" />
+                  <RefreshCw className="w-5 h-5 animate-spin text-white" />
                 ) : (
                   <>
                     <span>Send SMS OTP Code</span>
@@ -459,36 +459,34 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
           {step === 'otp' && (
             <form onSubmit={handleVerifyOtp} className="space-y-6">
               <div className="text-center space-y-1.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#98A886]/15 border border-[#98A886]/30 flex items-center justify-center mx-auto mb-2 text-[#98A886]">
+                <div className="w-12 h-12 rounded-2xl bg-[#F5D061]/20 border border-[#D97706]/30 flex items-center justify-center mx-auto mb-2 text-[#D97706]">
                   <KeyRound className="w-6 h-6" />
                 </div>
-                <h4 className="text-xl font-serif font-bold text-[#F8E7A1]">Enter 6-Digit OTP</h4>
+                <h4 className="text-xl font-serif font-bold text-[#1F1810]">Enter 6-Digit OTP</h4>
                 
                 {matchedUser ? (
-                  <div className="px-3 py-1 bg-emerald-950/70 border border-emerald-500/40 rounded-full inline-flex items-center space-x-1.5 text-xs text-emerald-300 font-bold my-1">
-                    <UserCheck className="w-3.5 h-3.5" />
+                  <div className="px-3 py-1 bg-emerald-100 border border-emerald-300 rounded-full inline-flex items-center space-x-1.5 text-xs text-emerald-800 font-bold my-1">
+                    <UserCheck className="w-3.5 h-3.5 text-emerald-600" />
                     <span>Welcome Back, <strong>{matchedUser.name}</strong>! (Direct Login)</span>
                   </div>
                 ) : (
-                  <div className="px-3 py-1 bg-[#1F1810] border border-[#F5D061]/40 rounded-full inline-flex items-center space-x-1.5 text-xs text-[#F5D061] font-bold my-1">
-                    <UserPlus className="w-3.5 h-3.5" />
+                  <div className="px-3 py-1 bg-[#F5EFE6] border border-[#D97706]/30 rounded-full inline-flex items-center space-x-1.5 text-xs text-[#78350F] font-bold my-1">
+                    <UserPlus className="w-3.5 h-3.5 text-[#D97706]" />
                     <span>New Customer Account Setup</span>
                   </div>
                 )}
 
-                <p className="text-xs text-[#D4C4A0]/80">
-                  Sent to <span className="text-[#F8E7A1] font-mono font-bold">+91 {phoneInput}</span>{' '}
+                <p className="text-xs text-[#6B5A4B]">
+                  Sent to <span className="text-[#B45309] font-mono font-bold">+91 {phoneInput}</span>{' '}
                   <button
                     type="button"
                     onClick={() => setStep('phone')}
-                    className="text-[#98A886] underline font-semibold ml-1 hover:text-[#F8E7A1]"
+                    className="text-[#D97706] underline font-bold ml-1 hover:text-[#B45309]"
                   >
                     Edit
                   </button>
                 </p>
               </div>
-
-
 
               {/* 6 Digit Inputs */}
               <div className="flex items-center justify-center gap-2">
@@ -502,18 +500,18 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                     value={digit}
                     onChange={e => handleOtpChange(idx, e.target.value)}
                     onKeyDown={e => handleKeyDown(idx, e)}
-                    className="w-11 h-14 text-center bg-[#181A1F] border border-[#F5D061]/35 rounded-2xl text-white font-bold text-xl font-mono focus:outline-none focus:border-[#F5D061] focus:ring-2 focus:ring-[#F5D061]/40 transition"
+                    className="w-11 h-14 text-center bg-white border border-[#D97706]/40 rounded-2xl text-[#1F1810] font-bold text-xl font-mono focus:outline-none focus:border-[#D97706] focus:ring-2 focus:ring-[#D97706]/30 shadow-sm transition"
                   />
                 ))}
               </div>
 
-              <div className="flex items-center justify-between text-xs text-[#D4C4A0]">
+              <div className="flex items-center justify-between text-xs text-[#6B5A4B]">
                 <span>Didn&apos;t receive code?</span>
                 <button
                   type="button"
                   disabled={resendTimer > 0}
                   onClick={handleResendOtp}
-                  className="font-bold text-[#98A886] hover:underline disabled:opacity-40"
+                  className="font-bold text-[#D97706] hover:underline disabled:opacity-40"
                 >
                   {resendTimer > 0 ? `Resend in ${resendTimer}s` : 'Resend OTP'}
                 </button>
@@ -522,10 +520,10 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
               <button
                 type="submit"
                 disabled={isVerifying || otpInput.join('').length !== 6}
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-bold text-xs uppercase tracking-wider shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#D97706] via-[#E5B82C] to-[#B45309] hover:from-[#B45309] hover:to-[#D97706] text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-all duration-300 flex items-center justify-center space-x-2 disabled:opacity-40 disabled:cursor-not-allowed hover:scale-[1.01]"
               >
                 {isVerifying ? (
-                  <RefreshCw className="w-4 h-4 animate-spin" />
+                  <RefreshCw className="w-4 h-4 animate-spin text-white" />
                 ) : (
                   <>
                     <CheckCircle2 className="w-4 h-4" />
@@ -536,21 +534,21 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
             </form>
           )}
 
-          {/* STEP 3: Sign Up Profile Details (Only shown when phone number is NOT in DB) */}
+          {/* STEP 3: Sign Up Profile Details */}
           {step === 'profile' && (
             <form onSubmit={handleProfileSubmit} className="space-y-4">
               <div className="text-center space-y-1.5">
-                <div className="w-12 h-12 rounded-2xl bg-[#F5D061]/15 border border-[#F5D061]/30 flex items-center justify-center mx-auto mb-2 text-[#F5D061]">
+                <div className="w-12 h-12 rounded-2xl bg-[#F5D061]/20 border border-[#D97706]/30 flex items-center justify-center mx-auto mb-2 text-[#D97706]">
                   <UserPlus className="w-6 h-6" />
                 </div>
-                <h4 className="text-xl font-serif font-bold text-[#F8E7A1]">Complete Account Sign Up</h4>
-                <p className="text-xs text-[#D4C4A0]/80">Please enter your full name to complete your account setup.</p>
+                <h4 className="text-xl font-serif font-bold text-[#1F1810]">Complete Account Sign Up</h4>
+                <p className="text-xs text-[#6B5A4B]">Please enter your full name to complete your account setup.</p>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#D4C4A0] mb-1.5">Full Name</label>
+                <label className="block text-xs font-bold text-[#78350F] uppercase tracking-wider mb-1.5">Full Name</label>
                 <div className="relative flex items-center">
-                  <User className="absolute left-3.5 w-4 h-4 text-[#98A886]" />
+                  <User className="absolute left-3.5 w-4 h-4 text-[#D97706]" />
                   <input
                     type="text"
                     required
@@ -558,35 +556,34 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                     value={nameInput}
                     onChange={e => setNameInput(e.target.value)}
                     placeholder="Rahul Sharma"
-                    className="w-full pl-10 pr-4 py-3.5 bg-[#181A1F] border border-[#F5D061]/35 rounded-2xl text-white text-xs font-semibold focus:outline-none focus:border-[#F5D061]"
+                    className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#D97706]/40 rounded-2xl text-[#1F1810] text-xs font-semibold focus:outline-none focus:border-[#D97706] shadow-sm"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block text-xs font-semibold text-[#D4C4A0] mb-1.5">Email Address (Optional)</label>
+                <label className="block text-xs font-bold text-[#78350F] uppercase tracking-wider mb-1.5">Email Address (Optional)</label>
                 <div className="relative flex items-center">
-                  <Mail className="absolute left-3.5 w-4 h-4 text-[#98A886]" />
+                  <Mail className="absolute left-3.5 w-4 h-4 text-[#D97706]" />
                   <input
                     type="email"
                     value={emailInput}
                     onChange={e => setEmailInput(e.target.value)}
                     placeholder="rahul@example.com"
-                    className="w-full pl-10 pr-4 py-3.5 bg-[#181A1F] border border-[#F5D061]/35 rounded-2xl text-white text-xs font-semibold focus:outline-none focus:border-[#F5D061]"
+                    className="w-full pl-10 pr-4 py-3.5 bg-white border border-[#D97706]/40 rounded-2xl text-[#1F1810] text-xs font-semibold focus:outline-none focus:border-[#D97706] shadow-sm"
                   />
                 </div>
               </div>
 
               <button
                 type="submit"
-                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] hover:from-[#F8E7A1] hover:to-[#F5D061] text-[#120B08] font-bold text-xs uppercase tracking-wider shadow-2xl transition-all duration-300 flex items-center justify-center space-x-2"
+                className="w-full py-4 rounded-2xl bg-gradient-to-r from-[#D97706] via-[#E5B82C] to-[#B45309] hover:from-[#B45309] hover:to-[#D97706] text-white font-bold text-xs uppercase tracking-wider shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                <span>Create Account &amp; Login</span>
-                <CheckCircle2 className="w-4 h-4" />
+                <span>Save Profile &amp; Login</span>
+                <ArrowRight className="w-4 h-4" />
               </button>
             </form>
           )}
-
         </div>
       </div>
     </div>
