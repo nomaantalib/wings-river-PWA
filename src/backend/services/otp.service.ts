@@ -97,8 +97,7 @@ export class OtpService {
       success: true,
       message: `OTP code sent to +91 ${cleanPhone.slice(0, 2)}****${cleanPhone.slice(-4)}`,
       sms_sent: smsSent,
-      expires_in_seconds: 300,
-      dev_otp: otpCode
+      expires_in_seconds: 300
     };
   }
 
