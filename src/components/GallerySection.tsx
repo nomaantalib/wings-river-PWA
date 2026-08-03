@@ -139,8 +139,9 @@ export default function GallerySection() {
               <div className="relative z-30 p-4 bg-[#14171D] border-t border-[#F5D061]/25 flex items-center justify-between">
                 <div className="flex items-center space-x-2">
                   <button
+                    type="button"
                     onClick={() => setIsPlaying(!isPlaying)}
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition"
+                    className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition flex items-center justify-center shrink-0 border border-white/10"
                   >
                     {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
                   </button>
@@ -151,14 +152,16 @@ export default function GallerySection() {
 
                 <div className="flex items-center space-x-2">
                   <button
+                    type="button"
                     onClick={handlePrevSlide}
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition"
+                    className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition flex items-center justify-center shrink-0 border border-white/10"
                   >
                     <ChevronLeft className="w-5 h-5" />
                   </button>
                   <button
+                    type="button"
                     onClick={handleNextSlide}
-                    className="p-2 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition"
+                    className="w-9 h-9 rounded-xl bg-white/10 hover:bg-white/20 text-[#F5D061] transition flex items-center justify-center shrink-0 border border-white/10"
                   >
                     <ChevronRight className="w-5 h-5" />
                   </button>

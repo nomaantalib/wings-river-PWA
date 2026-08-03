@@ -197,49 +197,51 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
         {currentPage && (
           <div className="max-w-4xl mx-auto">
             {/* Compact Aesthetic Golden Top Toolbar */}
-            <div className="flex items-center justify-between gap-3 bg-[#F5D061] text-[#120B08] backdrop-blur-xl p-2.5 sm:p-3 rounded-xl border border-[#F5D061]/60 mb-4 text-xs shadow-[0_4px_20px_rgba(245,208,97,0.35)] w-[95%] mx-auto opacity-80">
-              <div className="flex items-center space-x-2 truncate">
-                <span className="font-serif font-black text-[#120B08] text-xs sm:text-sm shrink-0">
+            <div className="flex items-center justify-between gap-2.5 bg-[#F5D061] text-[#120B08] backdrop-blur-xl py-1 px-2.5 sm:px-3 min-h-[34px] sm:min-h-[38px] rounded-xl border border-[#F5D061]/60 mb-3 text-xs shadow-[0_4px_16px_rgba(245,208,97,0.3)] w-[95%] mx-auto opacity-80">
+              <div className="flex items-center space-x-1.5 truncate">
+                <span className="font-serif font-black text-[#120B08] text-[11px] sm:text-xs shrink-0">
                   Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
-                <span className="text-[#120B08]/40 font-bold">|</span>
-                <span className="text-[#120B08] font-bold text-xs sm:text-sm truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
+                <span className="text-[#120B08]/40 font-bold text-xs">|</span>
+                <span className="text-[#120B08] font-bold text-[11px] sm:text-xs truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
               </div>
 
-              <div className="flex items-center space-x-2 shrink-0">
+              <div className="flex items-center space-x-1.5 shrink-0">
                 {/* Auto flip button - ICON ONLY */}
                 <button
+                  type="button"
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
-                  className={`p-2 rounded-lg border text-xs font-bold transition-all ${
+                  className={`w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center shrink-0 rounded-lg border text-xs font-bold transition-all ${
                     isAutoFlipping
                       ? 'bg-[#120B08] text-[#F5D061] border-[#120B08] shadow-md scale-105'
                       : 'bg-[#120B08]/15 text-[#120B08] border-[#120B08]/30 hover:bg-[#120B08] hover:text-[#F5D061]'
                   }`}
                   title={isAutoFlipping ? 'Pause Auto Flip' : 'Start Auto Flip'}
                 >
-                  {isAutoFlipping ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                  {isAutoFlipping ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
                 </button>
 
                 {/* Zoom Fullscreen - ICON ONLY */}
                 <button
+                  type="button"
                   onClick={() => {
                     setZoomScale(1.2);
                     setActiveZoomImage(currentPage.image || null);
                   }}
-                  className="p-2 rounded-lg bg-[#120B08]/15 hover:bg-[#120B08] text-[#120B08] hover:text-[#F5D061] border border-[#120B08]/30 transition-all hover:scale-105"
+                  className="w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08]/15 hover:bg-[#120B08] text-[#120B08] hover:text-[#F5D061] border border-[#120B08]/30 transition-all hover:scale-105"
                   title="Expand Full Screen Zoom"
                 >
-                  <Maximize2 className="w-4 h-4" />
+                  <Maximize2 className="w-3.5 h-3.5" />
                 </button>
 
                 {/* Download Full Card - ICON ONLY */}
                 <a
                   href="/images/food_menu_collage.jpg"
                   download="Wings_River_Cafe_Menu_Card.jpg"
-                  className="p-2 rounded-lg bg-[#120B08] hover:bg-[#2A1D15] text-[#F5D061] font-extrabold shadow-md hover:scale-105 transition-all border border-[#120B08]"
+                  className="w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08] hover:bg-[#2A1D15] text-[#F5D061] font-extrabold shadow-md hover:scale-105 transition-all border border-[#120B08]"
                   title="Download Menu Card"
                 >
-                  <Download className="w-4 h-4" />
+                  <Download className="w-3.5 h-3.5" />
                 </a>
               </div>
             </div>
@@ -439,13 +441,15 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
               <span>Reset</span>
             </button>
             <button
+              type="button"
               onClick={() => {
                 setActiveZoomImage(null);
                 setZoomScale(1);
               }}
-              className="p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
+              className="w-9 h-9 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors flex items-center justify-center shrink-0 border border-white/10"
+              aria-label="Close lightbox"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5" />
             </button>
           </div>
 
