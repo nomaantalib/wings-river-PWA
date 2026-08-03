@@ -39,7 +39,8 @@ import {
   Image as ImageIcon, CheckCircle, Clock, XCircle, LogOut, ShieldAlert,
   Megaphone, ToggleLeft, ToggleRight, X, Save, Eye, EyeOff, Waves, BookOpen,
   Home, Layers, HelpCircle, Users, Award, Tag, Settings, Database, FolderOpen, Compass, Zap, Loader2,
-  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3, Code, Terminal
+  ChevronLeft, ChevronRight, Menu, ArrowLeft, Upload, Copy, Search, Filter, Check, Activity, Wifi, Bell, IndianRupee, PieChart, BarChart3, Code, Terminal,
+  LayoutGrid, Globe
 } from 'lucide-react';
 import { getRegisteredUsers, saveRegisteredUser, RegisteredUser } from '@/components/UserAuthModal';
 
@@ -396,6 +397,7 @@ function MultiImageUploader({
 // Tab Keys matching separate management modules
 type TabKey = 
   | 'dashboard'
+  | 'cmshub'
   | 'settings'
   | 'hero' 
   | 'pages'
@@ -520,6 +522,12 @@ export default function AdminPage() {
   const [mediaModal, setMediaModal] = useState<Partial<MediaItem> | null>(null);
   const [menuPageModal, setMenuPageModal] = useState<Partial<MenuPageDefinition> | null>(null);
   const [promoPageModal, setPromoPageModal] = useState<Partial<PromoPage> | null>(null);
+
+  // CMS Control Center States
+  const [cmsSearchQuery, setCmsSearchQuery] = useState('');
+  const [cmsFilterCategory, setCmsFilterCategory] = useState<string>('all');
+  const [pagePreviewModal, setPagePreviewModal] = useState<SitePage | null>(null);
+  const [blogPreviewModal, setBlogPreviewModal] = useState<BlogPost | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<{ label: string; action: () => void } | null>(null);
 
@@ -1128,6 +1136,8 @@ export default function AdminPage() {
     {
       title: '📝 CMS CONTENT MANAGER',
       tabs: [
+        { id: 'cmshub' as TabKey,      label: 'CMS Control Hub',    icon: <LayoutGrid className="w-4 h-4 shrink-0 text-amber-400" /> },
+        { id: 'pages' as TabKey,       label: 'Dynamic Static Pages',icon: <Globe className="w-4 h-4 shrink-0" /> },
         { id: 'menu' as TabKey,       label: 'Menu Items',         icon: <Utensils className="w-4 h-4 shrink-0" /> },
         { id: 'categories' as TabKey, label: 'Menu Categories',    icon: <Layers className="w-4 h-4 shrink-0" /> },
         { id: 'menupages' as TabKey,  label: 'Booklet Pages',      icon: <BookOpen className="w-4 h-4 shrink-0" /> },
@@ -1546,6 +1556,264 @@ export default function AdminPage() {
                 </div>
               )}
 
+              {/* TAB: CMS CONTROL CENTER & OVERVIEW HUB */}
+              {activeTab === 'cmshub' && (
+                <div className="space-y-8">
+                  {/* Executive Header Banner */}
+                  <div className="relative overflow-hidden bg-gradient-to-r from-[#1E140C] via-[#2A1B0E] to-[#120B08] border border-[#F5D061]/30 p-6 md:p-8 rounded-3xl shadow-2xl">
+                    <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+                      <div className="space-y-2">
+                        <div className="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 text-xs font-mono font-semibold">
+                          <LayoutGrid className="w-3.5 h-3.5" />
+                          <span>WINGS RIVER CAFÉ CMS SYSTEM</span>
+                        </div>
+                        <h2 className="font-serif text-2xl md:text-3xl font-black text-amber-300 tracking-tight">
+                          Content Management Hub
+                        </h2>
+                        <p className="text-xs md:text-sm text-gray-300 max-w-2xl leading-relaxed">
+                          Central management workspace for static pages, blog articles, food menu dishes, booklet flip pages, offers, photo galleries, and promo banners.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3 shrink-0">
+                        <button
+                          onClick={() => { setPageModal({ status: 'draft' }); setActiveTab('pages'); }}
+                          className="px-4 py-2.5 bg-gradient-to-r from-amber-500 to-amber-400 text-dark-950 font-bold text-xs uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 transition flex items-center space-x-1.5"
+                        >
+                          <Plus className="w-4 h-4" />
+                          <span>New Custom Page</span>
+                        </button>
+                        <button
+                          onClick={() => { setBlogModal({ title: '', category: 'Riverside Experience', images: [], created_at: new Date().toISOString() }); setActiveTab('blogs'); }}
+                          className="px-4 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs uppercase tracking-wider rounded-xl border border-white/20 transition flex items-center space-x-1.5"
+                        >
+                          <Plus className="w-4 h-4 text-amber-400" />
+                          <span>New Story Article</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Comprehensive Asset Metric Cards */}
+                  <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                    {[
+                      { label: 'Static Pages', count: pages.length, sub: `${pages.filter(p => p.status === 'published').length} Published`, tab: 'pages' as TabKey, color: 'text-amber-400' },
+                      { label: 'Menu Dishes', count: menuItems.length, sub: `${categories.length} Categories`, tab: 'menu' as TabKey, color: 'text-emerald-400' },
+                      { label: 'Blog Stories', count: blogs.length, sub: `${blogs.filter(b => b.status === 'published' || b.is_published).length} Published`, tab: 'blogs' as TabKey, color: 'text-blue-400' },
+                      { label: 'Booklet Pages', count: menuPages.length || 10, sub: 'Flipbook Layouts', tab: 'menupages' as TabKey, color: 'text-purple-400' },
+                      { label: 'Photo Gallery', count: gallery.length, sub: `${gallery.filter(g => g.featured).length} Featured`, tab: 'gallery' as TabKey, color: 'text-pink-400' },
+                      { label: 'Promo Banners', count: banners.length, sub: `${banners.filter(b => b.is_active || b.status === 'published').length} Active`, tab: 'banners' as TabKey, color: 'text-yellow-400' },
+                      { label: 'Offers & Coupons', count: offers.length, sub: `${offers.filter(o => o.status === 'active').length} Active`, tab: 'offers' as TabKey, color: 'text-cyan-400' },
+                      { label: 'Water Rides', count: rides.length, sub: 'Tickets & Packages', tab: 'rides' as TabKey, color: 'text-teal-400' },
+                      { label: 'Media Files', count: media.length, sub: 'Cloud & Assets', tab: 'media' as TabKey, color: 'text-orange-400' },
+                      { label: 'Site FAQs', count: faqs.length, sub: 'QA Directory', tab: 'faqs' as TabKey, color: 'text-indigo-400' },
+                    ].map((item, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setActiveTab(item.tab)}
+                        className="bg-dark-900 border border-white/10 rounded-2xl p-4 text-left hover:border-amber-400/50 hover:bg-dark-900/80 transition-all group shadow-md"
+                      >
+                        <span className="text-[10px] uppercase tracking-wider font-bold text-gray-400 group-hover:text-amber-400 transition-colors">
+                          {item.label}
+                        </span>
+                        <div className={`text-2xl font-black mt-1 ${item.color}`}>{item.count}</div>
+                        <div className="text-[10px] text-gray-500 font-mono mt-1">{item.sub}</div>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* CMS Global Search & Management Console */}
+                  <div className="bg-dark-900 border border-white/10 rounded-2xl p-6 space-y-6">
+                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-5">
+                      <div>
+                        <h3 className="font-serif font-bold text-lg text-white">Global CMS Search & Filter</h3>
+                        <p className="text-xs text-gray-400">Search and filter across all dynamic pages, blogs, food items, and promotional offers</p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-3">
+                        {/* Search Input */}
+                        <div className="relative min-w-[240px]">
+                          <Search className="w-4 h-4 absolute left-3 top-3 text-gray-400" />
+                          <input
+                            type="text"
+                            placeholder="Search title, slug, content..."
+                            value={cmsSearchQuery}
+                            onChange={(e) => setCmsSearchQuery(e.target.value)}
+                            className="w-full pl-9 pr-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400"
+                          />
+                        </div>
+                        {/* Category Filter Dropdown */}
+                        <select
+                          value={cmsFilterCategory}
+                          onChange={(e) => setCmsFilterCategory(e.target.value)}
+                          className="px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-amber-400"
+                        >
+                          <option value="all">All CMS Assets</option>
+                          <option value="pages">Dynamic Pages</option>
+                          <option value="blogs">Blog Articles</option>
+                          <option value="menu">Menu Items</option>
+                          <option value="offers">Offers & Discounts</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Consolidated Content Results Table */}
+                    <div className="overflow-x-auto">
+                      <table className="w-full text-xs text-left">
+                        <thead>
+                          <tr className="border-b border-white/10 text-gray-400 font-mono">
+                            <th className="py-3 px-2">Type</th>
+                            <th className="py-3 px-2">Title / Name</th>
+                            <th className="py-3 px-2">Identifier / Slug</th>
+                            <th className="py-3 px-2">Status</th>
+                            <th className="py-3 px-2 text-right">Actions</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-white/5">
+                          {(() => {
+                            const query = cmsSearchQuery.toLowerCase();
+                            const results: { type: string; title: string; slug: string; status: string; raw: any; tab: TabKey; onEdit: () => void; onDelete: () => void }[] = [];
+
+                            if (cmsFilterCategory === 'all' || cmsFilterCategory === 'pages') {
+                              pages.forEach(p => {
+                                if (!query || p.title.toLowerCase().includes(query) || (p.slug && p.slug.toLowerCase().includes(query))) {
+                                  results.push({
+                                    type: 'Static Page',
+                                    title: p.title,
+                                    slug: `/${p.slug}`,
+                                    status: p.status || 'draft',
+                                    raw: p,
+                                    tab: 'pages',
+                                    onEdit: () => { setPageModal(p); setActiveTab('pages'); },
+                                    onDelete: () => setDeleteTarget({ label: p.title, action: async () => { await deletePage(p.id); loadAll(); } })
+                                  });
+                                }
+                              });
+                            }
+
+                            if (cmsFilterCategory === 'all' || cmsFilterCategory === 'blogs') {
+                              blogs.forEach(b => {
+                                if (!query || b.title.toLowerCase().includes(query) || (b.slug && b.slug.toLowerCase().includes(query))) {
+                                  results.push({
+                                    type: 'Blog Post',
+                                    title: b.title,
+                                    slug: b.slug ? `/blog/${b.slug}` : b.category,
+                                    status: b.status === 'published' || b.is_published ? 'published' : 'draft',
+                                    raw: b,
+                                    tab: 'blogs',
+                                    onEdit: () => { setBlogModal({ ...b, images: normalizeImages(b.images) }); setActiveTab('blogs'); },
+                                    onDelete: () => setDeleteTarget({ label: b.title, action: async () => { await deleteBlog(b.id); loadAll(); } })
+                                  });
+                                }
+                              });
+                            }
+
+                            if (cmsFilterCategory === 'all' || cmsFilterCategory === 'menu') {
+                              menuItems.forEach(m => {
+                                if (!query || m.name.toLowerCase().includes(query) || (m.description && m.description.toLowerCase().includes(query))) {
+                                  results.push({
+                                    type: 'Menu Item',
+                                    title: m.name,
+                                    slug: `₹${m.price} • ${m.is_veg ? 'Veg' : 'Non-Veg'}`,
+                                    status: m.is_available ? 'available' : 'unavailable',
+                                    raw: m,
+                                    tab: 'menu',
+                                    onEdit: () => { setMenuModal(m); setActiveTab('menu'); },
+                                    onDelete: () => setDeleteTarget({ label: m.name, action: async () => { await deleteMenuItem(m.id); loadAll(); } })
+                                  });
+                                }
+                              });
+                            }
+
+                            if (cmsFilterCategory === 'all' || cmsFilterCategory === 'offers') {
+                              offers.forEach(o => {
+                                if (!query || o.title.toLowerCase().includes(query) || o.code.toLowerCase().includes(query)) {
+                                  results.push({
+                                    type: 'Offer Coupon',
+                                    title: o.title,
+                                    slug: `CODE: ${o.code}`,
+                                    status: o.status || 'active',
+                                    raw: o,
+                                    tab: 'offers',
+                                    onEdit: () => { setOfferModal(o); setActiveTab('offers'); },
+                                    onDelete: () => setDeleteTarget({ label: o.title, action: async () => { await deleteOffer(o.id); loadAll(); } })
+                                  });
+                                }
+                              });
+                            }
+
+                            if (results.length === 0) {
+                              return (
+                                <tr>
+                                  <td colSpan={5} className="py-8 text-center text-gray-500 text-xs">
+                                    No CMS content matches your filter criteria. Try searching for a different keyword or create new content!
+                                  </td>
+                                </tr>
+                              );
+                            }
+
+                            return results.slice(0, 20).map((res, idx) => (
+                              <tr key={idx} className="hover:bg-white/5 transition-colors">
+                                <td className="py-3 px-2">
+                                  <span className="px-2 py-0.5 text-[10px] font-bold rounded bg-amber-500/10 text-amber-400 border border-amber-500/20 font-mono">
+                                    {res.type}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-2 font-bold text-white">{res.title}</td>
+                                <td className="py-3 px-2 text-gray-400 font-mono text-[11px]">{res.slug}</td>
+                                <td className="py-3 px-2">
+                                  <span className={`px-2 py-0.5 text-[10px] font-bold rounded-full border ${
+                                    res.status === 'published' || res.status === 'active' || res.status === 'available'
+                                      ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                      : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                  }`}>
+                                    {res.status}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-2 text-right">
+                                  <div className="flex items-center justify-end space-x-2">
+                                    {res.type === 'Static Page' && (
+                                      <button
+                                        onClick={() => setPagePreviewModal(res.raw)}
+                                        className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white transition-all"
+                                        title="Preview Page"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                    {res.type === 'Blog Post' && (
+                                      <button
+                                        onClick={() => setBlogPreviewModal(res.raw)}
+                                        className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white transition-all"
+                                        title="Preview Story"
+                                      >
+                                        <Eye className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+                                    <button
+                                      onClick={res.onEdit}
+                                      className={btnEdit}
+                                      title="Edit Content"
+                                    >
+                                      <Edit3 className="w-3.5 h-3.5" />
+                                    </button>
+                                    <button
+                                      onClick={res.onDelete}
+                                      className={btnDanger}
+                                      title="Delete Content"
+                                    >
+                                      <Trash2 className="w-3.5 h-3.5" />
+                                    </button>
+                                  </div>
+                                </td>
+                              </tr>
+                            ));
+                          })()}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* TAB: SITE SETTINGS */}
               {activeTab === 'settings' && siteSettings && (
                 <form onSubmit={handleSiteSettingsSave} className="space-y-6 max-w-2xl">
@@ -1827,25 +2095,68 @@ export default function AdminPage() {
 
               {/* TAB 3: DYNAMIC PAGES */}
               {activeTab === 'pages' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-serif font-bold text-base">Dynamic Static Pages</h3>
-                    <button onClick={() => setPageModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Page</span></button>
+                <div className="space-y-6">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-[#140E0A] border border-[#F5D061]/30 p-5 rounded-2xl shadow-xl">
+                    <div>
+                      <h3 className="font-serif font-black text-lg text-[#F8E7A1]">Dynamic Custom Static Pages</h3>
+                      <p className="text-xs text-[#D4C4A0]/80">Create and publish custom pages (e.g., Privacy Policy, Terms, Special Event Rules, River Guide) with live URL routes.</p>
+                    </div>
+                    <button
+                      onClick={() => setPageModal({ status: 'draft', title: '', slug: '', content: '' })}
+                      className="px-4 py-2.5 bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#6B8E5E] text-[#120B08] font-black text-xs uppercase tracking-wider rounded-xl shadow-lg hover:scale-105 transition flex items-center gap-1.5 shrink-0"
+                    >
+                      <Plus className="w-4 h-4" /> Add New Page
+                    </button>
                   </div>
-                  <div className="grid grid-cols-1 gap-4">
-                    {pages.map((p) => (
-                      <div key={p.id} className="bg-dark-900/50 border border-white/10 rounded-2xl p-4 flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold text-sm text-white">{p.title}</h4>
-                          <p className="text-[10px] text-gray-400 font-mono">/{p.slug} • status: {p.status}</p>
+
+                  {pages.length === 0 ? (
+                    <div className="text-center py-16 text-gray-500 text-sm bg-dark-900 border border-white/5 rounded-2xl">
+                      <Globe className="w-10 h-10 mx-auto mb-3 opacity-30 text-amber-400" />
+                      <p className="text-gray-300 font-bold">No custom pages published yet.</p>
+                      <p className="text-xs text-gray-500 mt-1">Click "Add New Page" to publish your first static page!</p>
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {pages.map((p) => (
+                        <div key={p.id} className="bg-dark-900 border border-white/10 rounded-2xl p-5 flex flex-col justify-between space-y-4 hover:border-amber-400/40 transition-colors">
+                          <div className="flex items-start justify-between gap-3">
+                            <div>
+                              <div className="flex items-center space-x-2">
+                                <h4 className="font-bold text-base text-white">{p.title}</h4>
+                                <span className={`px-2 py-0.5 text-[9px] font-bold rounded-full border ${
+                                  p.status === 'published'
+                                    ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30'
+                                    : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                                }`}>
+                                  {p.status || 'draft'}
+                                </span>
+                              </div>
+                              <p className="text-xs text-gray-400 font-mono mt-1">/{p.slug}</p>
+                            </div>
+                          </div>
+
+                          <div className="text-xs text-gray-400 line-clamp-2 bg-dark-950/60 p-3 rounded-xl border border-white/5 font-mono">
+                            {p.content || 'No content added yet.'}
+                          </div>
+
+                          <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-gray-500 font-mono">
+                            <span>Order: {p.display_order || 0} • v{p.version || 1}</span>
+                            <div className="flex items-center space-x-2">
+                              <button
+                                onClick={() => setPagePreviewModal(p)}
+                                className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white transition-all flex items-center space-x-1 px-2.5 py-1 text-xs font-sans font-semibold"
+                              >
+                                <Eye className="w-3.5 h-3.5" />
+                                <span>Preview</span>
+                              </button>
+                              <button onClick={() => setPageModal(p)} className={btnEdit} title="Edit Page"><Edit3 className="w-4 h-4" /></button>
+                              <button onClick={() => setDeleteTarget({ label: p.title, action: async () => { await deletePage(p.id); loadAll(); } })} className={btnDanger} title="Delete Page"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex items-center space-x-2">
-                          <button onClick={() => setPageModal(p)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
-                          <button onClick={() => setDeleteTarget({ label: p.title, action: async () => { await deletePage(p.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -2075,6 +2386,9 @@ export default function AdminPage() {
                             <div className="flex items-center justify-between pt-2 border-t border-white/5 text-[10px] text-gray-400 font-mono">
                               <span>By {b.author || 'Admin'} • {b.read_time || '3 min read'}</span>
                               <div className="flex items-center space-x-1.5">
+                                <button onClick={() => setBlogPreviewModal(b)} className="p-1.5 rounded-lg bg-emerald-500/20 hover:bg-emerald-500 text-emerald-400 hover:text-white transition-all" title="Preview Story">
+                                  <Eye className="w-3.5 h-3.5" />
+                                </button>
                                 <button onClick={() => setBlogModal({ ...b, images: normalizeImages(b.images) })} className={btnEdit} title="Edit Article">
                                   <Edit3 className="w-3.5 h-3.5" />
                                 </button>
@@ -3580,25 +3894,103 @@ export default function AdminPage() {
             <form onSubmit={saveDynamicPage} className="space-y-4">
               <div>
                 <label className={labelCls}>Page Title</label>
-                <input type="text" required value={pageModal.title || ''} onChange={(e) => setPageModal({ ...pageModal, title: e.target.value })} className={inputCls} />
+                <input type="text" required value={pageModal.title || ''} onChange={(e) => setPageModal({ ...pageModal, title: e.target.value, slug: pageModal.slug || e.target.value.toLowerCase().replace(/[^a-z0-9]+/g, '-') })} className={inputCls} />
               </div>
               <div>
-                <label className={labelCls}>Slug</label>
-                <input type="text" value={pageModal.slug || ''} onChange={(e) => setPageModal({ ...pageModal, slug: e.target.value })} className={inputCls} />
+                <label className={labelCls}>Slug Route URL</label>
+                <input type="text" value={pageModal.slug || ''} onChange={(e) => setPageModal({ ...pageModal, slug: e.target.value })} className={inputCls} placeholder="e.g. privacy-policy" />
               </div>
               <div>
                 <label className={labelCls}>Content (HTML/Markdown Supported)</label>
-                <textarea rows={5} value={pageModal.content || ''} onChange={(e) => setPageModal({ ...pageModal, content: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
+                <textarea rows={6} value={pageModal.content || ''} onChange={(e) => setPageModal({ ...pageModal, content: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none focus:border-amber-400 custom-scrollbar" placeholder="Enter page content..." />
               </div>
               <div>
-                <label className={labelCls}>Status</label>
+                <label className={labelCls}>Publication Status</label>
                 <select value={pageModal.status || 'draft'} onChange={(e) => setPageModal({ ...pageModal, status: e.target.value as any })} className={inputCls}>
-                  <option value="draft">Draft</option>
-                  <option value="published">Published</option>
+                  <option value="draft">Draft (Hidden from public navigation)</option>
+                  <option value="published">Published (Live on site)</option>
                 </select>
               </div>
               <button type="submit" className={btnPrimary}>Save Page</button>
             </form>
+          </Modal>
+        )}
+
+        {/* Dynamic Page Preview Modal */}
+        {pagePreviewModal && (
+          <Modal title={`Page Preview: ${pagePreviewModal.title}`} onClose={() => setPagePreviewModal(null)}>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs font-mono">
+                <span className="text-amber-400 font-bold">Route: /{pagePreviewModal.slug}</span>
+                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                  pagePreviewModal.status === 'published' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                }`}>
+                  {pagePreviewModal.status || 'draft'}
+                </span>
+              </div>
+              <div className="bg-dark-950 p-6 rounded-2xl border border-white/10 min-h-[240px] text-gray-200 text-sm leading-relaxed font-sans overflow-y-auto max-h-[60vh] custom-scrollbar">
+                <h1 className="font-serif font-black text-2xl text-amber-300 mb-4">{pagePreviewModal.title}</h1>
+                <div className="whitespace-pre-wrap">{pagePreviewModal.content || 'No content added yet.'}</div>
+              </div>
+              <div className="flex justify-end pt-2">
+                <button onClick={() => setPagePreviewModal(null)} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition">
+                  Close Preview
+                </button>
+              </div>
+            </div>
+          </Modal>
+        )}
+
+        {/* Blog Article Preview Modal */}
+        {blogPreviewModal && (
+          <Modal title={`Article Preview: ${blogPreviewModal.title}`} onClose={() => setBlogPreviewModal(null)}>
+            <div className="space-y-5">
+              <div className="flex items-center justify-between pb-3 border-b border-white/10 text-xs font-mono">
+                <span className="text-amber-400 font-bold">Category: {blogPreviewModal.category}</span>
+                <div className="flex items-center space-x-2">
+                  <span className="text-gray-400">By {blogPreviewModal.author || 'Admin'} • {blogPreviewModal.read_time || '4 min read'}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${
+                    blogPreviewModal.status === 'published' || blogPreviewModal.is_published ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' : 'bg-amber-500/20 text-amber-400 border-amber-500/30'
+                  }`}>
+                    {blogPreviewModal.status === 'published' || blogPreviewModal.is_published ? 'Published' : 'Draft'}
+                  </span>
+                </div>
+              </div>
+
+              {blogPreviewModal.cover_image && (
+                <div className="w-full h-56 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                  <img src={blogPreviewModal.cover_image} alt={blogPreviewModal.title} className="w-full h-full object-cover" />
+                </div>
+              )}
+
+              {blogPreviewModal.excerpt && (
+                <div className="p-3.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-300 text-xs italic font-serif leading-relaxed">
+                  &ldquo;{blogPreviewModal.excerpt}&rdquo;
+                </div>
+              )}
+
+              <div className="bg-dark-950 p-6 rounded-2xl border border-white/10 text-gray-200 text-sm leading-relaxed font-sans overflow-y-auto max-h-[50vh] custom-scrollbar space-y-4">
+                <h1 className="font-serif font-black text-2xl text-amber-300">{blogPreviewModal.title}</h1>
+                <div className="whitespace-pre-wrap">{blogPreviewModal.content || 'No article narrative added yet.'}</div>
+
+                {normalizeImages(blogPreviewModal.images).length > 0 && (
+                  <div className="pt-4 border-t border-white/10 space-y-2">
+                    <h5 className="font-mono text-xs font-bold text-gray-400 uppercase tracking-wider">Photo Gallery</h5>
+                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                      {normalizeImages(blogPreviewModal.images).map((img, idx) => (
+                        <img key={idx} src={img} alt={`Gallery photo ${idx+1}`} className="w-full h-28 object-cover rounded-xl border border-white/10" />
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="flex justify-end pt-2">
+                <button onClick={() => setBlogPreviewModal(null)} className="px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-xl text-xs font-bold transition">
+                  Close Article Preview
+                </button>
+              </div>
+            </div>
           </Modal>
         )}
 
