@@ -18,10 +18,13 @@ export async function onRequest(context) {
   try {
     const response = await context.next();
     if (response) {
-      try {
-        response.headers.set("Access-Control-Allow-Origin", "*");
-      } catch {}
-      return response;
+      const newHeaders = new Headers(response.headers);
+      newHeaders.set("Access-Control-Allow-Origin", "*");
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders
+      });
     }
   } catch (err) {
     console.error('[Pages Middleware Exception]', err);

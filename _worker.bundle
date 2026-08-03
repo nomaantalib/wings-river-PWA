@@ -1,9 +1,9 @@
-------formdata-undici-054409954069
+------formdata-undici-049551652679
 Content-Disposition: form-data; name="metadata"
 
-{"main_module":"functionsWorker-0.051227926909359844.js"}
-------formdata-undici-054409954069
-Content-Disposition: form-data; name="functionsWorker-0.051227926909359844.js"; filename="functionsWorker-0.051227926909359844.js"
+{"main_module":"functionsWorker-0.8563811441113858.js"}
+------formdata-undici-049551652679
+Content-Disposition: form-data; name="functionsWorker-0.8563811441113858.js"; filename="functionsWorker-0.8563811441113858.js"
 Content-Type: application/javascript+module
 
 var __defProp = Object.defineProperty;
@@ -20289,11 +20289,13 @@ async function onRequest2(context) {
   try {
     const response = await context.next();
     if (response) {
-      try {
-        response.headers.set("Access-Control-Allow-Origin", "*");
-      } catch {
-      }
-      return response;
+      const newHeaders = new Headers(response.headers);
+      newHeaders.set("Access-Control-Allow-Origin", "*");
+      return new Response(response.body, {
+        status: response.status,
+        statusText: response.statusText,
+        headers: newHeaders
+      });
     }
   } catch (err) {
     console.error("[Pages Middleware Exception]", err);
@@ -20315,7 +20317,7 @@ async function onRequest2(context) {
 }
 __name(onRequest2, "onRequest");
 
-// ../.wrangler/tmp/pages-WaB8zp/functionsRoutes-0.850376399316886.mjs
+// ../.wrangler/tmp/pages-DhR83U/functionsRoutes-0.768577949017166.mjs
 var routes = [
   {
     routePath: "/api/:route*",
@@ -20782,4 +20784,4 @@ export {
   pages_template_worker_default as default
 };
 
-------formdata-undici-054409954069--
+------formdata-undici-049551652679--
