@@ -128,8 +128,8 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   const [resendTimer, setResendTimer] = useState(30);
   const [isSendingOtp, setIsSendingOtp] = useState(false);
   const [isVerifying, setIsVerifying] = useState(false);
-
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const verifyingRef = useRef(false);
 
   // Resend Timer countdown
   useEffect(() => {
@@ -145,16 +145,17 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
   // Phone input change handler with automatic database lookup
   const handlePhoneInputChange = (val: string) => {
     const clean = val.replace(/\D/g, '');
-    setPhoneInput(clean);
-    if (clean.length === 10) {
-      const existing = findRegisteredUser(clean);
-      setMatchedUser(existing || null);
+    const digits = val.replace(/\D/g, '').slice(0, 10);
+    setPhoneInput(digits);
+    if (digits.length === 10) {
+      const match = findRegisteredUser(digits);
+      setMatchedUser(match || null);
     } else {
       setMatchedUser(null);
     }
   };
 
-  // Handle Send Real MSG91 SMS OTP
+  // Dispatch SMS OTP Code
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanPhone = phoneInput.replace(/\D/g, '');
@@ -166,20 +167,15 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     setErrorMsg('');
     setIsSendingOtp(true);
 
-    const existing = findRegisteredUser(cleanPhone);
-    setMatchedUser(existing || null);
-
     try {
       const res = await sendOtp(cleanPhone);
       setIsSendingOtp(false);
 
       if (res.success) {
-        if (res.dev_otp) {
-          console.log(`[MSG91 OTP Sent] Verification Code for +91${cleanPhone}: ${res.dev_otp}`);
-        }
         setOtpInput(['', '', '', '', '', '']);
         setStep('otp');
         setResendTimer(30);
+        verifyingRef.current = false;
         setTimeout(() => otpRefs.current[0]?.focus(), 150);
       } else {
         setErrorMsg(res.error || 'Failed to send OTP. Please check your mobile number.');
@@ -188,60 +184,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       setIsSendingOtp(false);
       setErrorMsg(err.message || 'SMS Gateway Connection Error.');
     }
-  };
-
-  // Trigger Official MSG91 / Phone91 OTP Service Widget
-  const handleMsg91Otp = () => {
-    const cleanPhone = phoneInput.replace(/\D/g, '');
-    if (cleanPhone.length !== 10) {
-      setErrorMsg('Please enter a valid 10-digit Indian mobile number');
-      return;
-    }
-    setErrorMsg('');
-    setIsSendingOtp(true);
-
-    const existing = findRegisteredUser(cleanPhone);
-    setMatchedUser(existing || null);
-
-    triggerMsg91Otp({
-      identifier: cleanPhone,
-      onSuccess: async (data) => {
-        setIsSendingOtp(false);
-        const token = data?.token || data?.access_token || data;
-        if (!token) {
-          setErrorMsg('No verification token returned from MSG91 widget.');
-          return;
-        }
-
-        setIsVerifying(true);
-        try {
-          const authRes = await loginCustomerWidgetToken(token, cleanPhone, nameInput, emailInput);
-          setIsVerifying(false);
-
-          if (authRes.success) {
-            const session: UserSession = {
-              phone: cleanPhone,
-              name: existing?.name || nameInput || 'Guest Customer',
-              email: existing?.email || emailInput || '',
-              loggedIn: true,
-              loggedInAt: new Date().toISOString(),
-            };
-            saveUserSession(session);
-            if (onSuccess) onSuccess(session);
-            onClose();
-          } else {
-            setErrorMsg(authRes.error || 'Server session generation failed after OTP verification.');
-          }
-        } catch (err: any) {
-          setIsVerifying(false);
-          setErrorMsg(err.message || 'Server connection error during session generation.');
-        }
-      },
-      onFailure: (err) => {
-        setIsSendingOtp(false);
-        setErrorMsg(typeof err === 'string' ? err : 'OTP Verification failed or cancelled');
-      },
-    });
   };
 
   // Handle OTP digit changes with auto-submit on 6th digit
@@ -269,9 +211,10 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
     }
   };
 
-  // Core verification worker
+  // Core verification worker — thread-safe lock prevents duplicate simultaneous API calls
   const submitOtpCode = async (codeToVerify: string) => {
-    if (codeToVerify.length !== 6 || isVerifying) return;
+    if (codeToVerify.length !== 6 || isVerifying || verifyingRef.current) return;
+    verifyingRef.current = true;
     setErrorMsg('');
     setIsVerifying(true);
 
@@ -281,6 +224,7 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       const userFound = matchedUser || findRegisteredUser(cleanPhone);
       const res = await loginCustomerOtp(cleanPhone, codeToVerify, userFound?.name, userFound?.email);
       setIsVerifying(false);
+      verifyingRef.current = false;
 
       if (res.success) {
         if (userFound) {
@@ -303,11 +247,12 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
       }
     } catch (err: any) {
       setIsVerifying(false);
+      verifyingRef.current = false;
       setErrorMsg(err.message || 'OTP verification connection error.');
     }
   };
 
-  // Handle Verify Real MSG91 SMS OTP
+  // Handle Verify Real SMS OTP
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const enteredCode = otpInput.join('');
@@ -478,20 +423,6 @@ export default function UserAuthModal({ isOpen, onClose, onSuccess }: UserAuthMo
                   </>
                 )}
               </button>
-
-              {/* Alternative MSG91 Widget Authentication */}
-              <div className="pt-1 text-center">
-                <button
-                  type="button"
-                  disabled={isSendingOtp || phoneInput.length !== 10}
-                  onClick={handleMsg91Otp}
-                  className="w-full py-3 rounded-2xl bg-[#1B4318]/10 hover:bg-[#1B4318]/20 text-[#1B4318] font-bold text-xs border border-[#93C572] transition-colors flex items-center justify-center space-x-2 disabled:opacity-40"
-                >
-                  <ShieldCheck className="w-4 h-4 text-[#1B4318]" />
-                  <span>Send via MSG91 Widget</span>
-                </button>
-              </div>
-
             </form>
           )}
 

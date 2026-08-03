@@ -2,6 +2,9 @@ import { AppContext, D1Database } from '../types';
 import { ensureTables } from '../utils/db';
 
 export class OtpService {
+  // In-memory fallback store for environments without D1 database binding
+  private static inMemoryOtpStore = new Map<string, { otp_code: string; expires_at: number; attempts: number }>();
+
   /**
    * Generates and stores a rate-limited, expiring 6-digit OTP code for a 10-digit mobile number,
    * and dispatches SMS via MSG91 v5 OTP API.
@@ -42,6 +45,13 @@ export class OtpService {
     const otpCode = String(Math.floor(100000 + Math.random() * 900000));
     const expiresAt = now + OTP_EXPIRY_MS;
     const otpId = `otp-${now}-${Math.random().toString(36).substring(2, 7)}`;
+
+    // Always record in in-memory store for fallback reliability
+    OtpService.inMemoryOtpStore.set(cleanPhone, {
+      otp_code: otpCode,
+      expires_at: expiresAt,
+      attempts: 0
+    });
 
     if (db) {
       try {
@@ -122,13 +132,12 @@ export class OtpService {
       success: true,
       message: `OTP code sent to +91 ${cleanPhone.slice(0, 2)}****${cleanPhone.slice(-4)}`,
       sms_sent: smsSent,
-      dev_otp: otpCode,
       expires_in_seconds: 300
     };
   }
 
   /**
-   * Verifies the OTP code against D1 store and MSG91 API v5.
+   * Verifies the OTP code against D1 store, in-memory fallback, and MSG91 API v5.
    */
   static async verifyOtp(c: AppContext, phone: string, otp: string, db: D1Database | null) {
     const cleanPhone = (phone || '').replace(/\D/g, '').slice(-10);
@@ -143,11 +152,13 @@ export class OtpService {
       if (db) {
         await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
       }
+      OtpService.inMemoryOtpStore.delete(cleanPhone);
       return { success: true, message: 'OTP verified successfully (Demo Master)' };
     }
 
     const now = Date.now();
 
+    // Check 1: D1 Database Table
     if (db) {
       try {
         await ensureTables(db);
@@ -173,6 +184,7 @@ export class OtpService {
 
           if (row.otp_code === cleanOtp) {
             await db.prepare('DELETE FROM otps WHERE id = ?').bind(row.id).run().catch(() => {});
+            OtpService.inMemoryOtpStore.delete(cleanPhone);
             return { success: true, message: 'OTP verified successfully' };
           } else {
             await db
@@ -187,7 +199,28 @@ export class OtpService {
       }
     }
 
-    // Fallback: Verify via MSG91 API v5
+    // Check 2: In-Memory Fallback Store (for local/standalone environments)
+    const memRow = OtpService.inMemoryOtpStore.get(cleanPhone);
+    if (memRow) {
+      if (now > memRow.expires_at) {
+        OtpService.inMemoryOtpStore.delete(cleanPhone);
+        return { success: false, error: 'OTP has expired. Please request a new OTP code.', status: 400 };
+      }
+
+      if (memRow.attempts >= 5) {
+        OtpService.inMemoryOtpStore.delete(cleanPhone);
+        return { success: false, error: 'Maximum OTP verification attempts exceeded.', status: 429 };
+      }
+
+      if (memRow.otp_code === cleanOtp) {
+        OtpService.inMemoryOtpStore.delete(cleanPhone);
+        return { success: true, message: 'OTP verified successfully' };
+      } else {
+        memRow.attempts += 1;
+      }
+    }
+
+    // Check 3: Fallback via MSG91 API v5
     const authKey = c.env?.MSG91_AUTH_KEY || process.env.MSG91_AUTH_KEY || '556476Altuv8qiMB8N6a7084d3P1';
     if (authKey) {
       const endpoints = [
@@ -208,7 +241,8 @@ export class OtpService {
               if (db) {
                 await db.prepare('DELETE FROM otps WHERE phone = ?').bind(cleanPhone).run().catch(() => {});
               }
-              return { success: true, message: 'OTP verified successfully via MSG91' };
+              OtpService.inMemoryOtpStore.delete(cleanPhone);
+              return { success: true, message: 'OTP verified successfully via SMS service' };
             }
           }
         } catch (e) {
