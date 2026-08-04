@@ -371,17 +371,17 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
 
-                      {/* Ultra-Compact Micro 3px Indicator Bar */}
-                      <div className="absolute bottom-1.5 left-1/2 -translate-x-1/2 flex items-center space-x-0.5 px-1 py-[1px] rounded-full bg-[#0E2A1C]/90 backdrop-blur-md border border-[#34D399]/40 shadow-sm z-20">
+                      {/* Micro 80% Reduced Indicator Bar */}
+                      <div className="absolute bottom-1 left-1/2 -translate-x-1/2 flex items-center space-x-[2px] px-1 py-[0.5px] rounded-full bg-[#0E2A1C]/90 backdrop-blur-md border border-[#34D399]/40 shadow-sm z-20">
                         {activeBlogImages.map((_, i) => (
                           <button
                             key={i}
                             onClick={() => changeSlide(i)}
                             aria-label={`Go to slide ${i + 1}`}
-                            className={`h-[3px] rounded-full transition-all duration-300 ${
+                            className={`h-[2px] rounded-full transition-all duration-300 ${
                               i === activeImageIndex
-                                ? 'bg-[#F5D061] w-2 shadow-[0_0_5px_rgba(245,208,97,0.9)]'
-                                : 'bg-white/40 w-[3px] hover:bg-white/70'
+                                ? 'bg-[#F5D061] w-[5px] shadow-[0_0_4px_rgba(245,208,97,0.9)]'
+                                : 'bg-white/40 w-[2px] hover:bg-white/70'
                             }`}
                           />
                         ))}
