@@ -4,33 +4,40 @@ import React, { useState, useEffect } from 'react';
 import CircularLogo from './CircularLogo';
 
 export default function LoadingScreen() {
-  const [shouldRender, setShouldRender] = useState(false);
+  // Synchronously initialize state so launch screen renders from frame #1 before home section loads
+  const [shouldRender, setShouldRender] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return !sessionStorage.getItem('wings_pwa_launched_session');
+    }
+    return true;
+  });
+
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
 
-    // Check if app has already been launched in this browser session
     const hasLaunched = sessionStorage.getItem('wings_pwa_launched_session');
 
     if (!hasLaunched) {
-      // Mark as launched for this session so future reloads/refreshes remain 100% static
+      // Mark session as launched
       sessionStorage.setItem('wings_pwa_launched_session', 'true');
-      setShouldRender(true);
 
-      // Smooth fade-out timer (1.2s total duration)
+      // 1.6s display -> 450ms smooth fade out -> Total ~2.0s
       const fadeTimer = setTimeout(() => {
         setIsFadingOut(true);
-      }, 900);
+      }, 1600);
 
-      const removeTimer = setTimeout(() => {
+      const unmountTimer = setTimeout(() => {
         setShouldRender(false);
-      }, 1250);
+      }, 2050);
 
       return () => {
         clearTimeout(fadeTimer);
-        clearTimeout(removeTimer);
+        clearTimeout(unmountTimer);
       };
+    } else {
+      setShouldRender(false);
     }
   }, []);
 
@@ -38,15 +45,15 @@ export default function LoadingScreen() {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-[#07090E] flex flex-col items-center justify-center pointer-events-none transition-opacity duration-400 ease-out select-none ${
+      className={`fixed inset-0 z-[99999] bg-[#07090E] flex flex-col items-center justify-center pointer-events-none transition-opacity duration-500 ease-in-out select-none ${
         isFadingOut ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <div className="flex flex-col items-center justify-center space-y-4 animate-fade-in">
+      <div className="flex flex-col items-center justify-center space-y-4 animate-fade-in scale-100 transition-transform duration-700">
         {/* Glow Ring Behind Logo */}
         <div className="relative">
-          <div className="absolute -inset-4 rounded-full bg-[#F5D061]/20 blur-xl animate-pulse" />
-          <CircularLogo size={100} className="shadow-[0_0_35px_rgba(245,208,97,0.3)] relative z-10" />
+          <div className="absolute -inset-5 rounded-full bg-[#F5D061]/25 blur-2xl animate-pulse" />
+          <CircularLogo size={110} className="shadow-[0_0_40px_rgba(245,208,97,0.35)] relative z-10" />
         </div>
 
         {/* Café Title Only */}
