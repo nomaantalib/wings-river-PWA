@@ -197,13 +197,13 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
         {currentPage && (
           <div className="max-w-4xl mx-auto">
             {/* Compact Aesthetic Golden Top Toolbar */}
-            <div className="flex items-center justify-between gap-2.5 bg-[#F5D061] text-[#120B08] backdrop-blur-xl py-1 px-2.5 sm:px-3 min-h-[34px] sm:min-h-[38px] rounded-xl border border-[#F5D061]/60 mb-3 text-xs shadow-[0_4px_16px_rgba(245,208,97,0.3)] w-[95%] mx-auto opacity-80">
+            <div className="flex items-center justify-between gap-2.5 bg-[#F5D061] text-[#120B08] backdrop-blur-xl py-0.5 px-2.5 sm:px-3 min-h-[32px] sm:min-h-[36px] rounded-xl border border-[#F5D061]/60 mb-3 text-xs shadow-[0_4px_16px_rgba(245,208,97,0.3)] w-[95%] mx-auto opacity-80">
               <div className="flex items-center space-x-1.5 truncate">
-                <span className="font-serif font-black text-[#120B08] text-[11px] sm:text-xs shrink-0">
+                <span className="font-serif font-black text-[#120B08] text-[11.5px] sm:text-[12.6px] shrink-0">
                   Page {currentPageIndex + 1} of {menuPages.length}
                 </span>
                 <span className="text-[#120B08]/40 font-bold text-xs">|</span>
-                <span className="text-[#120B08] font-bold text-[11px] sm:text-xs truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
+                <span className="text-[#120B08] font-bold text-[11.5px] sm:text-[12.6px] truncate">{currentPage.title || `Menu Page ${currentPage.pageNumber}`}</span>
               </div>
 
               <div className="flex items-center space-x-1.5 shrink-0">
@@ -211,14 +211,14 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 <button
                   type="button"
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
-                  className={`w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center shrink-0 rounded-lg border text-xs font-bold transition-all ${
+                  className={`w-[26.6px] h-[26.6px] sm:w-[28.5px] sm:h-[28.5px] p-0 flex items-center justify-center shrink-0 rounded-lg border text-[12.6px] font-bold transition-all ${
                     isAutoFlipping
                       ? 'bg-[#120B08] text-[#F5D061] border-[#120B08] shadow-md scale-105'
                       : 'bg-[#120B08]/15 text-[#120B08] border-[#120B08]/30 hover:bg-[#120B08] hover:text-[#F5D061]'
                   }`}
                   title={isAutoFlipping ? 'Pause Auto Flip' : 'Start Auto Flip'}
                 >
-                  {isAutoFlipping ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  {isAutoFlipping ? <Pause className="w-3.5 h-3.5 shrink-0 m-auto" /> : <Play className="w-3.5 h-3.5 shrink-0 m-auto" />}
                 </button>
 
                 {/* Zoom Fullscreen - ICON ONLY */}
@@ -228,20 +228,20 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     setZoomScale(1.2);
                     setActiveZoomImage(currentPage.image || null);
                   }}
-                  className="w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08]/15 hover:bg-[#120B08] text-[#120B08] hover:text-[#F5D061] border border-[#120B08]/30 transition-all hover:scale-105"
+                  className="w-[26.6px] h-[26.6px] sm:w-[28.5px] sm:h-[28.5px] p-0 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08]/15 hover:bg-[#120B08] text-[#120B08] hover:text-[#F5D061] border border-[#120B08]/30 transition-all hover:scale-105"
                   title="Expand Full Screen Zoom"
                 >
-                  <Maximize2 className="w-3.5 h-3.5" />
+                  <Maximize2 className="w-3.5 h-3.5 shrink-0 m-auto" />
                 </button>
 
                 {/* Download Full Card - ICON ONLY */}
                 <a
                   href="/images/food_menu_collage.jpg"
                   download="Wings_River_Cafe_Menu_Card.jpg"
-                  className="w-7 h-7 sm:w-7.5 sm:h-7.5 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08] hover:bg-[#2A1D15] text-[#F5D061] font-extrabold shadow-md hover:scale-105 transition-all border border-[#120B08]"
+                  className="w-[26.6px] h-[26.6px] sm:w-[28.5px] sm:h-[28.5px] p-0 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08] hover:bg-[#2A1D15] text-[#F5D061] font-extrabold shadow-md hover:scale-105 transition-all border border-[#120B08]"
                   title="Download Menu Card"
                 >
-                  <Download className="w-3.5 h-3.5" />
+                  <Download className="w-3.5 h-3.5 shrink-0 m-auto" />
                 </a>
               </div>
             </div>

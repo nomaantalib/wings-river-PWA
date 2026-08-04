@@ -57,6 +57,42 @@
   button:active, a:active {
     transform: scale(0.97);
   }
+
+  /* ── GLOBAL BUTTON STYLING ENHANCEMENTS ──────────────────────── */
+  /* Centered alignment for buttons & 5% padding reduction */
+  button, [role="button"] {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* 5% Text Size Increase for Buttons */
+  button[class*="text-xs"], [role="button"][class*="text-xs"] {
+    font-size: 0.7875rem !important; /* 12px -> 12.6px (+5%) */
+  }
+  button[class*="text-sm"], [role="button"][class*="text-sm"] {
+    font-size: 0.91875rem !important; /* 14px -> 14.7px (+5%) */
+  }
+  button[class*="text-base"], [role="button"][class*="text-base"] {
+    font-size: 1.05rem !important; /* 16px -> 16.8px (+5%) */
+  }
+  button[class*="text-lg"], [role="button"][class*="text-lg"] {
+    font-size: 1.18125rem !important; /* 18px -> 18.9px (+5%) */
+  }
+  button[class*="text-xl"], [role="button"][class*="text-xl"] {
+    font-size: 1.3125rem !important; /* 20px -> 21px (+5%) */
+  }
+  button:not([class*="text-"]), [role="button"]:not([class*="text-"]) {
+    font-size: 1.05em;
+  }
+
+  /* Perfect Center Alignment for SVG Icons in Buttons */
+  button svg, [role="button"] svg, a svg {
+    display: inline-block;
+    vertical-align: middle;
+    align-self: center;
+    flex-shrink: 0;
+  }
 }
 
 /* ── LOADING SCREEN ANIMATIONS ─────────────────────────────── */

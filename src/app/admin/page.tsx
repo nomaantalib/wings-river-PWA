@@ -428,9 +428,9 @@ type TabKey =
 const inputCls = 'w-full px-3 py-2.5 text-xs bg-dark-950/80 border border-white/10 rounded-xl text-white placeholder-gray-500 focus:outline-none focus:border-amber-400 focus:ring-1 focus:ring-amber-400/30 transition-all';
 const labelCls = 'block text-[11px] font-bold text-gray-400 uppercase tracking-wider mb-1';
 const cardCls = 'bg-dark-900/70 backdrop-blur-sm border border-white/8 rounded-2xl p-5';
-const btnPrimary = 'flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-xs shadow-md transition-all hover:scale-105';
-const btnDanger  = 'p-1.5 rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white transition-all';
-const btnEdit    = 'p-1.5 rounded-lg bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white transition-all';
+const btnPrimary = 'inline-flex items-center justify-center space-x-1.5 px-[15.2px] py-[7.6px] rounded-xl bg-amber-500 hover:bg-amber-400 text-dark-950 font-bold text-[12.6px] shadow-md transition-all hover:scale-105';
+const btnDanger  = 'inline-flex items-center justify-center p-[5.7px] rounded-lg bg-rose-500/20 hover:bg-rose-500 text-rose-400 hover:text-white transition-all shrink-0';
+const btnEdit    = 'inline-flex items-center justify-center p-[5.7px] rounded-lg bg-blue-500/20 hover:bg-blue-500 text-blue-400 hover:text-white transition-all shrink-0';
 
 // ─── MODAL WRAPPER ────────────────────────────────────────────────────────────
 function Modal({ title, onClose, children }: { title: string; onClose: () => void; children: React.ReactNode }) {
