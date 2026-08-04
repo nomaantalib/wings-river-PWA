@@ -10,9 +10,12 @@ export type EventCallback = (payload: any, eventType: RealtimeEventType) => void
 class RealtimeClient {
   private socket: WebSocket | null = null;
   private isConnected = false;
+  private hasSuccessfullyConnected = false;
+  private failedAttempts = 0;
+  private maxFailedAttempts = 3;
   private autoReconnect = true;
-  private reconnectDelay = 1000;
-  private maxReconnectDelay = 16000;
+  private reconnectDelay = 2000;
+  private maxReconnectDelay = 30000;
   private pingIntervalTimer: any = null;
   private subscribedRooms = new Set<RoomName>(['global']);
   private listeners = new Map<string, Set<EventCallback>>();
@@ -22,6 +25,9 @@ class RealtimeClient {
    */
   connect(jwtToken?: string) {
     if (typeof window === 'undefined') return;
+    if (!this.autoReconnect && this.failedAttempts >= this.maxFailedAttempts) {
+      return;
+    }
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
       return;
     }
@@ -36,7 +42,9 @@ class RealtimeClient {
 
       this.socket.onopen = () => {
         this.isConnected = true;
-        this.reconnectDelay = 1000;
+        this.hasSuccessfullyConnected = true;
+        this.failedAttempts = 0;
+        this.reconnectDelay = 2000;
         this.startHeartbeat();
 
         // Resubscribe to active rooms upon reconnection
@@ -52,23 +60,35 @@ class RealtimeClient {
           const frame: WSServerFrame = JSON.parse(event.data);
           this.handleServerFrame(frame);
         } catch (e) {
-          console.warn('[RealtimeClient JSON Parse Error]', e);
+          // Silent catch
         }
       };
 
       this.socket.onclose = () => {
         this.cleanupSocket();
+        if (!this.hasSuccessfullyConnected) {
+          this.failedAttempts++;
+          if (this.failedAttempts >= this.maxFailedAttempts) {
+            this.autoReconnect = false;
+            return;
+          }
+        }
         if (this.autoReconnect) {
           this.scheduleReconnect();
         }
       };
 
-      this.socket.onerror = (err) => {
-        console.warn('[RealtimeClient Socket Error]', err);
+      this.socket.onerror = () => {
         try { this.socket?.close(); } catch (e) {}
       };
     } catch (e) {
-      console.warn('[RealtimeClient Connect Exception]', e);
+      if (!this.hasSuccessfullyConnected) {
+        this.failedAttempts++;
+        if (this.failedAttempts >= this.maxFailedAttempts) {
+          this.autoReconnect = false;
+          return;
+        }
+      }
       if (this.autoReconnect) {
         this.scheduleReconnect();
       }
