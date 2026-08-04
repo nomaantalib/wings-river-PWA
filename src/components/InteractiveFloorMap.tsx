@@ -1083,7 +1083,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                       <img
                         src={currentItem.image_url}
                         alt={currentItem.title}
-                        loading="lazy"
+                        decoding="async"
                         className="w-full h-full object-cover"
                       />
                     )}
@@ -1137,7 +1137,7 @@ export default function InteractiveFloorMap({ onSelectTable }: InteractiveFloorM
                           : 'border-white/20 opacity-60 hover:opacity-100'
                       }`}
                     >
-                      <img src={item.image_url} alt={item.title} loading="lazy" className="w-full h-full object-cover" />
+                      <img src={item.image_url} alt={item.title} decoding="async" className="w-full h-full object-cover" />
                       {item.media_type === 'video' && (
                         <div className="absolute inset-0 bg-black/40 flex items-center justify-center text-[#F5D061]">
                           ▶

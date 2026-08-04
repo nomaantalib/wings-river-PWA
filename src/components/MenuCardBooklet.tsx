@@ -369,7 +369,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                         : 'border-white/20 opacity-60 hover:opacity-100'
                     }`}
                   >
-                    <img src={page.image} alt={page.title} loading="lazy" className="w-full h-full object-cover" />
+                    <img src={page.image} alt={page.title} decoding="async" className="w-full h-full object-cover" />
                     <span className="absolute bottom-0 right-0 bg-[#0B0E14]/90 text-[9px] font-bold px-1.5 text-[#F5D061] rounded-tl">
                       {idx + 1}
                     </span>

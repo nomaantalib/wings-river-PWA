@@ -121,7 +121,7 @@ export default function ReviewsSection() {
                         )}`
                       }
                       alt={reviews[currentIndex]?.author_name}
-                      loading="lazy"
+                      decoding="async"
                       className="w-12 h-12 rounded-full object-cover border-2 border-amber-300 shadow-sm"
                     />
                     <div>
