@@ -307,8 +307,8 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 key={idx}
                 className={`h-1.5 rounded-full transition-all duration-300 ${
                   currentScrollIdx % filteredBlogs.length === idx
-                    ? 'w-8 bg-[#F5D061]'
-                    : 'w-2 bg-white/20'
+                    ? 'w-4.5 bg-gradient-to-r from-[#D4AF37] via-[#F5D061] to-[#B8860B] shadow-[0_0_8px_rgba(212,175,55,0.7)]'
+                    : 'w-1.5 bg-[#D4AF37]/30 border border-[#D4AF37]/40'
                 }`}
               />
             ))}

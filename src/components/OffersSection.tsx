@@ -123,13 +123,15 @@ export default function OffersSection({ onOpenBooking }: OffersSectionProps) {
 
             {/* Carousel Dots */}
             {banners.length > 1 && (
-              <div className="absolute bottom-4 right-6 z-20 flex space-x-2">
+              <div className="absolute bottom-4 right-6 z-20 flex items-center space-x-1.5">
                 {banners.map((_, i) => (
                   <button
                     key={i}
                     onClick={() => setActiveBannerIndex(i)}
-                    className={`h-2.5 rounded-full transition-all duration-300 ${
-                      i === activeBannerIndex ? 'bg-gold-400 w-8' : 'bg-white/40 hover:bg-white/80 w-2.5'
+                    className={`min-h-0 min-w-0 h-1.5 rounded-full transition-all duration-300 ${
+                      i === activeBannerIndex
+                        ? 'bg-gradient-to-r from-[#D4AF37] via-[#F5D061] to-[#B8860B] shadow-[0_0_8px_rgba(212,175,55,0.7)] w-4.5 scale-100'
+                        : 'bg-[#D4AF37]/30 hover:bg-[#D4AF37]/70 border border-[#D4AF37]/40 w-1.5 scale-90 hover:scale-110'
                     }`}
                   />
                 ))}

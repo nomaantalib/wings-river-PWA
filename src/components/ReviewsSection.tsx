@@ -155,13 +155,15 @@ export default function ReviewsSection() {
               </div>
 
               {/* Dot Indicators */}
-              <div className="flex items-center justify-center space-x-2 mt-6">
+              <div className="flex items-center justify-center space-x-1.5 mt-5">
                 {reviews.map((_, idx) => (
                   <button
                     key={idx}
                     onClick={() => setCurrentIndex(idx)}
-                    className={`h-2 rounded-full transition-all duration-300 ${
-                      idx === currentIndex ? 'w-6 bg-amber-500' : 'w-2 bg-gray-200 hover:bg-gray-300'
+                    className={`min-h-0 min-w-0 h-1.5 rounded-full transition-all duration-300 ${
+                      idx === currentIndex
+                        ? 'w-4.5 bg-gradient-to-r from-[#D4AF37] via-[#F5D061] to-[#B8860B] shadow-[0_0_8px_rgba(212,175,55,0.7)] scale-100'
+                        : 'w-1.5 bg-[#D4AF37]/30 hover:bg-[#D4AF37]/60 border border-[#D4AF37]/40 scale-90 hover:scale-110'
                     }`}
                     aria-label={`Go to review ${idx + 1}`}
                   />
