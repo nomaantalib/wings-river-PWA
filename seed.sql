@@ -97,7 +97,7 @@ INSERT OR REPLACE INTO gallery (id, title, category, image_url, featured, displa
 
 -- 7. Reviews / Testimonials
 INSERT OR REPLACE INTO reviews (id, author_name, rating, review_text, date_str, avatar_url, status, is_deleted, created_at) VALUES
-('r1', 'Ananya Sharma', 5, 'Amazing riverside view with great food! The paneer tikka and cold coffee were fantastic. Riding the speedboat before dinner was the highlight of our weekend!', '2 days ago', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', 'approved', 0, '2026-07-20T18:00:00Z'),
+('r1', 'Ananya Sharma', 5, 'Amazing riverside view with great food! The paneer tikka and cold coffee were fantastic. Riding the speedboat before dinner was the highlight of our weekend!', '2 days ago', 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80', 'approved', 0, '2026-07-20T18:00:00Z'),
 ('r2', 'Rahul Verma', 5, 'Celebrated my sister’s 25th birthday here. The fairy light decoration near the river was magical. Staff were very courteous and the food was delicious!', '1 week ago', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', 'approved', 0, '2026-07-20T18:00:00Z');
 
 -- 9. Event Banners

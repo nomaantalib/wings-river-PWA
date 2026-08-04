@@ -4,24 +4,20 @@ import React, { useState, useEffect } from 'react';
 import CircularLogo from './CircularLogo';
 
 export default function LoadingScreen() {
-  // Synchronously initialize state so launch screen renders from frame #1 before home section loads
-  const [shouldRender, setShouldRender] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return !sessionStorage.getItem('wings_pwa_launched_session');
-    }
-    return true;
-  });
-
+  const [mounted, setMounted] = useState(false);
+  const [shouldRender, setShouldRender] = useState(false);
   const [iconVisible, setIconVisible] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
+    // Flag mounted cleanly on client AFTER hydration has finished
+    setMounted(true);
 
     const hasLaunched = sessionStorage.getItem('wings_pwa_launched_session');
 
     if (!hasLaunched) {
       sessionStorage.setItem('wings_pwa_launched_session', 'true');
+      setShouldRender(true);
 
       // Trigger 1-second opacity 0 -> 1 fade-in effect on mount
       const fadeInTimer = setTimeout(() => {
@@ -42,12 +38,11 @@ export default function LoadingScreen() {
         clearTimeout(fadeTimer);
         clearTimeout(unmountTimer);
       };
-    } else {
-      setShouldRender(false);
     }
   }, []);
 
-  if (!shouldRender) return null;
+  // 100% Hydration Safe: Server & Client initial renders output null identically
+  if (!mounted || !shouldRender) return null;
 
   return (
     <div

@@ -9,7 +9,7 @@ export const INITIAL_REVIEWS: Review[] = [
     rating: 5,
     review_text: 'Amazing riverside view with great food! The paneer tikka and cold coffee were fantastic.',
     date_str: '2 days ago',
-    avatar_url: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
+    avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80'
   },
   {
     id: 'r2',
