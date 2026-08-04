@@ -131,8 +131,8 @@ export default function Footer() {
           </div>
 
           {/* Location Details */}
-          <div>
-            <h4 className="font-serif font-bold text-base text-gold-400 mb-4 uppercase tracking-wider">
+          <div id="location" className="scroll-mt-24">
+            <h4 id="footer-location-title" className="font-serif font-bold text-base text-gold-400 mb-4 uppercase tracking-wider">
               Location
             </h4>
             <address className="not-italic text-xs text-gray-300 space-y-1.5 leading-relaxed">

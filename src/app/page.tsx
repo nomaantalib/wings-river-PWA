@@ -65,10 +65,34 @@ export default function Home() {
     const handleOpenQREvent = () => setIsQROrderOpen(true);
     const handleOpenAuthEvent = () => setIsAuthOpen(true);
 
+    const handleAnchorClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      const anchor = target.closest('a');
+      if (anchor) {
+        const href = anchor.getAttribute('href');
+        if (href === '#floor-map' || href === '#reserve-your-table' || href === '#reserve') {
+          e.preventDefault();
+          const card = document.getElementById('reserve-your-table-card') || document.getElementById('floor-map');
+          if (card) {
+            card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.history.pushState(null, '', href);
+          }
+        } else if (href === '#location') {
+          e.preventDefault();
+          const loc = document.getElementById('location') || document.getElementById('footer');
+          if (loc) {
+            loc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            window.history.pushState(null, '', href);
+          }
+        }
+      }
+    };
+
     window.addEventListener('wings_db_sync', handleSync);
     window.addEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
     window.addEventListener('wings_open_qr_order', handleOpenQREvent);
     window.addEventListener('wings_open_auth', handleOpenAuthEvent);
+    document.addEventListener('click', handleAnchorClick);
 
     // Auto-reopen auth modal if login/signup OTP verification was in progress when page reloaded
     if (typeof window !== 'undefined') {
@@ -76,6 +100,20 @@ export default function Home() {
       const session = getStoredUserSession();
       if (pendingAuth && (!session || !session.loggedIn)) {
         setIsAuthOpen(true);
+      }
+
+      // Check if arriving with hash #location or #reserve-your-table
+      const hash = window.location.hash;
+      if (hash === '#floor-map' || hash === '#reserve-your-table' || hash === '#reserve') {
+        setTimeout(() => {
+          const card = document.getElementById('reserve-your-table-card') || document.getElementById('floor-map');
+          if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
+      } else if (hash === '#location') {
+        setTimeout(() => {
+          const loc = document.getElementById('location') || document.getElementById('footer');
+          if (loc) loc.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 500);
       }
 
       const params = new URLSearchParams(window.location.search);
@@ -96,6 +134,7 @@ export default function Home() {
       window.removeEventListener('wings_open_my_bookings', handleOpenMyBookingsEvent);
       window.removeEventListener('wings_open_qr_order', handleOpenQREvent);
       window.removeEventListener('wings_open_auth', handleOpenAuthEvent);
+      document.removeEventListener('click', handleAnchorClick);
     };
   }, [router]);
 
@@ -156,7 +195,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           {!showFloorMap ? (
             /* ── Collapsed CTA Card ── */
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-5 bg-[#1F1810] rounded-2xl px-6 py-6 border border-[#E5B82C]/30 shadow-xl">
+            <div id="reserve-your-table-card" className="flex flex-col sm:flex-row items-center justify-between gap-5 bg-[#1F1810] rounded-2xl px-6 py-6 border border-[#E5B82C]/30 shadow-xl scroll-mt-32">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[#F5D061] to-[#E5B82C] flex items-center justify-center shadow-lg shrink-0">
                   <Ticket className="w-6 h-6 text-[#1F1810]" />

@@ -371,8 +371,8 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                         <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
 
-                      {/* Compact Aesthetic Dots Indicator Pill */}
-                      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md border border-[#F5D061]/30 shadow-lg z-20">
+                      {/* Compact Aesthetic Dots Indicator Pill with 5% Lighter Green Shade */}
+                      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-[#0E2A1C]/90 backdrop-blur-md border border-[#34D399]/40 shadow-lg z-20">
                         {activeBlogImages.map((_, i) => (
                           <button
                             key={i}
