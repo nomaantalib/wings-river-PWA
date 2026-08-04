@@ -25,7 +25,15 @@ class RealtimeClient {
    */
   connect(jwtToken?: string) {
     if (typeof window === 'undefined') return;
-    if (!this.autoReconnect && this.failedAttempts >= this.maxFailedAttempts) {
+
+    // Cloudflare Pages static hosting (*.pages.dev) does not support WebSocket upgrades.
+    // Return early to prevent browser console handshake error (code 200).
+    if (window.location.hostname.endsWith('.pages.dev')) {
+      this.autoReconnect = false;
+      return;
+    }
+
+    if (!this.autoReconnect || this.failedAttempts >= 1) {
       return;
     }
     if (this.socket && (this.socket.readyState === WebSocket.OPEN || this.socket.readyState === WebSocket.CONNECTING)) {
@@ -67,11 +75,9 @@ class RealtimeClient {
       this.socket.onclose = () => {
         this.cleanupSocket();
         if (!this.hasSuccessfullyConnected) {
-          this.failedAttempts++;
-          if (this.failedAttempts >= this.maxFailedAttempts) {
-            this.autoReconnect = false;
-            return;
-          }
+          this.autoReconnect = false;
+          this.failedAttempts = 999;
+          return;
         }
         if (this.autoReconnect) {
           this.scheduleReconnect();
@@ -79,19 +85,15 @@ class RealtimeClient {
       };
 
       this.socket.onerror = () => {
+        if (!this.hasSuccessfullyConnected) {
+          this.autoReconnect = false;
+          this.failedAttempts = 999;
+        }
         try { this.socket?.close(); } catch (e) {}
       };
     } catch (e) {
-      if (!this.hasSuccessfullyConnected) {
-        this.failedAttempts++;
-        if (this.failedAttempts >= this.maxFailedAttempts) {
-          this.autoReconnect = false;
-          return;
-        }
-      }
-      if (this.autoReconnect) {
-        this.scheduleReconnect();
-      }
+      this.autoReconnect = false;
+      this.failedAttempts = 999;
     }
   }
 
