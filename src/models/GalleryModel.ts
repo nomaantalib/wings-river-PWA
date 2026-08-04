@@ -56,7 +56,7 @@ export const INITIAL_GALLERY: GalleryItem[] = [
     id: 'g15',
     title: 'Signature Drinks & Mocktail Bar',
     category: 'Food',
-    image_url: '/images/Screenshot_20260720-180938_Instagram.png',
+    image_url: '/images/food_menu_collage.jpg',
     featured: true
   }
 ];

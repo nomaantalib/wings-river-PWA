@@ -34,7 +34,7 @@ export const INITIAL_BLOGS: BlogPost[] = [
     images: [
       '/images/Screenshot_20260720-180644_Maps.png',
       '/images/Screenshot_20260720-180544_Maps.png',
-      '/images/Screenshot_20260720-180938_Instagram.png'
+      '/images/food_menu_collage.jpg'
     ],
     tags: ['Birthday', 'Parties', 'Anniversary', 'Decor'],
     author: 'Event Coordinator',
@@ -53,7 +53,7 @@ export const INITIAL_BLOGS: BlogPost[] = [
     images: [
       '/images/Screenshot_20260720-180644_Maps.png',
       '/images/Screenshot_20260720-180544_Maps.png',
-      '/images/water_sports_ticket_poster.png'
+      '/images/watersports_menu.jpg'
     ],
     tags: ['Nightlife', 'Evening Vibe', 'Gomti View', 'Pizza'],
     author: 'Lifestyle Editor',
@@ -68,9 +68,9 @@ export const INITIAL_BLOGS: BlogPost[] = [
     excerpt: 'Check out official ride tokens for Jetskis, Speedboats, Motorboats, and kids amusement rides.',
     content: 'Lucknow Water Sports operating directly at Wings River Café counter offers safe and thrilling rides on Gomti river. Read our complete guide on rates, safety gear, and booking packages.\n\nAll rides come equipped with standard life jackets and certified captains. Group discounts and combo packages (Ride + Meal Token) are available at the front desk.',
     category: 'Water Sports',
-    cover_image: '/images/water_sports_ticket_poster.png',
+    cover_image: '/images/watersports_menu.jpg',
     images: [
-      '/images/water_sports_ticket_poster.png',
+      '/images/watersports_menu.jpg',
       '/images/Screenshot_20260720-180544_Maps.png'
     ],
     tags: ['Water Sports', 'Tickets', 'Speedboat', 'JetSki'],
@@ -86,9 +86,9 @@ export const INITIAL_BLOGS: BlogPost[] = [
     excerpt: 'Explore our top chef recommendations from Paneer Tikka to Blue Lagoon coolers.',
     content: 'From traditional North Indian delicacies to trendy mocktails and sizzling Indochinese woks, discover what makes our multicuisine menu a culinary favorite in Lucknow.\n\nDon’t miss out on our Signature Virgin Mojito, Special Chola Bhatura, and Handi Soya Chaap prepared fresh daily by master chefs.',
     category: 'Culinary Highlights',
-    cover_image: '/images/Screenshot_20260720-180938_Instagram.png',
+    cover_image: '/images/food_menu_collage.jpg',
     images: [
-      '/images/Screenshot_20260720-180938_Instagram.png',
+      '/images/food_menu_collage.jpg',
       '/images/food_menu_collage.jpg',
       '/images/food_menu_collage.jpg'
     ],
