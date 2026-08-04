@@ -216,14 +216,14 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                 <button
                   type="button"
                   onClick={() => setIsAutoFlipping(!isAutoFlipping)}
-                  className={`min-h-0 min-w-0 w-5.5 h-5.5 sm:w-6 sm:h-6 p-0 flex items-center justify-center shrink-0 rounded-md border text-[11px] font-bold transition-all ${
+                  className={`min-h-0 min-w-0 w-[27px] h-[27px] sm:w-[29.5px] sm:h-[29.5px] p-0 flex items-center justify-center shrink-0 rounded-lg border text-xs font-bold transition-all shadow-sm hover:scale-110 active:scale-95 ${
                     isAutoFlipping
-                      ? 'bg-[#120B08] text-[#F5D061] border-[#120B08] shadow-md scale-105'
-                      : 'bg-[#120B08]/15 text-[#120B08] border-[#120B08]/30 hover:bg-[#120B08] hover:text-[#F5D061]'
+                      ? 'bg-[#120B08] text-[#F5D061] border-[#120B08] shadow-md scale-105 ring-1 ring-[#F5D061]/50'
+                      : 'bg-[#120B08]/15 text-[#120B08] border-[#120B08]/30 hover:bg-[#120B08] hover:text-[#F5D061] hover:shadow-[0_0_10px_rgba(18,11,8,0.4)]'
                   }`}
                   title={isAutoFlipping ? 'Pause Auto Flip' : 'Start Auto Flip'}
                 >
-                  {isAutoFlipping ? <Pause className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 m-auto" /> : <Play className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 m-auto" />}
+                  {isAutoFlipping ? <Pause className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto" /> : <Play className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto ml-[1px]" />}
                 </button>
 
                 {/* Zoom Fullscreen - ICON ONLY */}
@@ -233,20 +233,20 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                     setZoomScale(1.2);
                     setActiveZoomImage(currentPage.image || null);
                   }}
-                  className="min-h-0 min-w-0 w-5.5 h-5.5 sm:w-6 sm:h-6 p-0 flex items-center justify-center shrink-0 rounded-md bg-[#120B08]/15 hover:bg-[#120B08] text-[#120B08] hover:text-[#F5D061] border border-[#120B08]/30 transition-all hover:scale-105"
+                  className="min-h-0 min-w-0 w-[27px] h-[27px] sm:w-[29.5px] sm:h-[29.5px] p-0 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08]/15 hover:bg-[#120B08] text-[#120B08] hover:text-[#F5D061] border border-[#120B08]/30 transition-all hover:scale-110 active:scale-95 shadow-sm hover:shadow-[0_0_10px_rgba(18,11,8,0.4)]"
                   title="Expand Full Screen Zoom"
                 >
-                  <Maximize2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 m-auto" />
+                  <Maximize2 className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto" />
                 </button>
 
                 {/* Download Full Card - ICON ONLY */}
                 <a
                   href="/images/food_menu_collage.jpg"
                   download="Wings_River_Cafe_Menu_Card.jpg"
-                  className="min-h-0 min-w-0 w-5.5 h-5.5 sm:w-6 sm:h-6 p-0 flex items-center justify-center shrink-0 rounded-md bg-[#120B08] hover:bg-[#2A1D15] text-[#F5D061] font-extrabold shadow-md hover:scale-105 transition-all border border-[#120B08]"
+                  className="min-h-0 min-w-0 w-[27px] h-[27px] sm:w-[29.5px] sm:h-[29.5px] p-0 flex items-center justify-center shrink-0 rounded-lg bg-[#120B08] hover:bg-[#2A1D15] text-[#F5D061] font-extrabold shadow-md hover:scale-110 active:scale-95 transition-all border border-[#120B08] hover:shadow-[0_0_12px_rgba(245,208,97,0.5)]"
                   title="Download Menu Card"
                 >
-                  <Download className="w-3 h-3 sm:w-3.5 sm:h-3.5 shrink-0 m-auto" />
+                  <Download className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto" />
                 </a>
               </div>
             </div>
