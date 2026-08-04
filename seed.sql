@@ -100,15 +100,6 @@ INSERT OR REPLACE INTO reviews (id, author_name, rating, review_text, date_str, 
 ('r1', 'Ananya Sharma', 5, 'Amazing riverside view with great food! The paneer tikka and cold coffee were fantastic. Riding the speedboat before dinner was the highlight of our weekend!', '2 days ago', 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80', 'approved', 0, '2026-07-20T18:00:00Z'),
 ('r2', 'Rahul Verma', 5, 'Celebrated my sister’s 25th birthday here. The fairy light decoration near the river was magical. Staff were very courteous and the food was delicious!', '1 week ago', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80', 'approved', 0, '2026-07-20T18:00:00Z');
 
--- 8. Water Sports
-INSERT OR REPLACE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order, is_deleted, created_at) VALUES
-('ride-1', 'Jetski Thrill Ride', 'Water Sports', 350.0, 'Per Person 1 Round', 'High speed jet ski adventure on Gomti river with certified instructor & life jacket.', 'Most Popular', '/images/Screenshot_20260720-180544_Maps.png', '🏄', 1, 0, '2026-07-20T18:00:00Z'),
-('ride-2', 'Speed Boat Ride', 'Water Sports', 250.0, 'Per Person 1 Round', 'Exhilarating twin-engine speedboat ride offering panoramic riverfront views.', 'Family Favorite', '/images/Screenshot_20260720-180745_Maps.png', '⚡', 2, 0, '2026-07-20T18:00:00Z'),
-('ride-3', 'Motor Boat Cruise', 'Water Sports', 200.0, 'Per Person 1 Round', 'Smooth & comfortable motor boat cruise around Laxman Jhula park riverfront.', 'Scenic Cruise', '/images/Screenshot_20260720-180555_Maps.png', '🚤', 3, 0, '2026-07-20T18:00:00Z'),
-('ride-4', 'Panda Train', 'Other Activities', 50.0, 'Per Person 1 Round', 'Fun musical track train ride for toddlers, kids & families near the river park.', 'Kids Zone', '/images/Screenshot_20260720-180737_Maps.png', '🐼', 4, 0, '2026-07-20T18:00:00Z'),
-('ride-5', 'Electric Kids Car', 'Other Activities', 50.0, 'Per Person 1 Round', 'Illuminated battery-powered electric drive cars for young adventurers.', 'Kids Fun', '/images/Screenshot_20260720-180621_Maps.png', '🚗', 5, 0, '2026-07-20T18:00:00Z'),
-('ride-6', 'Trampoline Jump', 'Other Activities', 50.0, 'Per Person 1 Round', 'Enclosed safety netting high-bounce jumping trampoline enclosure.', 'Active Play', '/images/Screenshot_20260720-180724_Maps.png', '🤸', 6, 0, '2026-07-20T18:00:00Z');
-
 -- 9. Event Banners
 INSERT OR REPLACE INTO event_banners (id, title, subtitle, image_url, cta_text, cta_link, status, display_order, is_deleted, created_at) VALUES
 ('eb-1', '🎉 Weekend Riverside Fiesta!', 'Live music, gourmet BBQ & unlimited mocktails every Saturday & Sunday evening.', '/images/Screenshot_20260720-180644_Maps.png', 'Reserve Your Spot', '#booking', 'published', 1, 0, '2026-07-20T18:00:00Z');
@@ -118,11 +109,6 @@ INSERT OR REPLACE INTO faqs (id, question, answer, display_order, is_deleted, cr
 ('faq-1', 'Where is Wings River Café located?', 'We are located inside Laxman Mela Ground at Laxman Jhula Park, Gomti River Front, Hazratganj, Lucknow, UP 226001.', 1, 0, '2026-07-20T18:00:00Z'),
 ('faq-2', 'Are water sports safe?', 'Yes, all rides are conducted by certified captains. Every passenger is provided with a standard safety life jacket.', 2, 0, '2026-07-20T18:00:00Z'),
 ('faq-3', 'Do you take private party reservations?', 'Yes! We host birthday parties, anniversaries, candlelit dinners, and corporate events with custom catering.', 3, 0, '2026-07-20T18:00:00Z');
-
--- 11. Team Members
-INSERT OR REPLACE INTO team_members (id, name, role, bio, image, display_order, is_deleted, created_at) VALUES
-('tm-1', 'Amit Saxena', 'General Manager', ' অমিত oversees restaurant operations and ensures first-class client dining experiences.', '/images/logo.png', 1, 0, '2026-07-20T18:00:00Z'),
-('tm-2', 'Chef Suresh Kumar', 'Head Chef', 'Suresh heads our multicuisine kitchen preparing authentic Indian, Chinese & Italian woks.', '/images/logo.png', 2, 0, '2026-07-20T18:00:00Z');
 
 -- 12. Offers
 INSERT OR REPLACE INTO offers_discounts (id, title, code, description, discount_value, discount_type, status, is_deleted, created_at) VALUES

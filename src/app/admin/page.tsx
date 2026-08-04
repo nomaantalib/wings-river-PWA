@@ -12,13 +12,11 @@ import {
   getStoredReviews, deleteReview,
   getStoredContactMessages, deleteContactMessage,
   getStoredEventBanners, saveEventBanner, updateEventBanner, deleteEventBanner, toggleEventBanner,
-  getStoredWaterSports, saveWaterSports, updateWaterSports, deleteWaterSports,
   getStoredMenuPages, saveMenuPage, updateMenuPage, deleteMenuPage,
   getStoredHeroSettings, saveHeroSettings, DEFAULT_HERO_SETTINGS,
   // New CMS exports
   getStoredCategories, saveCategory, deleteCategory,
   getStoredFaqs, saveFaq, deleteFaq,
-  getStoredTeamMembers, saveTeamMember, deleteTeamMember,
   getStoredOffers, saveOffer, deleteOffer,
   getStoredMedia, saveMediaItem, deleteMediaItem,
   getStoredAuditLogs,
@@ -32,8 +30,8 @@ import {
   getStoredPromoPages, savePromoPage, deletePromoPage,
   // Types
   Reservation, MenuItem, BlogPost, GalleryItem, Review, ContactMessage, EventBanner,
-  RideTicket, MenuPageDefinition, HeroSettings,
-  MenuCategory, OfferDiscount, FaqItem, TeamMember, MediaItem, SitePage, AuditLog,
+  MenuPageDefinition, HeroSettings,
+  MenuCategory, OfferDiscount, FaqItem, MediaItem, SitePage, AuditLog,
   SiteSettings, PromoPage,
 } from '@/lib/db';
 import {
@@ -539,11 +537,9 @@ export default function AdminPage() {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [banners, setBanners] = useState<EventBanner[]>([]);
-  const [rides, setRides] = useState<RideTicket[]>([]);
   const [menuPages, setMenuPages] = useState<MenuPageDefinition[]>([]);
   const [promoPages, setPromoPages] = useState<PromoPage[]>([]);
   const [faqs, setFaqs] = useState<FaqItem[]>([]);
-  const [team, setTeam] = useState<TeamMember[]>([]);
   const [offers, setOffers] = useState<OfferDiscount[]>([]);
   const [media, setMedia] = useState<MediaItem[]>([]);
   const [pages, setPages] = useState<SitePage[]>([]);
@@ -558,11 +554,9 @@ export default function AdminPage() {
   const [menuModal, setMenuModal] = useState<Partial<MenuItem> | null>(null);
   const [blogModal, setBlogModal] = useState<Partial<BlogPost> | null>(null);
   const [galleryModal, setGalleryModal] = useState<Partial<GalleryItem> | null>(null);
-  const [rideModal, setRideModal] = useState<Partial<RideTicket> | null>(null);
   const [bannerModal, setBannerModal] = useState<Partial<EventBanner> | null>(null);
   const [offerModal, setOfferModal] = useState<Partial<OfferDiscount> | null>(null);
   const [faqModal, setFaqModal] = useState<Partial<FaqItem> | null>(null);
-  const [teamModal, setTeamModal] = useState<Partial<TeamMember> | null>(null);
   const [pageModal, setPageModal] = useState<Partial<SitePage> | null>(null);
   const [mediaModal, setMediaModal] = useState<Partial<MediaItem> | null>(null);
   const [menuPageModal, setMenuPageModal] = useState<Partial<MenuPageDefinition> | null>(null);
@@ -705,14 +699,14 @@ export default function AdminPage() {
     try {
       const [
         resBookings, resMenu, resCategories, resBlogs, resGallery,
-        resReviews, resMessages, resBanners, resRides, resMenuPages,
-        resFaqs, resTeam, resOffers, resMedia, resPages, resHero,
+        resReviews, resMessages, resBanners, resMenuPages,
+        resFaqs, resOffers, resMedia, resPages, resHero,
         resSiteSettings, resStats, resPromoPages
       ] = await Promise.all([
         getStoredReservations(), getStoredMenuItems(), getStoredCategories(),
         getStoredBlogs(), getStoredGalleryItems(), getStoredReviews(),
-        getStoredContactMessages(), getStoredEventBanners(), getStoredWaterSports(),
-        getStoredMenuPages(), getStoredFaqs(), getStoredTeamMembers(),
+        getStoredContactMessages(), getStoredEventBanners(),
+        getStoredMenuPages(), getStoredFaqs(),
         getStoredOffers(), getStoredMedia(), getStoredPages(), getStoredHeroSettings(),
         getSiteSettings(), getDashboardStats(), getStoredPromoPages()
       ]);
@@ -725,11 +719,9 @@ export default function AdminPage() {
       setReviews(resReviews);
       setMessages(resMessages);
       setBanners(resBanners);
-      setRides(resRides);
       setMenuPages(resMenuPages);
       setPromoPages(resPromoPages);
       setFaqs(resFaqs);
-      setTeam(resTeam);
       setOffers(resOffers);
       setMedia(resMedia);
       setPages(resPages);
@@ -914,28 +906,6 @@ export default function AdminPage() {
     }
   };
 
-  // Water Sports Save
-  const saveRideTicket = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!rideModal) return;
-    const rideToSave = {
-      id: rideModal.id || `ride-${Date.now()}`,
-      name: rideModal.name || '',
-      category: rideModal.category || 'Water Sports',
-      price: Number(rideModal.price) || 0.0,
-      unit: rideModal.unit || 'Per Person',
-      description: rideModal.description || '',
-      badge: rideModal.badge || '',
-      image: rideModal.image || '',
-      emoji: rideModal.emoji || '🏄',
-      display_order: Number(rideModal.display_order) || 0
-    };
-    const fresh = await saveWaterSports(rideToSave);
-    setRides(fresh);
-    setRideModal(null);
-    showToast('Water sports ride saved successfully!');
-  };
-
   // Event Banner Save
   const saveBannerItem = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -988,24 +958,6 @@ export default function AdminPage() {
     setFaqs(fresh);
     setFaqModal(null);
     showToast('FAQ item saved successfully!');
-  };
-
-  // Team Members Save
-  const saveTeamMemberItem = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!teamModal) return;
-    const tmToSave = {
-      id: teamModal.id || `tm-${Date.now()}`,
-      name: teamModal.name || '',
-      role: teamModal.role || '',
-      bio: teamModal.bio || '',
-      image: teamModal.image || '',
-      display_order: Number(teamModal.display_order) || 0
-    };
-    const fresh = await saveTeamMember(tmToSave);
-    setTeam(fresh);
-    setTeamModal(null);
-    showToast('Team member saved successfully!');
   };
 
   // Dynamic Pages Save
@@ -1185,7 +1137,6 @@ export default function AdminPage() {
         { id: 'blogs' as TabKey,      label: 'Blogs & News',       icon: <FileText className="w-4 h-4 shrink-0" /> },
         { id: 'gallery' as TabKey,    label: 'Photo Gallery',      icon: <ImageIcon className="w-4 h-4 shrink-0" /> },
         { id: 'banners' as TabKey,    label: 'Promo Banners',      icon: <Megaphone className="w-4 h-4 shrink-0" /> },
-        { id: 'rides' as TabKey,      label: 'Water Sports Rides', icon: <Waves className="w-4 h-4 shrink-0" /> },
         { id: 'offers' as TabKey,     label: 'Offers & Discounts', icon: <Tag className="w-4 h-4 shrink-0" /> },
         { id: 'promopages' as TabKey, label: 'Promo Pages',         icon: <Zap className="w-4 h-4 shrink-0" /> },
         { id: 'hero' as TabKey,       label: 'Hero & About CMS',   icon: <Award className="w-4 h-4 shrink-0" /> },
@@ -1222,7 +1173,6 @@ export default function AdminPage() {
       tabs: [
         { id: 'settings' as TabKey,   label: 'Site Settings',       icon: <Settings className="w-4 h-4 shrink-0" /> },
         { id: 'faqs' as TabKey,       label: 'FAQs Management',    icon: <HelpCircle className="w-4 h-4 shrink-0" /> },
-        { id: 'team' as TabKey,       label: 'Team Members',       icon: <Users className="w-4 h-4 shrink-0" /> },
       ]
     }
   ];
@@ -1546,7 +1496,6 @@ export default function AdminPage() {
                       { label: 'Customer Reviews', value: dashboardStats?.reviews_count ?? reviews.length, color: 'text-pink-400', sub: 'from D1' },
                       { label: 'Offers & Coupons', value: dashboardStats?.offers_count ?? offers.length, color: 'text-gold-400', sub: 'active offers' },
                       { label: 'Contact Inquiries', value: dashboardStats?.feedback_count ?? messages.length, color: 'text-cyan-400', sub: 'unread msgs' },
-                      { label: 'Water Sports Rides', value: rides.length, color: 'text-teal-400', sub: `${banners.length} banners` },
                     ].map((stat, i) => (
                       <div key={i} className="bg-dark-900 border border-white/5 rounded-2xl p-5 space-y-1 hover:border-white/10 transition-colors">
                         <div className="text-gray-400 text-[11px] uppercase tracking-wide">{stat.label}</div>
@@ -1652,7 +1601,6 @@ export default function AdminPage() {
                       { label: 'Photo Gallery', count: gallery.length, sub: `${gallery.filter(g => g.featured).length} Featured`, tab: 'gallery' as TabKey, color: 'text-pink-400' },
                       { label: 'Promo Banners', count: banners.length, sub: `${banners.filter(b => b.is_active || b.status === 'published').length} Active`, tab: 'banners' as TabKey, color: 'text-yellow-400' },
                       { label: 'Offers & Coupons', count: offers.length, sub: `${offers.filter(o => o.status === 'active').length} Active`, tab: 'offers' as TabKey, color: 'text-cyan-400' },
-                      { label: 'Water Rides', count: rides.length, sub: 'Tickets & Packages', tab: 'rides' as TabKey, color: 'text-teal-400' },
                       { label: 'Media Files', count: media.length, sub: 'Cloud & Assets', tab: 'media' as TabKey, color: 'text-orange-400' },
                       { label: 'Site FAQs', count: faqs.length, sub: 'QA Directory', tab: 'faqs' as TabKey, color: 'text-indigo-400' },
                     ].map((item, idx) => (
@@ -2012,98 +1960,6 @@ export default function AdminPage() {
                       <label className={labelCls}>Contact Phone number</label>
                       <input type="text" value={heroSettings.contactPhone || ''} onChange={(e) => setHeroSettings({ ...heroSettings, contactPhone: e.target.value })} className={inputCls} />
                     </div>
-                  </div>
-
-                  <h3 className="font-serif font-bold text-base text-amber-400 pt-6 border-t border-white/10 flex items-center justify-between">
-                    <span>Hero Carousel Slides ({heroSettings.slides?.length || 0} Slides)</span>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const newSlide = {
-                          id: `hs-${Date.now()}`,
-                          image: '/images/Screenshot_20260720-180544_Maps.png',
-                          title: 'New Hero Slide Title',
-                          subtitle: 'Slide Subtitle Narrative',
-                          tag: 'Highlight Tag'
-                        };
-                        setHeroSettings({ ...heroSettings, slides: [...(heroSettings.slides || []), newSlide] });
-                      }}
-                      className="px-3 py-1.5 bg-amber-500/20 hover:bg-amber-500 text-amber-300 hover:text-dark-950 font-bold text-xs rounded-xl transition-all border border-amber-500/30 flex items-center space-x-1"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Add New Slide</span>
-                    </button>
-                  </h3>
-
-                  <div className="space-y-4">
-                    {(heroSettings.slides || []).map((slide, idx) => (
-                      <div key={slide.id || idx} className="bg-dark-950 border border-white/10 rounded-2xl p-4 space-y-3 relative group">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-2">
-                          <span className="text-xs font-bold text-amber-400 font-mono">Slide #{idx + 1}</span>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const updatedSlides = (heroSettings.slides || []).filter((_, i) => i !== idx);
-                              setHeroSettings({ ...heroSettings, slides: updatedSlides });
-                            }}
-                            className="text-rose-400 hover:text-rose-500 p-1 rounded-lg hover:bg-rose-500/10 transition-colors"
-                            title="Remove Slide"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
-                        </div>
-                        <ImageUploader
-                          label={`Slide #${idx + 1} Image (URL or Upload File)`}
-                          value={slide.image || ''}
-                          onChange={(val) => {
-                            const updated = [...(heroSettings.slides || [])];
-                            updated[idx] = { ...updated[idx], image: val };
-                            setHeroSettings({ ...heroSettings, slides: updated });
-                          }}
-                        />
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                          <div>
-                            <label className="block text-[10px] font-semibold text-gray-400">Headline</label>
-                            <input
-                              type="text"
-                              value={slide.title || ''}
-                              onChange={(e) => {
-                                const updated = [...(heroSettings.slides || [])];
-                                updated[idx] = { ...updated[idx], title: e.target.value };
-                                setHeroSettings({ ...heroSettings, slides: updated });
-                              }}
-                              className={inputCls}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-semibold text-gray-400">Subtitle</label>
-                            <input
-                              type="text"
-                              value={slide.subtitle || ''}
-                              onChange={(e) => {
-                                const updated = [...(heroSettings.slides || [])];
-                                updated[idx] = { ...updated[idx], subtitle: e.target.value };
-                                setHeroSettings({ ...heroSettings, slides: updated });
-                              }}
-                              className={inputCls}
-                            />
-                          </div>
-                          <div>
-                            <label className="block text-[10px] font-semibold text-gray-400">Badge Tag</label>
-                            <input
-                              type="text"
-                              value={slide.tag || ''}
-                              onChange={(e) => {
-                                const updated = [...(heroSettings.slides || [])];
-                                updated[idx] = { ...updated[idx], tag: e.target.value };
-                                setHeroSettings({ ...heroSettings, slides: updated });
-                              }}
-                              className={inputCls}
-                            />
-                          </div>
-                        </div>
-                      </div>
-                    ))}
                   </div>
 
                   <h3 className="font-serif font-bold text-base text-amber-400 pt-6 border-t border-white/10">About Section Narrative</h3>
@@ -2503,32 +2359,6 @@ export default function AdminPage() {
                 </div>
               )}
 
-              {activeTab === 'rides' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-serif font-bold text-base">Water Sports Rides</h3>
-                    <button onClick={() => setRideModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Ride</span></button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {rides.map((r) => (
-                      <div key={r.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <span className="text-2xl">{r.emoji}</span>
-                          <div>
-                            <h4 className="font-bold text-sm text-white">{r.name}</h4>
-                            <p className="text-[10px] text-gray-400">₹{r.price} {r.unit} • {r.badge}</p>
-                          </div>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button onClick={() => setRideModal(r)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
-                          <button onClick={() => setDeleteTarget({ label: r.name, action: async () => { await deleteWaterSports(r.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {activeTab === 'faqs' && (
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
@@ -2551,30 +2381,6 @@ export default function AdminPage() {
                   </div>
                 </div>
               )}
-
-              {activeTab === 'team' && (
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <h3 className="font-serif font-bold text-base">Team Members</h3>
-                    <button onClick={() => setTeamModal({})} className={btnPrimary}><Plus className="w-4 h-4" /> <span>Add Team Member</span></button>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {team.map((t) => (
-                      <div key={t.id} className="bg-dark-900 border border-white/5 rounded-2xl p-4 flex items-center justify-between">
-                        <div>
-                          <h4 className="font-bold text-sm text-white">{t.name}</h4>
-                          <p className="text-[10px] text-gray-400">{t.role} • {t.bio}</p>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <button onClick={() => setTeamModal(t)} className={btnEdit}><Edit3 className="w-4 h-4" /></button>
-                          <button onClick={() => setDeleteTarget({ label: t.name, action: async () => { await deleteTeamMember(t.id); loadAll(); } })} className={btnDanger}><Trash2 className="w-4 h-4" /></button>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
-
               {activeTab === 'floorplan' && (
                 <div className="h-[calc(100vh-120px)] min-h-[650px]">
                   <FloorPlanBuilder />
@@ -3233,11 +3039,6 @@ export default function AdminPage() {
                 getData: () => offers,
               },
               {
-                id: 'team', label: 'Team Members', desc: 'Staff & team profiles',
-                icon: <Users className="w-4 h-4 text-teal-400" />,
-                getData: () => team,
-              },
-              {
                 id: 'banners', label: 'Event Banners', desc: 'Promotional banners',
                 icon: <Megaphone className="w-4 h-4 text-indigo-400" />,
                 getData: () => banners,
@@ -3882,40 +3683,6 @@ export default function AdminPage() {
           </Modal>
         )}
 
-        {/* Ride Modal */}
-        {rideModal && (
-          <Modal title={rideModal.id ? "Edit Ride Ticket" : "Add Ride Ticket"} onClose={() => setRideModal(null)}>
-            <form onSubmit={saveRideTicket} className="space-y-4">
-              <div>
-                <label className={labelCls}>Ride Name</label>
-                <input type="text" required value={rideModal.name || ''} onChange={(e) => setRideModal({ ...rideModal, name: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Price (₹)</label>
-                <input type="number" required value={rideModal.price || ''} onChange={(e) => setRideModal({ ...rideModal, price: parseFloat(e.target.value) })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Price Unit</label>
-                <input type="text" value={rideModal.unit || ''} onChange={(e) => setRideModal({ ...rideModal, unit: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Description</label>
-                <input type="text" value={rideModal.description || ''} onChange={(e) => setRideModal({ ...rideModal, description: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Badge Tag</label>
-                <input type="text" value={rideModal.badge || ''} onChange={(e) => setRideModal({ ...rideModal, badge: e.target.value })} className={inputCls} />
-              </div>
-              <ImageUploader
-                label="Ride Ticket Graphic / Image (URL or Upload File)"
-                value={rideModal.image || ''}
-                onChange={(val) => setRideModal({ ...rideModal, image: val })}
-              />
-              <button type="submit" className={btnPrimary}>Save Ride Ticket</button>
-            </form>
-          </Modal>
-        )}
-
         {/* FAQ Modal */}
         {faqModal && (
           <Modal title={faqModal.id ? "Edit FAQ" : "Add FAQ"} onClose={() => setFaqModal(null)}>
@@ -3929,32 +3696,6 @@ export default function AdminPage() {
                 <textarea rows={3} required value={faqModal.answer || ''} onChange={(e) => setFaqModal({ ...faqModal, answer: e.target.value })} className="w-full px-3 py-2 text-xs bg-dark-950 border border-white/10 rounded-xl text-white focus:outline-none" />
               </div>
               <button type="submit" className={btnPrimary}>Save FAQ</button>
-            </form>
-          </Modal>
-        )}
-
-        {/* Team Modal */}
-        {teamModal && (
-          <Modal title={teamModal.id ? "Edit Member" : "Add Member"} onClose={() => setTeamModal(null)}>
-            <form onSubmit={saveTeamMemberItem} className="space-y-4">
-              <div>
-                <label className={labelCls}>Full Name</label>
-                <input type="text" required value={teamModal.name || ''} onChange={(e) => setTeamModal({ ...teamModal, name: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Role / Designation</label>
-                <input type="text" required value={teamModal.role || ''} onChange={(e) => setTeamModal({ ...teamModal, role: e.target.value })} className={inputCls} />
-              </div>
-              <div>
-                <label className={labelCls}>Short Bio</label>
-                <input type="text" value={teamModal.bio || ''} onChange={(e) => setTeamModal({ ...teamModal, bio: e.target.value })} className={inputCls} />
-              </div>
-              <ImageUploader
-                label="Member Photo / Avatar (URL or Upload File)"
-                value={teamModal.image || ''}
-                onChange={(val) => setTeamModal({ ...teamModal, image: val })}
-              />
-              <button type="submit" className={btnPrimary}>Save Team Member</button>
             </form>
           </Modal>
         )}

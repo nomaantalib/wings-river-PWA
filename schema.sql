@@ -5,10 +5,8 @@
 PRAGMA foreign_keys = OFF;
 DROP TABLE IF EXISTS audit_logs;
 DROP TABLE IF EXISTS settings;
-DROP TABLE IF EXISTS team_members;
 DROP TABLE IF EXISTS faqs;
 DROP TABLE IF EXISTS offers_discounts;
-DROP TABLE IF EXISTS water_sports;
 DROP TABLE IF EXISTS event_banners;
 DROP TABLE IF EXISTS contact_messages;
 DROP TABLE IF EXISTS reviews;
@@ -235,24 +233,6 @@ CREATE TABLE IF NOT EXISTS event_banners (
 
 CREATE INDEX IF NOT EXISTS idx_banners_deleted ON event_banners(is_deleted);
 
--- 12. Water Sports / Rides Table
-CREATE TABLE IF NOT EXISTS water_sports (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  category TEXT DEFAULT 'Water Sports',
-  price REAL DEFAULT 0.0,
-  unit TEXT DEFAULT 'Per Person',
-  description TEXT DEFAULT '',
-  badge TEXT DEFAULT '',
-  image TEXT DEFAULT '',
-  emoji TEXT DEFAULT '🏄',
-  display_order INTEGER DEFAULT 0,
-  is_deleted INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_rides_deleted ON water_sports(is_deleted);
-
 -- 13. Offers & Discounts Table
 CREATE TABLE IF NOT EXISTS offers_discounts (
   id TEXT PRIMARY KEY,
@@ -280,20 +260,6 @@ CREATE TABLE IF NOT EXISTS faqs (
 );
 
 CREATE INDEX IF NOT EXISTS idx_faqs_deleted ON faqs(is_deleted);
-
--- 15. Team Members Table
-CREATE TABLE IF NOT EXISTS team_members (
-  id TEXT PRIMARY KEY,
-  name TEXT NOT NULL,
-  role TEXT NOT NULL,
-  bio TEXT DEFAULT '',
-  image TEXT DEFAULT '',
-  display_order INTEGER DEFAULT 0,
-  is_deleted INTEGER DEFAULT 0,
-  created_at TEXT DEFAULT CURRENT_TIMESTAMP
-);
-
-CREATE INDEX IF NOT EXISTS idx_team_deleted ON team_members(is_deleted);
 
 -- 16. Site Settings Table (Key-Value)
 CREATE TABLE IF NOT EXISTS settings (

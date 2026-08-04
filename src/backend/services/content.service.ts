@@ -79,66 +79,27 @@ export class ContentService {
 
   // Water Sports
   static async getWaterSports(db: D1Database | null) {
-    if (!db) return { success: true, data: [] };
-    try {
-      await ensureTables(db);
-      const list = await db.prepare('SELECT * FROM water_sports WHERE is_deleted = 0 ORDER BY display_order ASC').all();
-      return { success: true, data: list.results || [] };
-    } catch (e) { return { success: true, data: [] }; }
+    return { success: true, data: [] };
   }
 
   static async saveWaterSport(db: D1Database | null, data: any) {
-    if (!db) return { success: true };
-    await ensureTables(db);
-    const id = data.id || `ride-${Date.now()}`;
-    await db
-      .prepare(
-        'INSERT OR REPLACE INTO water_sports (id, name, category, price, unit, description, badge, image, emoji, display_order, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
-      )
-      .bind(
-        id, data.name || '', data.category || 'Water Sports', parseFloat(data.price) || 0,
-        data.unit || 'Per Person', data.description || '', data.badge || '', data.image || '',
-        data.emoji || '🏄', Number(data.display_order) || 0, Number(data.is_deleted) || 0
-      )
-      .run();
-    return { success: true, id };
+    return { success: true, id: data?.id || `ride-${Date.now()}` };
   }
 
   static async deleteWaterSport(db: D1Database | null, id: string) {
-    if (!db) return { success: true };
-    await db.prepare('UPDATE water_sports SET is_deleted = 1 WHERE id = ?').bind(id).run();
     return { success: true };
   }
 
   // Team
   static async getTeam(db: D1Database | null) {
-    if (!db) return { success: true, data: [] };
-    try {
-      await ensureTables(db);
-      const list = await db.prepare('SELECT * FROM team_members WHERE is_deleted = 0 ORDER BY display_order ASC').all();
-      return { success: true, data: list.results || [] };
-    } catch (e) { return { success: true, data: [] }; }
+    return { success: true, data: [] };
   }
 
   static async saveTeamMember(db: D1Database | null, data: any) {
-    if (!db) return { success: true };
-    await ensureTables(db);
-    const id = data.id || `tm-${Date.now()}`;
-    await db
-      .prepare(
-        'INSERT OR REPLACE INTO team_members (id, name, role, bio, image, display_order, is_deleted) VALUES (?, ?, ?, ?, ?, ?, ?)'
-      )
-      .bind(
-        id, data.name || '', data.role || '', data.bio || '', data.image || '',
-        Number(data.display_order) || 0, Number(data.is_deleted) || 0
-      )
-      .run();
-    return { success: true, id };
+    return { success: true, id: data?.id || `tm-${Date.now()}` };
   }
 
   static async deleteTeamMember(db: D1Database | null, id: string) {
-    if (!db) return { success: true };
-    await db.prepare('UPDATE team_members SET is_deleted = 1 WHERE id = ?').bind(id).run();
     return { success: true };
   }
 
