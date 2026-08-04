@@ -105,7 +105,7 @@ export default function GallerySection() {
                         <img
                           src={optimizedUrl}
                           alt={item.title}
-                          loading={isActive ? 'eager' : 'lazy'}
+                          decoding="async"
                           fetchPriority={isActive ? 'high' : 'low'}
                           className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105"
                         />

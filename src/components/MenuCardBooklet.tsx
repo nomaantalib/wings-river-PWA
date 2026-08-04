@@ -223,7 +223,7 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
                   }`}
                   title={isAutoFlipping ? 'Pause Auto Flip' : 'Start Auto Flip'}
                 >
-                  {isAutoFlipping ? <Pause className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto" /> : <Play className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto ml-[1px]" />}
+                  {isAutoFlipping ? <Pause className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto" /> : <Play className="w-3.5 h-3.5 sm:w-[15px] sm:h-[15px] shrink-0 m-auto" />}
                 </button>
 
                 {/* Zoom Fullscreen - ICON ONLY */}

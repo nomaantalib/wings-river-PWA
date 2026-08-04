@@ -49,7 +49,7 @@ export default function BackgroundVideo() {
         autoPlay
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         onEnded={handleVideoEnded}
         style={{
           opacity: isTransitioning ? 0 : 1,
@@ -71,7 +71,7 @@ export default function BackgroundVideo() {
         key={`next-${nextVideoIndex}`}
         muted
         playsInline
-        preload="auto"
+        preload="metadata"
         style={{ display: 'none' }}
       >
         <source src={VIDEOS[nextVideoIndex]} type="video/mp4" />
