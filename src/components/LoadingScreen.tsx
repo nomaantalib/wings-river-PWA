@@ -12,6 +12,7 @@ export default function LoadingScreen() {
     return true;
   });
 
+  const [iconVisible, setIconVisible] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
 
   useEffect(() => {
@@ -20,10 +21,14 @@ export default function LoadingScreen() {
     const hasLaunched = sessionStorage.getItem('wings_pwa_launched_session');
 
     if (!hasLaunched) {
-      // Mark session as launched
       sessionStorage.setItem('wings_pwa_launched_session', 'true');
 
-      // 1.6s display -> 450ms smooth fade out -> Total ~2.0s
+      // Trigger 1-second opacity 0 -> 1 fade-in effect on mount
+      const fadeInTimer = setTimeout(() => {
+        setIconVisible(true);
+      }, 50);
+
+      // Start fade out at 1.6s -> unmount at 2.05s
       const fadeTimer = setTimeout(() => {
         setIsFadingOut(true);
       }, 1600);
@@ -33,6 +38,7 @@ export default function LoadingScreen() {
       }, 2050);
 
       return () => {
+        clearTimeout(fadeInTimer);
         clearTimeout(fadeTimer);
         clearTimeout(unmountTimer);
       };
@@ -49,7 +55,11 @@ export default function LoadingScreen() {
         isFadingOut ? 'opacity-0' : 'opacity-100'
       }`}
     >
-      <div className="flex flex-col items-center justify-center space-y-4 animate-fade-in scale-100 transition-transform duration-700">
+      <div
+        className={`flex flex-col items-center justify-center space-y-4 transition-all duration-1000 ease-out transform ${
+          iconVisible ? 'opacity-100 scale-100 translate-y-0' : 'opacity-0 scale-90 translate-y-2'
+        }`}
+      >
         {/* Glow Ring Behind Logo */}
         <div className="relative">
           <div className="absolute -inset-5 rounded-full bg-[#F5D061]/25 blur-2xl animate-pulse" />
