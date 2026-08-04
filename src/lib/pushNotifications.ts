@@ -221,7 +221,14 @@ export async function notifyBookingCancelled(opts: {
   });
 }
 
-// ── Auto-init on import (register SW silently) ────────────────────────────────
+// ── Auto-init on import (register SW silently & auto-request push permission without pings) ──
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   registerServiceWorker();
+  
+  // Auto-request push permission silently if status is default
+  if ('Notification' in window && Notification.permission === 'default') {
+    setTimeout(() => {
+      requestPushPermission().catch(() => {});
+    }, 3000);
+  }
 }

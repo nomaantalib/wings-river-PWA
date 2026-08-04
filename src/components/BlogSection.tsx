@@ -340,15 +340,15 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
 
             {/* Modal Content Scroll Area */}
             <div className="p-6 overflow-y-auto space-y-6 flex-1">
-              {/* Photo Slider */}
+              {/* Photo Slider (3:4 Aspect Ratio Container for Portrait/Collage Photos) */}
               {activeBlogImages.length > 0 && (
-                <div className="relative rounded-2xl overflow-hidden bg-black/60 border border-[#F5D061]/30 group">
-                  <div className="relative h-64 sm:h-96 flex items-center justify-center overflow-hidden">
+                <div className="relative w-full max-w-sm sm:max-w-md mx-auto aspect-[3/4] rounded-3xl overflow-hidden bg-[#0A0D12] border border-[#F5D061]/35 shadow-[0_20px_50px_rgba(0,0,0,0.8)] relative group my-2">
+                  <div className="w-full h-full flex items-center justify-center overflow-hidden">
                     <img
                       src={activeBlogImages[activeImageIndex]}
                       alt={activeBlog.title}
-                      className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${
-                        isTransitioning ? 'opacity-0' : 'opacity-100'
+                      className={`w-full h-full object-cover transition-all duration-500 ${
+                        isTransitioning ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
                       }`}
                     />
                   </div>
@@ -358,25 +358,30 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                     <>
                       <button
                         onClick={prevImage}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-[#F5D061] hover:bg-[#F5D061] hover:text-black transition"
+                        aria-label="Previous Image"
+                        className="absolute left-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/75 text-[#F5D061] border border-[#F5D061]/40 hover:bg-[#F5D061] hover:text-black transition-all shadow-xl hover:scale-110 active:scale-95 z-20"
                       >
-                        <ChevronLeft className="w-5 h-5" />
+                        <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
                       <button
                         onClick={nextImage}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/70 text-[#F5D061] hover:bg-[#F5D061] hover:text-black transition"
+                        aria-label="Next Image"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-full bg-black/75 text-[#F5D061] border border-[#F5D061]/40 hover:bg-[#F5D061] hover:text-black transition-all shadow-xl hover:scale-110 active:scale-95 z-20"
                       >
-                        <ChevronRight className="w-5 h-5" />
+                        <ChevronRight className="w-4 h-4 sm:w-5 sm:h-5" />
                       </button>
 
-                      {/* Dots */}
-                      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 flex items-center space-x-1.5 px-3 py-1 rounded-full bg-black/60 backdrop-blur-md">
+                      {/* Compact Aesthetic Dots Indicator Pill */}
+                      <div className="absolute bottom-2.5 left-1/2 -translate-x-1/2 flex items-center space-x-1 px-2 py-0.5 rounded-full bg-black/75 backdrop-blur-md border border-[#F5D061]/30 shadow-lg z-20">
                         {activeBlogImages.map((_, i) => (
                           <button
                             key={i}
                             onClick={() => changeSlide(i)}
-                            className={`w-2 h-2 rounded-full transition-all ${
-                              i === activeImageIndex ? 'bg-[#F5D061] w-5' : 'bg-white/40'
+                            aria-label={`Go to slide ${i + 1}`}
+                            className={`h-1.5 rounded-full transition-all duration-300 ${
+                              i === activeImageIndex
+                                ? 'bg-[#F5D061] w-3.5 shadow-[0_0_8px_rgba(245,208,97,0.9)]'
+                                : 'bg-white/30 w-1.5 hover:bg-white/60'
                             }`}
                           />
                         ))}
@@ -386,21 +391,21 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
                 </div>
               )}
 
-              {/* Blog Title & Meta */}
-              <div>
-                <h2 className="font-serif font-extrabold text-2xl sm:text-3xl text-[#F8E7A1] mb-2">
+              {/* Aesthetic Blog Title & Meta Header */}
+              <div className="space-y-3 pt-2">
+                <h2 className="font-serif font-black text-2xl sm:text-3xl text-gradient bg-clip-text text-transparent bg-gradient-to-r from-[#FFF5D0] via-[#F5D061] to-[#E5B82C] leading-tight tracking-tight">
                   {activeBlog.title}
                 </h2>
-                <div className="flex flex-wrap items-center gap-4 text-xs text-[#D4C4A0]/70 font-mono border-b border-[#F5D061]/20 pb-4">
-                  <span className="flex items-center space-x-1">
+                <div className="flex flex-wrap items-center gap-3 text-xs text-[#D4C4A0]/80 font-mono border-b border-[#F5D061]/20 pb-4">
+                  <span className="flex items-center space-x-1.5 bg-[#F5D061]/10 border border-[#F5D061]/30 px-2.5 py-1 rounded-full text-[#F5D061] font-bold">
                     <User className="w-3.5 h-3.5 text-[#F5D061]" />
                     <span>{activeBlog.author}</span>
                   </span>
-                  <span className="flex items-center space-x-1">
+                  <span className="flex items-center space-x-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-[#D4C4A0]">
                     <Calendar className="w-3.5 h-3.5 text-[#F5D061]" />
                     <span>{formatBlogDate(activeBlog.created_at)}</span>
                   </span>
-                  <span className="flex items-center space-x-1">
+                  <span className="flex items-center space-x-1.5 bg-white/5 border border-white/10 px-2.5 py-1 rounded-full text-[#98A886]">
                     <Clock className="w-3.5 h-3.5 text-[#98A886]" />
                     <span>{activeBlog.read_time}</span>
                   </span>
@@ -408,24 +413,23 @@ export default function BlogSection({ onOpenBooking }: BlogSectionProps = {}) {
               </div>
 
               {/* Full Blog Content Paragraphs */}
-              <div className="font-sans text-sm sm:text-base text-[#D4C4A0] leading-relaxed space-y-4 whitespace-pre-line">
+              <div className="font-sans text-sm sm:text-base text-[#E2D6C0] leading-relaxed space-y-4 whitespace-pre-line bg-white/[0.03] p-5 sm:p-6 rounded-2xl border border-white/10 shadow-inner">
                 {activeBlog.content}
               </div>
 
-              {/* Bottom CTA */}
-              <div className="p-5 rounded-2xl bg-[#181B22] border border-[#F5D061]/30 flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Bottom Aesthetic CTA Card */}
+              <div className="p-5 sm:p-6 rounded-2xl bg-gradient-to-r from-[#171B24] via-[#1A1E29] to-[#141720] border border-[#F5D061]/40 flex flex-col sm:flex-row items-center justify-between gap-4 shadow-xl">
                 <div>
-                  <h4 className="font-serif font-bold text-base text-[#F8E7A1]">Experience Wings River Café</h4>
-                  <p className="text-xs text-[#D4C4A0]/80">Reserve your Gomti riverfront deck table or party canopy today.</p>
+                  <h4 className="font-serif font-black text-lg text-[#F8E7A1]">Experience Wings River Café</h4>
+                  <p className="text-xs text-[#D4C4A0]/80 mt-0.5">Reserve your Gomti riverfront deck table or party canopy today.</p>
                 </div>
                 <a
                   href="#floor-map"
                   onClick={() => closeBlogReader()}
-                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#F5D061] to-[#E5B82C] text-[#120B08] font-extrabold text-xs uppercase tracking-wider shadow-lg hover:scale-105 transition"
+                  className="px-6 py-3 rounded-xl bg-gradient-to-r from-[#F5D061] via-[#E5B82C] to-[#D4AF37] text-[#120B08] font-black text-xs uppercase tracking-wider shadow-[0_4px_16px_rgba(245,208,97,0.35)] hover:scale-105 active:scale-95 transition-all shrink-0"
                 >
                   Reserve Table Now
                 </a>
-
               </div>
             </div>
           </div>
