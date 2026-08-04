@@ -5,9 +5,14 @@ import { getStoredGalleryItems, GalleryItem } from '@/lib/db';
 import { getCloudinaryOptimizedUrl } from '@/controllers/StorageController';
 import { X, ZoomIn, Camera, Play, Pause, ChevronLeft, ChevronRight, Info } from 'lucide-react';
 
+import { useModalHistory } from '@/hooks/useModalHistory';
+
 export default function GallerySection() {
   const [items, setItems] = useState<GalleryItem[]>([]);
   const [activePhoto, setActivePhoto] = useState<GalleryItem | null>(null);
+
+  // Bind mobile hardware back button to close photo lightbox
+  useModalHistory(!!activePhoto, () => setActivePhoto(null), 'gallery_photo');
 
   // Carousel States
   const [carouselIndex, setCarouselIndex] = useState(0);

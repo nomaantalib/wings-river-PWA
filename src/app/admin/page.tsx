@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
+import { useModalHistory } from '@/hooks/useModalHistory';
 import { realtimeClient } from '@/lib/realtimeClient';
 import FloorPlanBuilder from '@/components/FloorPlanBuilder';
 import {
@@ -569,6 +570,22 @@ export default function AdminPage() {
   const [blogPreviewModal, setBlogPreviewModal] = useState<BlogPost | null>(null);
 
   const [deleteTarget, setDeleteTarget] = useState<{ label: string; action: () => void } | null>(null);
+
+  // Bind mobile hardware back button to close open admin modals
+  useModalHistory(!!categoryModal, () => setCategoryModal(null), 'admin_category_modal');
+  useModalHistory(!!menuModal, () => setMenuModal(null), 'admin_menu_modal');
+  useModalHistory(!!blogModal, () => setBlogModal(null), 'admin_blog_modal');
+  useModalHistory(!!galleryModal, () => setGalleryModal(null), 'admin_gallery_modal');
+  useModalHistory(!!bannerModal, () => setBannerModal(null), 'admin_banner_modal');
+  useModalHistory(!!offerModal, () => setOfferModal(null), 'admin_offer_modal');
+  useModalHistory(!!faqModal, () => setFaqModal(null), 'admin_faq_modal');
+  useModalHistory(!!pageModal, () => setPageModal(null), 'admin_page_modal');
+  useModalHistory(!!mediaModal, () => setMediaModal(null), 'admin_media_modal');
+  useModalHistory(!!menuPageModal, () => setMenuPageModal(null), 'admin_menupage_modal');
+  useModalHistory(!!promoPageModal, () => setPromoPageModal(null), 'admin_promopage_modal');
+  useModalHistory(!!pagePreviewModal, () => setPagePreviewModal(null), 'admin_page_preview_modal');
+  useModalHistory(!!blogPreviewModal, () => setBlogPreviewModal(null), 'admin_blog_preview_modal');
+  useModalHistory(!!deleteTarget, () => setDeleteTarget(null), 'admin_delete_modal');
 
   // CRM Users, Revenue & Heatmap States
   const [registeredUsersList, setRegisteredUsersList] = useState<RegisteredUser[]>([]);

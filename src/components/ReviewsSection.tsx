@@ -5,10 +5,15 @@ import { ChevronLeft, ChevronRight, MessageSquarePlus, Quote } from 'lucide-reac
 import React, { useEffect, useState } from 'react';
 
 
+import { useModalHistory } from '@/hooks/useModalHistory';
+
 export default function ReviewsSection() {
   const [reviews, setReviews] = useState<Review[]>(INITIAL_REVIEWS);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [newReviewForm, setNewReviewForm] = useState(false);
+
+  // Bind mobile hardware back button to close review form
+  useModalHistory(newReviewForm, () => setNewReviewForm(false), 'review_modal');
   const [nameInput, setNameInput] = useState('');
   const [ratingInput, setRatingInput] = useState(5);
   const [commentInput, setCommentInput] = useState('');

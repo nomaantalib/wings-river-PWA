@@ -14,6 +14,8 @@ import {
 import { MenuItem } from '@/models/MenuModel';
 import { openRazorpayCheckout } from '@/lib/razorpay';
 
+import { useModalHistory } from '@/hooks/useModalHistory';
+
 export default function TableClientView({ tableId }: { tableId: string }) {
   const router = useRouter();
 
@@ -43,6 +45,10 @@ export default function TableClientView({ tableId }: { tableId: string }) {
   const [customerName, setCustomerName] = useState('');
   const [customerPhone, setCustomerPhone] = useState('');
   const [isCheckoutOpen, setIsCheckoutOpen] = useState(false);
+
+  // Bind mobile hardware back button to close food item modal and checkout drawer
+  useModalHistory(!!selectedFoodItem, () => setSelectedFoodItem(null), 'food_item_modal');
+  useModalHistory(isCheckoutOpen, () => setIsCheckoutOpen(false), 'checkout_drawer');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderStatus, setOrderStatus] = useState<'none' | 'received' | 'accepted' | 'preparing' | 'ready' | 'served' | 'completed'>('none');
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);

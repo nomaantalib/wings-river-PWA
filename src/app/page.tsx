@@ -37,6 +37,8 @@ import { initRealtimeBookingNotifier } from '@/lib/firebaseMessaging';
 // Push Notification: register SW silently on page load
 import '@/lib/pushNotifications';
 
+import { useModalHistory } from '@/hooks/useModalHistory';
+
 export default function Home() {
   const router = useRouter();
   const [isBookingOpen, setIsBookingOpen] = useState(false);
@@ -49,6 +51,12 @@ export default function Home() {
   const [syncKey, setSyncKey] = useState(0);
   const [pendingAction, setPendingAction] = useState<(() => void) | null>(null);
   const [showFloorMap, setShowFloorMap] = useState(false);
+
+  // Bind mobile/browser hardware back button to close open modals
+  useModalHistory(isBookingOpen, () => setIsBookingOpen(false), 'booking_modal');
+  useModalHistory(isQROrderOpen, () => setIsQROrderOpen(false), 'qr_order_modal');
+  useModalHistory(isMyBookingsOpen, () => setIsMyBookingsOpen(false), 'my_bookings_modal');
+  useModalHistory(isAuthOpen, () => setIsAuthOpen(false), 'auth_modal');
 
   useEffect(() => {
     initRealtimeBookingNotifier();

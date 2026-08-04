@@ -6,6 +6,8 @@ import { ChevronLeft, ChevronRight, BookOpen, Download, Calendar, Maximize2, X, 
 // @ts-ignore
 import HTMLFlipBook from 'react-pageflip';
 
+import { useModalHistory } from '@/hooks/useModalHistory';
+
 const FlipBookComponent = HTMLFlipBook as any;
 
 interface MenuCardBookletProps {
@@ -17,6 +19,9 @@ export default function MenuCardBooklet({ onOpenBooking }: MenuCardBookletProps)
   const [prevPageIndex, setPrevPageIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [activeZoomImage, setActiveZoomImage] = useState<string | null>(null);
+
+  // Bind mobile back button to close booklet zoom overlay
+  useModalHistory(!!activeZoomImage, () => setActiveZoomImage(null), 'booklet_zoom');
   const [isAutoFlipping, setIsAutoFlipping] = useState(false);
   const [isHdMode, setIsHdMode] = useState(true);
   const [zoomScale, setZoomScale] = useState(1);
