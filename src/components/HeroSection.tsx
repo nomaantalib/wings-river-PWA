@@ -168,8 +168,8 @@ export default function HeroSection({ onOpenBooking, onOpenMyBookings }: HeroSec
           </div>
         </div>
 
-        {/* Horizontal Auto-sliding Carousel for Info Highlights with Faded Corner Edges (5% width reduced) */}
-        <div className="w-full max-w-[520px] mx-auto px-2 relative group">
+        {/* Horizontal Auto-sliding Carousel for Info Highlights with Faded Corner Edges (8% width reduced to 478px) */}
+        <div className="w-full max-w-[478px] mx-auto px-2 relative group">
           {/* Faded Left & Right Corner Edges overlay */}
           <div className="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-[#0B0C0E] to-transparent z-20 pointer-events-none" />
           <div className="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-[#0B0C0E] to-transparent z-20 pointer-events-none" />
